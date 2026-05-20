@@ -1,0 +1,14 @@
+.claude/settings.local.json
+.idea/
+.vscode/
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+Thumbs.db
+node_modules/
+.env
+.env.local
+dist/
+build/
+*.log

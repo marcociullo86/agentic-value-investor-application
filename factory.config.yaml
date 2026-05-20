@@ -1,0 +1,22 @@
+pattern_version: "2.8"
+topology: full-stack-agents
+code_path: ./src/
+stack_mode: auto
+
+routing:
+  be: agent
+  fe: agent
+  db: agent
+  qa: agent
+  infra: agent
+
+stack:
+  backend: ""
+  frontend: ""
+  database: ""
+  qa: ""
+
+vcs:
+  mode: monorepo
+  branch_strategy: shared
+  commit_coupling: float
