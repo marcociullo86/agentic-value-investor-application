@@ -1,0 +1,17 @@
+## Company Executives & Compensation
+
+### Company Executives API [Globe Flag]
+Retrieve detailed information on company executives (name, title, gender, year of birth).
+**Parameters:**
+- `symbol`* (string)
+- `active` (string): true
+
+### Executive Compensation API [USA Flag]
+Retrieve comprehensive compensation data (salaries, stock awards).
+**Parameters:**
+- `symbol`* (string)
+
+### Executive Compensation Benchmark API [USA Flag]
+Compare executive pay against peers.
+**Parameters:**
+- `year` (number)

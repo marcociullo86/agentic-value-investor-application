@@ -1,0 +1,688 @@
+# OpenAPI 3.1 contract — WebApp Value Investing
+# Riferimento: design_&_architecture/decisions/ADR-007-api-contract.md
+# Generato come SOURCE OF TRUTH del contratto; springdoc-openapi puo' rigenerarlo
+# dal codice. Vedi anche endpoints-overview.md per la mappa US -> endpoint.
+
+openapi: 3.1.0
+info:
+  title: WebApp Value Investing API
+  description: |
+    REST API per la WebApp Value Investing. Espone analisi quantitative Graham/Buffett
+    su titoli quotati USA + watchlist personale.
+    Contratto consumato dal frontend Next.js (SPA). Vedi overview architetturale in
+    `design_&_architecture/overview.md`.
+  version: "1.0.0-MVP"
+  contact:
+    name: Lead Architect
+servers:
+  - url: http://localhost:8080
+    description: dev locale
+  - url: https://api.example.com
+    description: prod (placeholder)
+
+tags:
+  - name: search
+    description: Ricerca e screener (EP-001)
+  - name: analysis
+    description: Analisi Rule Engine + valutazione (EP-003 + EP-004)
+  - name: financials
+    description: Dati di bilancio FMP-backed (EP-002)
+  - name: historical
+    description: Serie storiche per grafici (EP-005)
+  - name: moat
+    description: Checklist Moat qualitativa (EP-005)
+  - name: watchlist
+    description: Watchlist utente (EP-006)
+  - name: auth
+    description: Autenticazione (EP-006)
+  - name: ops
+    description: Operativi (override DCF, diagnostics)
+
+paths:
+  # ---------------- EP-001 search/screener ----------------
+  /api/search:
+    get:
+      tags: [search]
+      summary: Ricerca azienda per ticker/nome (US-001)
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema: { type: string, minLength: 1, maxLength: 60 }
+      responses:
+        '200':
+          description: Lista risultati (anche vuota se nessun match)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResultList'
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /api/search/{ticker}:
+    get:
+      tags: [search]
+      summary: Validazione esistenza ticker (US-001)
+      parameters:
+        - $ref: '#/components/parameters/Ticker'
+      responses:
+        '200':
+          description: Ticker esiste
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockProfile'
+        '404':
+          description: Ticker non trovato
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+
+  /api/screener:
+    get:
+      tags: [search]
+      summary: Screener parametrico (US-002)
+      parameters:
+        - name: marketCap
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [MICRO, SMALL, MID, LARGE, MEGA]
+          explode: true
+        - name: sector
+          in: query
+          required: false
+          description: Settori GICS (vedi [[vi-07-risoluzione-q002-q003]] §Criteri Q_003)
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - INFORMATION_TECHNOLOGY
+                - FINANCIALS
+                - HEALTH_CARE
+                - CONSUMER_DISCRETIONARY
+                - CONSUMER_STAPLES
+                - COMMUNICATION_SERVICES
+                - INDUSTRIALS
+                - ENERGY
+                - MATERIALS
+                - REAL_ESTATE
+                - UTILITIES
+          explode: true
+        - name: excludeHardToPredict
+          in: query
+          required: false
+          schema: { type: boolean, default: false }
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, default: 50, minimum: 1, maximum: 200 }
+        - name: cursor
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        '200':
+          description: Lista candidati
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScreenerResultPage'
+
+  # ---------------- EP-002 financials ----------------
+  /api/financials/{ticker}:
+    get:
+      tags: [financials]
+      summary: Dati di bilancio strutturati (US-004 + US-005 + US-006)
+      parameters:
+        - $ref: '#/components/parameters/Ticker'
+      responses:
+        '200':
+          description: Set bilancio decennale
+          headers:
+            X-Data-Snapshot-At:
+              schema: { type: string, format: date-time }
+            X-Data-Stale:
+              schema: { type: boolean }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinancialDataset'
+        '404':
+          description: Ticker non trovato
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '503':
+          description: FMP indisponibile e nessuna cache disponibile (US-006)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+
+  # ---------------- EP-003 + EP-004 analysis ----------------
+  /api/analysis/{ticker}:
+    get:
+      tags: [analysis]
+      summary: Verdetto Rule Engine completo (US-007..013, consumo US-014)
+      parameters:
+        - $ref: '#/components/parameters/Ticker'
+      responses:
+        '200':
+          description: Risultato Rule Engine
+          headers:
+            X-Data-Snapshot-At:
+              schema: { type: string, format: date-time }
+            X-Data-Stale:
+              schema: { type: boolean }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuleEngineResult'
+        '404':
+          description: Ticker non trovato
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '503':
+          description: Dati insufficienti per analisi e FMP non raggiungibile
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+
+  /api/dcf-overrides:
+    post:
+      tags: [ops]
+      summary: Forza un metodo DCF per (utente, ticker) (US-012)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DcfOverrideRequest'
+      responses:
+        '201':
+          description: Override creato/aggiornato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DcfOverride'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/dcf-overrides/{ticker}:
+    delete:
+      tags: [ops]
+      summary: Rimuove override DCF (US-012)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Ticker'
+      responses:
+        '204': { description: Rimosso }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  # ---------------- EP-005 historical + moat ----------------
+  /api/historical/{ticker}:
+    get:
+      tags: [historical]
+      summary: Serie storica ricavi e utile netto (US-015)
+      parameters:
+        - $ref: '#/components/parameters/Ticker'
+      responses:
+        '200':
+          description: Serie temporale fino a 10 anni
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HistoricalSeries'
+
+  /api/moat-checklist/{ticker}:
+    get:
+      tags: [moat]
+      summary: Checklist Moat dell'utente per il ticker (US-016)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Ticker'
+      responses:
+        '200':
+          description: Voci Moat (anche vuote)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MoatChecklist'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      tags: [moat]
+      summary: Upsert di una voce Moat (US-016)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Ticker'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MoatChecklistEntryRequest'
+      responses:
+        '200':
+          description: Voce salvata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MoatChecklistEntry'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  # ---------------- EP-006 auth + watchlist ----------------
+  /api/auth/register:
+    post:
+      tags: [auth]
+      summary: Registrazione utente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Utente creato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '409':
+          description: Email gia' registrata
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+
+  /api/auth/login:
+    post:
+      tags: [auth]
+      summary: Login con email/password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Token emessi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/auth/refresh:
+    post:
+      tags: [auth]
+      summary: Rinnova access token dal refresh
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: Nuovo access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/auth/logout:
+    post:
+      tags: [auth]
+      summary: Revoca il refresh token corrente
+      security:
+        - bearerAuth: []
+      responses:
+        '204': { description: Sessione chiusa }
+
+  /api/watchlist:
+    get:
+      tags: [watchlist]
+      summary: Watchlist personale (US-017)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Watchlist con items + ultima evaluate per ticker
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Watchlist'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/watchlist/items:
+    post:
+      tags: [watchlist]
+      summary: Aggiunge un ticker alla watchlist (US-017)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WatchlistItemRequest'
+      responses:
+        '200':
+          description: Aggiunto (o gia' presente — idempotente)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WatchlistItem'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404':
+          description: Ticker inesistente
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+
+  /api/watchlist/items/{ticker}:
+    delete:
+      tags: [watchlist]
+      summary: Rimuove ticker dalla watchlist (US-017)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Ticker'
+      responses:
+        '204': { description: Rimosso }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+components:
+  parameters:
+    Ticker:
+      name: ticker
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 10
+        pattern: '^[A-Za-z0-9.\-]{1,10}$'
+      description: Ticker simbolo (case-insensitive, normalizzato uppercase)
+
+  responses:
+    BadRequest:
+      description: Richiesta non valida
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Unauthorized:
+      description: Autenticazione mancante o invalida
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ProblemDetails:
+      type: object
+      properties:
+        type:    { type: string, format: uri }
+        title:   { type: string }
+        status:  { type: integer }
+        detail:  { type: string }
+        instance:{ type: string }
+
+    Signal:
+      type: string
+      enum: [GREEN, YELLOW, RED, INDETERMINATE, NOT_APPLICABLE, NOT_CALCULABLE]
+
+    StockProfile:
+      type: object
+      required: [ticker, companyName]
+      properties:
+        ticker:        { type: string }
+        companyName:   { type: string }
+        sector:        { type: string, nullable: true }
+        industry:      { type: string, nullable: true }
+        marketCapUsd:  { type: number, nullable: true }
+        currentPrice:  { type: number, nullable: true }
+        dataSnapshotAt: { type: string, format: date-time, nullable: true }
+
+    SearchResultItem:
+      type: object
+      required: [ticker, companyName]
+      properties:
+        ticker:       { type: string }
+        companyName:  { type: string }
+        sector:       { type: string, nullable: true }
+        marketCapUsd: { type: number, nullable: true }
+
+    SearchResultList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/SearchResultItem' }
+
+    ScreenerResultPage:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/SearchResultItem' }
+        nextCursor:
+          type: string
+          nullable: true
+
+    YearlyFinancials:
+      type: object
+      properties:
+        fiscalYear:                    { type: integer }
+        revenue:                       { type: number, nullable: true }
+        netIncome:                     { type: number, nullable: true }
+        eps:                           { type: number, nullable: true }
+        bookValuePerShare:             { type: number, nullable: true }
+        roe:                           { type: number, nullable: true }
+        roic:                          { type: number, nullable: true }
+        grossMargin:                   { type: number, nullable: true }
+        netMargin:                     { type: number, nullable: true }
+        currentRatio:                  { type: number, nullable: true }
+        longTermDebt:                  { type: number, nullable: true }
+        totalCapex:                    { type: number, nullable: true }
+        operatingCashFlow:             { type: number, nullable: true }
+        depreciationAndAmortization:   { type: number, nullable: true }
+        nonCashCharges:                { type: number, nullable: true }
+        grossPpe:                      { type: number, nullable: true }
+
+    FinancialDataset:
+      type: object
+      required: [ticker, years, dataSnapshotAt, isStale]
+      properties:
+        ticker:         { type: string }
+        years:
+          type: array
+          items: { $ref: '#/components/schemas/YearlyFinancials' }
+        dataSnapshotAt: { type: string, format: date-time }
+        isStale:        { type: boolean }
+        staleReason:    { type: string, nullable: true }
+
+    RuleSignal:
+      type: object
+      required: [ruleId, signal, threshold]
+      properties:
+        ruleId:        { type: string, example: "profitability.roe" }
+        signal:        { $ref: '#/components/schemas/Signal' }
+        observedValue: { type: number, nullable: true }
+        threshold:     { type: string }
+        rationale:     { type: string }
+
+    DcfMethod:
+      type: string
+      enum: [GREENWALD, FCF_FALLBACK, NOT_APPLICABLE]
+
+    RuleEngineResult:
+      type: object
+      required: [ticker, evaluatedAt, signals, mosSignal, dataSnapshotAt]
+      properties:
+        ticker:                  { type: string }
+        evaluatedAt:             { type: string, format: date-time }
+        signals:
+          type: array
+          items: { $ref: '#/components/schemas/RuleSignal' }
+        grahamNumber:            { type: number, nullable: true }
+        dcfIntrinsicValue:       { type: number, nullable: true }
+        dcfMethod:               { $ref: '#/components/schemas/DcfMethod' }
+        mosSignal:               { $ref: '#/components/schemas/Signal' }
+        currentPriceAtEval:      { type: number, nullable: true }
+        dataSnapshotAt:          { type: string, format: date-time }
+        isStale:                 { type: boolean }
+
+    DcfOverrideRequest:
+      type: object
+      required: [ticker, forcedMethod]
+      properties:
+        ticker:        { type: string }
+        forcedMethod:
+          type: string
+          enum: [GREENWALD, FCF_FALLBACK]
+
+    DcfOverride:
+      type: object
+      required: [ticker, forcedMethod, createdAt]
+      properties:
+        ticker:        { type: string }
+        forcedMethod:
+          type: string
+          enum: [GREENWALD, FCF_FALLBACK]
+        createdAt:     { type: string, format: date-time }
+
+    HistoricalSeriesPoint:
+      type: object
+      properties:
+        fiscalYear: { type: integer }
+        revenue:    { type: number, nullable: true }
+        netIncome:  { type: number, nullable: true }
+        isMissing:  { type: boolean }
+
+    HistoricalSeries:
+      type: object
+      required: [ticker, points]
+      properties:
+        ticker: { type: string }
+        points:
+          type: array
+          items: { $ref: '#/components/schemas/HistoricalSeriesPoint' }
+        dataSnapshotAt: { type: string, format: date-time }
+
+    MoatType:
+      type: string
+      enum: [INTANGIBLE_ASSETS, SWITCHING_COSTS, NETWORK_EFFECT, COST_ADVANTAGE]
+
+    MoatStatus:
+      type: string
+      enum: [PRESENT, PARTIAL, ABSENT]
+
+    MoatChecklistEntry:
+      type: object
+      required: [moatType, status, updatedAt]
+      properties:
+        moatType:  { $ref: '#/components/schemas/MoatType' }
+        status:    { $ref: '#/components/schemas/MoatStatus' }
+        note:      { type: string, nullable: true }
+        updatedAt: { type: string, format: date-time }
+
+    MoatChecklistEntryRequest:
+      type: object
+      required: [moatType, status]
+      properties:
+        moatType: { $ref: '#/components/schemas/MoatType' }
+        status:   { $ref: '#/components/schemas/MoatStatus' }
+        note:     { type: string, nullable: true }
+
+    MoatChecklist:
+      type: object
+      required: [ticker, entries]
+      properties:
+        ticker:  { type: string }
+        entries:
+          type: array
+          items: { $ref: '#/components/schemas/MoatChecklistEntry' }
+
+    RegisterRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:       { type: string, format: email }
+        password:    { type: string, minLength: 12 }
+        displayName: { type: string, nullable: true }
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:    { type: string, format: email }
+        password: { type: string }
+
+    RefreshRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken: { type: string }
+
+    TokenPair:
+      type: object
+      required: [accessToken, refreshToken, expiresInSeconds]
+      properties:
+        accessToken:      { type: string }
+        refreshToken:     { type: string }
+        expiresInSeconds: { type: integer }
+
+    UserProfile:
+      type: object
+      required: [id, email]
+      properties:
+        id:          { type: string, format: uuid }
+        email:       { type: string }
+        displayName: { type: string, nullable: true }
+        createdAt:   { type: string, format: date-time }
+
+    WatchlistItemRequest:
+      type: object
+      required: [ticker]
+      properties:
+        ticker: { type: string }
+
+    WatchlistItem:
+      type: object
+      required: [ticker, addedAt]
+      properties:
+        ticker:           { type: string }
+        companyName:      { type: string, nullable: true }
+        sector:           { type: string, nullable: true }
+        addedAt:          { type: string, format: date-time }
+        lastEvaluation:
+          $ref: '#/components/schemas/RuleEngineResult'
+
+    Watchlist:
+      type: object
+      required: [id, name, items]
+      properties:
+        id:        { type: string, format: uuid }
+        name:      { type: string }
+        isDefault: { type: boolean }
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/WatchlistItem' }

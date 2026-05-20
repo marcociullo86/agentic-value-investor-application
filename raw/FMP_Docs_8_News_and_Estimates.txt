@@ -1,0 +1,26 @@
+## News, Dividends, Earnings & Analyst Estimates
+
+### Earnings, Dividends, Splits APIs
+Access historical and upcoming corporate actions.
+**Parameters:**
+- `symbol`* (string), `from` (date), `to` (date)
+
+### Stock News API
+Fetch the latest news articles related to specific tickers.
+**Parameters:**
+- `tickers` (string), `limit` (number)
+
+### Analyst Estimates & Upgrades/Downgrades
+Access Wall Street analyst expectations and ratings.
+**Parameters:**
+- `symbol`* (string)
+
+### SEC Filings API
+Direct links and parsed data for forms like 10-K, 10-Q, 8-K.
+**Parameters:**
+- `symbol`* (string), `type` (string)
+
+### ESG API
+Environmental, Social, and Governance scoring data.
+**Parameters:**
+- `symbol`* (string)

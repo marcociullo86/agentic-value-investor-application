@@ -1,0 +1,44 @@
+## Company Information
+
+### Company Profile Data API & Profile by CIK API
+Access detailed company profile data (market cap, stock price, industry, etc.).
+**Parameters:**
+- `symbol`* or `cik`* (string)
+
+### Company Notes API [USA Flag]
+Retrieve detailed information about company-issued notes.
+**Parameters:**
+- `symbol`* (string)
+
+### Stock Peer Comparison API [Globe Flag]
+Identify and compare companies within the same sector and market capitalization range.
+**Parameters:**
+- `symbol`* (string)
+
+### Delisted Companies API [USA Flag]
+List of companies that have been delisted from US exchanges.
+**Parameters:**
+- `page` (number), `limit` (number)
+
+### Company Employee Count & Historical Count API [USA Flag]
+Retrieve detailed workforce information and historical employee data.
+**Parameters:**
+- `symbol`* (string), `limit` (number)
+
+### Company Market Cap APIs (Current, Batch, Historical)
+Retrieve market capitalization data.
+**Parameters:**
+- `symbol`* or `symbols`* (string)
+- `limit`, `from`, `to` (for historical)
+
+### Company Share Float & Liquidity API [Globe Flag]
+Access the total number of publicly traded shares, free float, and outstanding shares.
+**Parameters:**
+- `symbol`* (string) (Single)
+- `limit`, `page` (All Shares)
+
+### Mergers & Acquisitions APIs (Latest & Search) [USA Flag]
+Access data on M&A activity.
+**Parameters:**
+- `page`, `limit` (Latest)
+- `name`* (Search)

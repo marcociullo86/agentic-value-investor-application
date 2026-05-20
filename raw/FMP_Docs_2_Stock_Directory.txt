@@ -1,0 +1,26 @@
+## Stock Directory
+
+### Company / Financial Statement Symbols List API [Globe Flag]
+Retrieve a comprehensive list of financial symbols and available financial statements.
+No specific parameters required.
+
+### CIK List API [USA Flag]
+Access a comprehensive database of CIK numbers.
+**Parameters:**
+- `page` (number): Example 0
+- `limit` (number): Max 10000
+
+### Symbol Changes List API [USA Flag]
+Stay informed about the latest stock symbol changes (mergers, acquisitions, splits).
+**Parameters:**
+- `invalid` (string/boolean): false
+- `limit` (number)
+
+### ETF Symbol Search API & Actively Trading List API [Globe Flag]
+List all actively trading companies and financial instruments or find ETF names.
+
+### Earnings Transcript List API [USA Flag]
+Access available earnings transcripts for companies.
+
+### Available Exchanges, Sectors, Industries, Countries APIs
+Complete lists of supported stock exchanges, industry sectors, industries, and countries where stock symbols are available.

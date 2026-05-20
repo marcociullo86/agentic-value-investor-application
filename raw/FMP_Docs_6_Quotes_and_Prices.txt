@@ -1,0 +1,21 @@
+## Quotes
+
+### Real-time, Short, Premarket, Aftermarket Quote APIs
+Access various types of real-time quotes.
+**Parameters:**
+- `symbol`* (string)
+
+### Stock Price Change API
+Track stock price fluctuations in real-time over periods.
+**Parameters:**
+- `symbol`* (string)
+
+### Batch Quote APIs (Standard, Short, Aftermarket Trade/Quote)
+Retrieve multiple real-time stock quotes in a single request.
+**Parameters:**
+- `symbols`* (string): e.g. AAPL,MSFT
+
+### Crypto, Forex, Index Quotes APIs
+Real-time quotes for non-stock assets.
+**Parameters:**
+- `short` (boolean)

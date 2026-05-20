@@ -1,0 +1,43 @@
+# Free Stock Market API and Financial Statements API | FMP
+
+## Authorization
+All API requests must be authorized using an API key.
+- **Header Authorization:** Include your API key in the request header as: `apikey: YOUR_API_KEY`
+- **URL Query Authorization:** Append `?apikey=YOUR_API_KEY` at the end of every request.
+
+## Company Search
+
+### Stock Symbol Search API [Globe Flag]
+Easily find the ticker symbol of any stock.
+**Parameters:**
+- `query`* (string): Example 'AAPL'
+- `limit` (number): Example 50
+- `exchange` (string): Example 'NASDAQ'
+
+### Company Name Search API [Globe Flag]
+Search for ticker symbols, company names, and exchange details.
+**Parameters:**
+- `query`* (string): Example 'AA'
+- `limit` (number): Example 50
+- `exchange` (string): Example 'NASDAQ'
+
+### CIK API [USA Flag]
+Easily retrieve the Central Index Key (CIK) for publicly traded companies.
+**Parameters:**
+- `cik`* (string): Example '320193'
+- `limit` (number): Example 50
+
+### CUSIP API & ISIN API [Globe Flag]
+Easily search and retrieve financial securities information by CUSIP or ISIN.
+**Parameters:**
+- `cusip`* or `isin`* (string)
+
+### Stock Screener API [Globe Flag]
+Discover stocks that align with your investment strategy.
+**Parameters:**
+- `marketCapMoreThan`, `marketCapLowerThan`, `sector`, `industry`, `betaMoreThan`, `betaLowerThan`, `priceMoreThan`, `priceLowerThan`, `dividendMoreThan`, `dividendLowerThan`, `volumeMoreThan`, `volumeLowerThan`, `exchange`, `country`, `isEtf`, `isFund`, `isActivelyTrading`, `limit`, `includeAllShareClasses`.
+
+### Exchange Variants API [Globe Flag]
+Search across multiple public exchanges to find where a given stock symbol is listed.
+**Parameters:**
+- `symbol`* (string): Example 'AAPL'
