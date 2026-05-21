@@ -14,6 +14,7 @@ import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.nio.file.Path
+import java.util.Locale
 
 /**
  * Contract test: runtime springdoc OpenAPI vs design_&_architecture/api/openapi.yaml (TSK-037).
@@ -72,7 +73,7 @@ class OpenApiContractIT {
     fun `runtime API paths must not exceed canonical contract`() {
         val canonicalDoc = OpenApiContractSupport.loadCanonicalOpenApi(Path.of(canonicalOpenApiPath))
         val canonicalPaths = OpenApiContractSupport.pathOperations(canonicalDoc.get("paths")).keys
-        val runtimePaths = loadRuntimePaths().keys
+        val runtimePaths = OpenApiContractSupport.runtimePathKeys(openAPIService)
 
         val undeclared = OpenApiContractValidator.findUndeclaredRuntimePaths(canonicalPaths, runtimePaths)
         assertThat(undeclared)
@@ -84,9 +85,11 @@ class OpenApiContractIT {
 
     @Test
     fun `implemented response schemas are present in runtime components`() {
-        val runtimeDoc = loadRuntimeDocument()
-        val runtimePaths = OpenApiContractSupport.pathOperations(runtimeDoc.get("paths"))
-        val runtimeSchemas = OpenApiContractSupport.schemaNames(runtimeDoc.get("components"))
+        val runtimeOpenApi = openAPIService.build(Locale.ENGLISH)
+        val runtimePaths = OpenApiContractSupport.pathOperationsFromOpenApi(runtimeOpenApi)
+        val runtimeSchemas = OpenApiContractSupport.schemaNames(
+            OpenApiContractSupport.buildRuntimeOpenApi(openAPIService).get("components"),
+        )
 
         val missing = OpenApiContractValidator.findMissingResponseSchemas(runtimePaths, runtimeSchemas)
         assertThat(missing)
@@ -94,8 +97,6 @@ class OpenApiContractIT {
             .isEmpty()
     }
 
-    private fun loadRuntimeDocument() = OpenApiContractSupport.buildRuntimeOpenApi(openAPIService)
-
     private fun loadRuntimePaths() =
-        OpenApiContractSupport.pathOperations(loadRuntimeDocument().get("paths"))
+        OpenApiContractSupport.pathOperationsFromOpenApi(openAPIService.build(Locale.ENGLISH))
 }

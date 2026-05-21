@@ -6,7 +6,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import io.swagger.v3.core.util.Json
 import io.swagger.v3.oas.models.OpenAPI
 import java.nio.file.Path
 import java.util.Locale
@@ -62,9 +61,21 @@ object OpenApiContractSupport {
     fun loadCanonicalOpenApi(canonicalPath: Path): JsonNode =
         yamlMapper.readTree(canonicalPath.toFile())
 
-    /** Swagger-core JSON mapper preserves PathItem HTTP verbs (get/post/delete). */
-    fun runtimeOpenApiToJsonNode(openAPI: OpenAPI): JsonNode =
-        jsonMapper.readValue(Json.mapper().writeValueAsString(openAPI))
+    /**
+     * Extract path operations from the springdoc [OpenAPI] model.
+     * Do not round-trip via swagger [Json.mapper]: PathItem beans use fields named `get`/`post`/…
+     * and the swagger serializer often omits HTTP verbs on deserialization.
+     */
+    fun pathOperationsFromOpenApi(openAPI: OpenAPI): Map<String, Map<String, JsonNode>> {
+        val paths = openAPI.paths ?: return emptyMap()
+        return paths.mapValues { (_, pathItem) ->
+            pathItem.readOperationsMap().mapKeys { (method, _) ->
+                method.name.lowercase(Locale.ENGLISH)
+            }.mapValues { (_, operation) ->
+                jsonMapper.valueToTree(operation)
+            }
+        }
+    }
 
     fun pathOperations(pathsNode: JsonNode?): Map<String, Map<String, JsonNode>> {
         if (pathsNode == null || !pathsNode.isObject) return emptyMap()
@@ -112,5 +123,8 @@ object OpenApiContractSupport {
             RUNTIME_PATH_PREFIX_IGNORE.any { path.startsWith(it) }
 
     fun buildRuntimeOpenApi(openAPIService: org.springdoc.core.service.OpenAPIService): JsonNode =
-        runtimeOpenApiToJsonNode(openAPIService.build(Locale.ENGLISH))
+        jsonMapper.valueToTree(openAPIService.build(Locale.ENGLISH))
+
+    fun runtimePathKeys(openAPIService: org.springdoc.core.service.OpenAPIService): Set<String> =
+        openAPIService.build(Locale.ENGLISH).paths?.keys.orEmpty()
 }
