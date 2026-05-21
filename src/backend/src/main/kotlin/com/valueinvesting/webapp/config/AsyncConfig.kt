@@ -21,6 +21,19 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 @EnableAsync
 class AsyncConfig {
 
+    @Bean("fmpExecutor")
+    fun fmpExecutor(): TaskExecutor =
+        ThreadPoolTaskExecutor().apply {
+            corePoolSize = 4
+            maxPoolSize = 8
+            queueCapacity = 50
+            setThreadNamePrefix("fmp-fetch-")
+            setRejectedExecutionHandler(java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy())
+            setWaitForTasksToCompleteOnShutdown(true)
+            setAwaitTerminationSeconds(15)
+            initialize()
+        }
+
     @Bean("eventLoggerExecutor")
     fun eventLoggerExecutor(): TaskExecutor =
         ThreadPoolTaskExecutor().apply {
