@@ -1,0 +1,145 @@
+---
+type: tech_stack_proposal
+generated: 2026-05-20
+generated_by: tech-scout
+status: pending_human_approval
+---
+# Tech Stack — App Template Demo (PROPOSTA)
+
+> Proposta automatica generata dalla skill `tech-scout` (PATTERN.md §3, §14).
+> Mai applicata senza gate umano.
+> Per promuovere: rivedere e copiare su `raw/tech_stack.md`.
+
+> Contesto: gli ADR `ADR-001..ADR-009` in `design_&_architecture/decisions/` hanno già
+> formalizzato lo stack. Questa proposta lo trascrive con citazioni web datate (PATTERN §14)
+> e segnala dove le fonti 2026 suggeriscono aggiornamenti di versione minori.
+
+## Backend
+
+**Vincoli identificati (da wiki/)**:
+- API REST + JWT stateless (`[[webapp-architecture-vi]]`, ADR-002, ADR-006)
+- Spring Security + BCrypt (ADR-006)
+- Resilience verso FMP API esterna (`[[fmp-api]]`, ADR-004)
+- OpenAPI 3.1 + RFC 9457 Problem Details (ADR-007)
+- Observability via Micrometer + Actuator (ADR-008)
+- JVM ecosystem (per coerenza con scelte squadra dichiarate in FSD)
+
+**Proposta**: **Kotlin 2.2.x + Spring Boot 3.5.x (Java 17+)** — minor allineato a release Feb 2026, supporto Kotlin coroutine first-class su WebFlux e Web MVC.
+
+> Note rispetto ad ADR-002 ("Kotlin 1.9 + Spring Boot 3.x"): Spring Boot 3.5 richiede Kotlin 2.2+. Si suggerisce di aggiornare ADR-002 a `Kotlin 2.2+` mantenendo `Spring Boot 3.5.x` (line corrente del ramo 3.x). Spring Boot 4.0.x (Apr 2026, Spring Framework 7) è alternativa solo se la squadra è pronta a Framework 7. [^web: https://www.herodevs.com/blog-posts/spring-boot-versions-eol-dates-and-latest-releases-april-2026] (accessed 2026-05-20) [^web: https://docs.spring.io/spring-boot/reference/features/kotlin.html] (accessed 2026-05-20)
+
+**Alternative considerate**:
+- **FastAPI + Authlib (Python 3.12)** — leggero, OIDC-capable; bocciato: ecosistema team Kotlin/JVM dichiarato nella FSD.
+- **Express + openid-client (Node.js 20)** — fullstack JS unificato; bocciato: stack JVM richiesto da ADR-002 per parità con Resilience4j e Spring ecosystem.
+
+**Build tool**: **Gradle Kotlin DSL (`build.gradle.kts`)** — coerente con TSK-031.
+
+## Frontend
+
+**Vincoli identificati (da wiki/)**:
+- SPA o SSG (`[[webapp-architecture-vi]]`, ADR-001)
+- React + Next.js (Q_002 risolta da `[[vi-07-risoluzione-q002-q003]]`)
+- Accessibilità Traffic Light (ADR-001, `[[value-investing-rule-engine]]`)
+- Grafici storici interattivi (US-015)
+
+**Proposta**: **React 19 + Next.js 16.1 (App Router + RSC stabile + Turbopack default)** — release Jan 2026; Server Components stabili e default-server.
+
+> Note rispetto ad ADR-001 ("React 18 + Next.js"): React 19 è la versione runtime attuale supportata da Next.js 15+; si suggerisce di aggiornare ADR-001 a `React 19 + Next.js 16.x`. ⚠️ Verificare avvisi sicurezza Dec 2025 (CVE-2025-55184 DoS, CVE-2025-66478 RCE su RSC) e mantenere Next.js ≥ patch level corretto. [^web: https://nextjs.org/blog] (accessed 2026-05-20) [^web: https://nextjs.org/docs/app/guides/upgrading/version-16] (accessed 2026-05-20)
+
+**Alternative considerate**:
+- **Vue 3 + Nuxt 3** — DX paragonabile; bocciato: Q_002 risolta a favore di React+Next.
+- **Angular 17 standalone** — opinionato, batteries-included; bocciato: Q_002 risolta a favore di React+Next.
+
+**State management**: **Zustand** (lightweight, già citato in [`frontend-components.md`](../design_&_architecture/components/frontend-components.md)).
+**Styling**: **Tailwind CSS + Radix UI primitives** (già citato in ADR-001 e frontend-components).
+**Charting**: **Recharts** (libreria React canonica per grafici storici US-015).
+
+## Database
+
+**Vincoli identificati (da wiki/)**:
+- Tabelle relazionali (`[[webapp-architecture-vi]]`, ADR-003, schema in `design_&_architecture/data/schema.sql`)
+- Migration deterministiche (ADR-003)
+- ACID per snapshot finanziari + watchlist utente
+
+**Proposta**: **PostgreSQL 17.x + Spring Data JPA + Flyway 10.x con modulo `flyway-database-postgresql`**.
+
+> Note rispetto ad ADR-003 ("PostgreSQL 16"): PostgreSQL 17 è la versione corrente stabile a 2026; PostgreSQL 16 resta supportato. Mantenere 16 per coerenza con ADR-003 è accettabile; upgrade a 17 è raccomandato per progetti greenfield. Flyway 10+ richiede dipendenza modulare `flyway-database-postgresql`. [^web: https://thelinuxcode.com/spring-boot-postgresql-in-a-maven-project-2026-a-practical-production-ready-integration-guide/] (accessed 2026-05-20) [^web: https://mvnrepository.com/artifact/org.flywaydb/flyway-database-postgresql] (accessed 2026-05-20)
+
+**Configurazione raccomandata** (PATTERN best practice 2026):
+- `spring.jpa.hibernate.ddl-auto: validate` (Flyway è sola autorità schema)
+- `spring.flyway.clean-disabled: true` in `prod`
+- Locale dev/test via Docker Compose (`postgres:17` o `postgres:16` se mantieni ADR-003)
+
+**Alternative considerate**:
+- **MySQL 8.4 LTS** — bocciato: PostgreSQL preferito per JSONB e finestra analitica (citate in `schema.sql`).
+- **SQLite** — bocciato: non adatto per multi-tenant (watchlist utenti).
+
+## QA / Testing
+
+**Vincoli identificati (da wiki/)**:
+- Unit + integration + contract test (ADR-002, ADR-007)
+- E2E navigabile sulla SPA (ADR-001)
+- Test deterministici cross-machine (CI)
+
+**Proposta**: **JUnit 5 + Testcontainers (per DB + FMP mock) + Spring MVC Test + REST Assured (contract) + Playwright (E2E)**.
+
+[^web: https://java.testcontainers.org/test_framework_integration/junit_5/] (accessed 2026-05-20) [^web: https://docs.spring.io/spring-boot/reference/testing/testcontainers.html] (accessed 2026-05-20)
+
+**E2E**: **Playwright (Java o Node runner)** — supporto multi-browser (Chromium, Firefox, WebKit), integrazione Testcontainers possibile via `testcontainers-playwright`. [^web: https://github.com/orange-buffalo/testcontainers-playwright] (accessed 2026-05-20)
+
+**Frontend unit**: **Vitest + React Testing Library** — coerente con Next.js 16 (Turbopack).
+
+**Alternative considerate**:
+- **JUnit 4** — bocciato: legacy, JUnit 5 standard 2026.
+- **Cypress** per E2E — bocciato: Playwright supporta più browser, container-friendly, runner ufficiale Microsoft.
+
+## Infra / Deployment
+
+**Vincoli identificati (da wiki/)**:
+- Dev locale + CI green (ADR-009)
+- Resilienza chiamate esterne FMP (ADR-004)
+- Logging strutturato (ADR-008)
+
+**Proposta**: **Docker + Docker Compose (locale)**, **Resilience4j 2.2.x con `resilience4j-spring-boot3`** per circuit breaker/retry/cache verso FMP, **Logback JSON** per profilo `prod`, **Micrometer + Spring Boot Actuator** per metrics.
+
+[^web: https://oneuptime.com/blog/post/2026-02-01-spring-resilience4j-circuit-breaker/view] (accessed 2026-05-20) [^web: https://resilience4j.readme.io/docs/getting-started-3] (accessed 2026-05-20)
+
+**Configurazione Resilience4j raccomandata** (PATTERN ordine 2026): `Request → CircuitBreaker → Retry → HTTP call` (Retry esaurisce prima, CircuitBreaker registra esito finale).
+
+**Target deploy**: lasciato aperto (gap `arch-deployment-target` in `wiki/gaps.md`). Container portabile su Kubernetes, ECS, Render, Fly.io.
+
+**Alternative considerate**:
+- **Hystrix** — bocciato: maintenance mode dal 2019, rimosso da Spring Boot 3.x.
+- **Spring Cloud Circuit Breaker** (wrapper) — accettabile ma overhead non giustificato per single-service R1.0.
+
+## Standards verbatim (PATTERN §11)
+
+Standards normativi/citati nei raw, **adottati come-sono**, mai sostituiti silenziosamente:
+
+- **JWT** — RFC 7519 (token format), RFC 7515 (JWS signing) — uso JJWT 0.12+ per implementazione.
+- **OpenAPI 3.1** — spec API ufficiale (formale in `design_&_architecture/api/openapi.yaml`).
+- **RFC 9457** — Problem Details for HTTP APIs (formale in ADR-007).
+- **BCrypt** — algoritmo password hashing (formale in ADR-006).
+- **HTTP/2 over TLS 1.3** — protocollo trasporto produzione.
+- **JSON** (RFC 8259) — formato payload API.
+
+## Note di scouting (gap + suggerimenti per Arch)
+
+1. **ADR-001 aggiornabile**: React 18 → React 19 + Next.js 16.x (motivo: release 2026).
+2. **ADR-002 aggiornabile**: Kotlin 1.9 → Kotlin 2.2+ (motivo: Spring Boot 3.5+ lo richiede).
+3. **ADR-003 facoltativamente aggiornabile**: PostgreSQL 16 → 17 (motivo: greenfield, ma 16 resta supportato).
+4. **Gap aperto** `arch-deployment-target` (`wiki/gaps.md`) — target deploy prod non scelto. Non blocca R1.0 dev.
+
+## Riepilogo handoff
+
+Dopo gate umano (promozione `.proposal` → `raw/tech_stack.md`), aggiornare `factory.config.yaml`:
+
+```yaml
+stack:
+  backend: "Kotlin 2.2 + Spring Boot 3.5 (JVM 17+)"
+  frontend: "React 19 + Next.js 16.x (App Router + RSC + Turbopack)"
+  database: "PostgreSQL 17 + Flyway 10.x + Spring Data JPA"
+  qa: "JUnit 5 + Testcontainers + Playwright + Vitest"
+```
+
+(Sostituire con versioni allineate agli ADR se gli ADR non vengono aggiornati.)

@@ -1,0 +1,173 @@
+package com.valueinvesting.webapp.api.error
+
+import com.valueinvesting.webapp.fmp.FmpTickerNotFoundException
+import com.valueinvesting.webapp.fmp.FmpUnavailableException
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.ConstraintViolationException
+import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
+import org.springframework.http.ProblemDetail
+import org.springframework.http.ResponseEntity
+import org.springframework.security.access.AccessDeniedException
+import org.springframework.security.authentication.BadCredentialsException
+import org.springframework.security.core.AuthenticationException
+import org.springframework.web.bind.MethodArgumentNotValidException
+import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.servlet.NoHandlerFoundException
+
+// Centralized exception → ProblemDetails mapper (RFC 9457).
+// [^src: design_&_architecture/decisions/ADR-007-api-contract.md §Status codes + Error format]
+// [^src: design_&_architecture/components/backend-components.md §API LAYER]
+@RestControllerAdvice
+class GlobalExceptionHandler(
+    private val mapper: ProblemDetailsMapper,
+) {
+
+    private val log = LoggerFactory.getLogger(javaClass)
+
+    @ExceptionHandler(MethodArgumentNotValidException::class)
+    fun handleValidation(
+        ex: MethodArgumentNotValidException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        val errors = ex.bindingResult.fieldErrors.map {
+            mapOf("field" to it.field, "message" to (it.defaultMessage ?: "invalid"))
+        }
+        val problem = mapper.build(
+            status = HttpStatus.BAD_REQUEST,
+            type = "https://api/errors/validation-failed",
+            title = "Validation failed",
+            detail = "Request body validation failed",
+            request = req,
+            extensions = mapOf("errors" to errors),
+        )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem)
+    }
+
+    @ExceptionHandler(ConstraintViolationException::class)
+    fun handleConstraint(
+        ex: ConstraintViolationException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        val problem = mapper.build(
+            status = HttpStatus.BAD_REQUEST,
+            type = "https://api/errors/constraint-violation",
+            title = "Constraint violation",
+            detail = ex.message ?: "Constraint violation",
+            request = req,
+        )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem)
+    }
+
+    @ExceptionHandler(BadCredentialsException::class, AuthenticationException::class)
+    fun handleAuth(
+        ex: AuthenticationException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        val problem = mapper.build(
+            status = HttpStatus.UNAUTHORIZED,
+            type = "https://api/errors/unauthorized",
+            title = "Unauthorized",
+            detail = "Authentication required or invalid",
+            request = req,
+        )
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem)
+    }
+
+    @ExceptionHandler(AccessDeniedException::class)
+    fun handleAccessDenied(
+        ex: AccessDeniedException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        val problem = mapper.build(
+            status = HttpStatus.FORBIDDEN,
+            type = "https://api/errors/forbidden",
+            title = "Forbidden",
+            detail = "Access denied",
+            request = req,
+        )
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(problem)
+    }
+
+    @ExceptionHandler(NoHandlerFoundException::class)
+    fun handleNotFound(
+        ex: NoHandlerFoundException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        val problem = mapper.build(
+            status = HttpStatus.NOT_FOUND,
+            type = "https://api/errors/not-found",
+            title = "Not Found",
+            detail = "Resource not found: ${ex.requestURL}",
+            request = req,
+        )
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem)
+    }
+
+    @ExceptionHandler(IllegalArgumentException::class)
+    fun handleIllegalArgument(
+        ex: IllegalArgumentException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        val problem = mapper.build(
+            status = HttpStatus.BAD_REQUEST,
+            type = "https://api/errors/illegal-argument",
+            title = "Bad Request",
+            detail = ex.message ?: "Illegal argument",
+            request = req,
+        )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem)
+    }
+
+    // FMP integration errors -> RFC 9457 ProblemDetails
+    // [^src: design_&_architecture/decisions/ADR-004-fmp-integration.md §Fallback]
+    // [^src: design_&_architecture/decisions/ADR-007-api-contract.md §Status codes]
+    @ExceptionHandler(FmpTickerNotFoundException::class)
+    fun handleFmpTickerNotFound(
+        ex: FmpTickerNotFoundException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        val problem = mapper.build(
+            status = HttpStatus.NOT_FOUND,
+            type = "https://api/errors/ticker-not-found",
+            title = "Ticker not found",
+            detail = "Ticker '${ex.ticker}' not found on FMP",
+            request = req,
+            extensions = mapOf("ticker" to ex.ticker),
+        )
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem)
+    }
+
+    @ExceptionHandler(FmpUnavailableException::class)
+    fun handleFmpUnavailable(
+        ex: FmpUnavailableException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        log.warn("FMP unavailable on {} {}: {}", req.method, req.requestURI, ex.message)
+        val problem = mapper.build(
+            status = HttpStatus.SERVICE_UNAVAILABLE,
+            type = "https://api/errors/fmp-unavailable",
+            title = "Service Unavailable",
+            detail = ex.message ?: "FMP unavailable",
+            request = req,
+        )
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(problem)
+    }
+
+    @ExceptionHandler(Exception::class)
+    fun handleGeneric(
+        ex: Exception,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        log.error("Unhandled exception while serving {} {}", req.method, req.requestURI, ex)
+        val problem = mapper.build(
+            status = HttpStatus.INTERNAL_SERVER_ERROR,
+            type = "https://api/errors/internal",
+            title = "Internal Server Error",
+            detail = "An unexpected error occurred",
+            request = req,
+        )
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(problem)
+    }
+}

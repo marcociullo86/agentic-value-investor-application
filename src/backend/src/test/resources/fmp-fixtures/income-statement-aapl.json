@@ -1,0 +1,34 @@
+[
+  {
+    "date": "2024-09-28",
+    "symbol": "AAPL",
+    "reportedCurrency": "USD",
+    "calendarYear": "2024",
+    "period": "FY",
+    "revenue": 391035000000,
+    "costOfRevenue": 210352000000,
+    "grossProfit": 180683000000,
+    "operatingIncome": 123216000000,
+    "ebitda": 134661000000,
+    "netIncome": 93736000000,
+    "eps": 6.11,
+    "epsdiluted": 6.08,
+    "researchAndDevelopmentExpenses": 31370000000,
+    "weightedAverageShsOut": 15343783000
+  },
+  {
+    "date": "2023-09-30",
+    "symbol": "AAPL",
+    "reportedCurrency": "USD",
+    "calendarYear": "2023",
+    "period": "FY",
+    "revenue": 383285000000,
+    "costOfRevenue": 214137000000,
+    "grossProfit": 169148000000,
+    "operatingIncome": 114301000000,
+    "netIncome": 96995000000,
+    "eps": 6.16,
+    "researchAndDevelopmentExpenses": null,
+    "weightedAverageShsOut": 15744231000
+  }
+]

@@ -1,0 +1,198 @@
+# Application configuration — profiles dev, test, prod
+# [^src: design_&_architecture/decisions/ADR-009-deployment-target.md §Profili Spring]
+
+spring:
+  application:
+    name: value-investing-webapp
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc.time_zone: UTC
+        format_sql: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+server:
+  port: 8080
+  forward-headers-strategy: framework
+  error:
+    include-message: never
+    include-binding-errors: never
+
+# Springdoc / OpenAPI 3.1 [^src: design_&_architecture/decisions/ADR-007-api-contract.md]
+springdoc:
+  api-docs:
+    enabled: true
+    path: /api/openapi.json
+  swagger-ui:
+    enabled: true
+    path: /api/swagger-ui.html
+
+# Actuator baseline [^src: design_&_architecture/decisions/ADR-008-observability-logging.md]
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when-authorized
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+# Resilience4j scaffolding — values aligned with FmpResilienceConfig.kt.
+# The programmatic config in FmpResilienceConfig is the SOURCE OF TRUTH (chain
+# ordering, classification predicates).  This YAML block is a documented safety
+# net so a future contributor wiring annotations gets equivalent behavior, and
+# so the actuator/info exposure on /actuator/health reflects coherent values.
+# [^src: management/kanban/.../TSK-011.md §FmpResilienceConfig]
+resilience4j:
+  circuitbreaker:
+    instances:
+      fmp:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 20
+        minimum-number-of-calls: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 60s
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+  retry:
+    instances:
+      fmp:
+        max-attempts: 3
+        wait-duration: 500ms
+        exponential-backoff-multiplier: 2
+        exponential-max-wait-duration: 4s
+  ratelimiter:
+    instances:
+      fmp:
+        limit-for-period: 30
+        limit-refresh-period: 1m
+        timeout-duration: 2s
+  bulkhead:
+    instances:
+      fmp:
+        max-concurrent-calls: 10
+        max-wait-duration: 0
+  timelimiter:
+    instances:
+      fmp:
+        timeout-duration: 10s
+        cancel-running-future: true
+
+# Application-specific properties
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+  jwt:
+    signing-secret: ${JWT_SIGNING_SECRET:}
+    access-ttl-minutes: 15
+    refresh-ttl-days: 30
+  fmp:
+    base-url: ${FMP_BASE_URL:https://financialmodelingprep.com/api/v3}
+    api-key: ${FMP_API_KEY:}
+    mock: false
+
+---
+# ---------------- Profile: dev ----------------
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/value_investing}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+
+logging:
+  level:
+    root: INFO
+    com.valueinvesting: DEBUG
+    org.springframework.web: INFO
+  pattern:
+    console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr(%-5level) %clr([%X{requestId:-}]){magenta} %clr(%logger{36}){cyan} - %msg%n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+---
+# ---------------- Profile: test ----------------
+# Testcontainers PostgreSQL is wired by tests; here defaults for non-container test runs.
+# [^src: design_&_architecture/decisions/ADR-009-deployment-target.md §Profili Spring]
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/value_investing_test}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    clean-disabled: false
+
+app:
+  fmp:
+    mock: true
+    base-url: http://localhost:0/fmp-mock
+  jwt:
+    signing-secret: "test-only-signing-secret-must-be-at-least-256-bits-long-xxx"
+
+logging:
+  level:
+    root: WARN
+    com.valueinvesting: INFO
+
+---
+# ---------------- Profile: prod ----------------
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+  flyway:
+    clean-disabled: true   # ADR-009 §3: Flyway repair OFF in prod
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+# JSON structured logging in prod [^src: design_&_architecture/decisions/ADR-008-observability-logging.md §1]
+logging:
+  config: classpath:logback-prod.xml
+  level:
+    root: INFO
+    com.valueinvesting: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: never

@@ -134,3 +134,12 @@ utente mostrerà lista vuota senza errori. Nessun impatto su funzionalità core.
 **Gap:** La FSD non specifica il target di runtime/deploy effettivo: cloud provider (AWS/GCP/Azure), modalita' (managed container service, k8s, VM), sizing, backup policy, retention log. ADR-009 fissa il baseline Docker monorepo runtime-agnostico, ma per il cutover R1.0 servira' una decisione concreta.
 **Sospetta fonte:** decisione operativa (DevOps/PM-side) da formalizzare prima del cutover R1.0; eventuale raw "operations-runbook" dedicato.
 **Impatto:** Non blocca lo sviluppo (Docker image self-contained e' deploy-target-agnostica). Blocca il cutover di produzione: serve definire backup PostgreSQL, retention `fmp_api_event_log`, scaling. Bloccante: no (per sviluppo R1.0); sì pre-cutover.
+
+---
+
+## 2026-05-20 19:00 — arch-adr-version-sync
+
+**Origine:** tech-scout @ promote raw/tech_stack.md
+**Gap:** `raw/tech_stack.md` adottato il 2026-05-20 contiene versioni 2026 (Kotlin 2.2, React 19 + Next.js 16.x, PostgreSQL 17) mentre gli ADR-001/002/003 documentano versioni inferiori (React 18, Kotlin 1.9, PostgreSQL 16). PATTERN §7 r.10 dà priorità a `raw/tech_stack.md` per i dev-agent, quindi non cè rischio operativo, ma la divergenza archivistica va sanata.
+**Sospetta fonte:** lead-architect — rilascio di ADR-001-v2, ADR-002-v2, ADR-003-v2 (o update non-distruttivo §7 r.7 sui correnti).
+**Impatto:** Solo documentale. I dev-agent useranno le versioni di `raw/tech_stack.md`. Bloccante: no.

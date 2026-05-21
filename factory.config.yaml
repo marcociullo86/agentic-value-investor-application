@@ -11,10 +11,10 @@ routing:
   infra: agent
 
 stack:
-  backend: ""
-  frontend: ""
-  database: ""
-  qa: ""
+  backend: "Kotlin 2.2 + Spring Boot 3.5 (JVM 17+)"
+  frontend: "React 19 + Next.js 16.x (App Router + RSC + Turbopack)"
+  database: "PostgreSQL 17 + Flyway 10.x + Spring Data JPA"
+  qa: "JUnit 5 + Testcontainers + Playwright + Vitest"
 
 vcs:
   mode: monorepo

@@ -1,0 +1,25 @@
+[
+  {
+    "date": "2024-09-28",
+    "symbol": "AAPL",
+    "calendarYear": "2024",
+    "period": "FY",
+    "netIncome": 93736000000,
+    "depreciationAndAmortization": 11445000000,
+    "operatingCashFlow": 118254000000,
+    "capitalExpenditure": -9447000000,
+    "freeCashFlow": 108807000000,
+    "dividendsPaid": -15234000000
+  },
+  {
+    "date": "2023-09-30",
+    "symbol": "AAPL",
+    "calendarYear": "2023",
+    "period": "FY",
+    "netIncome": 96995000000,
+    "depreciationAndAmortization": 11519000000,
+    "operatingCashFlow": 110543000000,
+    "capitalExpenditure": -10959000000,
+    "freeCashFlow": 99584000000
+  }
+]

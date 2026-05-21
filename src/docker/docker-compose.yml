@@ -1,0 +1,71 @@
+# Dev-local stack: app + postgres + adminer
+# [^src: design_&_architecture/decisions/ADR-009-deployment-target.md §Dev locale]
+# [^src: raw/tech_stack.md §Database — PostgreSQL 17 (overrides ADR-009 §5 'postgres:16')]
+#
+# Usage:
+#   cp .env.example .env  &&  edit .env
+#   docker compose -f src/docker/docker-compose.yml --env-file src/docker/.env up
+#
+# The `app` service expects the multi-stage Dockerfile defined in ADR-009 §2.
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: vi-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-value_investing}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-value_investing}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  adminer:
+    image: adminer:4
+    container_name: vi-adminer
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  app:
+    # The Dockerfile (multi-stage build) is described in ADR-009 §2
+    # and will be added as part of the deployment TSK.
+    build:
+      context: ../..
+      dockerfile: src/docker/Dockerfile
+    container_name: vi-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-value_investing}
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      FMP_API_KEY: ${FMP_API_KEY}
+      FMP_BASE_URL: ${FMP_BASE_URL:-https://financialmodelingprep.com/api/v3}
+      JWT_SIGNING_SECRET: ${JWT_SIGNING_SECRET}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000}
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+volumes:
+  postgres-data:
+    driver: local
