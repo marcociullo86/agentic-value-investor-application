@@ -3,27 +3,28 @@ package com.valueinvesting.webapp.contract
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
-import org.springdoc.webmvc.api.OpenApiWebMvcResource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.mock.web.MockHttpServletRequest
+import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.get
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.nio.file.Path
-import java.util.Locale
 
 /**
  * Contract test: runtime springdoc OpenAPI vs design_&_architecture/api/openapi.yaml (TSK-037).
- * Uses [OpenApiWebMvcResource] (same code path as GET /api/openapi.json).
- * Do not use [org.springdoc.core.service.OpenAPIService.build]: it returns only the static OpenAPI bean,
- * not controller-derived paths.
+ * Loads the same document served at GET /api/openapi.json (full controller paths).
+ * Do not use [org.springdoc.core.service.OpenAPIService.build]: it returns only the static OpenAPI bean.
  */
 @SpringBootTest
+@AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("test")
 @Testcontainers
 @Tag("contract")
@@ -49,7 +50,7 @@ class OpenApiContractIT {
     }
 
     @Autowired
-    private lateinit var openApiWebMvcResource: OpenApiWebMvcResource
+    private lateinit var mockMvc: MockMvc
 
     @Value("\${contract.openapi.canonical}")
     private lateinit var canonicalOpenApiPath: String
@@ -101,15 +102,13 @@ class OpenApiContractIT {
     }
 
     private fun loadRuntimeDocument(): com.fasterxml.jackson.databind.JsonNode {
-        val request = MockHttpServletRequest("GET", API_DOCS_PATH).apply {
-            servletPath = API_DOCS_PATH
-            requestURI = API_DOCS_PATH
-        }
-        val json = String(
-            openApiWebMvcResource.openapiJson(request, API_DOCS_PATH, Locale.ENGLISH),
-            Charsets.UTF_8,
-        )
-        return OpenApiContractSupport.parseOpenApiJson(json)
+        val response = mockMvc.get(API_DOCS_PATH) { accept(MediaType.APPLICATION_JSON) }
+            .andReturn()
+            .response
+        assertThat(response.status)
+            .withFailMessage("GET $API_DOCS_PATH failed: ${response.contentAsString.take(800)}")
+            .isEqualTo(200)
+        return OpenApiContractSupport.parseOpenApiJson(response.contentAsString)
     }
 
     private fun loadRuntimePaths() =
