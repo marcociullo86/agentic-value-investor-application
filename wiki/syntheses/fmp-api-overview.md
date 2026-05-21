@@ -8,7 +8,7 @@ tags: [fmp, overview, synthesis, api-design]
 ---
 # Panoramica API FMP — Sintesi Cross-Source
 
-> FMP API e' una piattaforma REST per dati finanziari che copre 8 domini funzionali con autenticazione unificata via API key; ogni dominio ha endpoint indipendenti con parametri ortogonali.
+> FMP API e' una piattaforma REST per dati finanziari che copre 8 domini funzionali con autenticazione unificata via API key; ogni dominio ha endpoint indipendenti con parametri ortogonali. [^src: raw/FMP_Docs_1_Auth_and_Search.txt §Authorization]
 
 ## Pattern Architetturale Comune
 

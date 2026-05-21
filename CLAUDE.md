@@ -6,7 +6,7 @@ Questo repo segue il pattern definito in [`PATTERN.md`](PATTERN.md) (v2.8, agent
 
 L'adapter Claude Code vive in `.claude/`:
 
-- **Agenti** (`.claude/agents/`): core — `orchestrator`, `sync-docs`, `wiki-keeper`, `wiki-keeper-worker`, `product-manager`, `lead-architect`, `tpm`, `wiki-query`, `wiki-lint`; dev (v2.7) — `be-dev`, `fe-dev`, `db-dev`, `qa-dev`
+- **Agenti** (`.claude/agents/`): core — `orchestrator`, `sync-docs`, `wiki-keeper`, `wiki-keeper-worker`, `product-manager`, `lead-architect`, `tpm`, `wiki-query`, `wiki-lint`; dev (v2.7) — `be-dev`, `fe-dev`, `db-dev`, `qa-dev`, `infra-dev`
 - **Skill** (`.claude/skills/`): canoniche `citation-rules`, `wiki-log-entry`, `wiki-gap-protocol`; procedurali `ingest-protocol`, `query-protocol`, `lint-checks`, `promote-status`, `state-scan`, `heal-protocol`, `propagate-resolution`, `dev-protocol` (v2.7), `dev-handoff` (v2.7), `tech-scout` (v2.7), `vcs-handoff` (v2.8); template `scrivi-wiki-page`, `scrivi-epica`, `scrivi-user-story`, `scrivi-task`, `apri-question`
 - **Commands** (`.claude/commands/`): `/run`, `/sync-docs`, `/query`, `/lint`, `/promote`, `/heal`, `/dev` (v2.7), `/topology` (v2.7)
 
@@ -51,3 +51,4 @@ Il tree `memory/{episodic,semantic,procedural}/` persiste tra conversazioni.
 | FE-Dev | `.claude/agents/fe-dev.md` |
 | DB-Dev | `.claude/agents/db-dev.md` |
 | QA-Dev | `.claude/agents/qa-dev.md` |
+| Infra-Dev | `.claude/agents/infra-dev.md` |

@@ -8,7 +8,7 @@ tags: [fmp, api, financial-data, provider]
 ---
 # Financial Modeling Prep (FMP) API
 
-> Financial Modeling Prep (FMP) e' un provider di dati finanziari che espone una REST API per accedere a quotazioni, rendiconti finanziari, profili aziendali, metriche, notizie e dati ESG per strumenti quotati globalmente.
+> Financial Modeling Prep (FMP) e' un provider di dati finanziari che espone una REST API per accedere a quotazioni, rendiconti finanziari, profili aziendali, metriche, notizie e dati ESG per strumenti quotati globalmente. [^src: raw/FMP_Docs_1_Auth_and_Search.txt §Authorization]
 
 ## Descrizione
 

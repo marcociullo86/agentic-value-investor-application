@@ -18,8 +18,8 @@ La specifica funzionale FSD raccomanda un'architettura a tre livelli distinti pe
 
 ### Livello 1: Frontend (Client)
 
-- **Tipo:** Single Page Application (SPA).
-- **Stack candidato:** React, Vue.js o Angular (non ancora selezionato definitivamente al momento della FSD).
+- **Tipo:** Single Page Application (SPA) con **React + Next.js** (SSR/SSG dove utile). [^src: raw/07_Risoluzione_Q002_Q003.md §Risoluzione Q_002]
+- **Stato L5:** scaffold contract-only in `src/frontend/` (`generate:api`, `typecheck:api`); app Next.js completa prevista da **TSK-030** (P0 kanban).
 - **Responsabilita':** Rendering delle dashboard, visualizzazione Traffic Light, grafici storici, checklist qualitativa Moat.
 
 ### Livello 2: Backend (Server)
@@ -101,16 +101,29 @@ Vedi [[vi-07-risoluzione-q002-q003]] per i dettagli dell'ADR.
 
 ## Aggiornamenti (v2026-05-21)
 
-**Backend L5 (`src/backend/`, Kotlin 2.2 + Spring Boot 3.5):**
+**Allineamento `master` post Sprint 2 + contract-check (16/38 TSK `done`):**
 
-- Package principali: `fmp/` (adapter, cache, resilienza), `ruleengine/` (7 rules + calculators), `service/` (`AnalyzeTickerService`, `FinancialDataService`), `api/` (controller REST), `persistence/` (JPA + Flyway V001–V007).
-- Endpoint REST attivi: `GET /api/financials/{ticker}`, `GET /api/analysis/{ticker}`, `POST|DELETE /api/dcf-overrides`, `GET /api/openapi.json`, `/actuator/*`.
-- Header trasparenza dati: `X-Data-Snapshot-At`, `X-Data-Stale` su financials e analysis.
-- QA: Testcontainers PostgreSQL; job CI `contract-check` — [[openapi-contract-check]].
+| Layer | Stato |
+|-------|--------|
+| Backend | Kotlin 2.2 + Spring Boot 3.5 in `src/backend/` |
+| DB | Flyway V001–V007 (users, stocks, cache FMP, rule_engine_result, event log, dcf_overrides) |
+| Frontend | Contract types only; **TSK-030** bootstrap Next.js = prossimo P0 |
+| CI/Deploy | **TSK-032** Docker/CI full = prossimo P0; `contract-check` già green (TSK-037) |
 
-**Frontend:** scaffold contract-only in `src/frontend/` (`generate:api`); app Next.js completa ancora da TSK-030.
+**Package backend:** `fmp/` (adapter, cache, resilienza), `ruleengine/` (7 `ValuationRule` + calculators Graham/DCF/MoS), `service/`, `api/`, `persistence/`.
 
-**Deploy:** immagine Docker e pipeline CI full (TSK-032) in corso su track `master`.
+**Endpoint REST implementati (allowlist contract):**
+
+- `GET /api/financials/{ticker}` — dataset FMP cache-aside
+- `GET /api/analysis/{ticker}` — pipeline completa ([[analysis-api-pipeline]])
+- `POST /api/dcf-overrides`, `DELETE /api/dcf-overrides/{ticker}` — override metodo DCF (stub `X-User-Id`)
+- `GET /api/openapi.json` — schema springdoc (viewer UI disabilitato in-app)
+
+Header `X-Data-Snapshot-At` / `X-Data-Stale` su financials e analysis. [^src: src/backend/src/main/kotlin/com/valueinvesting/webapp/api/FinancialsController.kt] [^src: src/backend/src/main/kotlin/com/valueinvesting/webapp/api/AnalysisController.kt]
+
+**OpenAPI / springdoc:** versione **2.8.16**, dependency `springdoc-openapi-starter-webmvc-api` (no swagger-ui starter), `swagger-ui.enabled: false`. Dettaglio gate: [[openapi-contract-check]], runbook [[runbook-openapi-contract-check]].
+
+**Kanban:** 22 TSK ancora `todo`; track imminente FE bootstrap + CI Docker.
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->

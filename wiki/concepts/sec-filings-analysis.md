@@ -31,13 +31,13 @@ L'analisi segue una sequenza precisa che va dall'operativo al finanziario: [^src
 
 **Step 1 — Item 1 (Business)**: comprensione del modello di business, clienti target, canali distributivi, contesto normativo. Non comprare cio' che non si capisce.
 
-**Step 2 — Item 1A (Risk Factors)**: identificare rischi strutturali reali (dipendenza da singolo cliente/fornitore, obsolescenza, litigation) oltre le avvertenze boilerplate.
+**Step 2 — Item 1A (Risk Factors)**: identificare rischi strutturali reali (dipendenza da singolo cliente/fornitore, obsolescenza, litigation) oltre le avvertenze boilerplate. [^src: raw/05_Analisi_10K_10Q_e_Regole_Buffett.md §Step 2: Analisi dei Rischi (Item 1A - Risk Factors)]
 
 **Step 3 — Item 7 (MD&A)**: analisi narrativa del management. Il Test dell'Onesta': il management attribuisce gli insuccessi a fattori esterni e si prende il merito esclusivo dei successi? Segnale di bassa affidabilita'.
 
 **Step 4 — Item 8 (Financial Statements)**: analisi incrociata dei tre rendiconti. Il Rendiconto Finanziario (Cash Flow) e' il documento piu' difficile da manipolare contabilmente; il Free Cash Flow deve trasformare l'utile netto in cassa reale. [^src: raw/05_Analisi_10K_10Q_e_Regole_Buffett.md §Step 4: I Tre Prospetti Finanziari (Item 8)]
 
-**Step 5 — Note al Bilancio**: ricerca di scheletri nell'armadio: politiche contabili aggressive, stock option dilutive, off-balance-sheet arrangements.
+**Step 5 — Note al Bilancio**: ricerca di scheletri nell'armadio: politiche contabili aggressive, stock option dilutive, off-balance-sheet arrangements. [^src: raw/05_Analisi_10K_10Q_e_Regole_Buffett.md §Step 5: Le Note al Bilancio (Notes to Financial Statements)]
 
 ### Dati FMP per supportare l'analisi SEC
 
@@ -52,7 +52,7 @@ I tre rendiconti del 10-K/10-Q sono accessibili programmaticamente tramite [[fmp
 ## Pagine collegate
 [[vi-05-analisi-10k-10q-buffett]]
 [[warren-buffett]]
-[[runbook: sec-10k-10q-analysis-playbook]]
+[[sec-10k-10q-analysis-playbook]]
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->

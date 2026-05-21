@@ -19,7 +19,7 @@ Raw che fornisce un runbook in 5 step per sezionare il 10-K/10-Q, e codifica le 
 | Sezione raw | Pagina wiki |
 |---|---|
 | §1 10-K vs 10-Q | [[sec-filings-analysis]] |
-| §2 Step procedurali (Item 1, 1A, 7, 8, Note) | [[sec-filings-analysis]], [[runbook: sec-10k-10q-analysis-playbook]] |
+| §2 Step procedurali (Item 1, 1A, 7, 8, Note) | [[sec-filings-analysis]], [[sec-10k-10q-analysis-playbook]] |
 | §3A Cerchio di Competenza | [[warren-buffett]] |
 | §3B Fossato Economico (4 forme) | [[economic-moat]] |
 | §3C Regole finanziarie quantitative | [[intrinsic-value]], [[fmp-metrics-ratios]] |

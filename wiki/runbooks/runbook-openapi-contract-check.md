@@ -4,7 +4,7 @@ sources:
   - "design_&_architecture/decisions/ADR-007-api-contract.md"
 status: review
 created: 2026-05-21
-updated: 2026-05-21
+updated: 2026-05-21 (post-contract-check)
 tags: [runbook, openapi, qa, ci, contract]
 ---
 # Runbook: Contract check OpenAPI
@@ -52,10 +52,27 @@ Push su `feature/*` o PR verso `master`: workflow `contract-check` deve essere g
 
 | Sintomo | Azione |
 |---------|--------|
-| Path runtime non in YAML | Aggiungere path a openapi.yaml o rimuovere controller spurio |
-| Schema alias mismatch | `@Schema(name = "RuleEngineResult")` sul DTO |
+| Path runtime non in YAML | Aggiungere path a `openapi.yaml` o rimuovere controller spurio |
+| Schema alias mismatch | `@Schema(name = "RuleEngineResult")` sul DTO response |
 | `openapi-typescript` parse error | Validare YAML (es. spazi in `instance: { type: string }`) |
-| Testcontainers fallisce | Avviare Docker; verificare immagine `postgres:16-alpine` |
+| Testcontainers fallisce | Avviare Docker; immagine `postgres:16-alpine` in `OpenApiContractIT` |
+| `PatternParseException` all'avvio (Boot 3.5) | Rimuovere `springdoc-openapi-starter-webmvc-ui`; tenere solo `starter-webmvc-api` + `swagger-ui.enabled: false` |
+| Contract test vede pochi path | Non usare `OpenAPIService.build()` — usare MockMvc `GET /api/openapi.json` come in `OpenApiContractIT` |
+| `GET /api/openapi.json` → 404 | Verificare `springdoc.api-docs.enabled: true` e path `/api/openapi.json` in `application.yml` |
+| Drift su path `/swagger-ui/*` | Attesi solo se si aggiunge lo starter UI; con API-only starter non dovrebbero comparire in produzione |
+
+## Aggiornamenti (v2026-05-21)
+
+**Stack verificato su `master`:** Spring Boot **3.5** + springdoc **2.8.16** + artifact `webmvc-api` only.
+
+**Boot 3.5 + springdoc — note operative:**
+
+1. **Dependency:** `implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.16")` — commento esplicito in `build.gradle.kts` sul clash PathPatternParser se si include lo starter UI. [^src: src/backend/build.gradle.kts §dependencies springdoc]
+2. **Config:** `springdoc.swagger-ui.enabled: false`; documentazione dev su JSON raw `/api/openapi.json`. [^src: src/backend/src/main/resources/application.yml §springdoc]
+3. **Test contract:** `@SpringBootTest` + `MockMvc` + Testcontainers PostgreSQL; profilo `test`; tag Gradle `@Tag("contract")` → task `contractCheck`. [^src: src/backend/src/test/kotlin/com/valueinvesting/webapp/contract/OpenApiContractIT.kt]
+4. **Versione minima:** per Boot 3.5.x usare springdoc ≥ 2.8.9 (repo fissa 2.8.16). [^src: src/backend/build.gradle.kts §extra springdocVersion]
+
+Workflow CI: `.github/workflows/contract-check.yml` — deve restare green prima del merge verso `master` (stato post TSK-037).
 
 ## Concetti correlati
 

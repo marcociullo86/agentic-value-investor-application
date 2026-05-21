@@ -5,7 +5,7 @@ sources:
   - "design_&_architecture/components/backend-components.md"
 status: review
 created: 2026-05-21
-updated: 2026-05-21
+updated: 2026-05-21 (post-contract-check)
 tags: [product-spec, api, rule-engine, dcf, analysis, l5]
 ---
 # Pipeline API di analisi (`GET /api/analysis/{ticker}`)
@@ -16,7 +16,7 @@ tags: [product-spec, api, rule-engine, dcf, analysis, l5]
 
 Sprint 2 (EP-003 + EP-004) espone il verdetto completo del [[value-investing-rule-engine]] tramite un singolo endpoint REST documentato in `design_&_architecture/api/openapi.yaml` §`/api/analysis/{ticker}`. [^src: design_&_architecture/api/openapi.yaml §/api/analysis/{ticker}]
 
-Il frontend Traffic Light (US-014, TSK-021) consumerà questo contratto; fino al bootstrap Next.js (TSK-030) il payload è verificabile via test di integrazione e OpenAPI.
+Il frontend Traffic Light (US-014, TSK-021) consumerà questo contratto; fino al bootstrap Next.js (TSK-030) il payload è verificabile via test di integrazione e OpenAPI. [^src: management/kanban/EP-005-dashboard-traffic-light-moat/US-014-pannello-traffic-light/US-014.md §Descrizione]
 
 ## Flusso runtime
 
@@ -81,8 +81,13 @@ Ogni voce è un `RuleSignal` con `ruleId`, `signal` (`GREEN` \| `YELLOW` \| `RED
 
 ## QA collegata
 
-- Test E2E: `AnalysisControllerIT` (Testcontainers + mock FMP, 6 scenari).
-- Contract: `OpenApiContractIT` + job CI `contract-check` — vedi [[openapi-contract-check]].
+- Test E2E: `AnalysisControllerIT` (Testcontainers + mock FMP, 6 scenari). [^src: src/backend/src/test/kotlin/com/valueinvesting/webapp/api/AnalysisControllerIT.kt]
+- Contract: `OpenApiContractIT` confronta YAML canonico vs schema runtime da **MockMvc** `GET /api/openapi.json` (CI `contract-check` green su `master`). [^src: src/backend/src/test/kotlin/com/valueinvesting/webapp/contract/OpenApiContractIT.kt]
+- Vedi [[openapi-contract-check]] per springdoc 2.8.16 e anti-pattern `OpenAPIService.build()`.
+
+## Aggiornamenti (v2026-05-21)
+
+Verifica coerenza L5 su `master`: `AnalyzeTickerService` orchestra ancora 7 `RuleSignal` + Graham + DCF + MoS + persistenza `rule_engine_result`; nessuna modifica al contratto path rispetto a Sprint 2. Allowlist contract in `OpenApiContractSupport.IMPLEMENTED_OPERATIONS` include solo `GET /api/analysis/{ticker}` tra gli endpoint di analisi (financials e dcf-overrides separati). [^src: src/backend/src/test/kotlin/com/valueinvesting/webapp/contract/OpenApiContractSupport.kt §IMPLEMENTED_OPERATIONS]
 
 ## Concetti correlati
 

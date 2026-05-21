@@ -4,7 +4,7 @@ type: index
 title: Wiki Index
 status: draft
 created: 2026-05-20
-updated: 2026-05-21 (v2026-05-21 sync L5 Sprint 2)
+updated: 2026-05-21 (v2026-05-21 sync L5 post-contract-check)
 tags: [navigation]
 ---
 # Wiki Index — App Template Demo
@@ -105,9 +105,9 @@ tags: [navigation]
 | Pagina | Descrizione |
 |--------|-------------|
 | [[value-investing-rule-engine]] | Motore regole quantitativo: ROE/ROIC/Margin/CurrentRatio/CapEx + DCF + MoS traffic light |
-| [[webapp-architecture-vi]] | Architettura 3-layer: SPA frontend, Kotlin/Spring Boot backend, PostgreSQL, FMP API |
-| [[analysis-api-pipeline]] | `GET /api/analysis/{ticker}`: pipeline completa, 7 signals, persistenza |
-| [[openapi-contract-check]] | Gate CI springdoc vs openapi.yaml + tipi TS generati |
+| [[webapp-architecture-vi]] | Architettura 3-layer: Next.js SPA, Spring Boot 3.5 backend, PostgreSQL; endpoint Sprint 2 su `master` |
+| [[analysis-api-pipeline]] | `GET /api/analysis/{ticker}`: 7 signals + Graham + DCF + MoS + persistenza |
+| [[openapi-contract-check]] | springdoc 2.8.16 (webmvc-api), MockMvc `/api/openapi.json`, gate CI `contract-check` |
 
 ### Entities (3)
 
@@ -132,4 +132,4 @@ tags: [navigation]
 | [[fmp-api-quickstart]] | Procedura di integrazione minima: auth, search, quote, statement |
 | [[sec-10k-10q-analysis-playbook]] | Playbook 7-step per analisi 10-K/10-Q con metodo Buffett e FMP API |
 | [[value-investing-rule-engine-runbook]] | Implementazione step-by-step del Rule Engine: acquisizione FMP, validazione regole, DCF, MoS |
-| [[runbook-openapi-contract-check]] | Mantenere allineati openapi.yaml, springdoc e generate:api |
+| [[runbook-openapi-contract-check]] | Troubleshooting contract-check: Boot 3.5, PatternParseException, MockMvc vs OpenAPIService |

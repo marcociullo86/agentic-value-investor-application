@@ -6,7 +6,7 @@ Questo repo segue il pattern definito in [`PATTERN.md`](PATTERN.md) (v2.8, agent
 
 L'adapter Cursor vive in [`.cursor/`](.cursor/):
 
-- **Subagent** ([`.cursor/agents/`](.cursor/agents/)): core — `orchestrator`, `sync-docs`, `wiki-keeper`, `wiki-keeper-worker`, `product-manager`, `lead-architect`, `tpm`, `wiki-query`, `wiki-lint`; dev (v2.7) — `be-dev`, `fe-dev`, `db-dev`, `qa-dev`
+- **Subagent** ([`.cursor/agents/`](.cursor/agents/)): core — `orchestrator`, `sync-docs`, `wiki-keeper`, `wiki-keeper-worker`, `product-manager`, `lead-architect`, `tpm`, `wiki-query`, `wiki-lint`; dev (v2.7) — `be-dev`, `fe-dev`, `db-dev`, `qa-dev`, `infra-dev`
 - **Skill** ([`.cursor/skills/`](.cursor/skills/)): mirror delle skill canoniche (stesso contenuto di [`.claude/skills/`](.claude/skills/))
 - **Comandi** ([`.cursor/commands/`](.cursor/commands/)): `/run`, `/sync-docs`, `/query`, `/lint`, `/promote`, `/heal`, `/dev`, `/topology`
 - **Regole** ([`.cursor/rules/`](.cursor/rules/)): vincoli factory always-on
@@ -60,3 +60,4 @@ Dopo `/sync-docs`: invocare `wiki-keeper` per ingest L1 → L2.
 | FE-Dev | `.cursor/agents/fe-dev.md` |
 | DB-Dev | `.cursor/agents/db-dev.md` |
 | QA-Dev | `.cursor/agents/qa-dev.md` |
+| Infra-Dev | `.cursor/agents/infra-dev.md` |

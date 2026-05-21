@@ -109,7 +109,7 @@ Vedi [[vi-08-risoluzione-q001-owner-earnings]] per la specifica completa dei tre
 
 ## Aggiornamenti (v2026-05-21)
 
-**Stato L5 (Sprint 2, branch `feature/sprint2-analysis`):** le sette strategie `ValuationRule` sono implementate in Kotlin con `ruleId` stabili; l'aggregazione avviene in `RuleEngineService.evaluateAll()` (ordinamento lessicografico per `ruleId`).
+**Stato L5 (`master`, Sprint 2 merged):** le sette strategie `ValuationRule` sono implementate in Kotlin con `ruleId` stabili; l'aggregazione avviene in `RuleEngineService.evaluateAll()` (ordinamento lessicografico per `ruleId`). [^src: src/backend/src/main/kotlin/com/valueinvesting/webapp/ruleengine/RuleEngineService.kt]
 
 | ruleId | Classe | Soglia sintetica |
 |--------|--------|------------------|
@@ -127,7 +127,9 @@ Vedi [[vi-08-risoluzione-q001-owner-earnings]] per la specifica completa dei tre
 
 **DCF implementato:** `DcfCalculator` con `GreenwaldMaintenanceCapexEstimator` (primario) e `FcfFallbackEstimator`; override per utente su `dcf_method_override` (V007). Parametri: growth 5–7%, discount 9.5%, terminal 2.5%.
 
-**Non ancora in produzione (Sprint 3+):** search, screener, historical, moat checklist, auth, watchlist — restano solo nel contratto OpenAPI pieno.
+**Non ancora in produzione (Sprint 3+):** search, screener, historical, moat checklist, auth JWT (TSK-033), watchlist — restano nel contratto OpenAPI pieno ma fuori allowlist `IMPLEMENTED_OPERATIONS`.
+
+**Sync 2026-05-21:** sette regole + Graham + DCF + MoS confermati coerenti con [[analysis-api-pipeline]]; contract CI verifica schema `RuleEngineResult` via springdoc runtime (TSK-037).
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->

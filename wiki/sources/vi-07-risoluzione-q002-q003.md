@@ -23,8 +23,8 @@ Il documento FSD iniziale lasciava aperte due questioni bloccanti: la scelta def
 **Motivazioni:**
 
 1. **Ecosistema librerie data-grid e charting:** L'interfaccia richiede tabelle di bilanci decennali, grafici dinamici e il pannello Traffic Light. React offre l'ecosistema piu' ampio di librerie pronte (es. Recharts, Ag-Grid), riducendo i tempi di sviluppo. [^src: raw/07_Risoluzione_Q002_Q003.md §Risoluzione Q_002: Architectural Decision Record (ADR) - Scelta Framework Frontend]
-2. **Manutenibilita' a componenti:** La filosofia component-based di React e' allineata alla scomposizione modulare delle metriche finanziarie (un componente per ROE, uno per DCF, ecc.).
-3. **Community e longevita':** React, supportato da Meta, garantisce disponibilita' di sviluppatori e risoluzione rapida dei bug (analogo a un investimento value per "moat" tecnologico).
+2. **Manutenibilita' a componenti:** La filosofia component-based di React e' allineata alla scomposizione modulare delle metriche finanziarie (un componente per ROE, uno per DCF, ecc.). [^src: raw/07_Risoluzione_Q002_Q003.md §Risoluzione Q_002: Architectural Decision Record (ADR) - Scelta Framework Frontend]
+3. **Community e longevita':** React, supportato da Meta, garantisce disponibilita' di sviluppatori e risoluzione rapida dei bug (analogo a un investimento value per "moat" tecnologico). [^src: raw/07_Risoluzione_Q002_Q003.md §Risoluzione Q_002: Architectural Decision Record (ADR) - Scelta Framework Frontend]
 
 **State management:** da definire in base alle preferenze del team (candidati: Zustand o Redux Toolkit).
 

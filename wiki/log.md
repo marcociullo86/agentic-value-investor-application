@@ -33,11 +33,11 @@ Pagine create: 5 | Figure: 0 | Aggiornamenti: 3 (index, gaps, value-investing-fm
 Pagine create: 2 | Figure: 0 | Aggiornamenti: 4 (index, gaps, value-investing-rule-engine, webapp-architecture-vi) | Gap nuovi: 0 | Gap chiusi: 3 (vi-webapp-owner-earnings-formula, vi-webapp-spa-framework-decision, vi-webapp-screener-criteria)
 [2026-05-20 16:00] ingest — risoluzione Q_001/Q_002/Q_003: 2 sources, 3 gap chiusi, 4 aggiornamenti non-distruttivi — files touched: 8
 
-[2026-05-20 16:00] reconcile-needed — US-012 -> Q_001 closed (gap [[vi-webapp-owner-earnings-formula]]) — files touched: 0
-[2026-05-20 16:00] reconcile-needed — US-014 -> Q_002 closed (gap [[vi-webapp-spa-framework-decision]]) — files touched: 0
-[2026-05-20 16:00] reconcile-needed — US-015 -> Q_002 closed (gap [[vi-webapp-spa-framework-decision]]) — files touched: 0
-[2026-05-20 16:00] reconcile-needed — US-016 -> Q_002 closed (gap [[vi-webapp-spa-framework-decision]]) — files touched: 0
-[2026-05-20 16:00] reconcile-needed — US-002 -> Q_003 closed (gap [[vi-webapp-screener-criteria]]) — files touched: 0
+[2026-05-20 16:00] reconcile-needed — US-012 -> Q_001 closed (gap `vi-webapp-owner-earnings-formula`) — files touched: 0
+[2026-05-20 16:00] reconcile-needed — US-014 -> Q_002 closed (gap `vi-webapp-spa-framework-decision`) — files touched: 0
+[2026-05-20 16:00] reconcile-needed — US-015 -> Q_002 closed (gap `vi-webapp-spa-framework-decision`) — files touched: 0
+[2026-05-20 16:00] reconcile-needed — US-016 -> Q_002 closed (gap `vi-webapp-spa-framework-decision`) — files touched: 0
+[2026-05-20 16:00] reconcile-needed — US-002 -> Q_003 closed (gap `vi-webapp-screener-criteria`) — files touched: 0
 
 [2026-05-20 17:00] reconcile — PM run consumes 5 propagate-resolution markers (US-012 / US-014 / US-015 / US-016 / US-002); Q_001+Q_002+Q_003 moved to [RISOLTE]; 5 user stories unblocked (blocked -> todo, 1 pending_clarification cleared); EP-004 confidence 55% -> 80% (R1.1 -> R1.0); EP-005 confidence 50% -> 75% (R2 -> R1.1); roadmap + questions.md updated — files touched: 9
 
@@ -80,3 +80,25 @@ Pagine create: 2 | Figure: 0 | Aggiornamenti: 4 (index, gaps, value-investing-ru
 
 ## [2026-05-21] sync L5 | Sprint 2 wiki alignment (pre-merge master)
 Pagine create: 3 ([[analysis-api-pipeline]], [[openapi-contract-check]], [[runbook-openapi-contract-check]]) | Aggiornamenti: 7 (index, value-investing-rule-engine, rule-engine-runbook, margin-of-safety, graham-number, webapp-value-investing-spec, webapp-architecture-vi) | Gap nuovi: 0 | Gap chiusi: 0 (riferimento implementativo; gap Owner Earnings già chiuso 2026-05-20)
+
+## [2026-05-21] sync L5 | post-contract-check + springdoc 2.8
+Pagine create: 0 | Aggiornamenti: 6 (openapi-contract-check, runbook-openapi-contract-check, webapp-architecture-vi, analysis-api-pipeline, value-investing-rule-engine, index) | Gap nuovi: 0 | Gap chiusi: 0
+[2026-05-21 26:00] sync L5 — springdoc 2.8.16 webmvc-api, MockMvc contract IT, master 16/38 TSK — files touched: 6
+
+## [2026-05-21] lint | check completo
+Orphan: 0 | Broken: 7 | Unsourced: 9 | Kanban: 0 err | Coerenza: 0 err | Topology: 3 err | VCS: 0 err
+
+## [2026-05-21] lint-fix | ERROR risolti (10→0)
+Fix: gap-slug in log.md → backtick (no wikilink); `[[sec-10k-10q-analysis-playbook]]` ×2; aggiunto `.claude/agents/infra-dev.md` + `.cursor/agents/infra-dev.md` per routing.infra — files touched: 5
+
+## [2026-05-21] lint | re-check post-fix ERROR
+Orphan: 0 | Broken: 0 | Unsourced: 9 | Kanban: 0 err | Coerenza: 0 err | Topology: 0 err | VCS: 0 err
+
+## [2026-05-21] lint-fix | WARNING (11→0 attesi)
+Citazioni aggiunte ×9 (openapi-contract-check, analysis-api-pipeline, sec-filings ×2, vi-07 ×2, vi-06, fmp-api-overview, fmp-api); US-013 `pending_clarification` azzerato (Q_001 risolta) — files touched: 10
+
+## [2026-05-21] lint | re-check post-fix
+Orphan: 0 | Broken: 0 | Unsourced: 9 | Kanban: 0 err | Coerenza: 0 err | Topology: 0 err | VCS: 0 err
+
+## [2026-05-21] lint | re-check finale
+Orphan: 0 | Broken: 0 | Unsourced: 0 | Kanban: 0 err | Coerenza: 0 err | Topology: 0 err | VCS: 0 err — verdict: green/pass

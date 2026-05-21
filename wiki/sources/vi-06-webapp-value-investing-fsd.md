@@ -66,7 +66,7 @@ Il motore di regole valida automaticamente: [^src: raw/06_Documento_Funzionale_W
 Il sistema calcola autonomamente tre metriche: [^src: raw/06_Documento_Funzionale_WebApp_Value_Investing.md §RF4: Calcolo del Valore Intrinseco e Margin of Safety]
 
 1. **Indice di Graham:** `Sqrt(22.5 * EPS * BVPS)`.
-2. **DCF:** Proiezione FCF/Owner Earnings (crescita media storica, max 5-7%), attualizzata con discount rate 9-10% e tasso terminale 2-3%.
+2. **DCF:** Proiezione FCF/Owner Earnings (crescita media storica, max 5-7%), attualizzata con discount rate 9-10% e tasso terminale 2-3%. [^src: raw/06_Documento_Funzionale_WebApp_Value_Investing.md §RF4: Calcolo del Valore Intrinseco e Margin of Safety]
 3. **Margin of Safety:** Segnalazione visiva se `Prezzo Attuale < Valore Intrinseco DCF * 0.70` (sconto 30%).
 
 ### RF5: Dashboard e UI
