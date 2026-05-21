@@ -89,9 +89,9 @@ object FmpFixtureLoader {
                 }
             }
         }
-        val newestYear = base.mapNotNull { yearOf(it) }.maxOrNull() ?: 2024
+        val newestYear = base.mapNotNull { yearOf(it as Any) }.maxOrNull() ?: 2024
         val template = base.last()
-        val result = base.map { transform(yearOf(it) ?: newestYear, it) }.toMutableList()
+        val result = base.map { transform(yearOf(it as Any) ?: newestYear, it) }.toMutableList()
         var year = newestYear - base.size
         while (result.size < TARGET_YEARS) {
             result.add(transform(year, template))

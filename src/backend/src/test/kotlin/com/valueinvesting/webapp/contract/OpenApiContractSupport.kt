@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import java.nio.file.Path
 
 /**
@@ -50,7 +51,7 @@ object OpenApiContractSupport {
         ImplementedOperation("/api/dcf-overrides/{ticker}", "delete", "204", null),
     )
 
-    private val yamlMapper: ObjectMapper = jacksonObjectMapper(YAMLFactory())
+    private val yamlMapper: ObjectMapper = ObjectMapper(YAMLFactory()).registerKotlinModule()
 
     fun loadCanonicalOpenApi(canonicalPath: Path): JsonNode =
         yamlMapper.readTree(canonicalPath.toFile())

@@ -154,7 +154,7 @@ class AnalysisControllerIT {
                 status { isOk() }
                 jsonPath("$.mosSignal") { value("NOT_CALCULABLE") }
                 jsonPath("$.dcfMethod") { value("NOT_APPLICABLE") }
-                jsonPath("$.dcfIntrinsicValue").doesNotExist()
+                jsonPath("$.dcfIntrinsicValue") { doesNotExist() }
             }
     }
 }
