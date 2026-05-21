@@ -6,6 +6,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import io.swagger.v3.core.util.Json
 import io.swagger.v3.oas.models.OpenAPI
 import java.nio.file.Path
 import java.util.Locale
@@ -61,8 +62,9 @@ object OpenApiContractSupport {
     fun loadCanonicalOpenApi(canonicalPath: Path): JsonNode =
         yamlMapper.readTree(canonicalPath.toFile())
 
+    /** Swagger-core JSON mapper preserves PathItem HTTP verbs (get/post/delete). */
     fun runtimeOpenApiToJsonNode(openAPI: OpenAPI): JsonNode =
-        jsonMapper.valueToTree(openAPI)
+        jsonMapper.readValue(Json.mapper().writeValueAsString(openAPI))
 
     fun pathOperations(pathsNode: JsonNode?): Map<String, Map<String, JsonNode>> {
         if (pathsNode == null || !pathsNode.isObject) return emptyMap()

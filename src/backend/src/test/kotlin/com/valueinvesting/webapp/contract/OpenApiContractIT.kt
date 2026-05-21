@@ -57,7 +57,14 @@ class OpenApiContractIT {
 
         val missing = OpenApiContractValidator.findMissingImplementedOperations(canonical, runtime)
         assertThat(missing)
-            .withFailMessage("Implemented API drift:\n${missing.joinToString("\n")}")
+            .withFailMessage {
+                buildString {
+                    appendLine("Implemented API drift:")
+                    missing.forEach { appendLine("  - $it") }
+                    appendLine("Runtime paths: ${runtime.keys.sorted()}")
+                    appendLine("Canonical paths: ${canonical.keys.sorted()}")
+                }
+            }
             .isEmpty()
     }
 
