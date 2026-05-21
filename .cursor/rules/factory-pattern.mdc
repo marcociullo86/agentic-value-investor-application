@@ -1,0 +1,35 @@
+---
+description: Contratto agentic factory llm-wiki++ v2.8 — layer, scope ruoli, citazioni, gate VCS
+alwaysApply: true
+---
+
+# Factory pattern (PATTERN v2.8)
+
+Contratto autoritativo: [`PATTERN.md`](../../PATTERN.md). Adapter Cursor: [`CURSOR.md`](../../CURSOR.md).
+
+## Layer (non invertire la cascata)
+
+| Layer | Path | Scrittura |
+|-------|------|-----------|
+| L1 | `raw/` | Solo ruolo Sync |
+| L2 | `wiki/` | Solo `wiki-keeper` (single-committer) |
+| L3 | `management/` | Solo PM |
+| L4 | `design_&_architecture/`, `TSK-*.md` | Arch + TPM |
+| L5 | `src/` (da `factory.config.yaml`) | Dev-agent o umani |
+
+## Regole inviolabili (sintesi §7)
+
+1. Zero invenzione → `wiki/gaps.md` o `management/questions.md`.
+2. Citazioni: `[^src: path.md §sezione]` su claim non banali; wikilink `[[slug]]` in wiki.
+3. `wiki/log.md` e `wiki/gaps.md` solo append-only.
+4. Dev-agent: scrivono solo `<code_path>/`; sul TSK solo `status:` e `updated:`.
+5. **Mai commit/push automatici** — gate umano (`vcs-handoff`).
+6. `raw/tech_stack.md` ha priorità assoluta sugli stack.
+
+## Quando delegare
+
+Usa subagent in `.cursor/agents/` per ruoli con scope ristretto (es. `wiki-query` legge solo `wiki/`). Per `/dev <TSK-id>` invoca il dev-agent del `layer:` del TSK (`be-dev`, `fe-dev`, `db-dev`, `qa-dev`) e applica la skill `dev-protocol`.
+
+## Comandi factory
+
+`/run`, `/sync-docs`, `/query`, `/lint`, `/promote`, `/heal`, `/dev`, `/topology` — vedi `.cursor/commands/`.

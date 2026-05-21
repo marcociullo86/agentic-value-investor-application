@@ -196,8 +196,8 @@ Quando un raw cita uno standard normativo (SPID, OIDC, OAuth2, SAML, eIDAS, FHIR
 
 Ogni adapter implementa i ruoli §2 con i costrutti del proprio runtime:
 
-- `.claude/` — Claude Code: agents + skills + commands (adapter di default)
-- `.cursor/` — adapter Cursor (futuro)
+- `.claude/` — Claude Code: agents + skills + commands
+- `.cursor/` — Cursor: agents + skills + commands + rules (vedi `CURSOR.md`)
 - `.openai/` — adapter OpenAI Assistants (futuro)
 - `.aider/` — adapter Aider (futuro)
 

@@ -5,7 +5,8 @@ estesa con planning (PM/Arch/TPM), execution layer L5 (4 dev-agent), memoria
 cross-conversazione e VCS integration esplicita.
 
 - **Contratto autoritativo (universale, agent-agnostic):** [`PATTERN.md`](PATTERN.md)
-- **Adapter di default (Claude Code):** [`CLAUDE.md`](CLAUDE.md) + cartella [`.claude/`](.claude/)
+- **Adapter Claude Code:** [`CLAUDE.md`](CLAUDE.md) + [`.claude/`](.claude/)
+- **Adapter Cursor:** [`CURSOR.md`](CURSOR.md) + [`.cursor/`](.cursor/)
 - **Configurazione factory:** [`factory.config.yaml`](factory.config.yaml)
 
 ## Topologia attiva
@@ -27,6 +28,10 @@ cross-conversazione e VCS integration esplicita.
 | `memory/` | Persistenza cross-conversazione (side-channel) |
 
 ## Quick start
+
+**Cursor:** comandi in [`.cursor/commands/`](.cursor/commands/) (`/run`, `/sync-docs`, …). Vedi [`CURSOR.md`](CURSOR.md).
+
+**Claude Code:** comandi in [`.claude/commands/`](.claude/commands/). Vedi [`CLAUDE.md`](CLAUDE.md).
 
 ```text
 1. Aggiungere PDF in raw/ con naming YYYY-MM-DD-<nome>.pdf
