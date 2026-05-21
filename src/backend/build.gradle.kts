@@ -29,7 +29,7 @@ repositories {
 
 extra["resilience4jVersion"] = "2.2.0"
 extra["jjwtVersion"] = "0.12.6"
-extra["springdocVersion"] = "2.6.0"
+extra["springdocVersion"] = "2.8.16" // Spring Boot 3.5.x requires >= 2.8.9 [springdoc#3005]
 extra["testcontainersVersion"] = "1.20.4"
 extra["flywayVersion"] = "10.20.1"
 
