@@ -68,7 +68,8 @@ dependencies {
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:${property("jjwtVersion")}")
 
     // springdoc-openapi 2.x (OpenAPI 3.1) [^src: design_&_architecture/decisions/ADR-007-api-contract.md]
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:${property("springdocVersion")}")
+    // API docs only (no swagger-ui) — avoids PathPatternParser clash on Boot 3.5 [springdoc#965]
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:${property("springdocVersion")}")
 
     // Observability (Micrometer + Prometheus) [^src: design_&_architecture/decisions/ADR-008-observability-logging.md]
     implementation("io.micrometer:micrometer-registry-prometheus")
