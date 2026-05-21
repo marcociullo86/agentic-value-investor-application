@@ -6,7 +6,9 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import io.swagger.v3.oas.models.OpenAPI
 import java.nio.file.Path
+import java.util.Locale
 
 /**
  * Operations implemented in Sprint 2 (subset of canonical openapi.yaml).
@@ -25,6 +27,7 @@ object OpenApiContractSupport {
 
     val RUNTIME_PATH_IGNORE: Set<String> = setOf(
         "/api/openapi.json",
+        "/api/swagger-ui.html",
         "/v3/api-docs",
         "/v3/api-docs.yaml",
         "/swagger-ui.html",
@@ -32,6 +35,7 @@ object OpenApiContractSupport {
 
     val RUNTIME_PATH_PREFIX_IGNORE: List<String> = listOf(
         "/swagger-ui",
+        "/api/swagger-ui",
         "/actuator",
     )
 
@@ -52,17 +56,18 @@ object OpenApiContractSupport {
     )
 
     private val yamlMapper: ObjectMapper = ObjectMapper(YAMLFactory()).registerKotlinModule()
+    private val jsonMapper: ObjectMapper = jacksonObjectMapper()
 
     fun loadCanonicalOpenApi(canonicalPath: Path): JsonNode =
         yamlMapper.readTree(canonicalPath.toFile())
 
-    fun parseOpenApiJson(json: String): JsonNode =
-        jacksonObjectMapper().readValue(json)
+    fun runtimeOpenApiToJsonNode(openAPI: OpenAPI): JsonNode =
+        jsonMapper.valueToTree(openAPI)
 
     fun pathOperations(pathsNode: JsonNode?): Map<String, Map<String, JsonNode>> {
         if (pathsNode == null || !pathsNode.isObject) return emptyMap()
-        return pathsNode.fields().asSequence().associate { (path, item) ->
-            path to item.fields().asSequence()
+        return pathsNode.properties().associate { (path, item) ->
+            path to item.properties()
                 .filter { (name, _) -> name.lowercase() in HTTP_METHODS }
                 .associate { (name, op) -> name.lowercase() to op }
         }
@@ -70,17 +75,40 @@ object OpenApiContractSupport {
 
     fun schemaNames(components: JsonNode?): Set<String> {
         val schemas = components?.get("schemas") ?: return emptySet()
-        return schemas.fieldNames().asSequence().toSet()
+        return schemas.properties().map { it.key }.toSet()
     }
 
-    fun responseSchemaName(operation: JsonNode, status: String): String? {
-        val refNode = operation.path("responses").path(status)
-            .path("content").path("application/json").path("schema").path("\$ref")
-        if (refNode.isMissingNode || refNode.isNull) return null
-        return refNode.asText().substringAfterLast("/")
+    fun resolveResponseSchemaName(operation: JsonNode, status: String): String? {
+        val schema = operation.path("responses").path(status)
+            .path("content").path("application/json").path("schema")
+        if (schema.isMissingNode || schema.isNull) return null
+
+        val directRef = schema.path("\$ref")
+        if (!directRef.isMissingNode && !directRef.isNull) {
+            return directRef.asText().substringAfterLast("/")
+        }
+
+        val allOf = schema.path("allOf")
+        if (allOf.isArray) {
+            for (entry in allOf) {
+                val ref = entry.path("\$ref")
+                if (!ref.isMissingNode && !ref.isNull) {
+                    return ref.asText().substringAfterLast("/")
+                }
+            }
+        }
+        return null
+    }
+
+    fun hasAcceptableSchemaInComponents(canonicalName: String, runtimeSchemas: Set<String>): Boolean {
+        val acceptable = SCHEMA_ALIASES[canonicalName] ?: setOf(canonicalName)
+        return acceptable.any { it in runtimeSchemas }
     }
 
     fun isIgnoredRuntimePath(path: String): Boolean =
         path in RUNTIME_PATH_IGNORE ||
             RUNTIME_PATH_PREFIX_IGNORE.any { path.startsWith(it) }
+
+    fun buildRuntimeOpenApi(openAPIService: org.springdoc.core.service.OpenAPIService): JsonNode =
+        runtimeOpenApiToJsonNode(openAPIService.build(Locale.ENGLISH))
 }

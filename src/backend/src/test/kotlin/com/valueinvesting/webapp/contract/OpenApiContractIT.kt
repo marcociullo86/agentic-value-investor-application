@@ -3,16 +3,13 @@ package com.valueinvesting.webapp.contract
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.springdoc.core.service.OpenAPIService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
-import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.get
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
@@ -20,9 +17,9 @@ import java.nio.file.Path
 
 /**
  * Contract test: runtime springdoc OpenAPI vs design_&_architecture/api/openapi.yaml (TSK-037).
+ * Uses [OpenAPIService] directly (same document as /api/openapi.json) to avoid MockMvc path issues.
  */
 @SpringBootTest
-@AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("test")
 @Testcontainers
 @Tag("contract")
@@ -46,7 +43,7 @@ class OpenApiContractIT {
     }
 
     @Autowired
-    private lateinit var mockMvc: MockMvc
+    private lateinit var openAPIService: OpenAPIService
 
     @Value("\${contract.openapi.canonical}")
     private lateinit var canonicalOpenApiPath: String
@@ -90,14 +87,7 @@ class OpenApiContractIT {
             .isEmpty()
     }
 
-    private fun loadRuntimeDocument() =
-        OpenApiContractSupport.parseOpenApiJson(
-            mockMvc.get("/api/openapi.json") { accept(MediaType.APPLICATION_JSON) }
-                .andExpect { status { isOk() } }
-                .andReturn()
-                .response
-                .contentAsString,
-        )
+    private fun loadRuntimeDocument() = OpenApiContractSupport.buildRuntimeOpenApi(openAPIService)
 
     private fun loadRuntimePaths() =
         OpenApiContractSupport.pathOperations(loadRuntimeDocument().get("paths"))

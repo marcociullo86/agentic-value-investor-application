@@ -37,13 +37,12 @@ object OpenApiContractValidator {
         implemented.mapNotNull { op ->
             val schema = op.responseSchema ?: return@mapNotNull null
             val runtimeOp = runtime[op.path]?.get(op.method) ?: return@mapNotNull null
-            val runtimeName = OpenApiContractSupport.responseSchemaName(runtimeOp, op.successStatus)
+            val runtimeName = OpenApiContractSupport.resolveResponseSchemaName(runtimeOp, op.successStatus)
             val acceptable = OpenApiContractSupport.SCHEMA_ALIASES[schema] ?: setOf(schema)
             when {
-                runtimeName == null -> "$schema response schema ref missing for ${op.method.uppercase()} ${op.path}"
-                runtimeName !in acceptable && runtimeName !in runtimeSchemas ->
-                    "$schema not found in runtime (got $runtimeName)"
-                runtimeName !in acceptable ->
+                runtimeName == null && !OpenApiContractSupport.hasAcceptableSchemaInComponents(schema, runtimeSchemas) ->
+                    "$schema response schema not found for ${op.method.uppercase()} ${op.path} (inline or missing components)"
+                runtimeName != null && runtimeName !in acceptable ->
                     "$schema alias mismatch: runtime uses $runtimeName, expected one of $acceptable"
                 else -> null
             }
