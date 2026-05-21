@@ -1,0 +1,14 @@
+{
+  "name": "value-investing-frontend",
+  "private": true,
+  "version": "0.1.0-SNAPSHOT",
+  "description": "Contract-only bootstrap until TSK-030 (Next.js) lands on master.",
+  "scripts": {
+    "generate:api": "openapi-typescript \"../../design_&_architecture/api/openapi.yaml\" -o lib/api/generated/schema.ts",
+    "typecheck:api": "tsc -p tsconfig.api.json --noEmit"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.6.1",
+    "typescript": "^5.7.3"
+  }
+}

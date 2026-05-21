@@ -441,7 +441,7 @@ components:
         title:   { type: string }
         status:  { type: integer }
         detail:  { type: string }
-        instance:{ type: string }
+        instance: { type: string }
 
     Signal:
       type: string

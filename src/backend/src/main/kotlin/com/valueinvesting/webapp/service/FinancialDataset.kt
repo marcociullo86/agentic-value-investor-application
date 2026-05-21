@@ -1,5 +1,6 @@
 package com.valueinvesting.webapp.service
 
+import io.swagger.v3.oas.annotations.media.Schema
 import java.time.Instant
 
 // Aggregated financial dataset returned by FinancialDataService.
@@ -8,6 +9,7 @@ import java.time.Instant
 // in questo TSK il dataset è raw-oriented (le 4 liste DTO) per uso diagnostico.
 // [^src: design_&_architecture/api/openapi.yaml §FinancialDataset]
 // [^src: design_&_architecture/components/backend-components.md §FinancialDataService]
+@Schema(name = "FinancialDataset")
 data class FinancialDataset(
     val ticker: String,
     val income: List<com.valueinvesting.webapp.fmp.dto.IncomeStatementDto>,

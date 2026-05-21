@@ -84,8 +84,11 @@ dependencies {
     testImplementation("org.testcontainers:junit-jupiter:${property("testcontainersVersion")}")
     testImplementation("org.testcontainers:postgresql:${property("testcontainersVersion")}")
     testImplementation("org.assertj:assertj-core")
+    testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
+
+val repoRoot: File = projectDir.parentFile.parentFile
 
 tasks.withType<KotlinCompile> {
     compilerOptions {
@@ -95,6 +98,20 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    systemProperty(
+        "contract.openapi.canonical",
+        repoRoot.resolve("design_&_architecture/api/openapi.yaml").absolutePath,
+    )
+}
+
+tasks.register<Test>("contractCheck") {
+    group = "verification"
+    description = "OpenAPI contract drift check (springdoc vs openapi.yaml)"
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    useJUnitPlatform {
+        includeTags("contract")
+    }
 }
 
 // Allow JPA entities to be open without manual `open` modifier
