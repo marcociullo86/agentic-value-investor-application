@@ -3,7 +3,7 @@ type: synthesis
 sources: ["raw/06_Documento_Funzionale_WebApp_Value_Investing.md", "raw/03_Analisi_Fondamentale_e_Valutazione.md", "raw/05_Analisi_10K_10Q_e_Regole_Buffett.md", "raw/FMP_Docs_4_Financial_Statements.txt", "raw/FMP_Docs_5_Metrics_and_Ratios.txt"]
 status: draft
 created: 2026-05-20
-updated: 2026-05-20
+updated: 2026-05-21
 tags: [synthesis, product-spec, value-investing, fmp, rule-engine, webapp, graham, buffett, dcf, margin-of-safety]
 ---
 # Specifica della WebApp Value Investing — Sintesi Cross-Domain
@@ -52,14 +52,31 @@ Il [[webapp-architecture-vi]] definisce il layer tecnico che abilita queste rego
 
 Il caching 24h e il throttling affrontano parzialmente il gap `fmp-rate-limiting` a livello applicativo, ma non sostituiscono la documentazione dei limiti ufficiali FMP. [^src: raw/06_Documento_Funzionale_WebApp_Value_Investing.md §5. Requisiti Non Funzionali]
 
+## Stato implementazione R1.0 (v2026-05-21)
+
+| Epica | Sprint | Stato backend (L5) |
+|-------|--------|-------------------|
+| EP-002 FMP | 1 | Adapter, cache 24h, resilienza, `GET /api/financials/{ticker}` |
+| EP-003 Rule Engine | 2 | 7 regole + `RuleEngineService` |
+| EP-004 Valutazione | 2 | Graham, DCF Greenwald/FCF, MoS, `GET /api/analysis/{ticker}` |
+| EP-001 Screening | 2–3 | Contratto OpenAPI; **non** implementato (search/screener) |
+| EP-005 Dashboard | 3 | Non implementato (FE Traffic Light, grafici, moat) |
+| EP-006 Watchlist/Auth | 3 | Non implementato |
+
+**Milestone Sprint 2 raggiunta** su branch `feature/sprint2-analysis`: analisi end-to-end con test integrazione e [[openapi-contract-check]]. Merge verso `master` previsto dopo review PR.
+
+Endpoint implementati vs contratto completo: vedi [[analysis-api-pipeline]] e `design_&_architecture/api/openapi.yaml`.
+
 ## Gap residui identificati
 
-- Il FSD non specifica il framework SPA definitivo (React/Vue/Angular): lasciato come decisione tecnica aperta.
-- La logica di calcolo degli Owner Earnings non e' dettagliata a livello di formula (solo riferimento a FCF/Owner Earnings). Vedi gap `vi-webapp-owner-earnings-formula` in `wiki/gaps.md`.
-- Il gap `fmp-rate-limiting` (limiti ufficiali FMP) resta aperto: il throttling applicativo e' specificato come RNF ma i valori soglia non sono documentabili senza fonte ufficiale FMP.
+- Framework SPA: stack scelto in ADR-001 (Next.js) ma bootstrap FE (TSK-030) ancora su `master` / track parallelo.
+- Owner Earnings: formula formalizzata in [[vi-08-risoluzione-q001-owner-earnings]]; gap `vi-webapp-owner-earnings-formula` **chiuso** in `wiki/gaps.md`.
+- `fmp-rate-limiting`: limiti ufficiali FMP non documentati nei raw; Resilience4j + cache mitigano a livello app.
 
 ## Concetti correlati
 [[value-investing-rule-engine]]
+[[analysis-api-pipeline]]
+[[openapi-contract-check]]
 [[webapp-architecture-vi]]
 [[intrinsic-value]]
 [[margin-of-safety]]

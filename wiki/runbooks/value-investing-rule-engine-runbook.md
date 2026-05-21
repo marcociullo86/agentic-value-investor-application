@@ -3,7 +3,7 @@ type: runbook
 sources: ["raw/06_Documento_Funzionale_WebApp_Value_Investing.md"]
 status: draft
 created: 2026-05-20
-updated: 2026-05-20
+updated: 2026-05-21
 tags: [runbook, rule-engine, value-investing, kotlin, fmp, roe, roic, dcf, margin-of-safety, implementation]
 ---
 # Runbook: Implementare il Value Investing Rule Engine
@@ -16,6 +16,22 @@ tags: [runbook, rule-engine, value-investing, kotlin, fmp, roe, roic, dcf, margi
 - API Key FMP attiva e configurata (vedi [[fmp-auth]]).
 - Accesso agli endpoint: `income-statement`, `balance-sheet-statement`, `cash-flow-statement`, `key-metrics` (tutti con `limit=10`).
 - Cache layer 24h attivo (PostgreSQL o in-memory) per ridurre le chiamate FMP.
+
+## Stato implementazione (v2026-05-21, Sprint 2)
+
+| Step runbook | Stato | Artefatto Kotlin |
+|--------------|-------|------------------|
+| 1 Acquisizione FMP | Fatto | `FmpAdapter`, `FmpCacheService`, `FinancialDataService`, `ResilientFmpAdapter` |
+| 2 Regole quantitative | Fatto | 7× `ValuationRule` in `ruleengine/rules/` |
+| 3a Graham Number | Fatto | `GrahamNumberCalculator` |
+| 3b DCF | Fatto | `DcfCalculator`, `GreenwaldMaintenanceCapexEstimator`, `FcfFallbackEstimator` |
+| 3c Margin of Safety | Fatto | `MarginOfSafetyEvaluator` (soglia 70% DCF) |
+| 4 Composizione risultato | Fatto | `AnalyzeTickerService` → `RuleEngineResultResponse` |
+| 5 Esposizione API | Fatto | `GET /api/analysis/{ticker}` — vedi [[analysis-api-pipeline]] |
+| Diagnostica bilancio | Fatto | `GET /api/financials/{ticker}` |
+| Override DCF | Fatto | `POST/DELETE /api/dcf-overrides` (auth stub `X-User-Id`) |
+
+Test: unit rule/calculator; E2E `AnalysisControllerIT`; contract `gradle contractCheck`. Frontend Traffic Light (TSK-021) **non** ancora implementato.
 
 ## Step 1 — Acquisizione Dati FMP (RF2)
 

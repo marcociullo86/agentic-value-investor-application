@@ -3,7 +3,7 @@ type: concept
 sources: ["raw/06_Documento_Funzionale_WebApp_Value_Investing.md"]
 status: draft
 created: 2026-05-20
-updated: 2026-05-20
+updated: 2026-05-21
 tags: [product-spec, value-investing, rule-engine, roe, roic, margin, current-ratio, dcf, capex]
 ---
 # Value Investing Rule Engine
@@ -106,6 +106,28 @@ Owner Earnings = Net Income + D&A +/- Non-Cash Charges - Maintenance CapEx
 **Metodo primario nel Rule Engine:** Metodo Greenwald (PPE_Ratio-based) per derivare Maintenance CapEx da Total CapEx. **Metodo fallback (flag DB):** Metodo 3 (FCF tradizionale) per settori ad alta intensita' di capitale (Utilities, Telecomunicazioni). [^src: raw/08_Risoluzione_Q001_Owner_Earnings.md §3. Implementazione Pratica (Aggiornamento US-012)]
 
 Vedi [[vi-08-risoluzione-q001-owner-earnings]] per la specifica completa dei tre metodi di stima.
+
+## Aggiornamenti (v2026-05-21)
+
+**Stato L5 (Sprint 2, branch `feature/sprint2-analysis`):** le sette strategie `ValuationRule` sono implementate in Kotlin con `ruleId` stabili; l'aggregazione avviene in `RuleEngineService.evaluateAll()` (ordinamento lessicografico per `ruleId`).
+
+| ruleId | Classe | Soglia sintetica |
+|--------|--------|------------------|
+| `ROE_10Y_AVG` | `RoeRule` | &gt;15% GREEN; 10–15% YELLOW; &lt;10% RED |
+| `ROIC_10Y_AVG` | `RoicRule` | &gt;12% GREEN; 8–12% YELLOW; &lt;8% RED |
+| `GROSS_MARGIN_10Y_AVG` | `GrossMarginRule` | &gt;40% / 30–40% / &lt;30% |
+| `NET_MARGIN_10Y_AVG` | `NetMarginRule` | &gt;10% GREEN, altrimenti RED |
+| `CURRENT_RATIO_LATEST` | `CurrentRatioRule` | &gt;2 GREEN; 1.5–2 YELLOW; &lt;1.5 RED |
+| `DEBT_TO_INCOME_LATEST` | `DebtToIncomeRule` | &lt;4 GREEN; 4–5 YELLOW; &gt;5 RED |
+| `CAPEX_INTENSITY_10Y_AVG` | `CapexIntensityRule` | &lt;25% GREEN; 25–30% YELLOW; &gt;30% RED |
+
+**Segnali:** enum `Signal` include `INDETERMINATE` (dati insufficienti, es. &lt; 5 anni) e `NOT_CALCULABLE` (input assenti) — distinti da `RED`. [^src: design_&_architecture/decisions/ADR-005-rule-engine-design.md]
+
+**Endpoint analisi:** `GET /api/analysis/{ticker}` restituisce `signals` (7 elementi) + `grahamNumber` + `dcfIntrinsicValue` + `dcfMethod` + `mosSignal`. Dettaglio pipeline: [[analysis-api-pipeline]].
+
+**DCF implementato:** `DcfCalculator` con `GreenwaldMaintenanceCapexEstimator` (primario) e `FcfFallbackEstimator`; override per utente su `dcf_method_override` (V007). Parametri: growth 5–7%, discount 9.5%, terminal 2.5%.
+
+**Non ancora in produzione (Sprint 3+):** search, screener, historical, moat checklist, auth, watchlist — restano solo nel contratto OpenAPI pieno.
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->

@@ -3,7 +3,7 @@ type: concept
 sources: ["raw/01_Principi_Fondamentali_Value_Investing.md", "raw/05_Analisi_10K_10Q_e_Regole_Buffett.md"]
 status: draft
 created: 2026-05-20
-updated: 2026-05-20
+updated: 2026-05-21
 tags: [value-investing, margin-of-safety, intrinsic-value, graham, buffett]
 ---
 # Margine di Sicurezza (Margin of Safety)
@@ -57,6 +57,19 @@ L'inflazione erode il potere d'acquisto dei rendimenti obbligazionari, rendendo 
 [[vi-05-analisi-10k-10q-buffett]]
 [[warren-buffett]]
 [[benjamin-graham]]
+
+## Aggiornamenti (v2026-05-21)
+
+**Implementazione WebApp:** `MarginOfSafetyEvaluator` confronta il prezzo da `fmp_profile_snapshot` con `dcfIntrinsicValue` prodotto da [[analysis-api-pipeline]].
+
+| Condizione | `mosSignal` |
+|------------|-------------|
+| `prezzo < 0.70 × DCF` (DCF &gt; 0) | `GREEN` |
+| `0.70 × DCF ≤ prezzo < DCF` | `YELLOW` |
+| `prezzo ≥ DCF` | `RED` |
+| DCF o prezzo assente / non positivi | `NOT_CALCULABLE` |
+
+Costante: `MOS_DISCOUNT_FACTOR = 0.70` (sconto minimo 30% sul valore intrinseco DCF). [^src: design_&_architecture/api/openapi.yaml §RuleEngineResult]
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->

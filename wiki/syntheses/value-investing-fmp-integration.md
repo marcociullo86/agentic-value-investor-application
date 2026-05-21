@@ -3,7 +3,7 @@ type: synthesis
 sources: ["raw/01_Principi_Fondamentali_Value_Investing.md", "raw/03_Analisi_Fondamentale_e_Valutazione.md", "raw/05_Analisi_10K_10Q_e_Regole_Buffett.md", "raw/FMP_Docs_4_Financial_Statements.txt", "raw/FMP_Docs_5_Metrics_and_Ratios.txt"]
 status: draft
 created: 2026-05-20
-updated: 2026-05-20
+updated: 2026-05-21
 tags: [synthesis, value-investing, fmp, cross-domain, graham, buffett, financial-statements, metrics]
 ---
 # Come usare FMP API per il Value Investing
@@ -44,6 +44,10 @@ Il dominio value investing (raw 01-05) e il dominio FMP API (raw FMP_Docs 1-8) c
 
 Per la lettura dei 10-K/10-Q (Item 1, 1A, 7, 8, Note), FMP non fornisce il testo narrativo del documento SEC. I rendiconti finanziari strutturati (Item 8) sono invece coperti dagli endpoint Financial Statements. Per il testo narrativo (MD&A, Risk Factors), la fonte rimane direttamente EDGAR o il sito IR dell'azienda. [^src: raw/05_Analisi_10K_10Q_e_Regole_Buffett.md §2. Step Procedurali per l'Analisi di un 10-K / 10-Q]
 
+## Aggiornamenti (v2026-05-21)
+
+Il backend non chiama più FMP direttamente dai controller: `FinancialDataService` e `AnalyzeTickerService` usano `FmpCacheService` (TTL 24h sui 4 statement, 1h su profile) con fallback stale (`X-Data-Stale`). Il consumo applicativo unificato per la valutazione è [[analysis-api-pipeline]] (`GET /api/analysis/{ticker}`).
+
 ## Gap residuo
 
 FMP non espone dati narrativi SEC (MD&A, Item 1A). Questo limita la copertura dello Step 2 e Step 3 del [[sec-filings-analysis]] quando si usa solo FMP come fonte dati. Vedi `wiki/gaps.md` per il gap `vi-sec-narrative-gap`.
@@ -65,6 +69,7 @@ FMP non espone dati narrativi SEC (MD&A, Item 1A). Questo limita la copertura de
 [[vi-05-analisi-10k-10q-buffett]]
 [[webapp-value-investing-spec]]
 [[value-investing-rule-engine]]
+[[analysis-api-pipeline]]
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->

@@ -3,7 +3,7 @@ type: concept
 sources: ["raw/03_Analisi_Fondamentale_e_Valutazione.md"]
 status: draft
 created: 2026-05-20
-updated: 2026-05-20
+updated: 2026-05-21
 tags: [value-investing, graham, graham-number, pe-ratio, pb-ratio, eps, book-value, defensive-investor]
 ---
 # Numero di Graham (Graham Number)
@@ -62,6 +62,10 @@ Il ROE costantemente elevato (> 15%) affianca il Numero di Graham come segnale d
 ## Pagine collegate
 [[vi-03-analisi-fondamentale-valutazione]]
 [[benjamin-graham]]
+
+## Aggiornamenti (v2026-05-21)
+
+**Backend:** `GrahamNumberCalculator` (package `ruleengine/calculators`) espone `calculate(eps, bvps)` e `calculateFromDataset`; risultato incluso in `GET /api/analysis/{ticker}` come campo `grahamNumber`. Valori null o ≤ 0 → non applicabile (campo omesso). EPS da income statement latest; BVPS da key metrics `bookValuePerShare`. [^src: design_&_architecture/api/openapi.yaml §RuleEngineResult]
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->

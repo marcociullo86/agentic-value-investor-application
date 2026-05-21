@@ -3,7 +3,7 @@ type: concept
 sources: ["raw/06_Documento_Funzionale_WebApp_Value_Investing.md"]
 status: draft
 created: 2026-05-20
-updated: 2026-05-20
+updated: 2026-05-21
 tags: [product-spec, architecture, kotlin, spring-boot, spa, postgresql, fmp, caching, rest]
 ---
 # Architettura WebApp Value Investing
@@ -98,6 +98,19 @@ La sezione "Livello 1: Frontend (Client)" va letta con questa integrazione:
 Storie EP-005 (US-014, US-015, US-016) sono ora sbloccate. [^src: raw/07_Risoluzione_Q002_Q003.md §Risoluzione Q_002: Architectural Decision Record (ADR) - Scelta Framework Frontend]
 
 Vedi [[vi-07-risoluzione-q002-q003]] per i dettagli dell'ADR.
+
+## Aggiornamenti (v2026-05-21)
+
+**Backend L5 (`src/backend/`, Kotlin 2.2 + Spring Boot 3.5):**
+
+- Package principali: `fmp/` (adapter, cache, resilienza), `ruleengine/` (7 rules + calculators), `service/` (`AnalyzeTickerService`, `FinancialDataService`), `api/` (controller REST), `persistence/` (JPA + Flyway V001–V007).
+- Endpoint REST attivi: `GET /api/financials/{ticker}`, `GET /api/analysis/{ticker}`, `POST|DELETE /api/dcf-overrides`, `GET /api/openapi.json`, `/actuator/*`.
+- Header trasparenza dati: `X-Data-Snapshot-At`, `X-Data-Stale` su financials e analysis.
+- QA: Testcontainers PostgreSQL; job CI `contract-check` — [[openapi-contract-check]].
+
+**Frontend:** scaffold contract-only in `src/frontend/` (`generate:api`); app Next.js completa ancora da TSK-030.
+
+**Deploy:** immagine Docker e pipeline CI full (TSK-032) in corso su track `master`.
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->

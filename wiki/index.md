@@ -4,7 +4,7 @@ type: index
 title: Wiki Index
 status: draft
 created: 2026-05-20
-updated: 2026-05-20 (v2026-05-20 ingest raw 07-08)
+updated: 2026-05-21 (v2026-05-21 sync L5 Sprint 2)
 tags: [navigation]
 ---
 # Wiki Index — App Template Demo
@@ -100,12 +100,14 @@ tags: [navigation]
 | [[defensive-vs-enterprising-investor]] | Due profili Graham: difensivo (ETF, ribilanciamento) vs intraprendente (analisi attiva) |
 | [[sec-filings-analysis]] | Metodologia 5-step per analisi 10-K/10-Q (business, rischi, MD&A, rendiconti, note) |
 
-#### Product Spec (2)
+#### Product Spec (4)
 
 | Pagina | Descrizione |
 |--------|-------------|
 | [[value-investing-rule-engine]] | Motore regole quantitativo: ROE/ROIC/Margin/CurrentRatio/CapEx + DCF + MoS traffic light |
 | [[webapp-architecture-vi]] | Architettura 3-layer: SPA frontend, Kotlin/Spring Boot backend, PostgreSQL, FMP API |
+| [[analysis-api-pipeline]] | `GET /api/analysis/{ticker}`: pipeline completa, 7 signals, persistenza |
+| [[openapi-contract-check]] | Gate CI springdoc vs openapi.yaml + tipi TS generati |
 
 ### Entities (3)
 
@@ -123,10 +125,11 @@ tags: [navigation]
 | [[value-investing-fmp-integration]] | Mappa metrica value investing → endpoint FMP API (cross-domain) |
 | [[webapp-value-investing-spec]] | Specifica cross-domain: requisiti funzionali → regole Rule Engine → endpoint FMP → architettura |
 
-### Runbooks (3)
+### Runbooks (4)
 
 | Pagina | Descrizione |
 |--------|-------------|
 | [[fmp-api-quickstart]] | Procedura di integrazione minima: auth, search, quote, statement |
 | [[sec-10k-10q-analysis-playbook]] | Playbook 7-step per analisi 10-K/10-Q con metodo Buffett e FMP API |
 | [[value-investing-rule-engine-runbook]] | Implementazione step-by-step del Rule Engine: acquisizione FMP, validazione regole, DCF, MoS |
+| [[runbook-openapi-contract-check]] | Mantenere allineati openapi.yaml, springdoc e generate:api |
