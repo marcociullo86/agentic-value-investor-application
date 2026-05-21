@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light dark;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  @apply bg-white text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-50;
+}
+
+/* Focus ring accessibile (WCAG 2.4.7) sui controlli interattivi. */
+:focus-visible {
+  @apply outline-none ring-2 ring-offset-2 ring-blue-500 dark:ring-offset-slate-950;
+}

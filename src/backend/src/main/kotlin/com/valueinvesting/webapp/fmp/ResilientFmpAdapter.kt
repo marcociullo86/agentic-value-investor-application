@@ -5,6 +5,7 @@ import com.valueinvesting.webapp.fmp.dto.CashFlowDto
 import com.valueinvesting.webapp.fmp.dto.IncomeStatementDto
 import com.valueinvesting.webapp.fmp.dto.KeyMetricsDto
 import com.valueinvesting.webapp.fmp.dto.ProfileDto
+import com.valueinvesting.webapp.fmp.dto.ScreenedStockDto
 import io.github.resilience4j.bulkhead.Bulkhead
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException
 import io.github.resilience4j.circuitbreaker.CircuitBreaker
@@ -69,6 +70,17 @@ class ResilientFmpAdapter(
 
     override fun getProfile(ticker: String): ProfileDto =
         execute("profile", ticker) { delegate.getProfile(ticker) }
+
+    override fun screen(
+        marketCapMoreThan: Long?,
+        marketCapLowerThan: Long?,
+        sector: String?,
+        limit: Int,
+    ): List<ScreenedStockDto> =
+        // ticker "-" è un placeholder per il logger (screener non è per-ticker).
+        execute("stock-screener", "-") {
+            delegate.screen(marketCapMoreThan, marketCapLowerThan, sector, limit)
+        }
 
     /**
      * Apply chain decorators in order Bulkhead -> CB -> Retry, then gate the

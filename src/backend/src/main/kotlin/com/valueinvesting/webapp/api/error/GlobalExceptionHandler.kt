@@ -14,6 +14,7 @@ import org.springframework.security.core.AuthenticationException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import org.springframework.web.servlet.NoHandlerFoundException
 
 // Centralized exception → ProblemDetails mapper (RFC 9457).
@@ -103,6 +104,34 @@ class GlobalExceptionHandler(
             request = req,
         )
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem)
+    }
+
+    // Spring throws MethodArgumentTypeMismatchException when a query/path param
+    // cannot be bound to the controller parameter type (e.g. ?marketCap=NANO when
+    // MarketCapBand has no NANO entry). Map to 400 ProblemDetails per RFC 9457
+    // — non gestirlo significherebbe 500 via handleGeneric.
+    // [^src: management/kanban/EP-001-ricerca-e-screening/US-002-screener-parametrico/TSK-005.md §Test]
+    @ExceptionHandler(MethodArgumentTypeMismatchException::class)
+    fun handleTypeMismatch(
+        ex: MethodArgumentTypeMismatchException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        val paramName = ex.name
+        val requiredType = ex.requiredType?.simpleName ?: "unknown"
+        val value = ex.value?.toString() ?: "null"
+        val problem = mapper.build(
+            status = HttpStatus.BAD_REQUEST,
+            type = "https://api/errors/type-mismatch",
+            title = "Bad Request",
+            detail = "Parameter '$paramName' value '$value' is not a valid $requiredType",
+            request = req,
+            extensions = mapOf(
+                "parameter" to paramName,
+                "rejectedValue" to value,
+                "requiredType" to requiredType,
+            ),
+        )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem)
     }
 
     @ExceptionHandler(IllegalArgumentException::class)

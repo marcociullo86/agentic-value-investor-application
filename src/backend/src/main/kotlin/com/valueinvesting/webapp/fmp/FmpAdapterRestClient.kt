@@ -6,6 +6,7 @@ import com.valueinvesting.webapp.fmp.dto.CashFlowDto
 import com.valueinvesting.webapp.fmp.dto.IncomeStatementDto
 import com.valueinvesting.webapp.fmp.dto.KeyMetricsDto
 import com.valueinvesting.webapp.fmp.dto.ProfileDto
+import com.valueinvesting.webapp.fmp.dto.ScreenedStockDto
 import org.slf4j.LoggerFactory
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpStatusCode
@@ -79,6 +80,72 @@ class FmpAdapterRestClient(
             limit = 1,
             typeRef = object : ParameterizedTypeReference<List<ProfileDto>>() {},
         ).first()
+
+    // `/stock-screener` ha shape diversa dagli altri endpoint (niente {ticker} nel
+    // path, query params arbitrari, lista vuota legittima) → fetch dedicato.
+    override fun screen(
+        marketCapMoreThan: Long?,
+        marketCapLowerThan: Long?,
+        sector: String?,
+        limit: Int,
+    ): List<ScreenedStockDto> {
+        require(limit > 0) { "limit must be > 0" }
+        val typeRef = object : ParameterizedTypeReference<List<ScreenedStockDto>>() {}
+
+        val result: List<ScreenedStockDto>? = try {
+            client.get()
+                .uri { builder ->
+                    val b = builder
+                        .path("/stock-screener")
+                        .queryParam("apikey", appProperties.fmp.apiKey)
+                        .queryParam("limit", limit)
+                    if (marketCapMoreThan != null) b.queryParam("marketCapMoreThan", marketCapMoreThan)
+                    if (marketCapLowerThan != null) b.queryParam("marketCapLowerThan", marketCapLowerThan)
+                    if (!sector.isNullOrBlank()) b.queryParam("sector", sector)
+                    b.build()
+                }
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError) { _, response ->
+                    val status = response.statusCode
+                    if (status.value() == 429) {
+                        log.warn("FMP 429 (rate limited) on /stock-screener")
+                        throw FmpUnavailableException(
+                            "FMP rate limited for stock-screener",
+                            httpStatus = 429,
+                        )
+                    }
+                    log.warn("FMP 4xx on /stock-screener status={}", status)
+                    // Per lo screener, un 4xx non è "ticker not found": è una
+                    // condizione anomala (parametri rifiutati). La trattiamo come
+                    // unavailable così Resilience4j / GlobalExceptionHandler
+                    // mappano a 503 invece che a 404 fuorviante.
+                    throw FmpUnavailableException(
+                        "FMP returned $status for stock-screener",
+                        httpStatus = status.value(),
+                    )
+                }
+                .onStatus(HttpStatusCode::is5xxServerError) { _, response ->
+                    val status = response.statusCode
+                    log.warn("FMP 5xx on /stock-screener status={}", status)
+                    throw FmpUnavailableException(
+                        "FMP returned $status for stock-screener",
+                        httpStatus = status.value(),
+                    )
+                }
+                .body(typeRef)
+        } catch (ex: FmpUnavailableException) {
+            throw ex
+        } catch (ex: RestClientResponseException) {
+            throw FmpUnavailableException(
+                "FMP call failed: ${ex.statusCode} for stock-screener",
+                cause = ex,
+                httpStatus = ex.statusCode.value(),
+            )
+        }
+
+        // Lista vuota = zero match (legittimo, NOT a not-found).
+        return result ?: emptyList()
+    }
 
     // Generic GET on /{endpoint}/{ticker}?apikey=...&limit=...
     // Empty list response -> FmpTickerNotFoundException (semantica FMP).

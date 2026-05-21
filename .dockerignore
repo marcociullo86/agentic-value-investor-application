@@ -1,0 +1,59 @@
+# .dockerignore — repo root
+# Build context = repository root (`docker build -f src/docker/Dockerfile .`).
+# Restrict the context to source code only: factory metadata, wiki, design,
+# raw inputs, and editor caches must NOT enter the image layers.
+# [^src: management/kanban/.../TSK-032.md §`.dockerignore`]
+
+# VCS
+.git/
+.gitignore
+.gitattributes
+
+# Factory / docs / planning (out of code_path)
+.claude/
+wiki/
+memory/
+management/
+design_&_architecture/
+raw/
+PATTERN.md
+CLAUDE.md
+*.md
+!src/**/*.md
+
+# IDE / editor
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Node / Next
+**/node_modules/
+**/.next/
+**/out/
+**/.turbo/
+**/.cache/
+**/coverage/
+**/.nyc_output/
+**/npm-debug.log*
+**/yarn-error.log*
+
+# Java / Gradle
+**/.gradle/
+**/build/
+**/out/
+**/*.class
+**/.kotlin/
+
+# Test artefacts
+**/test-results/
+**/playwright-report/
+**/htmlcov/
+
+# Docker leftovers
+**/Dockerfile.dev
+**/docker-compose.override.yml
+
+# CI workflows are not needed inside the image
+.github/

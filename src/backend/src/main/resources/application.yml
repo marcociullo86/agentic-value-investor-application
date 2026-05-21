@@ -180,6 +180,12 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+  # Serve Next.js static export from /app/public (Dockerfile stage 3).
+  # [^src: design_&_architecture/decisions/ADR-009-deployment-target.md §2]
+  # [^src: management/kanban/.../TSK-032.md §Spring config asset statici]
+  web:
+    resources:
+      static-locations: "file:/app/public/,classpath:/static/"
 
 # JSON structured logging in prod [^src: design_&_architecture/decisions/ADR-008-observability-logging.md §1]
 logging:
