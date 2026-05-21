@@ -61,6 +61,8 @@ object OpenApiContractSupport {
     fun loadCanonicalOpenApi(canonicalPath: Path): JsonNode =
         yamlMapper.readTree(canonicalPath.toFile())
 
+    fun parseOpenApiJson(json: String): JsonNode = jsonMapper.readValue(json)
+
     /**
      * Extract path operations from the springdoc [OpenAPI] model.
      * Do not round-trip via swagger [Json.mapper]: PathItem beans use fields named `get`/`post`/…
@@ -121,10 +123,4 @@ object OpenApiContractSupport {
     fun isIgnoredRuntimePath(path: String): Boolean =
         path in RUNTIME_PATH_IGNORE ||
             RUNTIME_PATH_PREFIX_IGNORE.any { path.startsWith(it) }
-
-    fun buildRuntimeOpenApi(openAPIService: org.springdoc.core.service.OpenAPIService): JsonNode =
-        jsonMapper.valueToTree(openAPIService.build(Locale.ENGLISH))
-
-    fun runtimePathKeys(openAPIService: org.springdoc.core.service.OpenAPIService): Set<String> =
-        openAPIService.build(Locale.ENGLISH).paths?.keys.orEmpty()
 }

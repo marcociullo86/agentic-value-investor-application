@@ -3,10 +3,11 @@ package com.valueinvesting.webapp.contract
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
-import org.springdoc.core.service.OpenAPIService
+import org.springdoc.webmvc.api.OpenApiWebMvcResource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
@@ -18,7 +19,9 @@ import java.util.Locale
 
 /**
  * Contract test: runtime springdoc OpenAPI vs design_&_architecture/api/openapi.yaml (TSK-037).
- * Uses [OpenAPIService] directly (same document as /api/openapi.json) to avoid MockMvc path issues.
+ * Uses [OpenApiWebMvcResource] (same code path as GET /api/openapi.json).
+ * Do not use [org.springdoc.core.service.OpenAPIService.build]: it returns only the static OpenAPI bean,
+ * not controller-derived paths.
  */
 @SpringBootTest
 @ActiveProfiles("test")
@@ -27,6 +30,8 @@ import java.util.Locale
 class OpenApiContractIT {
 
     companion object {
+        private const val API_DOCS_PATH = "/api/openapi.json"
+
         @Container
         @JvmStatic
         val postgres: PostgreSQLContainer<*> = PostgreSQLContainer("postgres:16-alpine")
@@ -44,7 +49,7 @@ class OpenApiContractIT {
     }
 
     @Autowired
-    private lateinit var openAPIService: OpenAPIService
+    private lateinit var openApiWebMvcResource: OpenApiWebMvcResource
 
     @Value("\${contract.openapi.canonical}")
     private lateinit var canonicalOpenApiPath: String
@@ -73,7 +78,7 @@ class OpenApiContractIT {
     fun `runtime API paths must not exceed canonical contract`() {
         val canonicalDoc = OpenApiContractSupport.loadCanonicalOpenApi(Path.of(canonicalOpenApiPath))
         val canonicalPaths = OpenApiContractSupport.pathOperations(canonicalDoc.get("paths")).keys
-        val runtimePaths = OpenApiContractSupport.runtimePathKeys(openAPIService)
+        val runtimePaths = loadRuntimePaths().keys
 
         val undeclared = OpenApiContractValidator.findUndeclaredRuntimePaths(canonicalPaths, runtimePaths)
         assertThat(undeclared)
@@ -85,11 +90,9 @@ class OpenApiContractIT {
 
     @Test
     fun `implemented response schemas are present in runtime components`() {
-        val runtimeOpenApi = openAPIService.build(Locale.ENGLISH)
-        val runtimePaths = OpenApiContractSupport.pathOperationsFromOpenApi(runtimeOpenApi)
-        val runtimeSchemas = OpenApiContractSupport.schemaNames(
-            OpenApiContractSupport.buildRuntimeOpenApi(openAPIService).get("components"),
-        )
+        val runtimeDoc = loadRuntimeDocument()
+        val runtimePaths = OpenApiContractSupport.pathOperations(runtimeDoc.get("paths"))
+        val runtimeSchemas = OpenApiContractSupport.schemaNames(runtimeDoc.get("components"))
 
         val missing = OpenApiContractValidator.findMissingResponseSchemas(runtimePaths, runtimeSchemas)
         assertThat(missing)
@@ -97,6 +100,18 @@ class OpenApiContractIT {
             .isEmpty()
     }
 
+    private fun loadRuntimeDocument(): com.fasterxml.jackson.databind.JsonNode {
+        val request = MockHttpServletRequest("GET", API_DOCS_PATH).apply {
+            servletPath = API_DOCS_PATH
+            requestURI = API_DOCS_PATH
+        }
+        val json = String(
+            openApiWebMvcResource.openapiJson(request, API_DOCS_PATH, Locale.ENGLISH),
+            Charsets.UTF_8,
+        )
+        return OpenApiContractSupport.parseOpenApiJson(json)
+    }
+
     private fun loadRuntimePaths() =
-        OpenApiContractSupport.pathOperationsFromOpenApi(openAPIService.build(Locale.ENGLISH))
+        OpenApiContractSupport.pathOperations(loadRuntimeDocument().get("paths"))
 }
