@@ -31,7 +31,7 @@ describe('WatchlistTable', () => {
     expect(screen.getByTestId('watchlist-row-AAPL')).toBeInTheDocument();
     expect(screen.getByTestId('watchlist-row-MSFT')).toBeInTheDocument();
     const link = screen.getByTestId('watchlist-link-AAPL') as HTMLAnchorElement;
-    expect(link.getAttribute('href')).toBe('/analysis/AAPL');
+    expect(link.getAttribute('href')).toBe('/analysis?ticker=AAPL');
   });
 
   it('formats market cap with B/T suffix', () => {

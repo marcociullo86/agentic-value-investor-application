@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { formatMarketCap } from '@/lib/utils/formatters';
 import type { WatchlistItem } from '@/lib/api/watchlist';
+import { analysisUrl } from '@/lib/utils/analysis-url';
 
 /**
  * Watchlist table (TSK-035). Columns: ticker, company, sector, market cap,
@@ -53,7 +54,7 @@ export function WatchlistTable({ items, onRemove, removingTicker }: Props): Reac
           >
             <td className="px-3 py-2 font-medium">
               <Link
-                href={`/analysis/${item.ticker}`}
+                href={analysisUrl(item.ticker)}
                 className="text-blue-600 hover:underline"
                 data-testid={`watchlist-link-${item.ticker}`}
               >

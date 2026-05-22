@@ -5,8 +5,8 @@ import { apiGet, type ApiResult } from '@/lib/api/client';
  *
  * Wrapper sopra `apiClient` (lib/api/client.ts, zero-touch da TSK-030).
  * Consumato da `components/charts/HistoricalChart.tsx` (via hook
- * `useHistorical`) e in seguito dalla page `app/analysis/[ticker]/page.tsx`
- * che sarà creata da TSK-021.
+ * `useHistorical`) e dalla page `app/analysis/page.tsx`
+ * (`/analysis?ticker=`, TSK-055 / ADR-013).
  *
  * Endpoint contract: design_&_architecture/api/openapi.yaml
  *   §/api/historical/{ticker} — schemas `HistoricalSeries` /

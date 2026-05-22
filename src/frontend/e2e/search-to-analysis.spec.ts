@@ -86,7 +86,7 @@ test('user searches AAPL and sees Traffic Light panel with 7 rule signals', asyn
   // SearchBar.tsx: exact match (1 item, ticker==="AAPL") → router.push("/analysis/AAPL").
   // Next.js (output: 'export') normalises dynamic-segment URLs with a trailing
   // slash (/analysis/AAPL/), so the glob has to tolerate both forms.
-  await page.waitForURL(/\/analysis\/AAPL\/?$/);
+  await page.waitForURL(/\/analysis\?ticker=AAPL/);
 
   // TrafficLightPanel renderizza una RuleSignalCard per ciascun signal.
   // data-testid="rule-signal-card-{ruleId}" già presente in RuleSignalCard (TSK-021).
@@ -124,7 +124,7 @@ test('clicking ROE_10Y_AVG traffic light expands observed value and threshold', 
   await mockAnalysisRoutes(page);
 
   // Navigazione diretta alla pagina analisi (bypassa SearchBar)
-  await page.goto('/analysis/AAPL');
+  await page.goto('/analysis?ticker=AAPL');
 
   // Attende che la pagina carichi le card (useAnalysisStore.fetchAnalysis completato)
   const roeCard = page.locator('[data-testid="rule-signal-card-ROE_10Y_AVG"]');
@@ -156,11 +156,38 @@ test('stale data badge is visible when isStale=true with correct message', async
     route.fulfill({ json: historicalAaplFixture }),
   );
 
-  await page.goto('/analysis/AAPL');
+  await page.goto('/analysis?ticker=AAPL');
 
   // StaleDataBadge.tsx: role="alert" + testo "Dati al {snapshotLabel} — aggiornamento FMP non disponibile"
   // La fixture ha dataSnapshotAt: "2026-05-20T08:00:00Z" → formatDate() → locale it-IT
   const badge = page.getByRole('alert').filter({ hasText: /dati al/i });
   await expect(badge).toBeVisible();
   await expect(badge).toContainText(/aggiornamento FMP non disponibile/i);
+});
+
+// ---------------------------------------------------------------------------
+// Scenario 5 — TSK-057: ticker fuori ex-whitelist demo (JNJ) via query URL
+// ---------------------------------------------------------------------------
+test('ticker outside legacy static whitelist loads analysis via query param', async ({ page }) => {
+  await page.route('**/api/analysis/JNJ', (route) =>
+    route.fulfill({
+      json: {
+        ...analysisAaplFixture,
+        ticker: 'JNJ',
+      },
+    }),
+  );
+  await page.route('**/api/historical/JNJ', (route) =>
+    route.fulfill({
+      json: {
+        ...historicalAaplFixture,
+        ticker: 'JNJ',
+      },
+    }),
+  );
+
+  await page.goto('/analysis?ticker=JNJ');
+
+  const cards = page.locator('[data-testid^="rule-signal-card-"]');
+  await expect(cards.first()).toBeVisible({ timeout: 15_000 });
 });

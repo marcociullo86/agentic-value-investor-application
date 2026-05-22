@@ -15,6 +15,7 @@ import io.github.resilience4j.retry.RetryRegistry
 import io.github.resilience4j.timelimiter.TimeLimiter
 import io.github.resilience4j.timelimiter.TimeLimiterConfig
 import io.github.resilience4j.timelimiter.TimeLimiterRegistry
+import com.valueinvesting.webapp.config.FmpRateLimitProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.time.Duration
@@ -52,8 +53,11 @@ import java.time.Duration
 // [^src: raw/tech_stack.md §Backend]
 // [^src: design_&_architecture/decisions/ADR-004-fmp-integration.md §Resilienza]
 // [^src: management/kanban/.../TSK-011.md §FmpResilienceConfig]
+// [^src: design_&_architecture/decisions/ADR-016-fmp-operations-throttling.md §4. Throttling backend]
 @Configuration
-class FmpResilienceConfig {
+class FmpResilienceConfig(
+    private val fmpRateLimit: FmpRateLimitProperties = FmpRateLimitProperties(),
+) {
 
     @Bean
     fun fmpCircuitBreakerRegistry(): CircuitBreakerRegistry =
@@ -107,9 +111,8 @@ class FmpResilienceConfig {
     fun fmpRateLimiterRegistry(): RateLimiterRegistry =
         RateLimiterRegistry.of(
             RateLimiterConfig.custom()
-                // 30 calls / 60s = 0.5 req/s steady-state.  Conservative cap;
-                // gap `fmp-rate-limiting` open for product to confirm FMP plan quota.
-                .limitForPeriod(LIMIT_PER_PERIOD)
+                // Conservative cap until wiki gap `fmp-rate-limiting` closes (ADR-016).
+                .limitForPeriod(fmpRateLimit.rateLimitPerMinute)
                 .limitRefreshPeriod(Duration.ofMinutes(1))
                 // Wait up to 2s for a token before failing fast — keeps bursty
                 // CompletableFuture fan-out (TSK-018) from blowing the limiter.
@@ -163,9 +166,6 @@ class FmpResilienceConfig {
         val INITIAL_BACKOFF: Duration = Duration.ofMillis(500)
         val MAX_BACKOFF: Duration = Duration.ofSeconds(4)
         const val BACKOFF_MULTIPLIER = 2.0
-
-        // RateLimiter — 30 req / minute (gap `fmp-rate-limiting`)
-        const val LIMIT_PER_PERIOD = 30
 
         // Bulkhead — 10 concurrent FMP in-flight
         const val BULKHEAD_CONCURRENT = 10

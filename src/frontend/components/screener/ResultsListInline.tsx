@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { useScreenerStore } from '@/lib/stores/useScreenerStore';
 import { formatMarketCap } from '@/lib/utils/formatters';
 import type { ScreenerResultItem } from '@/lib/api/screener';
+import { analysisUrl } from '@/lib/utils/analysis-url';
 
 /**
  * ResultsListInline — TSK-006 (US-002).
@@ -37,7 +38,7 @@ export function ResultsListInline(): React.ReactElement {
   const loadMore = useScreenerStore((s) => s.loadMore);
 
   function handleRowClick(ticker: string): void {
-    router.push(`/analysis/${encodeURIComponent(ticker)}`);
+    router.push(analysisUrl(ticker));
   }
 
   // Loading iniziale (no risultati ancora) → skeleton

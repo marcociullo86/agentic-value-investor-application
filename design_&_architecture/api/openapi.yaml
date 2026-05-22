@@ -76,6 +76,14 @@ paths:
           content:
             application/problem+json:
               schema: { $ref: '#/components/schemas/ProblemDetails' }
+              example:
+                type: "https://api/errors/ticker-not-found"
+                title: "Ticker not found"
+                status: 404
+                detail: "Ticker 'ZZZZ' not found on FMP"
+                instance: "/api/search/ZZZZ"
+                ticker: "ZZZZ"
+                timestamp: "2026-05-22T10:00:00Z"
 
   /api/screener:
     get:
@@ -191,6 +199,14 @@ paths:
           content:
             application/problem+json:
               schema: { $ref: '#/components/schemas/ProblemDetails' }
+              example:
+                type: "https://api/errors/ticker-not-found"
+                title: "Ticker not found"
+                status: 404
+                detail: "Ticker 'ZZZZ' not found on FMP"
+                instance: "/api/analysis/ZZZZ"
+                ticker: "ZZZZ"
+                timestamp: "2026-05-22T10:00:00Z"
         '503':
           description: Dati insufficienti per analisi e FMP non raggiungibile
           content:
@@ -480,12 +496,17 @@ components:
   schemas:
     ProblemDetails:
       type: object
+      description: RFC 9457 Problem Details; extension members al top-level (ADR-012).
       properties:
         type:    { type: string, format: uri }
         title:   { type: string }
         status:  { type: integer }
         detail:  { type: string }
         instance: { type: string }
+        ticker:    { type: string, description: "Extension — ticker correlato" }
+        timestamp: { type: string, format: date-time, description: "Extension — istante risposta" }
+        requestId: { type: string, description: "Extension — correlazione X-Request-Id" }
+        reason:    { type: string, description: "Extension — codice motivo dominio" }
 
     Signal:
       type: string

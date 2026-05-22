@@ -29,14 +29,9 @@ WORKDIR /app/fe
 COPY src/frontend/package.json src/frontend/package-lock.json* ./
 # package-lock.json non è committato in TSK-030; usiamo `npm install` come fallback.
 # `npm ci` viene preferito se il lockfile esiste (build deterministica).
-# --legacy-peer-deps: swr@2.2.5 dichiara peer react@"^16 || ^17 || ^18" ma
-# il progetto è su react@19 (raw/tech_stack.md baseline). Il pattern è già
-# adottato nei job fe-test + fe-e2e in .github/workflows/ci.yml e nello
-# script frontend "playwright:install"; lo replichiamo qui per il build
-# Docker. Follow-up: bump swr a 2.3+ quando uscirà la release con peer
-# allargato a react 19 (gap fe-swr-peer-r19).
-RUN if [ -f package-lock.json ]; then npm ci --no-audit --no-fund --legacy-peer-deps; \
-    else npm install --no-audit --no-fund --legacy-peer-deps; fi
+# swr@2.4.1+ supports React 19 peers (TSK-053 / US-022).
+RUN if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; \
+    else npm install --no-audit --no-fund; fi
 
 # Sources
 COPY src/frontend/ ./

@@ -509,3 +509,40 @@ Stato PR #1: open, mergeStateStatus=CLEAN, 7/7 status checks success (BE — gra
 **Note:** Badge "Default policy" / "Tuo override"; errore 422 inline nel form.
 
 [2026-05-22 17:00] plan — R1.1: EP-007 (5 US), EP-008 (3 US), EP-009 (2 US); roadmap aggiornata — files touched: 16
+
+[2026-05-22 18:00] develop — Sprint 5 Wave 1: TSK-050…070 completati (12 TSK) — files touched: 35+
+
+## 2026-05-22 18:00 — develop TSK-050 … TSK-070 (Sprint 5 Wave 1 batch)
+**Agente:** be-dev, fe-dev, qa-dev (parallelo)
+**Layer:** be / fe / qa / infra
+**Code path:** ./src/
+**Commit:** pending human gate (vcs-handoff monorepo)
+**DoD:** pass (verifica locale gradle/npm dove disponibile; CI authoritative)
+
+| TSK | Deliverable |
+|-----|-------------|
+| TSK-050 | FlatteningProblemDetailHttpMessageConverter + ProblemDetailMvcConfig |
+| TSK-051 | Test assert `$.ticker` top-level, `$.properties` assente |
+| TSK-052 | OpenAPI ProblemDetail extension top-level |
+| TSK-053 | swr 2.4.1, React 19 peer OK |
+| TSK-054 | Rimosso `--legacy-peer-deps` CI/Docker/contract-check |
+| TSK-055 | `app/analysis/page.tsx` + `?ticker=` |
+| TSK-056 | Link interni via `analysisUrl()` |
+| TSK-057 | E2E JNJ fuori whitelist + URL query |
+| TSK-058 | `fmp.cache.profile-ttl-hours` configurabile |
+| TSK-059 | Test TTL profilo cache |
+| TSK-064 | `FmpEventLogMaintenanceJob` purge 90d |
+| TSK-069 | `fmp.rate-limit-per-minute` env |
+| TSK-070 | WireMock 429 + event log test |
+
+**Prossimo:** Wave 2 deploy — TSK-061 (dipende TSK-054 ✓), TSK-064 ✓, poi TSK-066 cutover.
+
+## 2026-05-22 19:30 — develop TSK-070
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-009-throttling-fmp-runbook/US-030-throttling-backend-fmp/TSK-070]]
+**Layer:** qa
+**Code path:** ./src/
+**Files touched:** 2 (`Fmp429RetryWireMockIT.kt`, `build.gradle.kts`)
+**Commit:** n/a
+**DoD:** pass
+**Note:** WireMock scenario 429→200 su `/income-statement/AAPL`; assert 2 HTTP call + riga `FMP_429_RATE_LIMITED` in `fmp_api_event_log` via Testcontainers PG. Dipende TSK-069 (rate limit env) già done.

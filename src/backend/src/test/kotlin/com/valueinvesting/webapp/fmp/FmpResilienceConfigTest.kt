@@ -1,5 +1,6 @@
 package com.valueinvesting.webapp.fmp
 
+import com.valueinvesting.webapp.config.FmpRateLimitProperties
 import com.valueinvesting.webapp.fmp.dto.IncomeStatementDto
 import io.github.resilience4j.bulkhead.Bulkhead
 import io.github.resilience4j.circuitbreaker.CircuitBreaker
@@ -42,6 +43,13 @@ class FmpResilienceConfigTest {
     private val delegate: FmpAdapter = mockk()
     private val eventLogger: FmpEventLogger = mockk(relaxed = true)
     private lateinit var resilient: ResilientFmpAdapter
+
+    @Test
+    fun `default rate limiter allows 30 calls per refresh period`() {
+        val limiter = config.fmpRateLimiterRegistry().rateLimiter(FmpResilienceConfig.FMP_INSTANCE)
+        assertThat(limiter.rateLimiterConfig.limitForPeriod)
+            .isEqualTo(FmpRateLimitProperties.DEFAULT_RATE_LIMIT_PER_MINUTE)
+    }
 
     @BeforeEach
     fun setUp() {

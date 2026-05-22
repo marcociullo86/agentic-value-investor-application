@@ -11,6 +11,7 @@ import type {
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { formatMarketCap } from '@/lib/utils/formatters';
+import { analysisUrl } from '@/lib/utils/analysis-url';
 
 /**
  * ResultsList — TSK-007 (US-003).
@@ -149,7 +150,7 @@ export function ResultsList({
   function handleRowClicked(event: RowClickedEvent<ResultsListItem>): void {
     const row = event.data;
     if (row === undefined) return;
-    router.push(`/analysis/${encodeURIComponent(row.ticker)}`);
+    router.push(analysisUrl(row.ticker));
   }
 
   // Loading state — skeleton placeholder

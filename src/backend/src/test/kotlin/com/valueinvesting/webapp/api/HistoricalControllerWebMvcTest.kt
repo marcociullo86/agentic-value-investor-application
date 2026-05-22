@@ -81,6 +81,7 @@ class HistoricalControllerWebMvcTest {
             content { contentType("application/problem+json") }
             jsonPath("$.title") { value("Ticker not found") }
             jsonPath("$.ticker") { value("NONEXIST") }
+            jsonPath("$.properties").doesNotExist()
         }
     }
 

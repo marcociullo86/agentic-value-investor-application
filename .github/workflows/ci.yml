@@ -73,7 +73,7 @@ jobs:
           cache: npm
           cache-dependency-path: src/frontend/package.json
       - name: Install dependencies
-        run: npm install --no-audit --no-fund --legacy-peer-deps
+        run: npm install --no-audit --no-fund
       - name: Run vitest
         # I test placeholder posati da TSK-030 sono in src/frontend/__tests__/utils.
         run: npm run test
@@ -94,7 +94,7 @@ jobs:
           cache-dependency-path: src/frontend/package.json
       - name: Install npm dependencies
         working-directory: src/frontend
-        run: npm install --no-audit --no-fund --legacy-peer-deps
+        run: npm install --no-audit --no-fund
       - name: Install Playwright browsers (chromium only)
         working-directory: src/frontend
         run: npx playwright install --with-deps chromium
@@ -182,7 +182,7 @@ jobs:
           exit 1
       - name: Install frontend deps
         working-directory: src/frontend
-        run: npm install --no-audit --no-fund --legacy-peer-deps
+        run: npm install --no-audit --no-fund
       - name: Install Playwright browsers
         working-directory: src/frontend
         run: npx playwright install --with-deps chromium

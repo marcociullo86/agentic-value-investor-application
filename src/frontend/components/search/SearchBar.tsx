@@ -13,6 +13,7 @@ import {
   normalizeTicker,
   type SearchResultItem,
 } from '@/lib/api/search';
+import { analysisUrl } from '@/lib/utils/analysis-url';
 
 /**
  * SearchBar — TSK-003 (US-001).
@@ -89,7 +90,7 @@ export function SearchBar(): React.ReactElement {
       const exact = items.find((it) => it.ticker.toUpperCase() === normalized);
       if (items.length === 1 || exact) {
         const target = exact ?? items[0]!;
-        router.push(`/analysis/${encodeURIComponent(target.ticker)}`);
+        router.push(analysisUrl(target.ticker));
         return;
       }
       setUiState({ kind: 'multi', items });
@@ -187,7 +188,7 @@ export function SearchBar(): React.ReactElement {
               <button
                 type="button"
                 onClick={() =>
-                  router.push(`/analysis/${encodeURIComponent(it.ticker)}`)
+                  router.push(analysisUrl(it.ticker))
                 }
                 className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500 dark:hover:bg-slate-800 dark:focus-visible:bg-slate-800"
               >

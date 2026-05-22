@@ -22,7 +22,7 @@ import { HistoricalChart } from '@/components/charts/HistoricalChart';
  *
  * Riferimento design:
  *   design_&_architecture/components/frontend-components.md
- *   §app/analysis/[ticker]/page.tsx §Routing.
+ *   §app/analysis/page.tsx §Routing (`/analysis?ticker=`).
  *
  * Loading / error:
  *  - Loading state: skeleton per-section (analysis + historical).
