@@ -58,18 +58,101 @@ jobs:
         run: npm run test
 
   fe-e2e:
-    name: FE — Playwright (scaffold-only)
+    name: FE — Playwright (auth + watchlist)
     runs-on: ubuntu-latest
-    needs: [be-test]
+    needs: [be-test, fe-test]
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: value_investing
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DB_URL: jdbc:postgresql://localhost:5432/value_investing
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      JWT_SIGNING_SECRET: "ci-e2e-signing-secret-min-32-bytes-for-hs256-okok"
+      CORS_ALLOWED_ORIGINS: "http://localhost:3000"
+      NEXT_PUBLIC_API_BASE_URL: "http://localhost:8080"
+      E2E_API_BASE_URL: "http://localhost:8080"
+      E2E_BASE_URL: "http://localhost:3000"
     steps:
       - uses: actions/checkout@v4
-      # SCAFFOLD: Playwright non è ancora dipendenza del frontend (vedi TSK-030).
-      # I test E2E reali arriveranno in TSK-022 / TSK-036. Step minimo per
-      # mantenere il job visibile in CI senza falsi negativi.
-      - name: Placeholder
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: src/frontend/package.json
+      - name: Install backend artifacts (no test)
+        working-directory: src/backend
+        run: gradle bootJar --no-daemon -x test
+      - name: Start backend in background
+        working-directory: src/backend
         run: |
-          echo "Playwright E2E will be wired in TSK-022 (real suite) / TSK-036 (Playwright dep)"
-          echo "Skipping execution — scaffold-only job per TSK-032 brief."
+          nohup java -jar build/libs/*.jar \
+            --spring.profiles.active=dev \
+            --app.fmp.mock=true > be.log 2>&1 &
+          echo $! > be.pid
+      - name: Wait for backend health
+        run: |
+          for i in {1..60}; do
+            if curl -fsS http://localhost:8080/actuator/health >/dev/null 2>&1; then
+              echo "backend up"; exit 0
+            fi
+            sleep 2
+          done
+          echo "Backend did not come up; tail of be.log:" && tail -200 src/backend/be.log
+          exit 1
+      - name: Install frontend deps
+        working-directory: src/frontend
+        run: npm install --no-audit --no-fund --legacy-peer-deps
+      - name: Install Playwright browsers
+        working-directory: src/frontend
+        run: npx playwright install --with-deps chromium
+      - name: Start frontend (next dev — output:'export' is build-only)
+        working-directory: src/frontend
+        run: |
+          nohup npm run dev > fe.log 2>&1 &
+          echo $! > fe.pid
+      - name: Wait for frontend
+        run: |
+          for i in {1..60}; do
+            if curl -fsS http://localhost:3000 >/dev/null 2>&1; then
+              echo "frontend up"; exit 0
+            fi
+            sleep 2
+          done
+          echo "Frontend did not come up; tail of fe.log:" && tail -200 src/frontend/fe.log
+          exit 1
+      - name: Run Playwright tests
+        working-directory: src/frontend
+        run: npm run test:e2e
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: src/frontend/playwright-report
+          retention-days: 7
+      - name: Tail backend log on failure
+        if: failure()
+        run: tail -300 src/backend/be.log || true
+      - name: Tail frontend log on failure
+        if: failure()
+        run: tail -300 src/frontend/fe.log || true
 
   docker-build:
     name: Docker — smoke build

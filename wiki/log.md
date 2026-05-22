@@ -183,3 +183,38 @@ Modified:
   - src/frontend/package.json (+ devDependency @testing-library/dom 10.4.0 — peer dep di @testing-library/react 16 mancante in Sprint 1; pin senza caret per coerenza)
 Decisione: AddToWatchlistButton restera mountable da Track A in /analysis/[ticker]/page.tsx (TSK-021); in attesa, l'aggiunta ticker e disponibile tramite form inline nella WatchlistPage stessa per consentire E2E in TSK-036 senza dipendenza dalla pagina di analisi.
 Verifica: vitest run 22/22 verdi (5 nuovi WatchlistTable + 6 useAuthStore + 5 formatters + 6 signal-color); tsc --noEmit pulito.
+
+## [2026-05-22] develop TSK-026 -> MoatChecklistController (US-016 BE)
+Layer: be (agent, Track B branch sprint3/auth-watchlist) | EP-005 | files created: 6
+Created:
+  - persistence/entity/MoatChecklistEntry.kt + repository/MoatChecklistRepository.kt (findByUserIdAndTicker[AndMoatType])
+  - api/model/MoatDtos.kt (MoatChecklistEntryRequest validato Pattern moatType + status; MoatType/MoatStatus const facade)
+  - service/MoatChecklistService.kt (GET ritorna sempre 4 entry, status null per non compilati — design AC; POST upsert con lazy stock placeholder)
+  - api/MoatChecklistController.kt (GET /api/moat-checklist/{ticker} + POST /api/moat-checklist/{ticker})
+  - test/api/MoatChecklistControllerIT.kt (5 test Testcontainers: 401, GET empty 4-null, POST + GET roundtrip, upsert non duplica, invalid moatType 400)
+DoD: GET ritorna 4 voci null se non compilate; POST upsert con UNIQUE (user_id, ticker, moat_type); annotazione non interferisce con RuleEngineResult (orthogonal model); auth gating via SecurityFilterChain.
+Note: gradle test non eseguito locally (no JDK); review manuale + stesso pattern di WatchlistControllerIT (TSK-029).
+
+## [2026-05-22] develop TSK-027 -> MoatChecklist FE component (US-016)
+Layer: fe (agent, Track B branch sprint3/auth-watchlist) | US-016 EP-005 | files created: 4
+Created:
+  - src/frontend/lib/api/moat.ts (MoatType + MoatStatus typed, fetchMoatChecklist, upsertMoatEntry, mappe label/descrizione it-IT)
+  - src/frontend/components/moat/MoatChecklist.tsx (4 fieldset con select Stato + textarea Nota; persist on-blur; auth-gated; carica state iniziale via GET; non altera TrafficLightPanel)
+  - src/frontend/app/moat/page.tsx (page /moat?ticker=AAPL, AuthGuard, Suspense per useSearchParams; deviazione da [ticker] dynamic route per compatibilita output: 'export' senza generateStaticParams; Track A puo' importare il component direttamente in /analysis/[ticker])
+  - src/frontend/components/moat/MoatChecklist.test.tsx (4 test: non-auth -> nessun render, 4 categorie, hydration da BE, upsert su blur)
+Decisione: routing standalone come /moat?ticker=X invece di /moat/[ticker] per compatibilita prod static export. Component pronto per integrazione in /analysis/[ticker] (TSK-021 Track A).
+Verifica: vitest 26/26 verdi; tsc --noEmit pulito.
+
+## [2026-05-22] develop TSK-036 -> E2E Playwright auth + watchlist (Track B)
+Layer: qa (agent, Track B branch sprint3/auth-watchlist) | US-017 EP-006 | files created: 3 / modified: 2
+Created:
+  - src/frontend/playwright.config.ts (chromium-only project, retain-on-failure screenshot/trace, output html report in CI)
+  - src/frontend/e2e/auth-watchlist.spec.ts (5 scenari: registrazione + auto-login, login + add ticker AAPL, remove, click ticker -> /analysis/{ticker}, redirect /watchlist senza login)
+Modified:
+  - src/frontend/package.json (+ devDep @playwright/test 1.49.1; + script test:e2e)
+  - .github/workflows/ci.yml (job fe-e2e ora reale: service postgres:17-alpine + bootJar BE in background con JWT_SIGNING_SECRET, attesa /actuator/health, npm run dev FE in background, playwright install chromium, npm run test:e2e, upload artifact html report)
+Decisioni / deviazioni:
+  - Scenario 2 (DoD: 'dalla dashboard analisi AAPL click Add to Watchlist'): la dashboard /analysis/[ticker] e' Track A (TSK-021). Uso il form 'add ticker' inline di /watchlist (TSK-035) per esercitare l'identico endpoint POST /api/watchlist/items end-to-end. Track A puo' aggiungere uno spec dedicato in TSK-022 quando la dashboard atterra.
+  - Static export (output: 'export') non supporta 'next start' come server runtime - uso 'next dev' per E2E (stesso code path semantico per controllori UI, build di prod testato dal job docker-build).
+  - JWT_SIGNING_SECRET pinned (32+ byte) per CI deterministic.
+DoD: 5 scenari coperti; screenshot/trace artifact su failure; CI orchestration BE+FE+DB completa. Verifica locale non possibile (no JDK su workstation), CI gating definitivo.
