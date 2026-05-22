@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import { ToastProvider } from '@/components/providers/ToastProvider';
 import { Navbar } from '@/components/layout/Navbar';
+import { SessionExpiredBanner } from '@/components/auth/SessionExpiredBanner';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -29,6 +30,7 @@ export default function RootLayout({
       <body>
         <AuthProvider>
           <ToastProvider>
+            <SessionExpiredBanner />
             <Navbar />
             {children}
           </ToastProvider>

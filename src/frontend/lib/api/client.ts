@@ -79,12 +79,28 @@ apiClient.interceptors.response.use(
       originalRequest &&
       !originalRequest._retry
     ) {
+      // If the failing call is itself /auth/refresh, the refresh chain is
+      // dead (cap reached, revoked, or sliding TTL expired — ADR-010 §3).
+      // Skip the silent-refresh attempt and surface "Sessione scaduta"
+      // immediately (TSK-043).
+      const url: string = originalRequest.url ?? '';
+      if (url.includes('/api/auth/refresh')) {
+        const store = useAuthStore.getState();
+        store.clearSession();
+        store.setSessionExpired(true);
+        return Promise.reject(error);
+      }
       originalRequest._retry = true;
       try {
         await useAuthStore.getState().refresh();
         return apiClient.request(originalRequest);
       } catch (refreshError) {
-        useAuthStore.getState().logout();
+        // Silent refresh failed: chain is unrecoverable. Clear local state
+        // and raise the banner — do NOT call logout() (no server round-trip
+        // when the server just rejected our refresh).
+        const store = useAuthStore.getState();
+        store.clearSession();
+        store.setSessionExpired(true);
         return Promise.reject(refreshError);
       }
     }
