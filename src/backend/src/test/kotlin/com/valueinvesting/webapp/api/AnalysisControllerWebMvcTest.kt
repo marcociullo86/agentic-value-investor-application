@@ -2,6 +2,7 @@ package com.valueinvesting.webapp.api
 
 import com.valueinvesting.webapp.api.error.GlobalExceptionHandler
 import com.valueinvesting.webapp.api.error.ProblemDetailsMapper
+import com.valueinvesting.webapp.api.model.DcfMethodSource
 import com.valueinvesting.webapp.api.model.RuleEngineResultResponse
 import com.valueinvesting.webapp.ruleengine.RuleSignal
 import com.valueinvesting.webapp.ruleengine.Signal
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.context.annotation.Import
+import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
@@ -61,6 +63,7 @@ class AnalysisControllerWebMvcTest {
             grahamNumber = 47.43,
             dcfIntrinsicValue = 150.0,
             dcfMethod = DcfMethod.GREENWALD,
+            dcfMethodSource = DcfMethodSource.DEFAULT_POLICY,
             mosSignal = Signal.GREEN,
             currentPriceAtEval = 100.0,
             dataSnapshotAt = Instant.parse("2024-06-01T10:00:00Z"),
@@ -74,7 +77,9 @@ class AnalysisControllerWebMvcTest {
             status { isOk() }
             header { string("X-Data-Snapshot-At", fixture.dataSnapshotAt.toString()) }
             header { string("X-Data-Stale", "false") }
+            header { string(HttpHeaders.VARY, "Authorization") }
             jsonPath("$.ticker") { value("AAPL") }
+            jsonPath("$.dcfMethodSource") { value("DEFAULT_POLICY") }
             jsonPath("$.signals.length()") { value(7) }
             jsonPath("$.grahamNumber") { value(47.43) }
             jsonPath("$.dcfIntrinsicValue") { value(150.0) }

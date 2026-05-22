@@ -14,6 +14,7 @@ data class RuleEngineResultResponse(
     val grahamNumber: Double?,
     val dcfIntrinsicValue: Double?,
     val dcfMethod: DcfMethod?,
+    val dcfMethodSource: DcfMethodSource,
     val mosSignal: Signal,
     val currentPriceAtEval: Double?,
     val dataSnapshotAt: Instant,

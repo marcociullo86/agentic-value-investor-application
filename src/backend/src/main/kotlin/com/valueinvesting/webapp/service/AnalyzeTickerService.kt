@@ -1,7 +1,9 @@
 package com.valueinvesting.webapp.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.valueinvesting.webapp.api.model.DcfMethodSource
 import com.valueinvesting.webapp.api.model.RuleEngineResultResponse
+import com.valueinvesting.webapp.security.UserPrincipal
 import com.valueinvesting.webapp.fmp.FmpAdapter
 import com.valueinvesting.webapp.fmp.FmpCacheService
 import com.valueinvesting.webapp.fmp.FmpUnavailableException
@@ -14,11 +16,11 @@ import com.valueinvesting.webapp.ruleengine.calculators.DcfMethod
 import com.valueinvesting.webapp.ruleengine.calculators.GrahamNumberCalculator
 import com.valueinvesting.webapp.ruleengine.calculators.MarginOfSafetyEvaluator
 import org.slf4j.LoggerFactory
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.Instant
-import java.util.UUID
 
 @Service
 class AnalyzeTickerService(
@@ -37,7 +39,7 @@ class AnalyzeTickerService(
     private val log = LoggerFactory.getLogger(javaClass)
 
     @Transactional
-    fun analyze(ticker: String, userId: UUID? = null): RuleEngineResultResponse {
+    fun analyze(ticker: String): RuleEngineResultResponse {
         val t = ticker.uppercase()
         // Profile FIRST: fmpCacheService.getOrFetchProfile lazily upserts the
         // stocks(ticker) row, which is a FK target for fmp_financial_snapshot
@@ -49,12 +51,29 @@ class AnalyzeTickerService(
 
         val signals = ruleEngineService.evaluateAll(dataset)
         val graham = grahamNumberCalculator.calculateFromDataset(dataset)
-        val forcedMethod = userId?.let { uid ->
-            dcfMethodOverrideRepository.findByUserIdAndTicker(uid, t)?.forcedMethod?.let { name ->
-                runCatching { DcfMethod.valueOf(name) }.getOrNull()
-            }
+
+        val auth = SecurityContextHolder.getContext().authentication
+        val userId = (auth?.principal as? UserPrincipal)?.userId
+        val override = userId?.let { uid ->
+            dcfMethodOverrideRepository.findByUserIdAndTicker(uid, t)
+        }
+        val dcfMethodSource = if (override != null) {
+            DcfMethodSource.USER_OVERRIDE
+        } else {
+            DcfMethodSource.DEFAULT_POLICY
+        }
+        val forcedMethod = override?.forcedMethod?.let { name ->
+            runCatching { DcfMethod.valueOf(name) }.getOrNull()
         }
         val dcf = dcfCalculator.calculate(dataset, forcedMethod)
+        val responseDcfMethod = when (dcfMethodSource) {
+            DcfMethodSource.USER_OVERRIDE -> forcedMethod ?: dcf.method
+            DcfMethodSource.DEFAULT_POLICY -> if (dcf.method == DcfMethod.NOT_APPLICABLE && dcf.intrinsicValue == null) {
+                DcfMethod.NOT_APPLICABLE
+            } else {
+                dcf.method
+            }
+        }
         val mos = marginOfSafetyEvaluator.evaluate(profile.value.price, dcf)
 
         val evaluatedAt = Instant.now()
@@ -64,11 +83,8 @@ class AnalyzeTickerService(
             signals = signals,
             grahamNumber = graham.value,
             dcfIntrinsicValue = dcf.intrinsicValue,
-            dcfMethod = if (dcf.method == DcfMethod.NOT_APPLICABLE && dcf.intrinsicValue == null) {
-                DcfMethod.NOT_APPLICABLE
-            } else {
-                dcf.method
-            },
+            dcfMethod = responseDcfMethod,
+            dcfMethodSource = dcfMethodSource,
             mosSignal = mos.signal,
             currentPriceAtEval = profile.value.price,
             dataSnapshotAt = dataset.dataSnapshotAt,
