@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
-import org.springframework.boot.jackson.JsonComponent
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.ProblemDetail
@@ -22,18 +21,19 @@ class JacksonConfig {
     fun jacksonCustomizer(): Jackson2ObjectMapperBuilderCustomizer =
         Jackson2ObjectMapperBuilderCustomizer { builder ->
             builder
-                // modulesToInstall (additive) — NOT .modules() (replace), since
-                // replacing drops Spring Boot's JsonComponentModule that auto-
-                // discovers @JsonComponent serializers (e.g. our
-                // ProblemDetailJsonSerializer below). JavaTimeModule is auto-
-                // registered by Spring Boot when jackson-datatype-jsr310 is on
-                // the classpath, but we list it explicitly to keep the contract
-                // visible at this config site.
                 .modulesToInstall(JavaTimeModule())
                 .featuresToDisable(
                     SerializationFeature.WRITE_DATES_AS_TIMESTAMPS,
                     DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
                 )
+                // Force-register the ProblemDetail flatten serializer directly
+                // on the builder. Earlier attempts via Jackson mixin (b385926)
+                // and @JsonComponent (873b9e6 / e8a0880) both failed: Spring's
+                // @JsonComponent autodiscovery did not override Spring 6.x's
+                // built-in ProblemDetail handling for the application/problem+
+                // json message converter. serializerByType is the direct path
+                // and takes precedence over any default ProblemDetail handling.
+                .serializerByType(ProblemDetail::class.java, ProblemDetailJsonSerializer())
         }
 
     // Standalone ObjectMapper for utility usage (FMP DTO mapping in tests, etc.)
@@ -56,15 +56,13 @@ class JacksonConfig {
  * After this serializer:
  *   {"type":"...","title":"...","ticker":"AAPL"}
  *
- * Picked up automatically by Spring Boot via @JsonComponent. Earlier attempt
- * via a Jackson mixin + @JsonAnyGetter (commit b385926) did not take effect —
- * Jackson did not match the Kotlin mixin signature against the Java bytecode
- * signature `Map<String, Object>` of ProblemDetail.getProperties(). An
- * explicit StdSerializer sidesteps that signature-matching path entirely.
+ * Wired via Jackson2ObjectMapperBuilder.serializerByType(...) — earlier
+ * attempts via Jackson mixin (b385926, signature-matching issue) and
+ * @JsonComponent (873b9e6 / e8a0880, autodiscovery did not override Spring's
+ * built-in ProblemDetail rendering) had no effect on the actual response.
  *
  * Referenced by ADR-007 §Error format (RFC 9457).
  */
-@JsonComponent
 class ProblemDetailJsonSerializer :
     StdSerializer<ProblemDetail>(ProblemDetail::class.java) {
 
