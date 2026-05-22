@@ -1,0 +1,9 @@
+{
+  "ticker": "AAPL",
+  "companyName": "Apple Inc.",
+  "sector": "INFORMATION_TECHNOLOGY",
+  "industry": "Technology Hardware, Storage & Peripherals",
+  "marketCapUsd": 3000000000000,
+  "currentPrice": 195.0,
+  "dataSnapshotAt": "2026-05-22T10:00:00Z"
+}

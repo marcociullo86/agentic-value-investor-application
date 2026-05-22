@@ -188,4 +188,83 @@ class FmpAdapterRestClientTest {
         assertThatThrownBy { adapter.getIncomeStatement("AAPL", limit = 0) }
             .isInstanceOf(IllegalArgumentException::class.java)
     }
+
+    // ===== /search (TSK-002) =================================================
+
+    @Test
+    fun `searchSymbol returns list of SearchHitDto from FMP search endpoint`() {
+        server.expect(ExpectedCount.once(), requestTo(org.hamcrest.Matchers.startsWith("$baseUrl/search")))
+            .andExpect(method(org.springframework.http.HttpMethod.GET))
+            .andExpect(queryParam("apikey", apiKey))
+            .andExpect(queryParam("query", "AAPL"))
+            .andExpect(queryParam("limit", "20"))
+            .andRespond(withSuccess(fixture("search-aapl.json"), MediaType.APPLICATION_JSON))
+
+        val result = adapter.searchSymbol("AAPL", limit = 20)
+
+        assertThat(result).hasSize(3)
+        assertThat(result[0].symbol).isEqualTo("AAPL")
+        assertThat(result[0].name).isEqualTo("Apple Inc.")
+        assertThat(result[0].exchangeShortName).isEqualTo("NASDAQ")
+        assertThat(result[2].currency).isEqualTo("CAD") // cross-listing CDR
+        server.verify()
+    }
+
+    // Empty list = zero match (legittimo) → emptyList, NO exception.
+    @Test
+    fun `searchSymbol with empty FMP response returns empty list and not exception`() {
+        server.expect(requestTo(org.hamcrest.Matchers.startsWith("$baseUrl/search")))
+            .andRespond(withSuccess(fixture("search-empty.json"), MediaType.APPLICATION_JSON))
+
+        val result = adapter.searchSymbol("ZZZNOPE")
+
+        assertThat(result).isEmpty()
+        server.verify()
+    }
+
+    // 4xx (non-429) → emptyList (a differenza di fetchList che mappa a NotFound).
+    @Test
+    fun `searchSymbol with 4xx returns empty list`() {
+        server.expect(requestTo(org.hamcrest.Matchers.startsWith("$baseUrl/search")))
+            .andRespond(withStatus(HttpStatus.BAD_REQUEST))
+
+        val result = adapter.searchSymbol("AAPL")
+
+        assertThat(result).isEmpty()
+        server.verify()
+    }
+
+    // 429 → FmpUnavailableException(429) per Resilience4j chain (rate limit).
+    @Test
+    fun `searchSymbol with 429 throws FmpUnavailableException`() {
+        server.expect(requestTo(org.hamcrest.Matchers.startsWith("$baseUrl/search")))
+            .andRespond(withStatus(HttpStatus.TOO_MANY_REQUESTS))
+
+        assertThatThrownBy { adapter.searchSymbol("AAPL") }
+            .isInstanceOf(FmpUnavailableException::class.java)
+        server.verify()
+    }
+
+    // 5xx → FmpUnavailableException (mapped to 503 RFC 9457 a monte).
+    @Test
+    fun `searchSymbol with 5xx throws FmpUnavailableException`() {
+        server.expect(requestTo(org.hamcrest.Matchers.startsWith("$baseUrl/search")))
+            .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
+
+        assertThatThrownBy { adapter.searchSymbol("AAPL") }
+            .isInstanceOf(FmpUnavailableException::class.java)
+        server.verify()
+    }
+
+    @Test
+    fun `searchSymbol rejects blank query`() {
+        assertThatThrownBy { adapter.searchSymbol(" ") }
+            .isInstanceOf(IllegalArgumentException::class.java)
+    }
+
+    @Test
+    fun `searchSymbol rejects non-positive limit`() {
+        assertThatThrownBy { adapter.searchSymbol("AAPL", limit = 0) }
+            .isInstanceOf(IllegalArgumentException::class.java)
+    }
 }

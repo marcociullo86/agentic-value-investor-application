@@ -11,6 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:e2e:realbe": "playwright test --config=playwright.config.realbe.ts",
+    "playwright:install": "playwright install --with-deps",
     "generate:api": "openapi-typescript \"../../design_&_architecture/api/openapi.yaml\" -o lib/api/generated/schema.ts",
     "typecheck": "tsc --noEmit",
     "typecheck:api": "tsc -p tsconfig.api.json --noEmit"

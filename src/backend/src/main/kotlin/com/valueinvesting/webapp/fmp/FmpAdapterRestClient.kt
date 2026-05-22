@@ -7,6 +7,7 @@ import com.valueinvesting.webapp.fmp.dto.IncomeStatementDto
 import com.valueinvesting.webapp.fmp.dto.KeyMetricsDto
 import com.valueinvesting.webapp.fmp.dto.ProfileDto
 import com.valueinvesting.webapp.fmp.dto.ScreenedStockDto
+import com.valueinvesting.webapp.fmp.dto.SearchHitDto
 import org.slf4j.LoggerFactory
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpStatusCode
@@ -146,6 +147,80 @@ class FmpAdapterRestClient(
         // Lista vuota = zero match (legittimo, NOT a not-found).
         return result ?: emptyList()
     }
+
+    // `/search` ha shape simile a `/stock-screener`: nessun {ticker} nel path,
+    // query param `query` arbitrario, lista vuota legittima (zero match) e NON
+    // mappata a FmpTickerNotFoundException — vedi javadoc su FmpAdapter.searchSymbol.
+    //
+    // Error policy:
+    //   - 4xx (non 429) → lista vuota: trattiamo come "nessun match" per
+    //     allinearci alla semantica `/search` di FMP (parser query rifiutato →
+    //     equivale a zero hit lato utente). Differente da fetchList() che mappa
+    //     4xx a FmpTickerNotFoundException, ma `/search` non è per-ticker.
+    //   - 429 → FmpUnavailableException(429) per coerenza con il resto del modulo
+    //     (rate limit gate Resilience4j).
+    //   - 5xx → FmpUnavailableException(status).
+    override fun searchSymbol(query: String, limit: Int): List<SearchHitDto> {
+        require(query.isNotBlank()) { "query must not be blank" }
+        require(limit > 0) { "limit must be > 0" }
+        val typeRef = object : ParameterizedTypeReference<List<SearchHitDto>>() {}
+
+        val result: List<SearchHitDto>? = try {
+            client.get()
+                .uri { builder ->
+                    builder
+                        .path("/search")
+                        .queryParam("apikey", appProperties.fmp.apiKey)
+                        .queryParam("query", query)
+                        .queryParam("limit", limit)
+                        .build()
+                }
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError) { _, response ->
+                    val status = response.statusCode
+                    if (status.value() == 429) {
+                        log.warn("FMP 429 (rate limited) on /search query={}", query)
+                        throw FmpUnavailableException(
+                            "FMP rate limited for /search",
+                            httpStatus = 429,
+                        )
+                    }
+                    log.warn("FMP 4xx on /search status={} query={}", status, query)
+                    // Per /search un 4xx non è "ticker not found" né anomalia
+                    // bloccante — trattiamo come zero hit (vedi nota in alto).
+                    // Usiamo un marker locale per attraversare il lambda onStatus
+                    // (che richiede throw); il catch poco sotto ritorna emptyList.
+                    throw EmptySearchSentinelException()
+                }
+                .onStatus(HttpStatusCode::is5xxServerError) { _, response ->
+                    val status = response.statusCode
+                    log.warn("FMP 5xx on /search status={}", status)
+                    throw FmpUnavailableException(
+                        "FMP returned $status for /search",
+                        httpStatus = status.value(),
+                    )
+                }
+                .body(typeRef)
+        } catch (ex: EmptySearchSentinelException) {
+            return emptyList()
+        } catch (ex: FmpUnavailableException) {
+            throw ex
+        } catch (ex: RestClientResponseException) {
+            throw FmpUnavailableException(
+                "FMP call failed: ${ex.statusCode} for /search",
+                cause = ex,
+                httpStatus = ex.statusCode.value(),
+            )
+        }
+
+        // Lista vuota = zero match (legittimo, NOT a not-found).
+        return result ?: emptyList()
+    }
+
+    // Sentinel interno per attraversare il lambda onStatus senza wrapping in
+    // FmpUnavailableException. Marker-only, mai propagata fuori dall'adapter
+    // (catturata nel try/catch del chiamante searchSymbol).
+    private class EmptySearchSentinelException : RuntimeException()
 
     // Generic GET on /{endpoint}/{ticker}?apikey=...&limit=...
     // Empty list response -> FmpTickerNotFoundException (semantica FMP).

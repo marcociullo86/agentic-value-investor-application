@@ -2,24 +2,34 @@ package com.valueinvesting.webapp.service
 
 import com.valueinvesting.webapp.domain.GicsSector
 import com.valueinvesting.webapp.domain.MarketCapBand
+import com.valueinvesting.webapp.fmp.CachedPayload
 import com.valueinvesting.webapp.fmp.FmpAdapter
+import com.valueinvesting.webapp.fmp.FmpCacheService
+import com.valueinvesting.webapp.fmp.FmpTickerNotFoundException
+import com.valueinvesting.webapp.fmp.dto.ProfileDto
 import com.valueinvesting.webapp.fmp.dto.ScreenedStockDto
+import com.valueinvesting.webapp.fmp.dto.SearchHitDto
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.Instant
 
 class SearchServiceTest {
 
     private lateinit var fmpAdapter: FmpAdapter
+    private lateinit var fmpCacheService: FmpCacheService
     private lateinit var service: SearchService
 
     @BeforeEach
     fun setup() {
         fmpAdapter = mockk()
-        service = SearchService(fmpAdapter)
+        fmpCacheService = mockk()
+        service = SearchService(fmpAdapter, fmpCacheService)
     }
 
     // Mapping band → coppia (minUsd, maxUsd) USD verificato: LARGE = [$10B, $200B).
@@ -207,5 +217,197 @@ class SearchServiceTest {
             service.screen(ScreenerCriteria(limit = 300))
         }.exceptionOrNull()
         assertThat(ex).isInstanceOf(IllegalArgumentException::class.java)
+    }
+
+    // ===== US-001: search(query) =============================================
+
+    // DoD #3: input `aapl` viene normalizzato a `AAPL` prima della chiamata FMP.
+    @Test
+    fun `search normalizes lowercase query to uppercase before calling FMP`() {
+        val captured = slot<String>()
+        every { fmpAdapter.searchSymbol(capture(captured), any()) } returns emptyList()
+
+        service.search("aapl")
+
+        assertThat(captured.captured).isEqualTo("AAPL")
+        verify(exactly = 1) { fmpAdapter.searchSymbol("AAPL", 20) }
+    }
+
+    // DoD #1: lista hit non vuota → mapping a SearchResultItem ordinato.
+    @Test
+    fun `search maps FMP hits to SearchResultItem list`() {
+        every { fmpAdapter.searchSymbol("AAPL", 20) } returns listOf(
+            SearchHitDto(symbol = "AAPL", name = "Apple Inc.", currency = "USD", exchangeShortName = "NASDAQ"),
+            SearchHitDto(symbol = "APC", name = "Apple Corp Holdings", currency = "USD", exchangeShortName = "NYSE"),
+        )
+
+        val result = service.search("AAPL")
+
+        assertThat(result.items).hasSize(2)
+        assertThat(result.items[0].ticker).isEqualTo("AAPL")
+        assertThat(result.items[0].companyName).isEqualTo("Apple Inc.")
+        // SearchResultItem OpenAPI schema: sector e marketCapUsd nullable, FMP
+        // /search non li popola → null (vedi nota toSearchResultItem).
+        assertThat(result.items[0].sector).isNull()
+        assertThat(result.items[0].marketCapUsd).isNull()
+    }
+
+    // FMP empty list → 200 items vuota (NON eccezione, semantica /search).
+    @Test
+    fun `search with no FMP match returns empty list and not exception`() {
+        every { fmpAdapter.searchSymbol(any(), any()) } returns emptyList()
+
+        val result = service.search("ZZZNOMATCH")
+
+        assertThat(result.items).isEmpty()
+    }
+
+    // FMP a volte restituisce duplicati (cross-listing) → dedupe per symbol.
+    @Test
+    fun `search deduplicates same symbol across hits`() {
+        every { fmpAdapter.searchSymbol(any(), any()) } returns listOf(
+            SearchHitDto(symbol = "AAPL", name = "Apple Inc.", exchangeShortName = "NASDAQ"),
+            SearchHitDto(symbol = "AAPL", name = "Apple Inc.", exchangeShortName = "BATS"),
+        )
+
+        val result = service.search("AAPL")
+
+        assertThat(result.items).hasSize(1)
+        assertThat(result.items.first().ticker).isEqualTo("AAPL")
+    }
+
+    // Fallback companyName quando FMP omette `name` (raro ma documentato).
+    @Test
+    fun `search falls back to symbol when FMP name is null or blank`() {
+        every { fmpAdapter.searchSymbol(any(), any()) } returns listOf(
+            SearchHitDto(symbol = "XYZQ", name = null),
+            SearchHitDto(symbol = "ABCQ", name = "  "),
+        )
+
+        val result = service.search("XYZ")
+
+        assertThat(result.items.map { it.companyName }).containsExactly("XYZQ", "ABCQ")
+    }
+
+    // Edge: query blank/empty → 400 via IllegalArgumentException.
+    @Test
+    fun `search rejects blank query`() {
+        assertThatThrownBy { service.search("   ") }
+            .isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessageContaining("blank")
+        verify(exactly = 0) { fmpAdapter.searchSymbol(any(), any()) }
+    }
+
+    // Edge: query con caratteri non in [A-Z0-9.-] (es. payload XSS).
+    @Test
+    fun `search rejects query with invalid characters`() {
+        assertThatThrownBy { service.search("<script>") }
+            .isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessageContaining("invalid characters")
+    }
+
+    // Edge: query oltre 32 char.
+    @Test
+    fun `search rejects query longer than 32 characters`() {
+        val tooLong = "A".repeat(33)
+        assertThatThrownBy { service.search(tooLong) }
+            .isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessageContaining("length")
+    }
+
+    // ===== US-001: validateTicker(ticker) ====================================
+
+    // DoD #3: input `aapl` viene normalizzato a `AAPL` prima della chiamata cache.
+    @Test
+    fun `validateTicker normalizes lowercase ticker to uppercase`() {
+        val captured = slot<String>()
+        every { fmpCacheService.getOrFetchProfile(capture(captured), any()) } returns CachedPayload(
+            value = ProfileDto(symbol = "AAPL", companyName = "Apple Inc.", price = 150.0, marketCap = 3e12),
+            fetchedAt = Instant.parse("2026-05-22T10:00:00Z"),
+            stale = false,
+        )
+
+        service.validateTicker("aapl")
+
+        assertThat(captured.captured).isEqualTo("AAPL")
+    }
+
+    // DoD #2: ticker esistente → 200 con StockProfile popolato.
+    @Test
+    fun `validateTicker returns StockProfile mapped from cache payload`() {
+        every { fmpCacheService.getOrFetchProfile("AAPL", any()) } returns CachedPayload(
+            value = ProfileDto(
+                symbol = "AAPL",
+                companyName = "Apple Inc.",
+                sector = "Technology",
+                industry = "Consumer Electronics",
+                marketCap = 3e12,
+                price = 150.0,
+                currency = "USD",
+                exchange = "NASDAQ",
+            ),
+            fetchedAt = Instant.parse("2026-05-22T10:00:00Z"),
+            stale = false,
+        )
+
+        val profile = service.validateTicker("AAPL")
+
+        assertThat(profile.ticker).isEqualTo("AAPL")
+        assertThat(profile.companyName).isEqualTo("Apple Inc.")
+        assertThat(profile.sector).isEqualTo("Technology")
+        assertThat(profile.industry).isEqualTo("Consumer Electronics")
+        assertThat(profile.marketCapUsd).isEqualTo(3e12)
+        assertThat(profile.currentPrice).isEqualTo(150.0)
+        assertThat(profile.dataSnapshotAt).isEqualTo(Instant.parse("2026-05-22T10:00:00Z"))
+    }
+
+    // DoD #2: ticker inesistente → FmpTickerNotFoundException dal cache layer
+    // (propaga FMP empty list → adapter throw → mai 200).
+    @Test
+    fun `validateTicker propagates FmpTickerNotFoundException for unknown ticker`() {
+        every { fmpCacheService.getOrFetchProfile("ZZZNOPE", any()) } throws
+            FmpTickerNotFoundException("ZZZNOPE")
+
+        assertThatThrownBy { service.validateTicker("zzznope") }
+            .isInstanceOf(FmpTickerNotFoundException::class.java)
+            .hasMessageContaining("ZZZNOPE")
+    }
+
+    // Edge: ticker blank/empty → 400 via IllegalArgumentException.
+    @Test
+    fun `validateTicker rejects blank input`() {
+        assertThatThrownBy { service.validateTicker("") }
+            .isInstanceOf(IllegalArgumentException::class.java)
+        verify(exactly = 0) { fmpCacheService.getOrFetchProfile(any(), any()) }
+    }
+
+    // Edge: ticker oltre 10 char (limite OpenAPI §parameters/Ticker).
+    @Test
+    fun `validateTicker rejects ticker longer than 10 characters`() {
+        assertThatThrownBy { service.validateTicker("ABCDEFGHIJK") }
+            .isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessageContaining("length")
+    }
+
+    // Edge: ticker con caratteri invalidi.
+    @Test
+    fun `validateTicker rejects ticker with invalid characters`() {
+        assertThatThrownBy { service.validateTicker("A B") }
+            .isInstanceOf(IllegalArgumentException::class.java)
+    }
+
+    // Fallback companyName quando FMP omette il nome — non deve essere null
+    // (OpenAPI StockProfile.companyName è required).
+    @Test
+    fun `validateTicker falls back to ticker when FMP companyName is null`() {
+        every { fmpCacheService.getOrFetchProfile("AAPL", any()) } returns CachedPayload(
+            value = ProfileDto(symbol = "AAPL", companyName = null, price = 150.0),
+            fetchedAt = Instant.now(),
+            stale = false,
+        )
+
+        val profile = service.validateTicker("AAPL")
+
+        assertThat(profile.companyName).isEqualTo("AAPL")
     }
 }
