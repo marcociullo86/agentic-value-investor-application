@@ -139,3 +139,47 @@ Modified: api/error/GlobalExceptionHandler.kt (+handleEmailConflict 409 RFC 9457
 Deleted: config/SecurityConfig.kt (stub permissivo TSK-031, sostituito da security/SecurityConfig.kt).
 Verifica: build Gradle non eseguita locally (JDK 17 non installato); review manuale API JJWT 0.12 + Spring Security 6. CI gating su gradle test/contract-check.
 DoD: registrazione + login + refresh + logout coperti da 6 test IT; 409 ProblemDetails per email duplicata; SecurityFilterChain stateless JWT con policy da ADR-006.
+
+## [2026-05-22] develop TSK-034 -> Auth FE (login, register, useAuthStore)
+Layer: fe (agent, Track B branch sprint3/auth-watchlist) | EP-006 | files created: 5 / modified: 2
+Created:
+  - src/frontend/lib/api/auth.ts (typed wrapper: register, login, refreshTokens, logout)
+  - src/frontend/app/(auth)/login/page.tsx (form email+password, POST /api/auth/login, redirect /)
+  - src/frontend/app/(auth)/register/page.tsx (form email+password+displayName, validazione min12, auto-login, 409 -> messaggio dedicato)
+  - src/frontend/components/layout/Navbar.tsx (mostra email + Logout se autenticato; altrimenti Accedi + Registrati; link Watchlist gated)
+  - src/frontend/lib/stores/useAuthStore.test.ts (6 unit test, vitest, mock @/lib/api/auth)
+Modified:
+  - src/frontend/lib/stores/useAuthStore.ts (impl completa: login/logout/refresh + setSession/setUser; accessToken + refreshToken in memoria, NON in localStorage — ADR-006; logout best-effort tollerante a errori BE)
+  - src/frontend/app/layout.tsx (aggiunto <Navbar /> dentro ToastProvider per UX auth — strettamente necessario per DoD)
+Decisione: refresh token in memoria Zustand (no httpOnly cookie BE-side ancora, openapi.yaml ritorna TokenPair in body); reload tab = re-login (DoD esplicito 'reload pagina -> necessario re-login o refresh automatico').
+Verifica: vitest run -> 17/17 passed (6 nuovi useAuthStore + 5 formatters + 6 signal-color); tsc --noEmit pulito.
+
+## [2026-05-22] develop TSK-029 -> WatchlistController + WatchlistService (US-017 BE)
+Layer: be (agent, Track B branch sprint3/auth-watchlist) | EP-006 | files created: 8 / modified: 1
+Created:
+  - persistence/entity/Watchlist.kt + WatchlistItem.kt
+  - persistence/repository/WatchlistRepository.kt (findByUserIdAndIsDefaultTrue)
+  - persistence/repository/WatchlistItemRepository.kt (findByWatchlistIdOrderByAddedAtDesc, findByWatchlistIdAndTicker, deleteByWatchlistIdAndTicker)
+  - api/model/WatchlistDtos.kt (WatchlistItemRequest validato Pattern ticker, WatchlistItemResponse, WatchlistResponse)
+  - service/WatchlistService.kt (getWatchlist con creazione lazy default; addTicker upsert idempotente + lazy-stock placeholder; removeTicker -> TickerNotInWatchlistException; @AuthenticationPrincipal via controller)
+  - api/WatchlistController.kt (GET /api/watchlist + POST /api/watchlist/items + DELETE /api/watchlist/items/{ticker})
+  - test/api/WatchlistControllerIT.kt (6 test Testcontainers: 401 senza token, get crea default, POST idempotente, normalizzazione uppercase, DELETE 204 + 404, persistenza cross-session)
+Modified:
+  - api/error/GlobalExceptionHandler.kt (+handleTickerNotInWatchlist 404 RFC 9457)
+DoD: idempotenza POST gestita da UNIQUE (watchlist_id, ticker) + check applicativo; persistenza tra sessioni verificata con due login successivi; auth gating via SecurityFilterChain (TSK-033).
+Note: gradle test non eseguito locally (no JDK); review manuale + flow stesso pattern di AnalysisControllerIT (TSK-020).
+
+## [2026-05-22] develop TSK-035 -> Watchlist FE (page + table + button + store)
+Layer: fe (agent, Track B branch sprint3/auth-watchlist) | US-017 EP-006 | files created: 6 / modified: 1
+Created:
+  - src/frontend/lib/api/watchlist.ts (fetchWatchlist, addWatchlistItem, removeWatchlistItem)
+  - src/frontend/lib/stores/useWatchlistStore.ts (fetch / add / remove con ottimistico-locale + error state)
+  - src/frontend/components/watchlist/WatchlistTable.tsx (Link a /analysis/{ticker}, formatMarketCap, azione Rimuovi)
+  - src/frontend/components/watchlist/AddToWatchlistButton.tsx (visibile solo se accessToken; gestisce stato 'già in watchlist')
+  - src/frontend/components/auth/AuthGuard.tsx (redirect a /login se non autenticato — client-side UX, server enforcement in SecurityConfig)
+  - src/frontend/app/watchlist/page.tsx (AuthGuard wrapper + form 'Aggiungi ticker' inline + WatchlistTable)
+  - src/frontend/components/watchlist/WatchlistTable.test.tsx (5 test: empty state, render rows, format market cap, em-dash, onRemove)
+Modified:
+  - src/frontend/package.json (+ devDependency @testing-library/dom 10.4.0 — peer dep di @testing-library/react 16 mancante in Sprint 1; pin senza caret per coerenza)
+Decisione: AddToWatchlistButton restera mountable da Track A in /analysis/[ticker]/page.tsx (TSK-021); in attesa, l'aggiunta ticker e disponibile tramite form inline nella WatchlistPage stessa per consentire E2E in TSK-036 senza dipendenza dalla pagina di analisi.
+Verifica: vitest run 22/22 verdi (5 nuovi WatchlistTable + 6 useAuthStore + 5 formatters + 6 signal-color); tsc --noEmit pulito.

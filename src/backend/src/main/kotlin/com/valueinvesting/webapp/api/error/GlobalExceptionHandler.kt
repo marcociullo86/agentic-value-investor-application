@@ -3,6 +3,7 @@ package com.valueinvesting.webapp.api.error
 import com.valueinvesting.webapp.fmp.FmpTickerNotFoundException
 import com.valueinvesting.webapp.fmp.FmpUnavailableException
 import com.valueinvesting.webapp.service.EmailAlreadyRegisteredException
+import com.valueinvesting.webapp.service.TickerNotInWatchlistException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.ConstraintViolationException
 import org.slf4j.LoggerFactory
@@ -183,6 +184,22 @@ class GlobalExceptionHandler(
             request = req,
         )
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(problem)
+    }
+
+    @ExceptionHandler(TickerNotInWatchlistException::class)
+    fun handleTickerNotInWatchlist(
+        ex: TickerNotInWatchlistException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        val problem = mapper.build(
+            status = HttpStatus.NOT_FOUND,
+            type = "https://api/errors/ticker-not-in-watchlist",
+            title = "Ticker not in watchlist",
+            detail = "Ticker '${ex.ticker}' is not in the watchlist",
+            request = req,
+            extensions = mapOf("ticker" to ex.ticker),
+        )
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem)
     }
 
     @ExceptionHandler(EmailAlreadyRegisteredException::class)

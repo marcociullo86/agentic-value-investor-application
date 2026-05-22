@@ -1,41 +1,82 @@
 import { create } from 'zustand';
+import {
+  login as apiLogin,
+  logout as apiLogout,
+  refreshTokens as apiRefresh,
+  type UserProfile,
+} from '@/lib/api/auth';
 
 /**
- * Auth store (TSK-030 scheleton, completato in TSK-034).
+ * Auth store (TSK-034 — full impl on top of the TSK-030 skeleton).
  *
- * Riferimento: design_&_architecture/components/frontend-components.md
- *   §State management → `useAuthStore`.
+ * ADR-006 prefers `httpOnly` cookie for the refresh token; the current backend
+ * however returns it inside the `TokenPair` JSON body (OpenAPI contract). We
+ * therefore keep both `accessToken` and `refreshToken` in Zustand memory only.
+ * Reloading the tab drops both — the user must re-login. The DoD explicitly
+ * accepts "reload = re-login or silent refresh" (TSK-034).
  *
- * Contratto:
- *  - `accessToken` in memoria, mai persistito (ADR-006).
- *  - `refresh()` consuma cookie httpOnly via endpoint backend.
- *  - `logout()` resetta lo state; UI redirige a /login.
+ * Reference: design_&_architecture/components/frontend-components.md §useAuthStore.
  */
-
-export interface UserProfile {
-  readonly email: string;
-  readonly displayName: string | null;
-}
 
 export interface AuthState {
   readonly accessToken: string | null;
+  readonly refreshToken: string | null;
   readonly user: UserProfile | null;
   readonly login: (email: string, password: string) => Promise<void>;
-  readonly logout: () => void;
+  readonly logout: () => Promise<void>;
   readonly refresh: () => Promise<void>;
-  readonly setAccessToken: (token: string | null) => void;
+  readonly setSession: (
+    tokens: { accessToken: string; refreshToken: string },
+    user?: UserProfile | null,
+  ) => void;
+  readonly setUser: (user: UserProfile | null) => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export type { UserProfile };
+
+export const useAuthStore = create<AuthState>((set, get) => ({
   accessToken: null,
+  refreshToken: null,
   user: null,
-  setAccessToken: (token: string | null): void => set({ accessToken: token }),
-  // TSK-034 completerà queste implementazioni con chiamate axios reali.
-  login: async (_email: string, _password: string): Promise<void> => {
-    throw new Error('Not implemented — landing in TSK-034 (auth FE).');
+
+  setSession: ({ accessToken, refreshToken }, user = undefined): void => {
+    set((prev) => ({
+      accessToken,
+      refreshToken,
+      user: user !== undefined ? user : prev.user,
+    }));
   },
-  logout: (): void => set({ accessToken: null, user: null }),
+
+  setUser: (user: UserProfile | null): void => set({ user }),
+
+  login: async (email: string, password: string): Promise<void> => {
+    const tokens = await apiLogin({ email, password });
+    set({
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      user: { id: '', email, displayName: null, createdAt: '' },
+    });
+  },
+
+  logout: async (): Promise<void> => {
+    const refreshToken = get().refreshToken;
+    try {
+      await apiLogout(refreshToken);
+    } catch {
+      // Best-effort: clear local state even if the backend rejects the call.
+    }
+    set({ accessToken: null, refreshToken: null, user: null });
+  },
+
   refresh: async (): Promise<void> => {
-    throw new Error('Not implemented — landing in TSK-034 (auth FE).');
+    const refreshToken = get().refreshToken;
+    if (!refreshToken) {
+      throw new Error('No refresh token available');
+    }
+    const tokens = await apiRefresh(refreshToken);
+    set({
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+    });
   },
 }));
