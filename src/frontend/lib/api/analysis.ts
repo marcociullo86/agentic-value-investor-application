@@ -45,6 +45,9 @@ export type MosSignal = Signal;
 /** Enum `DcfMethod` — verbatim OpenAPI §components/schemas/DcfMethod. */
 export type DcfMethod = 'GREENWALD' | 'FCF_FALLBACK' | 'NOT_APPLICABLE';
 
+/** Enum `DcfMethodSource` — ADR-011 / US-020. */
+export type DcfMethodSource = 'DEFAULT_POLICY' | 'USER_OVERRIDE';
+
 export interface RuleSignal {
   readonly ruleId: string;
   readonly signal: Signal;
@@ -67,6 +70,8 @@ export interface RuleEngineResult {
   readonly dcfIntrinsicValue: number | null;
   /** Metodo DCF effettivamente usato (o `NOT_APPLICABLE`). */
   readonly dcfMethod: DcfMethod;
+  /** Provenienza del metodo DCF (default-policy vs override utente). */
+  readonly dcfMethodSource: DcfMethodSource;
   /** Semaforo Margin of Safety. */
   readonly mosSignal: MosSignal;
   /** Prezzo corrente al momento della valutazione; `null` se non disponibile. */

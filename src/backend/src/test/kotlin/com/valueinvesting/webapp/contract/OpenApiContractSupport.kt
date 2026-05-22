@@ -44,6 +44,7 @@ object OpenApiContractSupport {
         "RuleEngineResult" to setOf("RuleEngineResult", "RuleEngineResultResponse"),
         "DcfOverride" to setOf("DcfOverride", "DcfOverrideResponse"),
         "DcfOverrideRequest" to setOf("DcfOverrideRequest"),
+        "DcfMethodSource" to setOf("DcfMethodSource"),
         "FinancialDataset" to setOf("FinancialDataset"),
         "ProblemDetails" to setOf("ProblemDetails"),
     )
@@ -52,6 +53,7 @@ object OpenApiContractSupport {
         ImplementedOperation("/api/financials/{ticker}", "get", "200", "FinancialDataset"),
         ImplementedOperation("/api/analysis/{ticker}", "get", "200", "RuleEngineResult"),
         ImplementedOperation("/api/dcf-overrides", "post", "201", "DcfOverride"),
+        ImplementedOperation("/api/dcf-overrides/{ticker}", "get", "200", "DcfOverride"),
         ImplementedOperation("/api/dcf-overrides/{ticker}", "delete", "204", null),
     )
 
