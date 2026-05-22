@@ -130,13 +130,13 @@ Flusso di interazione canonico documentato in [[webapp-architecture-vi]] §Fluss
 | US-026 deploy target | [ADR-015](decisions/ADR-015-deployment-target-r11.md) + runbook | todo (TSK-061/062) |
 | US-027 backup / retention log | [deploy-runbook-r11.md](operations/deploy-runbook-r11.md) | parziale — purge 90d **done** (TSK-064); backup/drill todo |
 | US-028 checklist cutover | [deploy-runbook-r11.md](operations/deploy-runbook-r11.md) | todo (TSK-066/067) |
-| US-029 doc FMP wiki | [ADR-016](decisions/ADR-016-fmp-operations-throttling.md) (L4); wiki US-029 | todo human (TSK-068) |
+| US-029 doc FMP wiki | [ADR-016](decisions/ADR-016-fmp-operations-throttling.md) (L4); wiki US-029 | **done** (TSK-068; 3 gap FMP restano aperti in wiki) |
 | US-030 throttling BE | [ADR-016](decisions/ADR-016-fmp-operations-throttling.md) | **done** (TSK-069/070) |
 
 ## Roadmap di rilascio (input PM)
 
 - **R1.0** (chiuso): EP-001 … EP-006 — analisi end-to-end, dashboard, watchlist, auth.
-- **R1.1** (in corso): **EP-007 done** (US-021…025, Wave 1 CI `1882767`); **EP-009** US-030 done, US-029 wiki pending; **EP-008** deploy/ops (US-026…028) Wave 2. Runbook: [operations/deploy-runbook-r11.md](operations/deploy-runbook-r11.md).
+- **R1.1** (in corso): **EP-007 done**, **EP-009 done** (US-029/030; gap FMP aperti → TSK-071); **EP-008** deploy/ops Wave 2 (TSK-061…067). Runbook: [operations/deploy-runbook-r11.md](operations/deploy-runbook-r11.md), [wiki/runbooks/fmp-api-quickstart.md](../wiki/runbooks/fmp-api-quickstart.md).
 
 ## Concetti wiki di riferimento
 

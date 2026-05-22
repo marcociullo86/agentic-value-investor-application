@@ -57,6 +57,8 @@ utente mostrerà lista vuota senza errori. Nessun impatto su funzionalità core.
 **Sospetta fonte:** documentazione ufficiale FMP (da aggiungere come raw)
 **Impatto:** Il runbook fmp-api-quickstart non puo' documentare i limiti di frequenza; integrazioni produzione potrebbero andare in throttling senza avviso.
 
+**TSK-068 (2026-05-22):** Re-verificati `raw/FMP_Docs_1`–`8` (grep: nessuna quota, 429, req/min). Runbook [[fmp-api-quickstart]] § Rate limiting documenta gap + riferimento ADR-016 solo come policy L4. **Stato: aperto.** Piano ingest: aggiungere raw da documentazione FMP ufficiale (pricing, limiti API, FAQ rate limit).
+
 ---
 
 ## 2026-05-20 10:00 — fmp-endpoint-base-urls
@@ -66,6 +68,8 @@ utente mostrerà lista vuota senza errori. Nessun impatto su funzionalità core.
 **Sospetta fonte:** documentazione ufficiale FMP (da aggiungere come raw)
 **Impatto:** Il runbook fmp-api-quickstart contiene URL non verificati; i developer potrebbero usare path errati.
 
+**TSK-068 (2026-05-22):** Raw FMP_Docs senza host/path HTTP; runbook usa placeholder `{base}` + tabella nomi API citabili da raw; URL completi solo via ADR-016 (L4, non provider). **Stato: aperto.** Piano ingest: raw con URL base ufficiali FMP (es. pagine endpoint della doc online).
+
 ---
 
 ## 2026-05-20 10:00 — fmp-error-codes
@@ -74,6 +78,8 @@ utente mostrerà lista vuota senza errori. Nessun impatto su funzionalità core.
 **Gap:** Nessun codice di errore HTTP o formato di risposta di errore documentato nei raw.
 **Sospetta fonte:** documentazione ufficiale FMP (da aggiungere come raw)
 **Impatto:** Gestione degli errori nelle integrazioni non puo' essere documentata nel wiki.
+
+**TSK-068 (2026-05-22):** Nessun codice HTTP né formato errore nei raw FMP_Docs 1–8; runbook § Errori HTTP elenca gap; mapping adapter solo in ADR-016 (L4). **Stato: aperto.** Piano ingest: raw sezione errori / troubleshooting FMP.
 
 ---
 

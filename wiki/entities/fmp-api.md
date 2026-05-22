@@ -3,8 +3,8 @@ type: entity
 sources: ["raw/FMP_Docs_1_Auth_and_Search.txt", "raw/FMP_Docs_2_Stock_Directory.txt", "raw/FMP_Docs_3_Company_Info.txt", "raw/FMP_Docs_4_Financial_Statements.txt", "raw/FMP_Docs_5_Metrics_and_Ratios.txt", "raw/FMP_Docs_6_Quotes_and_Prices.txt", "raw/FMP_Docs_7_Executives_and_Compensation.txt", "raw/FMP_Docs_8_News_and_Estimates.txt"]
 status: draft
 created: 2026-05-20
-updated: 2026-05-20
-tags: [fmp, api, financial-data, provider]
+updated: 2026-05-22
+tags: [fmp, api, financial-data, provider, operations]
 ---
 # Financial Modeling Prep (FMP) API
 
@@ -31,9 +31,23 @@ FMP offre una copertura ampia di strumenti finanziari globali tramite una REST A
 
 Gli endpoint contrassegnati con "Globe Flag" hanno copertura globale. Quelli con "USA Flag" sono limitati al mercato statunitense (SEC, CIK, compensi esecutivi, aziende delistate USA). [^src: raw/FMP_Docs_1_Auth_and_Search.txt §Company Search]
 
+## Documentazione operativa (US-029)
+
+Runbook [[fmp-api-quickstart]] espone sezioni esplicite per rate limiting, URL base e errori HTTP. Stato ingest TSK-068 (2026-05-22):
+
+| Tema | Wiki (raw FMP_Docs 1–8) | Gap |
+|------|-------------------------|-----|
+| Rate limit / 429 | Non presente nei raw | `fmp-rate-limiting` aperto |
+| URL host + path HTTP | Solo nomi API nei raw | `fmp-endpoint-base-urls` aperto |
+| Codici errore HTTP / body | Non presente nei raw | `fmp-error-codes` aperto |
+
+Default throttling e path MVP in configurazione applicativa: ADR-016 (non citazione provider). Dettaglio: [[fmp-api-quickstart]] § Rate limiting, § URL base, § Errori HTTP, § Limitazioni documentazione.
+
 ## Concetti correlati
 [[fmp-auth]]
 [[fmp-api-overview]]
+[[fmp-api-quickstart]]
+[[gaps]]
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->

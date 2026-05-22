@@ -645,3 +645,14 @@ Stato PR #1: open, mergeStateStatus=CLEAN, 7/7 status checks success (BE — gra
 **Note:** Gap wiki `be-problemdetail-flatten`, `fe-swr-peer-r19`, `fe-static-export-tickers` implementati in L5 — chiusura formale solo wiki-keeper.
 
 [2026-05-22 22:50] plan — Sprint 5 Wave 1 closeout: kanban + L4 overview + episodic — files touched: 18
+
+## 2026-05-22 ingest | TSK-068 US-029 FMP_Docs_1-8 (re-check)
+Pagine create: 0 | Figure: 0 | Aggiornamenti: 2 | Gap nuovi: 0 | Gap chiusi: 0
+**Run:** ingest gap-pickup US-029 — rate limit / URL base / errori HTTP.
+**Raw:** `FMP_Docs_1_Auth_and_Search.txt` … `FMP_Docs_8_News_and_Estimates.txt` (nessun nuovo raw; grep senza quota, URL host, 401/403/404/429/5xx).
+**Wiki:** aggiornati `wiki/runbooks/fmp-api-quickstart.md` (§ Rate limiting, URL base, Errori HTTP, Limitazioni US-029), `wiki/entities/fmp-api.md` (cross-link operativo).
+**Gap:** `fmp-rate-limiting`, `fmp-endpoint-base-urls`, `fmp-error-codes` — append nota TSK-068, restano **aperti**; piano ingest raw FMP ufficiale documentato in `wiki/gaps.md`.
+**Indice:** `wiki/index.md` rigenerato (updated 2026-05-22).
+**Kanban:** TSK-068 consumer human — parent aggiorna status; TSK-071 Sprint 6 resta dipendente da chiusura `fmp-rate-limiting`.
+
+[2026-05-22 23:15] plan — TSK-068/US-029/EP-009 → done; sprint Wave 2 6 TSK todo — files touched: 5

@@ -121,7 +121,7 @@ GET override, feasibility 422, dcfMethodSource, Vary header, FE panel, OpenAPI).
 **Obiettivo:** Hardening contratti e routing FE, deploy prod Compose+nginx, backup/retention,
 checklist cutover, throttling FMP (default ADR-016); wiki FMP in parallelo (human).
 
-**Stato:** IN CORSO — **Wave 1 COMPLETATA** (14/14 TSK `done`, CI `1882767` verde); **Wave 2** 7 TSK `todo` (TSK-061…068).
+**Stato:** IN CORSO — **Wave 1 COMPLETATA** (14/14 TSK `done`); **TSK-068 done** (US-029 wiki); **Wave 2** 6 TSK `todo` (TSK-061…067).
 
 **Wave 1 (parallelo, done):** TSK-050…060, TSK-064, TSK-069, TSK-070 — commit `1e15c20` + fix CI `7844c67`…`1882767`.
 
@@ -147,7 +147,7 @@ checklist cutover, throttling FMP (default ADR-016); wiki FMP in parallelo (huma
 | TSK-065 | QA Drill restore PostgreSQL staging | qa | agent | S | TSK-063 | US-027 | todo |
 | TSK-066 | QA Playwright smoke cutover R1.1 staging | qa | agent | M | TSK-050, TSK-057, TSK-061 | US-028 | todo |
 | TSK-067 | QA Esecuzione checklist cutover registro | qa | agent | S | TSK-066, TSK-065, TSK-064 | US-028 | todo |
-| TSK-068 | Human Ingest wiki FMP rate/URL/errori | infra | human | M | — | US-029 | todo |
+| TSK-068 | Human Ingest wiki FMP rate/URL/errori | infra | human | M | — | US-029 | done |
 | TSK-069 | BE Env FMP_RATE_LIMIT_PER_MINUTE | be | agent | S | — | US-030 | done |
 | TSK-070 | QA WireMock 429 retry + event log | qa | agent | S | TSK-069 | US-030 | done |
 
