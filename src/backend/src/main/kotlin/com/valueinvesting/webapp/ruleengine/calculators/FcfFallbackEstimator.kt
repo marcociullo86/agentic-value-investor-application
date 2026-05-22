@@ -1,5 +1,6 @@
 package com.valueinvesting.webapp.ruleengine.calculators
 
+import com.valueinvesting.webapp.ruleengine.feasibility.FeasibilityResult
 import com.valueinvesting.webapp.service.FinancialDataset
 import org.springframework.stereotype.Component
 import kotlin.math.abs
@@ -12,6 +13,21 @@ class FcfFallbackEstimator {
         val usable: Boolean,
         val rationale: String,
     )
+
+    fun isFeasible(dataset: FinancialDataset): FeasibilityResult {
+        val fcfYears = countNonNullFcfYears(dataset)
+        val required = MIN_FCF_YEARS
+        return if (fcfYears >= required) {
+            FeasibilityResult(true, null, fcfYears, required)
+        } else {
+            FeasibilityResult(
+                feasible = false,
+                reason = "FCF_HISTORY_INSUFFICIENT",
+                availableYears = fcfYears,
+                requiredYears = required,
+            )
+        }
+    }
 
     fun estimate(dataset: FinancialDataset): Estimate {
         val slices = FinancialYearAligner.align(dataset)
@@ -43,4 +59,26 @@ class FcfFallbackEstimator {
     }
 
     private fun absCapEx(value: Double?): Double? = value?.let { abs(it) }
+
+    private fun countNonNullFcfYears(dataset: FinancialDataset): Int {
+        val slices = FinancialYearAligner.align(dataset)
+        var years = 0
+        for (slice in slices) {
+            val cf = slice.cashFlow ?: continue
+            val fcf = cf.freeCashFlow
+                ?: run {
+                    val ocf = cf.operatingCashFlow ?: cf.netCashProvidedByOperatingActivities
+                    val capex = absCapEx(cf.capitalExpenditure)
+                    if (ocf != null && capex != null) ocf - capex else null
+                }
+            if (fcf != null) {
+                years++
+            }
+        }
+        return years
+    }
+
+    companion object {
+        const val MIN_FCF_YEARS = 1
+    }
 }
