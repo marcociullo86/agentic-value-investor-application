@@ -391,3 +391,5 @@ Gap aperti (documentati in codice/wiki, non bloccanti il merge):
   - `fe-static-export-tickers` — generateStaticParams con un set hardcoded di 8 large-cap; idealmente da feed di build-time o (preferibile) dropping di `output: 'export'` per un runtime SSR.
 
 Stato PR #1: open, mergeStateStatus=CLEAN, 7/7 status checks success (BE — gradle test, BE OpenAPI contract, FE — vitest, FE OpenAPI types, FE Playwright mocked, FE Playwright real BE, Docker smoke build).
+
+[2026-05-22 14:35] lint — Check 1-4d complete: 0 ERROR / 0 WARNING / 3 INFO; 3 gap aperti (be-problemdetail-flatten, fe-swr-peer-r19, fe-static-export-tickers); citation audit deferred pre-R1.0 — wiki/lint/2026-05-22-lint-report.md written — files touched: 1
