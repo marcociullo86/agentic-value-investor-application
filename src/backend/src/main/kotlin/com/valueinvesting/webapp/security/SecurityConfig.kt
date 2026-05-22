@@ -1,6 +1,7 @@
 package com.valueinvesting.webapp.security
 
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -41,11 +42,26 @@ class SecurityConfig(
     fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder(BCRYPT_STRENGTH)
 
     // Filter is registered ONLY inside the SecurityFilterChain via
-    // `.addFilterBefore(...)` — never as a top-level servlet filter (which is
-    // what Spring Boot would do automatically if this were a @Component).
+    // `.addFilterBefore(...)` — never as a top-level servlet filter.
+    //
+    // Spring Boot auto-wraps any Filter-typed bean in a FilterRegistrationBean
+    // and adds it to the servlet context. That would make the filter run on
+    // every request, bypassing `@AutoConfigureMockMvc(addFilters = false)` in
+    // test slices. The explicit FilterRegistrationBean with isEnabled = false
+    // suppresses the auto-registration; the SecurityFilterChain still picks
+    // up the bean and uses it inside its chain.
     @Bean
     fun jwtAuthenticationFilter(jwtService: JwtService): JwtAuthenticationFilter =
         JwtAuthenticationFilter(jwtService)
+
+    @Bean
+    fun jwtAuthenticationFilterRegistration(
+        filter: JwtAuthenticationFilter,
+    ): FilterRegistrationBean<JwtAuthenticationFilter> {
+        val registration = FilterRegistrationBean(filter)
+        registration.isEnabled = false
+        return registration
+    }
 
     @Bean
     fun authenticationProvider(passwordEncoder: PasswordEncoder): DaoAuthenticationProvider {
