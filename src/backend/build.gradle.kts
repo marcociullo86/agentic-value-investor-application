@@ -18,8 +18,15 @@ group = "com.valueinvesting"
 version = "0.1.0-SNAPSHOT"
 
 java {
+    // JDK 21 toolchain matches:
+    //   - .github/workflows/ci.yml (setup-java@v4 java-version: 21)
+    //   - src/docker/Dockerfile (gradle:8-jdk21-alpine build, temurin:21-jre runtime)
+    //   - ADR-009 §2 Build artifact (Spring Boot 3.5 LTS runtime)
+    // tech_stack.md baseline is "JVM 17+" — JDK 21 satisfies the lower bound;
+    // no source uses Java 21-specific syntax so a downgrade to 17 stays
+    // mechanically possible if needed.
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
 
@@ -103,6 +110,22 @@ tasks.withType<Test> {
         "contract.openapi.canonical",
         repoRoot.resolve("design_&_architecture/api/openapi.yaml").absolutePath,
     )
+    // Print the full assertion message + stack trace so CI logs show *why* a
+    // test failed (status mismatch, body diff, etc.), not just the line number.
+    // STANDARD_OUT is included so Spring's server-side log.error() lines (e.g.
+    // GlobalExceptionHandler.handleGeneric) reach the CI log when a controller
+    // throws — otherwise we only see the MockMvc 500 status without the cause.
+    testLogging {
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        events = setOf(
+            org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED,
+            org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_OUT,
+            org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_ERROR,
+        )
+        showCauses = true
+        showExceptions = true
+        showStackTraces = true
+    }
 }
 
 tasks.register<Test>("contractCheck") {

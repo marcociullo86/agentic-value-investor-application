@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import { ToastProvider } from '@/components/providers/ToastProvider';
+import { Navbar } from '@/components/layout/Navbar';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -27,7 +28,10 @@ export default function RootLayout({
     <html lang="it" suppressHydrationWarning>
       <body>
         <AuthProvider>
-          <ToastProvider>{children}</ToastProvider>
+          <ToastProvider>
+            <Navbar />
+            {children}
+          </ToastProvider>
         </AuthProvider>
       </body>
     </html>

@@ -1,11 +1,17 @@
 /**
- * Playwright configuration — TSK-022 (E2E US-001 → US-014).
+ * Playwright configuration — DEFAULT (mocked) mode.
+ *
+ * Scope:
+ *  - TSK-022 (Track A): search → analysis E2E flow, fully-mocked via
+ *    `page.route()`. Zero BE/DB dependency.
+ *  - Track B real-BE scenarios (TSK-036 auth+watchlist) live in
+ *    `playwright.config.realbe.ts` and are excluded here via testIgnore.
  *
  * Strategy:
  *  - Single browser: Chromium only (CI speed; Firefox/WebKit follow-up gap).
  *  - webServer: riusa il dev server Next.js (porta 3000); in CI il BE NON viene
- *    avviato perché tutti e 4 gli scenari usano `page.route()` per mockare
- *    interamente le chiamate API. Zero dipendenza BE reale in CI.
+ *    avviato perché tutti gli scenari mocked usano `page.route()` per mockare
+ *    interamente le chiamate API. Zero dipendenza BE reale in CI per questo job.
  *  - Screenshot on failure: `only-on-failure` + upload artifact nel job CI.
  *  - Trace on first retry: aiuta il debugging CI senza appesantire ogni run.
  *
@@ -17,6 +23,8 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './e2e',
+  // Exclude real-BE specs — they are run with playwright.config.realbe.ts.
+  testIgnore: ['**/auth-watchlist.spec.ts'],
   outputDir: 'e2e/test-results',
 
   /* Esegui i test in parallelo (workers default = metà CPU). */

@@ -83,8 +83,10 @@ test('user searches AAPL and sees Traffic Light panel with 7 rule signals', asyn
   await searchInput.fill('AAPL');
   await searchInput.press('Enter');
 
-  // SearchBar.tsx: exact match (1 item, ticker==="AAPL") → router.push("/analysis/AAPL")
-  await page.waitForURL('**/analysis/AAPL');
+  // SearchBar.tsx: exact match (1 item, ticker==="AAPL") → router.push("/analysis/AAPL").
+  // Next.js (output: 'export') normalises dynamic-segment URLs with a trailing
+  // slash (/analysis/AAPL/), so the glob has to tolerate both forms.
+  await page.waitForURL(/\/analysis\/AAPL\/?$/);
 
   // TrafficLightPanel renderizza una RuleSignalCard per ciascun signal.
   // data-testid="rule-signal-card-{ruleId}" già presente in RuleSignalCard (TSK-021).

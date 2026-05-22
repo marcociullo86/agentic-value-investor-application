@@ -134,7 +134,7 @@ class HistoricalControllerWebMvcTest {
             accept(MediaType.APPLICATION_JSON)
         }.andExpect {
             status { isOk() }
-            jsonPath("$.points").isArray
+            jsonPath("$.points") { isArray() }
             jsonPath("$.points.length()") { value(0) }
             header { string("X-Data-Snapshot-At", snapshotAt.toString()) }
         }

@@ -20,7 +20,12 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 
-@WebMvcTest(controllers = [ScreenerController::class])
+@WebMvcTest(
+    controllers = [ScreenerController::class],
+    excludeAutoConfiguration = [
+        org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration::class,
+    ],
+)
 @AutoConfigureMockMvc(addFilters = false)
 @Import(GlobalExceptionHandler::class, ProblemDetailsMapper::class)
 @ActiveProfiles("test")
@@ -31,6 +36,13 @@ class ScreenerControllerWebMvcTest {
 
     @MockkBean
     private lateinit var searchService: SearchService
+
+    // SecurityConfig (TSK-033) is discovered by classpath scanning even
+    // with SecurityAutoConfiguration excluded; mock UserDetailsServiceImpl
+    // (its only constructor arg) so the slice can build the context.
+    @MockkBean
+    private lateinit var userDetailsService:
+        com.valueinvesting.webapp.security.UserDetailsServiceImpl
 
     // DoD #1: filtri completi → 200 + items non vuota.
     @Test
@@ -106,7 +118,7 @@ class ScreenerControllerWebMvcTest {
             accept(MediaType.APPLICATION_JSON)
         }.andExpect {
             status { isOk() }
-            jsonPath("$.items").isArray
+            jsonPath("$.items") { isArray() }
             jsonPath("$.items.length()") { value(0) }
         }
     }

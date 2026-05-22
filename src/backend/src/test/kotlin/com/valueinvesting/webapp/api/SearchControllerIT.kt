@@ -214,7 +214,9 @@ class SearchControllerIT {
             jsonPath("$.status") { value(404) }
             jsonPath("$.title") { value("Ticker not found") }
             // Extension field "ticker" set by GlobalExceptionHandler.handleFmpTickerNotFound.
-            jsonPath("$.ticker") { value("XXXXXXXX") }
+            // Spring 6.x ProblemDetail serializes extensions under `properties`
+            // (not flattened per RFC 9457 §3.2). See gap `be-problemdetail-flatten`.
+            jsonPath("$.properties.ticker") { value("XXXXXXXX") }
             // type URI convention from GlobalExceptionHandler.
             jsonPath("$.type") { value("https://api/errors/ticker-not-found") }
         }

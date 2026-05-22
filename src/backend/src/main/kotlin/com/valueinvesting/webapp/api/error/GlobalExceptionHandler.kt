@@ -2,6 +2,8 @@ package com.valueinvesting.webapp.api.error
 
 import com.valueinvesting.webapp.fmp.FmpTickerNotFoundException
 import com.valueinvesting.webapp.fmp.FmpUnavailableException
+import com.valueinvesting.webapp.service.EmailAlreadyRegisteredException
+import com.valueinvesting.webapp.service.TickerNotInWatchlistException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.ConstraintViolationException
 import org.slf4j.LoggerFactory
@@ -12,6 +14,7 @@ import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.AuthenticationException
 import org.springframework.web.bind.MethodArgumentNotValidException
+import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
@@ -134,6 +137,27 @@ class GlobalExceptionHandler(
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem)
     }
 
+    // Missing @RequestParam(required = true) → 400 ProblemDetails (RFC 9457).
+    // Otherwise falls through to handleGeneric -> 500.
+    @ExceptionHandler(MissingServletRequestParameterException::class)
+    fun handleMissingParam(
+        ex: MissingServletRequestParameterException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        val problem = mapper.build(
+            status = HttpStatus.BAD_REQUEST,
+            type = "https://api/errors/missing-parameter",
+            title = "Bad Request",
+            detail = "Required parameter '${ex.parameterName}' is missing",
+            request = req,
+            extensions = mapOf(
+                "parameter" to ex.parameterName,
+                "requiredType" to ex.parameterType,
+            ),
+        )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem)
+    }
+
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleIllegalArgument(
         ex: IllegalArgumentException,
@@ -182,6 +206,38 @@ class GlobalExceptionHandler(
             request = req,
         )
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(problem)
+    }
+
+    @ExceptionHandler(TickerNotInWatchlistException::class)
+    fun handleTickerNotInWatchlist(
+        ex: TickerNotInWatchlistException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        val problem = mapper.build(
+            status = HttpStatus.NOT_FOUND,
+            type = "https://api/errors/ticker-not-in-watchlist",
+            title = "Ticker not in watchlist",
+            detail = "Ticker '${ex.ticker}' is not in the watchlist",
+            request = req,
+            extensions = mapOf("ticker" to ex.ticker),
+        )
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem)
+    }
+
+    @ExceptionHandler(EmailAlreadyRegisteredException::class)
+    fun handleEmailConflict(
+        ex: EmailAlreadyRegisteredException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        val problem = mapper.build(
+            status = HttpStatus.CONFLICT,
+            type = "https://api/errors/email-already-registered",
+            title = "Email already registered",
+            detail = "An account with this email already exists",
+            request = req,
+            extensions = mapOf("email" to ex.email),
+        )
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(problem)
     }
 
     @ExceptionHandler(Exception::class)

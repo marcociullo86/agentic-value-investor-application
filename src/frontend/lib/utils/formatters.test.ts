@@ -8,7 +8,11 @@ import {
 
 describe('formatters', () => {
   it('formatCurrency con default USD', () => {
-    expect(formatCurrency(1234.5)).toMatch(/1\.234,50.*USD|US\$|\$/);
+    // Node 20 ICU on the CI runner emits "1234,50 USD" (no thousands separator,
+    // USD code instead of $ symbol). Local full-ICU emits "1.234,50 US$". The
+    // contract is "decimal sep is comma, currency identifier is USD/US$/$" —
+    // thousand separator presence is incidental, so the regex tolerates both.
+    expect(formatCurrency(1234.5)).toMatch(/1\.?234,50.*(USD|US\$|\$)/);
   });
 
   it('formatPercent con 2 decimali', () => {
