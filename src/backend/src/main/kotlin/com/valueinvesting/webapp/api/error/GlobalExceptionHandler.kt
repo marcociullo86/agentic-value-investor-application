@@ -3,6 +3,7 @@ package com.valueinvesting.webapp.api.error
 import com.valueinvesting.webapp.fmp.FmpTickerNotFoundException
 import com.valueinvesting.webapp.fmp.FmpUnavailableException
 import com.valueinvesting.webapp.service.EmailAlreadyRegisteredException
+import com.valueinvesting.webapp.service.InvalidRefreshTokenException
 import com.valueinvesting.webapp.service.TickerNotInWatchlistException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.ConstraintViolationException
@@ -64,7 +65,49 @@ class GlobalExceptionHandler(
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem)
     }
 
-    @ExceptionHandler(BadCredentialsException::class, AuthenticationException::class)
+    // Generic-error policy for login (ADR-010 §2, US-019 AC#2): email
+    // inesistente e password errata producono lo stesso 401 con
+    // detail="Invalid email or password" e type=invalid-credentials.
+    // AuthService.login() solleva BadCredentialsException con quel testo
+    // su entrambi i rami — la verifica formale vive nel contract-test
+    // di TSK-042.
+    // [^src: design_&_architecture/decisions/ADR-010-auth-consolidation.md §2]
+    @ExceptionHandler(BadCredentialsException::class)
+    fun handleBadCredentials(
+        ex: BadCredentialsException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        val problem = mapper.build(
+            status = HttpStatus.UNAUTHORIZED,
+            type = "https://api/errors/invalid-credentials",
+            title = "Unauthorized",
+            detail = ex.message ?: "Invalid email or password",
+            request = req,
+        )
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem)
+    }
+
+    // Refresh-token specific 401 (ADR-010 §3): catena rifiutata per expiry,
+    // revoca o cap assoluto raggiunto. Tipo distinto da invalid-credentials
+    // così il FE può differenziare "ri-login" da "credenziali errate".
+    // L'eccezione vive in service/exception/InvalidRefreshTokenException.kt
+    // e viene sollevata da AuthService.refresh() (vedi TSK-041).
+    @ExceptionHandler(InvalidRefreshTokenException::class)
+    fun handleInvalidRefreshToken(
+        ex: InvalidRefreshTokenException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        val problem = mapper.build(
+            status = HttpStatus.UNAUTHORIZED,
+            type = "https://api/errors/invalid-refresh",
+            title = "Unauthorized",
+            detail = ex.message ?: "Invalid refresh token",
+            request = req,
+        )
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem)
+    }
+
+    @ExceptionHandler(AuthenticationException::class)
     fun handleAuth(
         ex: AuthenticationException,
         req: HttpServletRequest,
@@ -224,6 +267,12 @@ class GlobalExceptionHandler(
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem)
     }
 
+    // US-018 AC#2 — registrazione con email duplicata → 409 RFC 9457
+    // (ADR-010 §1). L'email viene riflessa nel `detail` perché il client
+    // l'ha appena inviata: nessun information leak (l'avversario già la
+    // possiede). Sull'endpoint `/login` invece NON la riflettiamo (vedi
+    // handleBadCredentials), così il client non può fare enum-attack.
+    // [^src: design_&_architecture/decisions/ADR-010-auth-consolidation.md §1]
     @ExceptionHandler(EmailAlreadyRegisteredException::class)
     fun handleEmailConflict(
         ex: EmailAlreadyRegisteredException,
@@ -233,9 +282,8 @@ class GlobalExceptionHandler(
             status = HttpStatus.CONFLICT,
             type = "https://api/errors/email-already-registered",
             title = "Email already registered",
-            detail = "An account with this email already exists",
+            detail = "Email already registered: ${ex.email}",
             request = req,
-            extensions = mapOf("email" to ex.email),
         )
         return ResponseEntity.status(HttpStatus.CONFLICT).body(problem)
     }

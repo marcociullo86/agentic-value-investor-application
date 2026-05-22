@@ -96,8 +96,11 @@ class AuthControllerIT {
             content = objectMapper.writeValueAsString(request)
         }.andExpect {
             status { isConflict() }
+            content { contentType("application/problem+json") }
             jsonPath("$.status") { value(409) }
+            jsonPath("$.type") { value("https://api/errors/email-already-registered") }
             jsonPath("$.title") { value("Email already registered") }
+            jsonPath("$.detail") { value("Email already registered: bob@example.com") }
         }
     }
 
