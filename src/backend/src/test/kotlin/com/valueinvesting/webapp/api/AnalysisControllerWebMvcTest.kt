@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import com.valueinvesting.webapp.config.AnalysisVaryHeaderFilter
 import org.springframework.context.annotation.Import
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -29,7 +30,7 @@ import java.time.Instant
     ],
 )
 @AutoConfigureMockMvc(addFilters = false)
-@Import(GlobalExceptionHandler::class, ProblemDetailsMapper::class)
+@Import(GlobalExceptionHandler::class, ProblemDetailsMapper::class, AnalysisVaryHeaderFilter::class)
 @ActiveProfiles("test")
 class AnalysisControllerWebMvcTest {
 
@@ -77,7 +78,7 @@ class AnalysisControllerWebMvcTest {
             status { isOk() }
             header { string("X-Data-Snapshot-At", fixture.dataSnapshotAt.toString()) }
             header { string("X-Data-Stale", "false") }
-            header { string(HttpHeaders.VARY, "Origin, Authorization") }
+            header { string(HttpHeaders.VARY, "Authorization") }
             jsonPath("$.ticker") { value("AAPL") }
             jsonPath("$.dcfMethodSource") { value("DEFAULT_POLICY") }
             jsonPath("$.signals.length()") { value(7) }

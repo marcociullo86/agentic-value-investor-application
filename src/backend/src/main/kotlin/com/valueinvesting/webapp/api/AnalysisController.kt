@@ -22,7 +22,6 @@ class AnalysisController(
         return ResponseEntity.ok()
             .header("X-Data-Snapshot-At", result.dataSnapshotAt.toString())
             .header("X-Data-Stale", result.isStale.toString())
-            .header(HttpHeaders.VARY, "Origin, Authorization")
             .header(HttpHeaders.CACHE_CONTROL, "no-store")
             .body(result)
     }
