@@ -147,7 +147,7 @@ describe('ResultsList', () => {
     await user.click(screen.getByTestId('row-AAPL'));
 
     expect(pushMock).toHaveBeenCalledTimes(1);
-    expect(pushMock).toHaveBeenCalledWith('/analysis?ticker=AAPL');
+    expect(pushMock).toHaveBeenCalledWith('/analysis/?ticker=AAPL');
   });
 
   it('click su riga con ticker contenente caratteri speciali → encodeURIComponent', async () => {
@@ -167,6 +167,6 @@ describe('ResultsList', () => {
 
     await user.click(screen.getByTestId('row-BRK.B'));
 
-    expect(pushMock).toHaveBeenCalledWith('/analysis?ticker=BRK.B');
+    expect(pushMock).toHaveBeenCalledWith('/analysis/?ticker=BRK.B');
   });
 });

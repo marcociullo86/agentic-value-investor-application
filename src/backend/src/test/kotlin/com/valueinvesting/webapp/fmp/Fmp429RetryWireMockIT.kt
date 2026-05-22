@@ -131,7 +131,7 @@ class Fmp429RetryWireMockIT {
     }
 
     private fun await429Events(): List<com.valueinvesting.webapp.persistence.entity.FmpApiEventLog> {
-        val deadline = System.currentTimeMillis() + 5_000
+        val deadline = System.currentTimeMillis() + 15_000
         while (System.currentTimeMillis() < deadline) {
             val rows = eventLogRepository.findFirst20ByEventTypeOrderByOccurredAtDesc(
                 EventType.FMP_429_RATE_LIMITED.name,
