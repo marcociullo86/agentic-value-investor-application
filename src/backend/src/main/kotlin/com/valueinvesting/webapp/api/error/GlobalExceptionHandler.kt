@@ -14,6 +14,7 @@ import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.AuthenticationException
 import org.springframework.web.bind.MethodArgumentNotValidException
+import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
@@ -131,6 +132,27 @@ class GlobalExceptionHandler(
                 "parameter" to paramName,
                 "rejectedValue" to value,
                 "requiredType" to requiredType,
+            ),
+        )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem)
+    }
+
+    // Missing @RequestParam(required = true) → 400 ProblemDetails (RFC 9457).
+    // Otherwise falls through to handleGeneric -> 500.
+    @ExceptionHandler(MissingServletRequestParameterException::class)
+    fun handleMissingParam(
+        ex: MissingServletRequestParameterException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        val problem = mapper.build(
+            status = HttpStatus.BAD_REQUEST,
+            type = "https://api/errors/missing-parameter",
+            title = "Bad Request",
+            detail = "Required parameter '${ex.parameterName}' is missing",
+            request = req,
+            extensions = mapOf(
+                "parameter" to ex.parameterName,
+                "requiredType" to ex.parameterType,
             ),
         )
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem)

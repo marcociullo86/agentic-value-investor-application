@@ -58,7 +58,12 @@ class FmpCacheService(
      *                — needed because of generic erasure on `T`.
      * @param fetchFn lambda invoked on cache miss / expired.
      */
-    @Transactional
+    // noRollbackFor: when fetchFn throws FmpUnavailableException / FmpTickerNotFoundException
+    // we want the OUTER transaction (e.g. AnalyzeTickerService.analyze @Transactional)
+    // to keep going so it can call getStale() for the resilience fallback. Without this,
+    // Spring marks the outer tx as rollback-only and commit later fails with
+    // UnexpectedRollbackException.
+    @Transactional(noRollbackFor = [FmpUnavailableException::class, FmpTickerNotFoundException::class])
     fun <T> getOrFetch(
         ticker: String,
         endpoint: String,
@@ -103,7 +108,7 @@ class FmpCacheService(
      * Side effect: upserts the `stocks` row when fetching for an unknown ticker
      * (US-005 "lazy population catalogo").
      */
-    @Transactional
+    @Transactional(noRollbackFor = [FmpUnavailableException::class, FmpTickerNotFoundException::class])
     fun getOrFetchProfile(
         ticker: String,
         fetchFn: () -> ProfileDto,

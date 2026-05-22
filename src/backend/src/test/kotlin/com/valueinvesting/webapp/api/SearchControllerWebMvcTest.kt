@@ -112,7 +112,12 @@ class SearchControllerWebMvcTest {
     // Query con caratteri invalidi (XSS payload) → 400 via service require.
     @Test
     fun `GET search with invalid characters in query returns 400`() {
-        every { searchService.search("<script>") } throws
+        // Spring Boot 3.5 / MockMvc passes through the raw URL-encoded query
+        // string verbatim; the service receives "%3Cscript%3E" (not "<script>").
+        // The SecurityRequirements rejection happens regardless of decoding —
+        // the regex pattern blocks "%" too, so the stub uses the encoded form
+        // observed at the boundary.
+        every { searchService.search("%3Cscript%3E") } throws
             IllegalArgumentException("query contains invalid characters")
 
         mockMvc.get("/api/search?query=%3Cscript%3E") {
@@ -205,10 +210,13 @@ class SearchControllerWebMvcTest {
     // Ticker invalido (es. caratteri non ammessi) → 400.
     @Test
     fun `GET search by ticker with invalid characters returns 400`() {
-        every { searchService.validateTicker("A B") } throws
+        // Spring Boot 3.5 / MockMvc passes the raw URL-encoded path segment
+        // verbatim into @PathVariable; the service receives "A%20B"
+        // (not the decoded "A B"). The validation regex rejects "%" too,
+        // so the stub uses the encoded form observed at the boundary.
+        every { searchService.validateTicker("A%20B") } throws
             IllegalArgumentException("ticker contains invalid characters")
 
-        // Spring decodifica spazio %20; il service alza l'eccezione.
         mockMvc.get("/api/search/A%20B") {
             accept(MediaType.APPLICATION_JSON)
         }.andExpect {
