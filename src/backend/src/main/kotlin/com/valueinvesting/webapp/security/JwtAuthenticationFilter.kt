@@ -8,22 +8,27 @@ import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
-import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 
 /**
  * Per-request JWT validator. Populates Spring SecurityContext with
  * `UserPrincipal` when a valid `Authorization: Bearer <jwt>` is present.
  *
- * Invalid / expired tokens are intentionally **not** thrown here — the filter
+ * Invalid / expired tokens are intentionally not thrown here — the filter
  * leaves the context empty and lets the SecurityFilterChain decide whether
- * the requested endpoint requires authentication. Endpoints marked `permitAll`
+ * the requested endpoint requires authentication. Endpoints marked permitAll
  * still serve anonymously even when accompanied by a broken token.
  *
- * [^src: design_&_architecture/components/backend-components.md §JwtAuthenticationFilter]
- * [^src: design_&_architecture/decisions/ADR-006-authentication.md §Architettura]
+ * Intentionally NOT a @Component: Spring Boot would auto-register a Filter
+ * bean as a servlet-context filter that runs on every request, bypassing
+ * `@AutoConfigureMockMvc(addFilters = false)` in test slices that don't
+ * want security wired (this is exactly what broke AnalysisControllerIT in
+ * Sprint 3). The bean is instantiated as a @Bean inside SecurityConfig and
+ * only attached to the SecurityFilterChain via `.addFilterBefore(...)`.
+ *
+ * See design_&_architecture/components/backend-components.md §JwtAuthenticationFilter.
+ * See design_&_architecture/decisions/ADR-006-authentication.md §Architettura.
  */
-@Component
 class JwtAuthenticationFilter(
     private val jwtService: JwtService,
 ) : OncePerRequestFilter() {

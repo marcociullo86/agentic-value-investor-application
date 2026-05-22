@@ -34,12 +34,18 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
-    private val jwtAuthenticationFilter: JwtAuthenticationFilter,
     private val userDetailsService: UserDetailsServiceImpl,
 ) {
 
     @Bean
     fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder(BCRYPT_STRENGTH)
+
+    // Filter is registered ONLY inside the SecurityFilterChain via
+    // `.addFilterBefore(...)` — never as a top-level servlet filter (which is
+    // what Spring Boot would do automatically if this were a @Component).
+    @Bean
+    fun jwtAuthenticationFilter(jwtService: JwtService): JwtAuthenticationFilter =
+        JwtAuthenticationFilter(jwtService)
 
     @Bean
     fun authenticationProvider(passwordEncoder: PasswordEncoder): DaoAuthenticationProvider {
@@ -84,6 +90,7 @@ class SecurityConfig(
     @Bean
     fun securityFilterChain(
         http: HttpSecurity,
+        jwtAuthenticationFilter: JwtAuthenticationFilter,
         authenticationEntryPoint: AuthenticationEntryPoint,
         accessDeniedHandler: AccessDeniedHandler,
     ): SecurityFilterChain =

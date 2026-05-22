@@ -1,5 +1,7 @@
 package com.valueinvesting.webapp.api
 
+import com.valueinvesting.webapp.api.error.GlobalExceptionHandler
+import com.valueinvesting.webapp.api.error.ProblemDetailsMapper
 import com.valueinvesting.webapp.api.model.RuleEngineResultResponse
 import com.valueinvesting.webapp.ruleengine.RuleSignal
 import com.valueinvesting.webapp.ruleengine.Signal
@@ -11,6 +13,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
@@ -24,6 +27,7 @@ import java.time.Instant
     ],
 )
 @AutoConfigureMockMvc(addFilters = false)
+@Import(GlobalExceptionHandler::class, ProblemDetailsMapper::class)
 @ActiveProfiles("test")
 class AnalysisControllerWebMvcTest {
 
@@ -33,13 +37,9 @@ class AnalysisControllerWebMvcTest {
     @MockkBean
     private lateinit var analyzeTickerService: AnalyzeTickerService
 
-    // SecurityConfig (TSK-033) is picked up by component scan; mock its
-    // collaborators so the WebMvc slice can build the context without
-    // having to wire JwtService/UserRepository.
-    @MockkBean
-    private lateinit var jwtAuthenticationFilter:
-        com.valueinvesting.webapp.security.JwtAuthenticationFilter
-
+    // SecurityConfig (TSK-033) is picked up by classpath scan; mock its
+    // sole constructor arg (UserDetailsServiceImpl) so the WebMvc slice
+    // can build the context without wiring UserRepository.
     @MockkBean
     private lateinit var userDetailsService:
         com.valueinvesting.webapp.security.UserDetailsServiceImpl

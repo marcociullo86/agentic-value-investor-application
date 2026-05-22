@@ -37,15 +37,9 @@ class ScreenerControllerWebMvcTest {
     @MockkBean
     private lateinit var searchService: SearchService
 
-    // The security configuration in `security/` package (TSK-033) takes
-    // JwtAuthenticationFilter + UserDetailsServiceImpl as constructor args.
-    // Even with SecurityAutoConfiguration excluded, the @Configuration is
-    // discovered by classpath scanning, so mock its collaborators to keep
-    // this slice self-contained.
-    @MockkBean
-    private lateinit var jwtAuthenticationFilter:
-        com.valueinvesting.webapp.security.JwtAuthenticationFilter
-
+    // SecurityConfig (TSK-033) is discovered by classpath scanning even
+    // with SecurityAutoConfiguration excluded; mock UserDetailsServiceImpl
+    // (its only constructor arg) so the slice can build the context.
     @MockkBean
     private lateinit var userDetailsService:
         com.valueinvesting.webapp.security.UserDetailsServiceImpl
