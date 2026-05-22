@@ -4,6 +4,8 @@ import com.valueinvesting.webapp.fmp.FmpTickerNotFoundException
 import com.valueinvesting.webapp.fmp.FmpUnavailableException
 import com.valueinvesting.webapp.service.EmailAlreadyRegisteredException
 import com.valueinvesting.webapp.service.TickerNotInWatchlistException
+import com.valueinvesting.webapp.service.exception.DcfMethodUnfeasibleException
+import com.valueinvesting.webapp.service.exception.DcfOverrideNotFoundException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.ConstraintViolationException
 import org.slf4j.LoggerFactory
@@ -222,6 +224,50 @@ class GlobalExceptionHandler(
             extensions = mapOf("ticker" to ex.ticker),
         )
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem)
+    }
+
+    @ExceptionHandler(DcfOverrideNotFoundException::class)
+    fun handleDcfOverrideNotFound(
+        ex: DcfOverrideNotFoundException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        val problem = mapper.build(
+            status = HttpStatus.NOT_FOUND,
+            type = "https://api/errors/dcf-override-not-found",
+            title = "DCF override not found",
+            detail = "No DCF override for ticker '${ex.ticker}'",
+            request = req,
+            extensions = mapOf("ticker" to ex.ticker),
+        )
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem)
+    }
+
+    @ExceptionHandler(DcfMethodUnfeasibleException::class)
+    fun handleDcfMethodUnfeasible(
+        ex: DcfMethodUnfeasibleException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        val detail = when (ex.reason) {
+            "PPE_RATIO_HISTORY_INSUFFICIENT" ->
+                "Greenwald requires ≥ ${ex.requiredYears} years of PPE_Ratio history; ticker has ${ex.availableYears} years"
+            "FCF_HISTORY_INSUFFICIENT" ->
+                "FCF fallback requires ≥ ${ex.requiredYears} year(s) of FCF history; ticker has ${ex.availableYears} years"
+            else -> "DCF method ${ex.method.name} is not feasible for this ticker"
+        }
+        val problem = mapper.build(
+            status = HttpStatus.UNPROCESSABLE_ENTITY,
+            type = "https://api/errors/dcf-method-unfeasible",
+            title = "DCF method not feasible",
+            detail = detail,
+            request = req,
+            extensions = mapOf(
+                "method" to ex.method.name,
+                "reason" to ex.reason,
+                "availableYears" to ex.availableYears,
+                "requiredYears" to ex.requiredYears,
+            ),
+        )
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(problem)
     }
 
     @ExceptionHandler(EmailAlreadyRegisteredException::class)
