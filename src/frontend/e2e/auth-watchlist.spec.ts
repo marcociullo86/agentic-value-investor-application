@@ -63,7 +63,11 @@ test.describe('auth + watchlist', () => {
     await page.getByTestId('login-submit').click();
     await page.waitForURL('**/');
 
-    await page.goto('/watchlist');
+    // SPA nav via Navbar link — preserves the in-memory Zustand access token.
+    // `page.goto('/watchlist')` is a full reload that clears Zustand state,
+    // making AuthGuard kick in and redirect to /login.
+    await page.getByTestId('nav-watchlist').click();
+    await page.waitForURL('**/watchlist**');
     await page.getByTestId('watchlist-add-input').fill('AAPL');
     await page.getByTestId('watchlist-add-submit').click();
 
@@ -80,7 +84,11 @@ test.describe('auth + watchlist', () => {
     await page.getByTestId('login-submit').click();
     await page.waitForURL('**/');
 
-    await page.goto('/watchlist');
+    // SPA nav via Navbar link — preserves the in-memory Zustand access token.
+    // `page.goto('/watchlist')` is a full reload that clears Zustand state,
+    // making AuthGuard kick in and redirect to /login.
+    await page.getByTestId('nav-watchlist').click();
+    await page.waitForURL('**/watchlist**');
     await page.getByTestId('watchlist-add-input').fill('AAPL');
     await page.getByTestId('watchlist-add-submit').click();
     await expect(page.getByTestId('watchlist-row-AAPL')).toBeVisible();
@@ -103,7 +111,11 @@ test.describe('auth + watchlist', () => {
     await page.getByTestId('login-submit').click();
     await page.waitForURL('**/');
 
-    await page.goto('/watchlist');
+    // SPA nav via Navbar link — preserves the in-memory Zustand access token.
+    // `page.goto('/watchlist')` is a full reload that clears Zustand state,
+    // making AuthGuard kick in and redirect to /login.
+    await page.getByTestId('nav-watchlist').click();
+    await page.waitForURL('**/watchlist**');
     await page.getByTestId('watchlist-add-input').fill('MSFT');
     await page.getByTestId('watchlist-add-submit').click();
     await expect(page.getByTestId('watchlist-row-MSFT')).toBeVisible();
