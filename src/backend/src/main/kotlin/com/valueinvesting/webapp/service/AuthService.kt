@@ -68,18 +68,29 @@ class AuthService(
     @Transactional
     fun refresh(refreshTokenValue: String): TokenPairResponse {
         val token = refreshTokenRepository.findByTokenValue(refreshTokenValue)
-            ?: throw BadCredentialsException("Invalid refresh token")
+            ?: throw InvalidRefreshTokenException("Invalid refresh token")
         val now = Instant.now(clock)
-        if (token.revokedAt != null || token.expiresAt.isBefore(now)) {
-            throw BadCredentialsException("Refresh token revoked or expired")
+        if (token.revokedAt != null) {
+            throw InvalidRefreshTokenException("Refresh token revoked")
+        }
+        if (!token.expiresAt.isAfter(now)) {
+            throw InvalidRefreshTokenException("Refresh token expired")
+        }
+        // ADR-010 §3 — cap assoluto dal login originale (first_issued_at).
+        // La catena di rotation conserva first_issued_at del refresh iniziale.
+        val capDays = appProperties.jwt.refreshAbsoluteCapDays
+        val capDeadline = token.firstIssuedAt.plusSeconds(capDays * SECONDS_PER_DAY)
+        if (!capDeadline.isAfter(now)) {
+            throw InvalidRefreshTokenException("Refresh token absolute cap reached")
         }
         val user = userRepository.findById(token.userId).orElseThrow {
-            BadCredentialsException("Refresh token references unknown user")
+            InvalidRefreshTokenException("Refresh token references unknown user")
         }
-        // Rotate refresh token (ADR-006 §Refresh token rotation lato server).
+        // Rotation (ADR-006 §Refresh token rotation): segna il vecchio come
+        // revocato e emetti un nuovo refresh preservando first_issued_at.
         token.revokedAt = now
         refreshTokenRepository.save(token)
-        return issueTokenPair(user)
+        return issueTokenPair(user, firstIssuedAt = token.firstIssuedAt)
     }
 
     @Transactional
@@ -93,13 +104,17 @@ class AuthService(
         }
     }
 
-    private fun issueTokenPair(user: User): TokenPairResponse {
+    // [firstIssuedAt] = null su login (catena nuova → now); valorizzato dal
+    // refresh per preservare la testa della catena (ADR-010 §3).
+    private fun issueTokenPair(user: User, firstIssuedAt: Instant? = null): TokenPairResponse {
         val issued = jwtService.issueAccessToken(user.id, user.email)
         val now = Instant.now(clock)
+        val slidingSeconds = appProperties.jwt.refreshSlidingTtlDays * SECONDS_PER_DAY
         val refresh = RefreshToken(
             userId = user.id,
             tokenValue = UUID.randomUUID().toString(),
-            expiresAt = now.plusSeconds(appProperties.jwt.refreshTtlDays * 86_400),
+            expiresAt = now.plusSeconds(slidingSeconds),
+            firstIssuedAt = firstIssuedAt ?: now,
         )
         val savedRefresh = refreshTokenRepository.save(refresh)
         return TokenPairResponse(
@@ -119,3 +134,5 @@ class AuthService(
 
 class EmailAlreadyRegisteredException(val email: String) :
     RuntimeException("Email already registered: $email")
+
+private const val SECONDS_PER_DAY: Long = 86_400
