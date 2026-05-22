@@ -132,7 +132,7 @@ class SearchControllerWebMvcTest {
             accept(MediaType.APPLICATION_JSON)
         }.andExpect {
             status { isOk() }
-            jsonPath("$.items").isArray
+            jsonPath("$.items") { isArray() }
             jsonPath("$.items.length()") { value(0) }
         }
     }
