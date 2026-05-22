@@ -82,7 +82,7 @@ class DcfOverrideContractTest {
             accept(MediaType.APPLICATION_JSON)
         }.andExpect {
             status { isOk() }
-            header { string("Vary", "Authorization") }
+            header { string("Vary", "Origin, Authorization") }
             jsonPath("$.dcfMethodSource") { value("DEFAULT_POLICY") }
         }
     }

@@ -77,7 +77,7 @@ class AnalysisControllerWebMvcTest {
             status { isOk() }
             header { string("X-Data-Snapshot-At", fixture.dataSnapshotAt.toString()) }
             header { string("X-Data-Stale", "false") }
-            header { string(HttpHeaders.VARY, "Authorization") }
+            header { string(HttpHeaders.VARY, "Origin, Authorization") }
             jsonPath("$.ticker") { value("AAPL") }
             jsonPath("$.dcfMethodSource") { value("DEFAULT_POLICY") }
             jsonPath("$.signals.length()") { value(7) }

@@ -178,10 +178,10 @@ paths:
             X-Data-Stale:
               schema: { type: boolean }
             Vary:
-              description: Response varies by Authorization (ADR-011)
+              description: Response varies by Origin (CORS) and Authorization (ADR-011)
               schema:
                 type: string
-                example: Authorization
+                example: "Origin, Authorization"
           content:
             application/json:
               schema:

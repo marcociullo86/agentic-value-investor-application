@@ -1,5 +1,7 @@
 package com.valueinvesting.webapp.ruleengine.feasibility
 
+import com.valueinvesting.webapp.fmp.FmpAdapter
+import com.valueinvesting.webapp.fmp.FmpCacheService
 import com.valueinvesting.webapp.fmp.FmpFixtureLoader
 import com.valueinvesting.webapp.fmp.dto.BalanceSheetDto
 import com.valueinvesting.webapp.fmp.dto.CashFlowDto
@@ -19,9 +21,17 @@ import java.time.Instant
 class DcfFeasibilityCheckTest {
 
     private val financialDataService = mockk<FinancialDataService>()
+    private val fmpCacheService = mockk<FmpCacheService>(relaxed = true)
+    private val fmpAdapter = mockk<FmpAdapter>(relaxed = true)
     private val greenwald = GreenwaldMaintenanceCapexEstimator()
     private val fcf = FcfFallbackEstimator()
-    private val check = DcfFeasibilityCheck(financialDataService, greenwald, fcf)
+    private val check = DcfFeasibilityCheck(
+        financialDataService,
+        fmpCacheService,
+        fmpAdapter,
+        greenwald,
+        fcf,
+    )
 
     @Test
     fun `GREENWALD feasible with full PPE history`() {

@@ -35,14 +35,24 @@ object FmpFixtureLoader {
             )
         }
 
-    fun tenYearBalanceSheets(symbol: String = "AAPL"): List<BalanceSheetDto> =
-        expandYears(loadList("fmp-fixtures/balance-sheet-aapl.json"), symbol) { year, template ->
-            template.copy(
+    fun tenYearBalanceSheets(symbol: String = "AAPL"): List<BalanceSheetDto> {
+        val base = loadList<BalanceSheetDto>("fmp-fixtures/balance-sheet-aapl.json")
+        // Base JSON has PPE only on the newest year; expanded rows used to copy the
+        // last entry (no PPE) and broke Greenwald feasibility (needs ≥5 PPE/Revenue years).
+        val ppeRich = base.firstOrNull {
+            it.propertyPlantEquipmentNet != null || it.grossPpe != null
+        } ?: base.first()
+        return expandYears(base, symbol) { year, template ->
+            val source = template.takeIf {
+                it.propertyPlantEquipmentNet != null || it.grossPpe != null
+            } ?: ppeRich
+            source.copy(
                 symbol = symbol,
                 calendarYear = year.toString(),
                 date = "$year-09-28",
             )
         }
+    }
 
     fun tenYearCashFlows(symbol: String = "AAPL"): List<CashFlowDto> =
         expandYears(loadList("fmp-fixtures/cash-flow-aapl.json"), symbol) { year, template ->
