@@ -1,5 +1,6 @@
 package com.valueinvesting.webapp.ruleengine.calculators
 
+import com.valueinvesting.webapp.ruleengine.feasibility.FeasibilityResult
 import com.valueinvesting.webapp.service.FinancialDataset
 import org.springframework.stereotype.Component
 import kotlin.math.abs
@@ -14,6 +15,21 @@ class GreenwaldMaintenanceCapexEstimator {
         val rationale: String,
     )
 
+    fun isFeasible(dataset: FinancialDataset): FeasibilityResult {
+        val ratioYears = countPpeRatioYears(dataset)
+        val required = MIN_PPE_RATIO_YEARS
+        return if (ratioYears >= required) {
+            FeasibilityResult(true, null, ratioYears, required)
+        } else {
+            FeasibilityResult(
+                feasible = false,
+                reason = "PPE_RATIO_HISTORY_INSUFFICIENT",
+                availableYears = ratioYears,
+                requiredYears = required,
+            )
+        }
+    }
+
     fun estimate(dataset: FinancialDataset): Estimate {
         val slices = FinancialYearAligner.align(dataset)
         if (slices.size < 2) {
@@ -25,14 +41,7 @@ class GreenwaldMaintenanceCapexEstimator {
             )
         }
 
-        val ratios = mutableListOf<Double>()
-        for (slice in slices) {
-            val revenue = slice.income?.revenue
-            val ppe = slice.balance?.grossPpe ?: slice.balance?.propertyPlantEquipmentNet
-            if (revenue != null && revenue > 0.0 && ppe != null && ppe >= 0.0) {
-                ratios += ppe / revenue
-            }
-        }
+        val ratios = ppeRatiosFromSlices(slices)
 
         if (ratios.size < 3) {
             return Estimate(
@@ -88,7 +97,23 @@ class GreenwaldMaintenanceCapexEstimator {
 
     private fun absCapEx(value: Double?): Double? = value?.let { abs(it) }
 
+    private fun countPpeRatioYears(dataset: FinancialDataset): Int =
+        ppeRatiosFromSlices(FinancialYearAligner.align(dataset)).size
+
+    private fun ppeRatiosFromSlices(slices: List<FinancialYearSlice>): List<Double> {
+        val ratios = mutableListOf<Double>()
+        for (slice in slices) {
+            val revenue = slice.income?.revenue
+            val ppe = slice.balance?.grossPpe ?: slice.balance?.propertyPlantEquipmentNet
+            if (revenue != null && revenue > 0.0 && ppe != null && ppe >= 0.0) {
+                ratios += ppe / revenue
+            }
+        }
+        return ratios
+    }
+
     companion object {
         const val MIN_HISTORICAL_YEARS = 5
+        const val MIN_PPE_RATIO_YEARS = 5
     }
 }

@@ -20,6 +20,14 @@ object FmpFixtureFactory {
         every { adapter.getProfile(symbol) } returns FmpFixtureLoader.loadProfile(symbol)
     }
 
+    fun stubLowPpeHistory(adapter: FmpAdapter, symbol: String = "LOWPPE") {
+        every { adapter.getIncomeStatement(symbol, any()) } returns FmpFixtureLoader.tenYearIncomeStatements(symbol)
+        every { adapter.getBalanceSheet(symbol, any()) } returns FmpFixtureLoader.shortBalanceSheets(symbol)
+        every { adapter.getCashFlow(symbol, any()) } returns FmpFixtureLoader.tenYearCashFlows(symbol)
+        every { adapter.getKeyMetrics(symbol, any()) } returns FmpFixtureLoader.tenYearKeyMetrics(symbol)
+        every { adapter.getProfile(symbol) } returns FmpFixtureLoader.loadProfile(symbol)
+    }
+
     fun stubAllUnavailable(adapter: FmpAdapter, symbol: String) {
         val ex = FmpUnavailableException("FMP down in test")
         every { adapter.getIncomeStatement(symbol, any()) } throws ex

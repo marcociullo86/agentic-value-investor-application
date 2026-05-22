@@ -177,6 +177,11 @@ paths:
               schema: { type: string, format: date-time }
             X-Data-Stale:
               schema: { type: boolean }
+            Vary:
+              description: Response varies by Origin (CORS) and Authorization (ADR-011)
+              schema:
+                type: string
+                example: "Origin, Authorization"
           content:
             application/json:
               schema:
@@ -212,8 +217,47 @@ paths:
               schema:
                 $ref: '#/components/schemas/DcfOverride'
         '401': { $ref: '#/components/responses/Unauthorized' }
+        '422':
+          description: Metodo DCF non applicabile sui dati storici del ticker (US-020 AC#5)
+          content:
+            application/problem+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ProblemDetails'
+                  - type: object
+                    properties:
+                      method:
+                        type: string
+                        enum: [GREENWALD, FCF_FALLBACK]
+                      reason:
+                        type: string
+                        enum: [PPE_RATIO_HISTORY_INSUFFICIENT, FCF_HISTORY_INSUFFICIENT]
+                      availableYears:
+                        type: integer
+                      requiredYears:
+                        type: integer
 
   /api/dcf-overrides/{ticker}:
+    get:
+      tags: [ops]
+      summary: Override DCF corrente dell'utente per ticker (US-020 AC#1)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Ticker'
+      responses:
+        '200':
+          description: Override personale presente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DcfOverride'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404':
+          description: Nessun override per (utente, ticker)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
     delete:
       tags: [ops]
       summary: Rimuove override DCF (US-012)
@@ -533,9 +577,16 @@ components:
       type: string
       enum: [GREENWALD, FCF_FALLBACK, NOT_APPLICABLE]
 
+    DcfMethodSource:
+      type: string
+      enum: [DEFAULT_POLICY, USER_OVERRIDE]
+      description: |
+        Indica se il metodo DCF applicato proviene dalla default-policy del Rule Engine
+        o da un override personale dell'utente autenticato (US-020).
+
     RuleEngineResult:
       type: object
-      required: [ticker, evaluatedAt, signals, mosSignal, dataSnapshotAt]
+      required: [ticker, evaluatedAt, signals, mosSignal, dcfMethodSource, dataSnapshotAt]
       properties:
         ticker:                  { type: string }
         evaluatedAt:             { type: string, format: date-time }
@@ -545,6 +596,7 @@ components:
         grahamNumber:            { type: number, nullable: true }
         dcfIntrinsicValue:       { type: number, nullable: true }
         dcfMethod:               { $ref: '#/components/schemas/DcfMethod' }
+        dcfMethodSource:         { $ref: '#/components/schemas/DcfMethodSource' }
         mosSignal:               { $ref: '#/components/schemas/Signal' }
         currentPriceAtEval:      { type: number, nullable: true }
         dataSnapshotAt:          { type: string, format: date-time }

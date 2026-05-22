@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useAnalysisStore } from '@/lib/stores/useAnalysisStore';
 import { useHistorical } from '@/lib/hooks/useHistorical';
 import { TrafficLightPanel } from '@/components/analysis/TrafficLightPanel';
+import { DcfOverridePanel } from '@/components/analysis/DcfOverridePanel';
 import { ValuationSummary } from '@/components/analysis/ValuationSummary';
 import { StaleDataBadge } from '@/components/analysis/StaleDataBadge';
 import { HistoricalChart } from '@/components/charts/HistoricalChart';
@@ -120,6 +121,11 @@ export function AnalysisPageClient(
             mosSignal={analysis.mosSignal}
             currentPriceAtEval={analysis.currentPriceAtEval}
             dataSnapshotAt={analysis.dataSnapshotAt}
+          />
+          <DcfOverridePanel
+            ticker={normalized}
+            dcfMethodSource={analysis.dcfMethodSource}
+            onAnalysisRefresh={() => void fetchAnalysis(normalized, { force: true })}
           />
           <TrafficLightPanel signals={analysis.signals} />
         </>
