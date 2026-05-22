@@ -5,12 +5,14 @@ title: Sprint Plan — R1.0 MVP
 generated: 2026-05-22
 tpm: tpm
 release: R1.0
+closed: 2026-05-22
 ---
 # Sprint Plan — R1.0 MVP
 
 > Copertura: **EP-001 + EP-002 + EP-003 + EP-004 + EP-005 + EP-006** (20 US, 49 TSK).
-> Sprint 1–3 completati. Sprint 4 copre i delta ADR-010 (US-018/019) e ADR-011 (US-020).
-> Generato da TPM secondo PATTERN.md §3 + §13. ADR-010 e ADR-011 accettati 2026-05-22.
+> **R1.0 MVP chiuso:** Sprint 1–4 completati (49/49 TSK `done`, 20/20 US `done`, 6/6 EP `done`).
+> Sprint 4 ha colmato i delta ADR-010 (US-018/019) e ADR-011 (US-020). Merge PR #2 + PR #3 su `master`.
+> Generato da TPM secondo PATTERN.md §3 + §13. Ultima rigenerazione: chiusura amministrativa 2026-05-22.
 
 ---
 
@@ -96,21 +98,21 @@ moat checklist → watchlist + auth.
 contract-test generic error, banner FE sessione scaduta) e implementare US-020 (ADR-011:
 GET override, feasibility 422, dcfMethodSource, Vary header, FE panel, OpenAPI).
 
-**Capacity indicativa:** 18h di lavoro agente.
+**Stato:** COMPLETATO (merge `sprint4/dcf-overrides` PR #2 + `sprint4/auth-consolidation` PR #3).
 
 | TSK | Titolo | Layer | Consumer | Estimate | Depends on | Status |
 |-----|--------|-------|----------|----------|------------|--------|
-| TSK-040 | DB V009: add first_issued_at to refresh_tokens | db | agent | XS | TSK-033 | todo |
-| TSK-039 | BE GlobalExceptionHandler: 409 email-already-registered | be | agent | S | TSK-033 | todo |
-| TSK-041 | BE AuthService: sliding refresh TTL 7d + cap 30d | be | agent | M | TSK-033, TSK-040 | todo |
-| TSK-044 | BE DcfOverrideController: GET /api/dcf-overrides/{ticker} | be | agent | S | TSK-018, TSK-033 | todo |
-| TSK-045 | BE DcfFeasibilityCheck + DcfMethodUnfeasibleException + 422 | be | agent | M | TSK-018 | todo |
-| TSK-046 | BE AnalyzeTickerService: auth-aware + dcfMethodSource + Vary | be | agent | M | TSK-018, TSK-033, TSK-044 | todo |
-| TSK-042 | QA Contract-test: generic-error login + 409 register OpenAPI | qa | agent | S | TSK-039, TSK-041 | todo |
-| TSK-047 | QA Contract-test: 4 path US-020 (USER_OVERRIDE, DEFAULT_POLICY x2, Vary, 422) | qa | agent | S | TSK-044, TSK-045, TSK-046 | todo |
-| TSK-049 | BE OpenAPI: GET dcf-overrides, 422, dcfMethodSource, Vary | be | agent | XS | TSK-044, TSK-045, TSK-046 | todo |
-| TSK-043 | FE useAuthStore: gestione 401 + banner sessione scaduta | fe | agent | S | TSK-034, TSK-041 | todo |
-| TSK-048 | FE DcfOverridePanel: badge source + form override + 422 inline | fe | agent | M | TSK-044, TSK-046, TSK-034 | todo |
+| TSK-040 | DB V009: add first_issued_at to refresh_tokens | db | agent | XS | TSK-033 | done |
+| TSK-039 | BE GlobalExceptionHandler: 409 email-already-registered | be | agent | S | TSK-033 | done |
+| TSK-041 | BE AuthService: sliding refresh TTL 7d + cap 30d | be | agent | M | TSK-033, TSK-040 | done |
+| TSK-044 | BE DcfOverrideController: GET /api/dcf-overrides/{ticker} | be | agent | S | TSK-018, TSK-033 | done |
+| TSK-045 | BE DcfFeasibilityCheck + DcfMethodUnfeasibleException + 422 | be | agent | M | TSK-018 | done |
+| TSK-046 | BE AnalyzeTickerService: auth-aware + dcfMethodSource + Vary | be | agent | M | TSK-018, TSK-033, TSK-044 | done |
+| TSK-042 | QA Contract-test: generic-error login + 409 register OpenAPI | qa | agent | S | TSK-039, TSK-041 | done |
+| TSK-047 | QA Contract-test: 4 path US-020 (USER_OVERRIDE, DEFAULT_POLICY x2, Vary, 422) | qa | agent | S | TSK-044, TSK-045, TSK-046 | done |
+| TSK-049 | BE OpenAPI: GET dcf-overrides, 422, dcfMethodSource, Vary | be | agent | XS | TSK-044, TSK-045, TSK-046 | done |
+| TSK-043 | FE useAuthStore: gestione 401 + banner sessione scaduta | fe | agent | S | TSK-034, TSK-041 | done |
+| TSK-048 | FE DcfOverridePanel: badge source + form override + 422 inline | fe | agent | M | TSK-044, TSK-046, TSK-034 | done |
 
 **Milestone Sprint 4:**
 - `POST /api/auth/register` email duplicata → `409 application/problem+json`.
@@ -124,25 +126,26 @@ GET override, feasibility 422, dcfMethodSource, Vary header, FE panel, OpenAPI).
 
 ---
 
-## Lookahead Sprint 5 (candidati, non generati)
+## Lookahead Sprint 5 / R1.1 (candidati, non generati)
 
-Nessun TSK in backlog non coperto dopo Sprint 4 per R1.0. Se emergono US di R1.1
-(EP-005 partial, compliance, SSO) → avviare `/dev` su ADR futuro.
+Nessun TSK in backlog per R1.0. Debito tecnico documentato in `wiki/gaps.md` (non bloccante):
+`be-problemdetail-flatten`, `fe-swr-peer-r19`, `fe-static-export-tickers`. Per R1.1:
+compliance, SSO (gap `arch-auth-provider-choice`), deploy target (`arch-deployment-target`).
 
 ---
 
 ## Riepilogo TSK per layer (R1.0 completo, Sprint 1–4)
 
-| Layer | TSK Sprint 1–3 (done) | TSK Sprint 4 (todo) | Totale |
-|-------|-----------------------|---------------------|--------|
+| Layer | Sprint 1–3 | Sprint 4 | Totale |
+|-------|------------|----------|--------|
 | infra | 2 | 0 | 2 |
-| db | 6 | 1 (TSK-040) | 7 |
-| be | 17 | 5 (TSK-039/041/044/045/046/049) | 23 |
-| fe | 11 | 2 (TSK-043/048) | 13 |
-| qa | 5 | 2 (TSK-042/047) | 7 |
+| db | 6 | 1 | 7 |
+| be | 17 | 6 | 23 |
+| fe | 11 | 2 | 13 |
+| qa | 5 | 2 | 7 |
 | **Totale** | **38** | **11** | **49** |
 
-> Nota: TSK-049 (OpenAPI, layer be) incluso nel conteggio be Sprint 4 → totale be Sprint 4 = 6 (TSK-039/041/044/045/046/049).
+> Tutti i 49 TSK in stato `done`. US-018/019/020 chiuse con Sprint 4.
 
 ---
 

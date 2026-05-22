@@ -393,3 +393,117 @@ Gap aperti (documentati in codice/wiki, non bloccanti il merge):
 Stato PR #1: open, mergeStateStatus=CLEAN, 7/7 status checks success (BE — gradle test, BE OpenAPI contract, FE — vitest, FE OpenAPI types, FE Playwright mocked, FE Playwright real BE, Docker smoke build).
 
 [2026-05-22 14:35] lint — Check 1-4d complete: 0 ERROR / 0 WARNING / 3 INFO; 3 gap aperti (be-problemdetail-flatten, fe-swr-peer-r19, fe-static-export-tickers); citation audit deferred pre-R1.0 — wiki/lint/2026-05-22-lint-report.md written — files touched: 1
+
+[2026-05-22 16:00] admin-close — R1.0 MVP: 20 US→done, 6 EP→done, sprint.md rigenerato (Sprint 4 COMPLETATO) — files touched: 27
+
+[2026-05-22 16:00] execute — sprint R1.0 chiuso (49/49 TSK done, backlog vuoto) — files touched: 1
+
+## 2026-05-22 16:05 — develop TSK-040
+**Agente:** db-dev
+**TSK:** management/kanban/EP-006-watchlist-utente/US-018-registrazione-utente/TSK-040.md
+**Layer:** db
+**Code path:** ./src/
+**Files touched:** 1 (V009__add_first_issued_at_to_refresh_tokens.sql)
+**Commit:** f89f34c
+**DoD:** pass
+**Note:** Colonna `first_issued_at` per cap assoluto 30d su sliding refresh (ADR-010). Handoff retroattivo post-merge PR #3.
+
+## 2026-05-22 16:06 — develop TSK-039
+**Agente:** be-dev
+**TSK:** management/kanban/EP-006-watchlist-utente/US-018-registrazione-utente/TSK-039.md
+**Layer:** be
+**Code path:** ./src/
+**Files touched:** 3 (EmailAlreadyRegisteredException, GlobalExceptionHandler 409 RFC 9457)
+**Commit:** fe4f8c5
+**DoD:** pass
+**Note:** Handoff retroattivo; gap ADR-010 register 409 formalizzato.
+
+## 2026-05-22 16:07 — develop TSK-041
+**Agente:** be-dev
+**TSK:** management/kanban/EP-006-watchlist-utente/US-019-login-logout/TSK-041.md
+**Layer:** be
+**Code path:** ./src/
+**Files touched:** 4 (AuthService sliding TTL, AppProperties, application.yml)
+**Commit:** 907944a
+**DoD:** pass
+**Note:** Sliding 7d + cap 30d da `first_issued_at`; property configurabili ADR-010.
+
+## 2026-05-22 16:08 — develop TSK-042
+**Agente:** qa-dev
+**TSK:** management/kanban/EP-006-watchlist-utente/US-019-login-logout/TSK-042.md
+**Layer:** qa
+**Code path:** ./src/
+**Files touched:** 2 (AuthContractTest)
+**Commit:** ce18998
+**DoD:** pass
+**Note:** Contract-test 409 register + generic 401 login (anti-enumeration).
+
+## 2026-05-22 16:09 — develop TSK-043
+**Agente:** fe-dev
+**TSK:** management/kanban/EP-006-watchlist-utente/US-019-login-logout/TSK-043.md
+**Layer:** fe
+**Code path:** ./src/
+**Files touched:** 3 (useAuthStore 401 recovery, SessionExpiredBanner)
+**Commit:** 933c4c5
+**DoD:** pass
+**Note:** Banner sessione scaduta su 401 non recuperabile; dipende TSK-041 refresh.
+
+## 2026-05-22 16:10 — develop TSK-044
+**Agente:** be-dev
+**TSK:** management/kanban/EP-004-valore-intrinseco-margin-of-safety/US-020-override-dcf-method/TSK-044.md
+**Layer:** be
+**Code path:** ./src/
+**Files touched:** 2 (DcfOverrideController GET, DcfOverrideService.find)
+**Commit:** c6eb5d0
+**DoD:** pass
+**Note:** Handoff retroattivo PR #2; GET override per US-020 AC#1.
+
+## 2026-05-22 16:11 — develop TSK-045
+**Agente:** be-dev
+**TSK:** management/kanban/EP-004-valore-intrinseco-margin-of-safety/US-020-override-dcf-method/TSK-045.md
+**Layer:** be
+**Code path:** ./src/
+**Files touched:** 4 (DcfFeasibilityCheck, DcfMethodUnfeasibleException, 422 handler)
+**Commit:** ed37b18
+**DoD:** pass
+**Note:** POST override con metodo non applicabile → 422 `extensions.reason`.
+
+## 2026-05-22 16:12 — develop TSK-046
+**Agente:** be-dev
+**TSK:** management/kanban/EP-004-valore-intrinseco-margin-of-safety/US-020-override-dcf-method/TSK-046.md
+**Layer:** be
+**Code path:** ./src/
+**Files touched:** 3 (AnalyzeTickerService auth-aware, dcfMethodSource, Vary)
+**Commit:** d914272
+**DoD:** pass
+**Note:** Header `Vary: Authorization` su GET /api/analysis/{ticker}.
+
+## 2026-05-22 16:13 — develop TSK-047
+**Agente:** qa-dev
+**TSK:** management/kanban/EP-004-valore-intrinseco-margin-of-safety/US-020-override-dcf-method/TSK-047.md
+**Layer:** qa
+**Code path:** ./src/
+**Files touched:** 1 (DcfOverrideContractTest — 4 path)
+**Commit:** 56bd4c3
+**DoD:** pass
+**Note:** USER_OVERRIDE, DEFAULT_POLICY×2, Vary, 422 contract-test green.
+
+## 2026-05-22 16:14 — develop TSK-049
+**Agente:** be-dev
+**TSK:** management/kanban/EP-004-valore-intrinseco-margin-of-safety/US-020-override-dcf-method/TSK-049.md
+**Layer:** be
+**Code path:** ./src/
+**Files touched:** 1 (openapi.yaml)
+**Commit:** 6a8ca25
+**DoD:** pass
+**Note:** OpenAPI allineata: GET dcf-overrides, 422, dcfMethodSource, Vary.
+
+## 2026-05-22 16:15 — develop TSK-048
+**Agente:** fe-dev
+**TSK:** management/kanban/EP-004-valore-intrinseco-margin-of-safety/US-020-override-dcf-method/TSK-048.md
+**Layer:** fe
+**Code path:** ./src/
+**Files touched:** 3 (DcfOverridePanel, test, AnalysisPageClient wire)
+**Commit:** 7a37bd2
+**DoD:** pass
+**Note:** Badge "Default policy" / "Tuo override"; errore 422 inline nel form.
