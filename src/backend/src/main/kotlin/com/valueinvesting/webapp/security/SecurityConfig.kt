@@ -1,8 +1,10 @@
 package com.valueinvesting.webapp.security
 
+import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
+import org.springframework.http.MediaType
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
@@ -11,7 +13,9 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.access.AccessDeniedHandler
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 
 /**
@@ -49,14 +53,50 @@ class SecurityConfig(
     fun authenticationManager(config: AuthenticationConfiguration): AuthenticationManager =
         config.authenticationManager
 
+    // Returns 401 (not the Spring Security default 403) for unauthenticated
+    // requests against protected endpoints — REST-friendly per ADR-006.
     @Bean
-    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain =
+    fun authenticationEntryPoint(): AuthenticationEntryPoint =
+        AuthenticationEntryPoint { _, response, _ ->
+            response.status = HttpServletResponse.SC_UNAUTHORIZED
+            response.contentType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
+            response.writer.write(
+                "{\"type\":\"https://api/errors/unauthorized\"," +
+                    "\"title\":\"Unauthorized\"," +
+                    "\"status\":401," +
+                    "\"detail\":\"Authentication required or invalid\"}",
+            )
+        }
+
+    @Bean
+    fun accessDeniedHandler(): AccessDeniedHandler =
+        AccessDeniedHandler { _, response, _ ->
+            response.status = HttpServletResponse.SC_FORBIDDEN
+            response.contentType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
+            response.writer.write(
+                "{\"type\":\"https://api/errors/forbidden\"," +
+                    "\"title\":\"Forbidden\"," +
+                    "\"status\":403," +
+                    "\"detail\":\"Access denied\"}",
+            )
+        }
+
+    @Bean
+    fun securityFilterChain(
+        http: HttpSecurity,
+        authenticationEntryPoint: AuthenticationEntryPoint,
+        accessDeniedHandler: AccessDeniedHandler,
+    ): SecurityFilterChain =
         http
             // CSRF disabled because the API is stateless JWT-based (ADR-006).
             .csrf { it.disable() }
             // CORS for browser clients is handled by CorsConfig (WebMvcConfigurer).
             // Preflight OPTIONS is permitted below so it reaches the MVC handler.
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+            .exceptionHandling {
+                it.authenticationEntryPoint(authenticationEntryPoint)
+                it.accessDeniedHandler(accessDeniedHandler)
+            }
             .authorizeHttpRequests { auth ->
                 auth
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()

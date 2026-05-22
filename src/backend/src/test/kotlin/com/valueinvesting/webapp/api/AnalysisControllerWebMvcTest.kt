@@ -17,7 +17,12 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import java.time.Instant
 
-@WebMvcTest(controllers = [AnalysisController::class])
+@WebMvcTest(
+    controllers = [AnalysisController::class],
+    excludeAutoConfiguration = [
+        org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration::class,
+    ],
+)
 @AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("test")
 class AnalysisControllerWebMvcTest {
@@ -27,6 +32,17 @@ class AnalysisControllerWebMvcTest {
 
     @MockkBean
     private lateinit var analyzeTickerService: AnalyzeTickerService
+
+    // SecurityConfig (TSK-033) is picked up by component scan; mock its
+    // collaborators so the WebMvc slice can build the context without
+    // having to wire JwtService/UserRepository.
+    @MockkBean
+    private lateinit var jwtAuthenticationFilter:
+        com.valueinvesting.webapp.security.JwtAuthenticationFilter
+
+    @MockkBean
+    private lateinit var userDetailsService:
+        com.valueinvesting.webapp.security.UserDetailsServiceImpl
 
     @Test
     fun `GET analysis returns RuleEngineResult with seven signals`() {
