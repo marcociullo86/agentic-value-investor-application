@@ -154,4 +154,4 @@ Esporre il risultato tramite endpoint REST o GraphQL. Includere sempre il timest
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->
 - EP-003 Rule Engine: US-007/008/009/010
-- EP-004 Valore intrinseco: US-011/012/013
+- EP-004 Valore intrinseco: US-011/012/013/020 (US-020 override DCF method per utente autenticato)

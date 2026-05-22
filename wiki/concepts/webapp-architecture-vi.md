@@ -128,5 +128,6 @@ Header `X-Data-Snapshot-At` / `X-Data-Stale` su financials e analysis. [^src: sr
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->
 - EP-002 (Integrazione FMP): US-004 recupero dati, US-005 cache 24h, US-006 resilienza
+- EP-004 (Valore intrinseco): US-020 override DCF method per utente autenticato
 - EP-005 (Dashboard): US-014 pannello traffic light, US-015 grafici storici, US-016 checklist Moat
-- EP-006 (Watchlist): US-017 gestione watchlist personale
+- EP-006 (Watchlist, auth e profilo utente): US-017 gestione watchlist personale, US-018 registrazione utente, US-019 login con sessione e logout

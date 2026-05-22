@@ -95,5 +95,5 @@ Endpoint implementati vs contratto completo: vedi [[analysis-api-pipeline]] e `d
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->
-- EP-001 Ricerca e Screening — EP-002 Integrazione FMP — EP-003 Rule Engine — EP-004 Valore intrinseco e MoS — EP-005 Dashboard e Moat — EP-006 Watchlist
-- Question hard aperte: Q_001 (Owner Earnings → blocca US-012), Q_002 (framework SPA → blocca US-014/15/16)
+- EP-001 Ricerca e Screening — EP-002 Integrazione FMP — EP-003 Rule Engine — EP-004 Valore intrinseco e MoS (incluso override DCF US-020) — EP-005 Dashboard e Moat — EP-006 Watchlist, auth e profilo utente (US-017/018/019)
+- Question hard aperte: nessuna (Q_001 e Q_002 risolte il 2026-05-20; vedi `management/questions.md`).

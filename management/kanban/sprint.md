@@ -2,15 +2,15 @@
 ---
 id: sprint
 title: Sprint Plan — R1.0 MVP
-generated: 2026-05-20
+generated: 2026-05-22
 tpm: tpm
 release: R1.0
 ---
 # Sprint Plan — R1.0 MVP
 
-> Copertura: **EP-001 + EP-002 + EP-003 + EP-004 + EP-005 + EP-006** (17 US, 38 TSK).
-> R1.1 (EP-005 partial + EP-006) incluso da Sprint 3 per completare il MVP.
-> Generato da TPM secondo PATTERN.md §3 + §13.
+> Copertura: **EP-001 + EP-002 + EP-003 + EP-004 + EP-005 + EP-006** (20 US, 49 TSK).
+> Sprint 1–3 completati. Sprint 4 copre i delta ADR-010 (US-018/019) e ADR-011 (US-020).
+> Generato da TPM secondo PATTERN.md §3 + §13. ADR-010 e ADR-011 accettati 2026-05-22.
 
 ---
 
@@ -19,21 +19,18 @@ release: R1.0
 **Obiettivo:** Avere un backend avviabile con DB migrato, FMP adapter funzionante con
 cache 24h e resilienza, più il bootstrap frontend.
 
-**Capacity indicativa:** 24h di lavoro agente.
+**Stato:** COMPLETATO.
 
-| TSK | Titolo | Layer | Consumer | Estimate | Depends on |
-|-----|--------|-------|----------|----------|------------|
-| TSK-031 | Setup Spring Boot + Gradle + Docker Compose | infra | agent | 3h | — |
-| TSK-030 | Setup Next.js + Tailwind + Zustand + API client | fe | agent | 3h | — |
-| TSK-001 | DB V001 (users/auth) + V002 (stocks) | db | agent | 2h | — |
-| TSK-008 | DB V003 (fmp_cache) + V004 (rule_engine_result) | db | agent | 2h | TSK-001 |
-| TSK-009 | FmpAdapter: income/balance/cashflow/key-metrics | be | agent | 5h | TSK-008 |
-| TSK-010 | FmpCacheService: cache-aside TTL 24h | be | agent | 4h | TSK-008, TSK-009 |
-| TSK-011 | FmpResilienceConfig + FmpEventLogger | be | agent | 3h | TSK-010 |
-| TSK-032 | Dockerfile multi-stage + CI pipeline | infra | agent | 3h | TSK-031, TSK-030 |
-
-**Milestone Sprint 1:** `GET /api/financials/AAPL` → dati strutturati; seconda call entro
-TTL → cache hit; FMP down + cache → stale marcato; `/actuator/health` UP.
+| TSK | Titolo | Layer | Consumer | Estimate | Status |
+|-----|--------|-------|----------|----------|--------|
+| TSK-031 | Setup Spring Boot + Gradle + Docker Compose | infra | agent | S | done |
+| TSK-030 | Setup Next.js + Tailwind + Zustand + API client | fe | agent | S | done |
+| TSK-001 | DB V001 (users/auth) + V002 (stocks) | db | agent | S | done |
+| TSK-008 | DB V003 (fmp_cache) + V004 (rule_engine_result) | db | agent | S | done |
+| TSK-009 | FmpAdapter: income/balance/cashflow/key-metrics | be | agent | M | done |
+| TSK-010 | FmpCacheService: cache-aside TTL 24h | be | agent | S | done |
+| TSK-011 | FmpResilienceConfig + FmpEventLogger | be | agent | S | done |
+| TSK-032 | Dockerfile multi-stage + CI pipeline | infra | agent | S | done |
 
 ---
 
@@ -42,24 +39,21 @@ TTL → cache hit; FMP down + cache → stale marcato; `/actuator/health` UP.
 **Obiettivo:** Pipeline analisi completa (`GET /api/analysis/{ticker}`) con tutte e 7 le
 regole, Graham Number, DCF Owner Earnings, Margin of Safety.
 
-**Capacity indicativa:** 30h di lavoro agente.
+**Stato:** COMPLETATO.
 
-| TSK | Titolo | Layer | Consumer | Estimate | Depends on |
-|-----|--------|-------|----------|----------|------------|
-| TSK-005 | ScreenerController GET /api/screener | be | agent | 3h | TSK-010, TSK-001 |
-| TSK-012 | RuleEngineService scaffold + RoeRule + RoicRule | be | agent | 4h | TSK-009, TSK-010 |
-| TSK-013 | GrossMarginRule + NetMarginRule | be | agent | 3h | TSK-012 |
-| TSK-014 | CurrentRatioRule + DebtToIncomeRule | be | agent | 3h | TSK-012 |
-| TSK-015 | CapexIntensityRule (completa 7 strategie) | be | agent | 2h | TSK-012 |
-| TSK-016 | GrahamNumberCalculator | be | agent | 2h | TSK-012 |
-| TSK-017 | DB V007 (dcf_method_override) | db | agent | 1h | TSK-001 |
-| TSK-018 | DcfCalculator + GreenwaldCapexEstimator + FcfFallback | be | agent | 6h | TSK-012, TSK-017 |
-| TSK-019 | MarginOfSafetyEvaluator + AnalysisController | be | agent | 4h | TSK-015, TSK-016, TSK-018 |
-| TSK-020 | QA: integration test pipeline analisi E2E | qa | agent | 3h | TSK-019 |
-| TSK-037 | QA: contract test OpenAPI drift | qa | agent | 2h | TSK-019, TSK-031 |
-
-**Milestone Sprint 2:** `GET /api/analysis/AAPL` → `signals[7]`, `grahamNumber`,
-`dcfIntrinsicValue`, `mosSignal`; contract test green; pipeline deterministica con fixture.
+| TSK | Titolo | Layer | Consumer | Estimate | Status |
+|-----|--------|-------|----------|----------|--------|
+| TSK-005 | ScreenerController GET /api/screener | be | agent | S | done |
+| TSK-012 | RuleEngineService scaffold + RoeRule + RoicRule | be | agent | S | done |
+| TSK-013 | GrossMarginRule + NetMarginRule | be | agent | S | done |
+| TSK-014 | CurrentRatioRule + DebtToIncomeRule | be | agent | S | done |
+| TSK-015 | CapexIntensityRule (completa 7 strategie) | be | agent | XS | done |
+| TSK-016 | GrahamNumberCalculator | be | agent | XS | done |
+| TSK-017 | DB V007 (dcf_method_override) | db | agent | XS | done |
+| TSK-018 | DcfCalculator + GreenwaldCapexEstimator + FcfFallback | be | agent | L | done |
+| TSK-019 | MarginOfSafetyEvaluator + AnalysisController | be | agent | S | done |
+| TSK-020 | QA: integration test pipeline analisi E2E | qa | agent | S | done |
+| TSK-037 | QA: contract test OpenAPI drift | qa | agent | XS | done |
 
 ---
 
@@ -68,67 +62,98 @@ regole, Graham Number, DCF Owner Earnings, Margin of Safety.
 **Obiettivo:** SPA navigabile end-to-end: ricerca → analisi Traffic Light → grafici →
 moat checklist → watchlist + auth.
 
-**Capacity indicativa:** 48h di lavoro agente.
+**Stato:** COMPLETATO.
 
-| TSK | Titolo | Layer | Consumer | Estimate | Depends on |
-|-----|--------|-------|----------|----------|------------|
-| TSK-002 | BE SearchController + SearchService + FmpAdapter (search/profile) | be | agent | 4h | TSK-001, TSK-010 |
-| TSK-003 | FE SearchBar + landing page | fe | agent | 3h | TSK-002, TSK-030 |
-| TSK-004 | QA integration test SearchController | qa | agent | 2h | TSK-002 |
-| TSK-006 | FE ScreenerForm + page /screener | fe | agent | 4h | TSK-005, TSK-030 |
-| TSK-007 | FE ResultsList + Ag-Grid | fe | agent | 3h | TSK-003, TSK-006, TSK-030 |
-| TSK-021 | FE TrafficLightPanel + RuleSignalCard + ValuationSummary | fe | agent | 5h | TSK-019, TSK-030 |
-| TSK-038 | FE StaleDataBadge | fe | agent | 1h | TSK-030, TSK-021 |
-| TSK-022 | QA E2E Playwright: ricerca → Traffic Light | qa | agent | 3h | TSK-021, TSK-003 |
-| TSK-023 | BE HistoricalController GET /api/historical/{ticker} | be | agent | 3h | TSK-010 |
-| TSK-024 | FE HistoricalChart Recharts | fe | agent | 3h | TSK-023, TSK-030 |
-| TSK-025 | DB V006 (moat_checklist_entry) | db | agent | 1h | TSK-001 |
-| TSK-028 | DB V005 (watchlists) + V008 (fmp_event_log) | db | agent | 1h | TSK-001 |
-| TSK-033 | BE AuthController + SecurityConfig + JwtService | be | agent | 5h | TSK-001, TSK-031 |
-| TSK-026 | BE MoatChecklistController | be | agent | 3h | TSK-025, TSK-034 |
-| TSK-027 | FE MoatChecklist component | fe | agent | 3h | TSK-026, TSK-030, TSK-035 |
-| TSK-034 | FE LoginPage + RegisterPage + useAuthStore | fe | agent | 4h | TSK-033, TSK-030 |
-| TSK-029 | BE WatchlistController | be | agent | 4h | TSK-028, TSK-034 |
-| TSK-035 | FE WatchlistPage + WatchlistTable + AddToWatchlistButton | fe | agent | 3h | TSK-029, TSK-034, TSK-030 |
-| TSK-036 | QA E2E Playwright: auth + watchlist | qa | agent | 2h | TSK-035, TSK-029, TSK-033 |
+| TSK | Titolo | Layer | Consumer | Estimate | Status |
+|-----|--------|-------|----------|----------|--------|
+| TSK-002 | BE SearchController + SearchService + FmpAdapter | be | agent | S | done |
+| TSK-003 | FE SearchBar + landing page | fe | agent | S | done |
+| TSK-004 | QA integration test SearchController | qa | agent | XS | done |
+| TSK-006 | FE ScreenerForm + page /screener | fe | agent | S | done |
+| TSK-007 | FE ResultsList + Ag-Grid | fe | agent | S | done |
+| TSK-021 | FE TrafficLightPanel + RuleSignalCard + ValuationSummary | fe | agent | M | done |
+| TSK-038 | FE StaleDataBadge | fe | agent | XS | done |
+| TSK-022 | QA E2E Playwright: ricerca → Traffic Light | qa | agent | S | done |
+| TSK-023 | BE HistoricalController GET /api/historical/{ticker} | be | agent | S | done |
+| TSK-024 | FE HistoricalChart Recharts | fe | agent | S | done |
+| TSK-025 | DB V006 (moat_checklist_entry) | db | agent | XS | done |
+| TSK-028 | DB V005 (watchlists) + V008 (fmp_event_log) | db | agent | XS | done |
+| TSK-033 | BE AuthController + SecurityConfig + JwtService | be | agent | M | done |
+| TSK-026 | BE MoatChecklistController | be | agent | S | done |
+| TSK-027 | FE MoatChecklist component | fe | agent | S | done |
+| TSK-034 | FE LoginPage + RegisterPage + useAuthStore | fe | agent | S | done |
+| TSK-029 | BE WatchlistController | be | agent | S | done |
+| TSK-035 | FE WatchlistPage + WatchlistTable + AddToWatchlistButton | fe | agent | S | done |
+| TSK-036 | QA E2E Playwright: auth + watchlist | qa | agent | XS | done |
 
-**Milestone Sprint 3:** SPA navigabile completa; E2E green su flusso principale e watchlist;
-tutte le migration V001-V008 applicate.
-
----
-
-## Riepilogo TSK per layer (R1.0 completo)
-
-| Layer | Numero TSK | Estimate totale |
-|-------|------------|-----------------|
-| infra | 2 | 6h |
-| db | 6 | 8h |
-| be | 17 | 62h |
-| fe | 11 | 37h |
-| qa | 5 | 12h |
-| **Totale** | **38** (+ 0 TSK R1.1 in questo run) | **~102h agente** |
+**Nota riconciliazione Sprint 3:** TSK-033 implementa register/login/refresh/logout e il mapping 409 nella DoD. Tuttavia i gap ADR-010 (GlobalExceptionHandler RFC 9457, sliding refresh, property configurabili) non erano stati completamente coperti → delta in Sprint 4 (TSK-039, TSK-040, TSK-041, TSK-042). TSK-018 implementa DcfOverride con auth reale (stub X-User-Id rimosso da TSK-033/034/035) → stato `done`, confermato. I gap ADR-011 (GET endpoint, feasibility, dcfMethodSource, Vary) coperti da Sprint 4.
 
 ---
 
-## Dipendenze critiche (catena principale)
+## Sprint 4 — Delta ADR-010 + ADR-011: auth consolidation + DCF override completo
+
+**Obiettivo:** Colmare i gap formali di US-018/019 (ADR-010: sliding refresh, 409 RFC 9457,
+contract-test generic error, banner FE sessione scaduta) e implementare US-020 (ADR-011:
+GET override, feasibility 422, dcfMethodSource, Vary header, FE panel, OpenAPI).
+
+**Capacity indicativa:** 18h di lavoro agente.
+
+| TSK | Titolo | Layer | Consumer | Estimate | Depends on | Status |
+|-----|--------|-------|----------|----------|------------|--------|
+| TSK-040 | DB V009: add first_issued_at to refresh_tokens | db | agent | XS | TSK-033 | todo |
+| TSK-039 | BE GlobalExceptionHandler: 409 email-already-registered | be | agent | S | TSK-033 | todo |
+| TSK-041 | BE AuthService: sliding refresh TTL 7d + cap 30d | be | agent | M | TSK-033, TSK-040 | todo |
+| TSK-044 | BE DcfOverrideController: GET /api/dcf-overrides/{ticker} | be | agent | S | TSK-018, TSK-033 | todo |
+| TSK-045 | BE DcfFeasibilityCheck + DcfMethodUnfeasibleException + 422 | be | agent | M | TSK-018 | todo |
+| TSK-046 | BE AnalyzeTickerService: auth-aware + dcfMethodSource + Vary | be | agent | M | TSK-018, TSK-033, TSK-044 | todo |
+| TSK-042 | QA Contract-test: generic-error login + 409 register OpenAPI | qa | agent | S | TSK-039, TSK-041 | todo |
+| TSK-047 | QA Contract-test: 4 path US-020 (USER_OVERRIDE, DEFAULT_POLICY x2, Vary, 422) | qa | agent | S | TSK-044, TSK-045, TSK-046 | todo |
+| TSK-049 | BE OpenAPI: GET dcf-overrides, 422, dcfMethodSource, Vary | be | agent | XS | TSK-044, TSK-045, TSK-046 | todo |
+| TSK-043 | FE useAuthStore: gestione 401 + banner sessione scaduta | fe | agent | S | TSK-034, TSK-041 | todo |
+| TSK-048 | FE DcfOverridePanel: badge source + form override + 422 inline | fe | agent | M | TSK-044, TSK-046, TSK-034 | todo |
+
+**Milestone Sprint 4:**
+- `POST /api/auth/register` email duplicata → `409 application/problem+json`.
+- `POST /api/auth/login` email inesistente e password errata → risposta `401` con `detail` identico (contract-test verde).
+- `POST /api/auth/refresh` → sliding 7d; cap 30d da `first_issued_at` → `401`.
+- `GET /api/dcf-overrides/{ticker}` → `200` con override o `404`.
+- `POST /api/dcf-overrides` con metodo non applicabile → `422` con `extensions.reason`.
+- `GET /api/analysis/{ticker}` → `dcfMethodSource` nel payload; header `Vary: Authorization`.
+- FE: badge "Default policy" / "Tuo override" visibile; banner "Sessione scaduta" su 401 non recuperabile.
+- OpenAPI spec allineata; contract-test green in CI.
+
+---
+
+## Lookahead Sprint 5 (candidati, non generati)
+
+Nessun TSK in backlog non coperto dopo Sprint 4 per R1.0. Se emergono US di R1.1
+(EP-005 partial, compliance, SSO) → avviare `/dev` su ADR futuro.
+
+---
+
+## Riepilogo TSK per layer (R1.0 completo, Sprint 1–4)
+
+| Layer | TSK Sprint 1–3 (done) | TSK Sprint 4 (todo) | Totale |
+|-------|-----------------------|---------------------|--------|
+| infra | 2 | 0 | 2 |
+| db | 6 | 1 (TSK-040) | 7 |
+| be | 17 | 5 (TSK-039/041/044/045/046/049) | 23 |
+| fe | 11 | 2 (TSK-043/048) | 13 |
+| qa | 5 | 2 (TSK-042/047) | 7 |
+| **Totale** | **38** | **11** | **49** |
+
+> Nota: TSK-049 (OpenAPI, layer be) incluso nel conteggio be Sprint 4 → totale be Sprint 4 = 6 (TSK-039/041/044/045/046/049).
+
+---
+
+## Dipendenze critiche Sprint 4
 
 ```
-TSK-031 (infra) ──→ TSK-001 (db) ──→ TSK-008 (db) ──→ TSK-009 (be)
-                                                              │
-                                                        TSK-010 (be)
-                                                         ├──→ TSK-011 (be)
-                                                         ├──→ TSK-012 (be)──→ TSK-013/014/015/016
-                                                         │          └──────→ TSK-018──→ TSK-019
-                                                         └──→ TSK-010         └──→ TSK-020 (qa)
-TSK-019 ──→ TSK-021 (fe) ──→ TSK-022 (qa)
-TSK-001 ──→ TSK-033 (be) ──→ TSK-034 (fe) ──→ TSK-035 (fe) ──→ TSK-036 (qa)
-TSK-030 (fe) ← tutti i TSK fe
+TSK-033 (done) ──→ TSK-040 (db) ──→ TSK-041 (be) ──→ TSK-042 (qa)
+TSK-033 (done) ──→ TSK-039 (be) ──→ TSK-042 (qa)
+TSK-018 (done) ──→ TSK-044 (be) ──→ TSK-046 (be) ──→ TSK-047 (qa)
+TSK-018 (done) ──→ TSK-045 (be) ──→ TSK-047 (qa)
+                                  └──→ TSK-049 (be)
+TSK-044 + TSK-046 + TSK-034 (done) ──→ TSK-048 (fe)
+TSK-034 (done) + TSK-041 ──→ TSK-043 (fe)
 ```
-
----
-
-## Note R1.1
-
-EP-005 (grafici + moat) e EP-006 (watchlist + auth) sono inclusi nel **Sprint 3 R1.0**
-perché EP-006 (auth) è prerequisito per US-016 e US-017.
-Nessun TSK R1.1 rimanente da generare: tutte e 17 le US sono coperte.

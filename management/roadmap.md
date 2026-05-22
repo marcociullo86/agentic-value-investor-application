@@ -4,7 +4,7 @@ type: roadmap
 title: Roadmap
 status: draft
 created: 2026-05-20
-updated: 2026-05-20
+updated: 2026-05-22
 tags: [planning]
 ---
 # Roadmap — App Template Demo
@@ -39,7 +39,7 @@ Obiettivo: completare l'esperienza utente con visualizzazione semaforica integra
 | Epica | Titolo | Priorità | Confidence | Note |
 |---|---|---|---|---|
 | [EP-005](kanban/EP-005-dashboard-traffic-light-moat/EP-005.md) | Dashboard, Traffic Light e Moat qualitativo | medium | 75% | Promossa da R2: Q_002 risolta (React + Next.js). |
-| [EP-006](kanban/EP-006-watchlist-utente/EP-006.md) | Watchlist e profilo utente | medium | 60% | — |
+| [EP-006](kanban/EP-006-watchlist-utente/EP-006.md) | Watchlist, autenticazione e profilo utente | medium | 70% | Scope esteso il 2026-05-22 con US-018 (registrazione) e US-019 (login/logout). |
 
 ## Release 2 — Espansione
 
@@ -56,3 +56,4 @@ Nessuna question aperta al 2026-05-20. Vedi `management/questions.md` per lo sto
 ## Cronologia riconciliazioni
 
 - **2026-05-20**: chiusura Q_001 / Q_002 / Q_003 da raw 07 + 08. US-002/US-012/US-014/US-015/US-016 sbloccate. EP-004 promossa R1.1 → R1.0 (confidence 55% → 80%). EP-005 promossa R2 → R1.1 (confidence 50% → 75%).
+- **2026-05-22**: full reconcile post Sprint 3 (auth + watchlist mergeed in master). EP-006 esteso a "Watchlist, autenticazione e profilo utente" con US-018 (registrazione) e US-019 (login/logout); confidence 60% → 70%. Aggiunta US-020 (override DCF method per utente autenticato) sotto EP-004, formalizzando TSK-017/018 già implementati su L5.
