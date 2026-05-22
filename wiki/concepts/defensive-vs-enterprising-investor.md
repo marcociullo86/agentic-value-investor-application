@@ -47,5 +47,15 @@ Il value investing confuta il dogma che rendimenti superiori richiedano rischi s
 [[vi-03-analisi-fondamentale-valutazione]]
 [[benjamin-graham]]
 
+## Aggiornamenti (v2026-05-22)
+
+**Fonte aggiunta:** `raw/investitore intelligente.txt` — Cap.4, 5, 6, 7, 14, 15 e' la base primaria per questa distinzione.
+
+Graham fissa la distinzione nei Capitoli 4-7 e la formalizza nei Capitoli 14-15 con criteri operativi distinti per i due profili. Il Capitolo 4 stabilisce la politica di portafoglio generale per il difensivo (asset allocation 25-75%, preferenza ETF), il Capitolo 6-7 quella per l'intraprendente (ricerca attiva, [[net-net-stocks]], situazioni speciali). [^src: raw/investitore intelligente.txt §Cap.4, 6, 7, 14, 15]
+
+Runbook operativi disponibili per entrambi i profili:
+- [[defensive-investor-checklist]] — 7 criteri Cap.14 con mapping FMP.
+- [[enterprising-investor-checklist]] — criteri Cap.15 con calcolo NCAV.
+
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->

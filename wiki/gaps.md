@@ -203,3 +203,21 @@ ADR-007 §Error format dichiara RFC 9457 §3.2 (extensions al top-level). Quattr
 **Impatto:** Finche' l'adapter non e' migrato, il backend chiama endpoint v3 dismessi (EOL 2025-08-31) — se FMP mantiene temporaneamente v3 attiva, funziona; se v3 restituisce errori, il sistema non funziona in produzione. La wiki documenta i path corretti in [[fmp-api-quickstart]] e [[fmp-api-overview]]. Bloccante: si, per deployment post-2025-08-31. TSK da aprire urgente.
 
 **Aggiornamento 2026-05-22 — tpm @ generazione TSK-050:** TSK-050 creato sotto EP-002/US-021-manutenzione-fmp-stable (Sprint 5). Il gap e' ora tracciato come `todo` in kanban. Chiusura formale riservata a wiki-keeper dopo completamento TSK-050.
+
+---
+
+## 2026-05-22 20:00 — graham-bond-formulas-modern-regime
+
+**Origine:** wiki-keeper @ ingest raw/investitore intelligente.txt
+**Gap:** Il Capitolo 2 de L'Investitore Intelligente descrive la protezione dall'inflazione con obbligazioni a tasso fisso (contesto 1973: regime inflattivo USA). Il wiki non documenta come Graham applica le stesse formule di valutazione obbligazionaria (cedola vs rendimento, duration) al regime dei tassi 2023-2026 (tassi reali positivi dopo 15 anni di ZIRP). Il concetto [[inflation-investing-graham]] tratta solo la parte azionaria.
+**Sospetta fonte:** aggiornamento del Capitolo 2 (commenti Zweig 2003 gia' citano i TIPS ma il testo italiano potrebbe non essere esaustivo) o raw aggiuntivo su asset allocation obbligazionaria moderna.
+**Impatto:** Il runbook [[defensive-investor-checklist]] non documenta la componente obbligazionaria del portafoglio difensivo. Per il MVP attuale (focus su screening azionario) non e' bloccante. Bloccante: no.
+
+---
+
+## 2026-05-22 20:00 — net-net-implementation-gap
+
+**Origine:** wiki-keeper @ ingest raw/investitore intelligente.txt
+**Gap:** Il criterio net-net (prezzo < 2/3 NCAV) e' documentato in [[net-net-stocks]] e [[enterprising-investor-checklist]] ma non e' implementato come `ruleId` nel [[value-investing-rule-engine]]. I dati FMP necessari (totalCurrentAssets, totalLiabilities, sharesOutstanding) sono disponibili via [[fmp-financial-statements-stable]] ma nessuna regola li aggrega. Il Rule Engine MVP si concentra sui criteri Buffett (ROE, ROIC, Margin, etc.) che sono piu' applicabili ai mercati 2026 dove le net-net sono rare.
+**Sospetta fonte:** decisione di product (PM) su priorita' MVP. Potrebbe essere aggiunto come US in EP-003 o EP-005 in Sprint futuri.
+**Impatto:** L'investitore intraprendente Graham che vuole usare la WebApp per trovare net-net stocks deve usare la checklist manuale ([[enterprising-investor-checklist]] Step 7) senza segnale automatico. Bloccante: no per MVP.

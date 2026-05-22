@@ -48,10 +48,13 @@ L'endpoint DCF di FMP restituisce un valore intrinseco calcolato da FMP stesso, 
 [[economic-moat]]
 [[fmp-key-metrics-ratios]]
 [[fmp-financial-statements-stable]]
+[[investment-vs-speculation]]
+[[market-fluctuations-graham]]
 
 ## Pagine collegate
 [[vi-03-analisi-fondamentale-valutazione]]
 [[vi-05-analisi-10k-10q-buffett]]
+[[intelligent-investor]]
 [[warren-buffett]]
 [[benjamin-graham]]
 

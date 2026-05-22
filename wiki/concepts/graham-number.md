@@ -55,12 +55,14 @@ Il ROE costantemente elevato (> 15%) affianca il Numero di Graham come segnale d
 [[intrinsic-value]]
 [[margin-of-safety]]
 [[defensive-vs-enterprising-investor]]
+[[seven-criteria-defensive-stock-selection]]
 [[fmp-key-metrics-ratios]]
 [[fmp-financial-statements-stable]]
 [[fmp-quotes-stable]]
 
 ## Pagine collegate
 [[vi-03-analisi-fondamentale-valutazione]]
+[[intelligent-investor]]
 [[benjamin-graham]]
 
 ## Aggiornamenti (v2026-05-21)

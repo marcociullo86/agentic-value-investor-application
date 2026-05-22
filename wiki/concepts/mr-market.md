@@ -1,9 +1,9 @@
 ---
 type: concept
-sources: ["raw/01_Principi_Fondamentali_Value_Investing.md"]
+sources: ["raw/01_Principi_Fondamentali_Value_Investing.md", "raw/investitore intelligente.txt"]
 status: draft
 created: 2026-05-20
-updated: 2026-05-20
+updated: 2026-05-22
 tags: [value-investing, mr-market, behavioral-finance, graham, market-psychology]
 ---
 # Mr. Market
@@ -12,9 +12,13 @@ tags: [value-investing, mr-market, behavioral-finance, graham, market-psychology
 
 ## Contesto
 
-Benjamin Graham descrive il mercato come "Mr. Market", un socio immaginario che ogni giorno propone un prezzo di acquisto o vendita delle azioni in portafoglio. [^src: raw/01_Principi_Fondamentali_Value_Investing.md §2. L'Allegoria di Mr. Market]
+Benjamin Graham descrive il mercato come "Mr. Market", un socio immaginario che ogni giorno propone un prezzo di acquisto o vendita delle azioni in portafoglio. L'allegoria e' introdotta nel Capitolo 8 de [[intelligent-investor]] come il dispositivo pedagogico centrale dell'intero libro. [^src: raw/investitore intelligente.txt §Cap.8 — L'Investitore e le Fluttuazioni del Mercato]
 
 ## Dettaglio
+
+### La Parabola Originale (Cap.8, testo canale)
+
+> "Immaginate di possedere una piccola quota azionaria di un'azienda privata e di averla pagata mille dollari. Uno dei vostri soci, chiamiamolo Mr. Market, e' un uomo molto solerte. Ogni giorno vi dice quanto pensa che valgano le vostre azioni e inoltre si offre di comprarvele oppure di vendervene altre sulla stessa base. A volte la sua idea di valore appare plausibile e giustificata dall'andamento e dalle prospettive dell'azienda per come le conoscete. Spesso, invece, Mr. Market si lascia prendere dall'entusiasmo o dalla paura e il valore che vi propone vi sembra rasentare la follia." [^src: raw/investitore intelligente.txt §Cap.8 — L'Investitore e le Fluttuazioni del Mercato]
 
 ### Comportamento di Mr. Market
 
@@ -25,7 +29,7 @@ Mr. Market oscilla tra due stati emotivi estremi:
 
 ### La risposta corretta dell'investitore
 
-L'investitore intelligente non subisce l'influenza dell'umore di Mr. Market, ma la sfrutta. Il prezzo offerto da Mr. Market e' rilevante solo quando e' conveniente, non come misura del valore reale del business. [^src: raw/01_Principi_Fondamentali_Value_Investing.md §2. L'Allegoria di Mr. Market]
+L'investitore intelligente non subisce l'influenza dell'umore di Mr. Market, ma la sfrutta. Il prezzo offerto da Mr. Market e' rilevante solo quando e' conveniente, non come misura del valore reale del business. L'offerta e' opzionale: si puo' ignorare Mr. Market per giorni, mesi o anni senza che il valore del business cambi. [^src: raw/investitore intelligente.txt §Cap.8 — L'Investitore e le Fluttuazioni del Mercato]
 
 ### Relazione con la finanza comportamentale
 
@@ -35,9 +39,12 @@ Mr. Market incarna i bias descritti dalla [[behavioral-finance]]: l'avversione a
 [[margin-of-safety]]
 [[behavioral-finance]]
 [[intrinsic-value]]
+[[market-fluctuations-graham]]
+[[investment-vs-speculation]]
 
 ## Pagine collegate
 [[vi-01-principi-fondamentali]]
+[[intelligent-investor]]
 [[benjamin-graham]]
 
 ## Storie collegate

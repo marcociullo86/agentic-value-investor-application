@@ -131,6 +131,30 @@ Vedi [[vi-08-risoluzione-q001-owner-earnings]] per la specifica completa dei tre
 
 **Sync 2026-05-21:** sette regole + Graham + DCF + MoS confermati coerenti con [[analysis-api-pipeline]]; contract CI verifica schema `RuleEngineResult` via springdoc runtime (TSK-037).
 
+## Aggiornamenti (v2026-05-22)
+
+**Fonte aggiunta:** `raw/investitore intelligente.txt` — Cap.14 e' la fonte primaria dei 7 criteri Graham. Il mapping seguente documenta la genealogia dal testo del 1973 al codice Kotlin 2026.
+
+### Genealogia: Da Graham Cap.14 ai 7 ruleId
+
+L'Investitore Intelligente, Cap.14, elenca 7 criteri per il portafoglio difensivo (vedi [[seven-criteria-defensive-stock-selection]]). La tabella seguente traccia la linea da ogni criterio Graham al `ruleId` corrispondente nel Rule Engine, con la mediazione teorica di Buffett dove la soglia e' stata aggiornata.
+
+| Criterio Graham (Cap.14) | Soglia Graham 1973 | ruleId WebApp | Soglia WebApp | Note |
+|---|---|---|---|---|
+| Criterio 2 — Current Ratio | ≥ 2:1 | `CURRENT_RATIO_LATEST` | >2 GREEN; 1.5-2 YELLOW | Soglia Graham preservata; YELLOW banda aggiunta (Buffett: "business molto stabili") |
+| Criterio 2 — LT Debt | ≤ Net Current Assets | `DEBT_TO_INCOME_LATEST` | <4 GREEN; 4-5 YELLOW | Buffett riformula in anni di utili; misura lo stesso rischio |
+| Criterio 3 — Stabilita' Utili | Positivi ogni anno 10y | `ROE_10Y_AVG` + `NET_MARGIN_10Y_AVG` | Costanti 10y | ROE/Margin costanti sono la forma evoluta della stabilita' degli utili |
+| Criterio 5 — Crescita EPS | ≥+33% in 10 anni | `ROE_10Y_AVG` + `ROIC_10Y_AVG` | >15% / >12% | ROIC stabile implica crescita della base di utili; piu' robusto dell'EPS grezzo (meno manipolabile) |
+| Criterio 6 + 7 — P/E × P/B | P/E≤15; P/B≤1.5; P/E×P/B≤22.5 | `grahamNumber` (calculator) | Prezzo massimo = sqrt(22.5×EPS×BVPS) | Non e' un ruleId (segnale GREEN/RED) ma un valore scalare; il prezzo si confronta esternamente |
+| **Aggiunte Buffett** (non in Graham) | n/a | `GROSS_MARGIN_10Y_AVG` | >40% GREEN | Pricing power; non presente nei 7 criteri originali Graham |
+| **Aggiunte Buffett** (non in Graham) | n/a | `CAPEX_INTENSITY_10Y_AVG` | <25% GREEN | Business a bassa intensita' di capitale; non presente in Graham 1973 |
+
+**Criteri Graham senza ruleId nel MVP**:
+- Criterio 1 (Dimensioni ≥ $100M): non implementato — dati FMP disponibili ma nessun ruleId dedicato.
+- Criterio 4 (Dividendi 20 anni): non implementato — richiederebbe storico FMP dividendi 20 anni.
+
+**Implicazione**: il Rule Engine e' una sintesi Graham/Buffett, non una replica meccanica del Cap.14. I criteri piu' facilmente proxy-abili (liquidita', debito, redditività) sono implementati; i criteri che richiedono storico molto lungo (dividendi 20 anni) o che coinvolgono la valutazione del prezzo (P/E, P/B) sono delegati al `grahamNumber` e al `mosSignal`.
+
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->
 - EP-003 (Rule Engine quantitativo): US-007 redditività, US-008 pricing power, US-009 solidità, US-010 capitale intensivo

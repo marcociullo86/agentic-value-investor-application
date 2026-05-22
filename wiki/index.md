@@ -4,7 +4,7 @@ type: index
 title: Wiki Index
 status: draft
 created: 2026-05-20
-updated: 2026-05-22 (v2026-05-22 FMP stable migration — 21 pagine obsolete sostituite, 17 nuove pagine FMP stable)
+updated: 2026-05-22 (v2026-05-22 FMP stable migration + ingest L'Investitore Intelligente B. Graham)
 tags: [navigation]
 ---
 # Wiki Index — App Template Demo
@@ -46,7 +46,7 @@ tags: [navigation]
 |--------|--------------------|-----|
 | [[fmp-docs]] | fmp_docs.md + fmp_docs.json (263 endpoint stable) | fmp, stable, api |
 
-#### Value Investing (5)
+#### Value Investing (6)
 
 | Pagina | Documento sorgente | Tag |
 |--------|--------------------|-----|
@@ -55,6 +55,7 @@ tags: [navigation]
 | [[vi-03-analisi-fondamentale-valutazione]] | 03_Analisi_Fondamentale_e_Valutazione.md | value-investing, graham-number, roe |
 | [[vi-04-gestione-rischio-psicologia]] | 04_Gestione_Rischio_Psicologia_Integrazione.md | value-investing, behavioral-finance, moat |
 | [[vi-05-analisi-10k-10q-buffett]] | 05_Analisi_10K_10Q_e_Regole_Buffett.md | value-investing, buffett, sec, 10-k |
+| [[intelligent-investor]] | raw/investitore intelligente.txt (B. Graham, ed. it. 2020) | value-investing, graham, mr-market, margin-of-safety, defensive-investor |
 
 #### Product Spec (3)
 
@@ -84,18 +85,24 @@ tags: [navigation]
 | [[fmp-forex]] | Tassi di cambio valutari (stable) |
 | [[fmp-etfs-funds]] | ETF e fondi comuni: info, holdings (stable) |
 
-#### Value Investing (8)
+#### Value Investing (14)
 
 | Pagina | Descrizione |
 |--------|-------------|
 | [[margin-of-safety]] | Differenza tra valore intrinseco e prezzo: difesa da errori e imprevisti |
-| [[mr-market]] | Allegoria Graham: il mercato maniaco-depressivo da sfruttare, non subire |
+| [[mr-market]] | Allegoria Graham Cap.8: socio maniaco-depressivo — parabola originale + analisi |
 | [[economic-moat]] | Vantaggio competitivo durevole (4 forme: asset immateriali, switching cost, network, costo) |
 | [[intrinsic-value]] | Valore reale del business calcolato su flussi di cassa futuri (DCF, Owner Earnings) |
 | [[graham-number]] | Formula di valutazione rapida e 7 criteri filtro per portafoglio difensivo |
 | [[behavioral-finance]] | Bias cognitivi (avversione perdita, herding) e contromisure meccaniche |
 | [[defensive-vs-enterprising-investor]] | Due profili Graham: difensivo (ETF, ribilanciamento) vs intraprendente (analisi attiva) |
 | [[sec-filings-analysis]] | Metodologia 5-step per analisi 10-K/10-Q (business, rischi, MD&A, rendiconti, note) |
+| [[investment-vs-speculation]] | Definizione canonica Graham: investimento = analisi + sicurezza capitale + rendimento adeguato |
+| [[seven-criteria-defensive-stock-selection]] | I 7 filtri Cap.14 per il portafoglio difensivo — soglie e mapping FMP |
+| [[net-net-stocks]] | Acquisto sotto 2/3 NCAV: strategia cigar-butt Graham; rarita' nei mercati sviluppati 2026 |
+| [[market-fluctuations-graham]] | Cap.8: volatilita' non e' rischio, il mercato serve — non comanda |
+| [[inflation-investing-graham]] | Cap.2: azioni con pricing power come hedge parziale all'inflazione |
+| [[superinvestors-graham-doddsville]] | Appendice 1 / Buffett 1984: prova empirica — 9 fondi Graham sovraperformano il mercato |
 
 #### Product Spec (4)
 
@@ -111,18 +118,19 @@ tags: [navigation]
 | Pagina | Descrizione |
 |--------|-------------|
 | [[fmp-api]] | Financial Modeling Prep — provider REST API stable (263 endpoint, base URL `/stable/`) |
-| [[benjamin-graham]] | Padre fondatore del value investing (Mr. Market, Margin of Safety, Graham Number) |
-| [[warren-buffett]] | Evoluisce Graham con moat, cerchio di competenza, Owner Earnings |
+| [[benjamin-graham]] | Padre fondatore del value investing — biografia, Graham-Newman, allievi, contributi (aggiornato v2026-05-22) |
+| [[warren-buffett]] | Evoluisce Graham con moat, cerchio di competenza, Owner Earnings (aggiornato v2026-05-22) |
 
-### Syntheses (3)
+### Syntheses (4)
 
 | Pagina | Descrizione |
 |--------|-------------|
 | [[fmp-api-overview]] | Panoramica architetturale cross-source dell'API FMP stable (263 endpoint, 13 sezioni) |
 | [[value-investing-fmp-integration]] | Mappa metrica value investing → endpoint FMP stable; invariante ADR-004 |
 | [[webapp-value-investing-spec]] | Specifica cross-domain: requisiti funzionali → regole Rule Engine → endpoint FMP → architettura |
+| [[graham-investing-philosophy]] | Sintesi cross-domain: 5 strati del framework Graham, genealogia Graham→Buffett, evidenza Doddsville |
 
-### Runbooks (4)
+### Runbooks (6)
 
 | Pagina | Descrizione |
 |--------|-------------|
@@ -130,4 +138,6 @@ tags: [navigation]
 | [[sec-10k-10q-analysis-playbook]] | Playbook 7-step per analisi 10-K/10-Q con metodo Buffett e FMP API |
 | [[value-investing-rule-engine-runbook]] | Implementazione step-by-step del Rule Engine: acquisizione FMP, validazione regole, DCF, MoS |
 | [[runbook-openapi-contract-check]] | Troubleshooting contract-check: Boot 3.5, PatternParseException, MockMvc vs OpenAPIService |
+| [[defensive-investor-checklist]] | 7 criteri Graham Cap.14 step-by-step con mapping FMP stable e WebApp signals |
+| [[enterprising-investor-checklist]] | Criteri Graham Cap.15 step-by-step: liquidita', P/E≤9, net-net NCAV con FMP stable |
 

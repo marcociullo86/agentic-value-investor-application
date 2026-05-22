@@ -51,10 +51,13 @@ L'inflazione erode il potere d'acquisto dei rendimenti obbligazionari, rendendo 
 [[economic-moat]]
 [[graham-number]]
 [[fmp-key-metrics-ratios]]
+[[net-net-stocks]]
+[[investment-vs-speculation]]
 
 ## Pagine collegate
 [[vi-01-principi-fondamentali]]
 [[vi-05-analisi-10k-10q-buffett]]
+[[intelligent-investor]]
 [[warren-buffett]]
 [[benjamin-graham]]
 
@@ -70,6 +73,20 @@ L'inflazione erode il potere d'acquisto dei rendimenti obbligazionari, rendendo 
 | DCF o prezzo assente / non positivi | `NOT_CALCULABLE` |
 
 Costante: `MOS_DISCOUNT_FACTOR = 0.70` (sconto minimo 30% sul valore intrinseco DCF). [^src: design_&_architecture/api/openapi.yaml §RuleEngineResult]
+
+## Aggiornamenti (v2026-05-22)
+
+**Fonte aggiunta:** `raw/investitore intelligente.txt` — Cap.20 e' la trattazione canonica del margine di sicurezza come "concetto centrale dell'investimento".
+
+### Citazione diretta Cap.20
+
+> "Il concetto di margine di sicurezza ci permette di comprendere la differenza tra investimento e speculazione. Esso e' sempre, in ultima analisi, la differenza quantitativa tra il prezzo pagato e il valore ottenuto." [^src: raw/investitore intelligente.txt §Cap.20 — Il Margine di Sicurezza come Concetto Centrale]
+
+Graham conclude il libro con il margine di sicurezza deliberatamente: e' il principio unificatore di tutto il framework. Il Cap.20 mostra come il MoS si applichi sia ai titoli azionari (sconto sul valore di liquidazione o DCF) che alle obbligazioni (margine tra reddito dell'azienda e onere degli interessi).
+
+### Net-Net come Forma Estrema di MoS
+
+La strategia net-net ([[net-net-stocks]]) e' la forma piu' conservativa del margine di sicurezza: acquistare sotto i 2/3 del NCAV significa avere come cushion l'intero valore delle immobilizzazioni e dell'avviamento. Il margine di sicurezza e' dunque strutturale (patrimoniale), non solo valutativo (DCF). [^src: raw/investitore intelligente.txt §Cap.20 — Il Margine di Sicurezza come Concetto Centrale]
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->

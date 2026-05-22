@@ -352,6 +352,10 @@ Boundary Track A/B: rispettato — zero modifiche a codice di produzione (RuleSi
 DoD TSK-022: 4/4 spuntati strutturalmente (4 scenari scritti, nessuna dep FMP reale, screenshot CI artifact configurato, job fe-e2e workflow aggiornato). Esecuzione Playwright runtime bloccata da Node 16 locale (engines >=20) — stesso gap infra ambiente noto da TSK-003..038; CI runner Node 20.x esegue green attesi.
 Chiusura Track A: TSK-022 e ultimo task Track A (Sprint 3 QA layer). Tutti i task Track A (TSK-001..024 + TSK-030/031/032/037/038) sono done. Pronto per vcs-handoff push + PR Track B merge plan.
 
+## [2026-05-22] ingest | raw/investitore intelligente.txt (B. Graham, ed. it. 2020)
+Pagine create: 10 | Aggiornamenti: 9 (5 esistenti + index + gaps) | Gap nuovi: 2 | Gap chiusi: 0
+[2026-05-22 20:00] ingest — L'Investitore Intelligente di Benjamin Graham (ed. italiana 2020, edizione rivista 1973 con commenti Zweig 2003). Aggiunte: source [[intelligent-investor]], entity [[benjamin-graham]] (aggiornato con biografia completa, Graham-Newman, allievi), 6 concept pages ([[investment-vs-speculation]], [[seven-criteria-defensive-stock-selection]], [[market-fluctuations-graham]], [[superinvestors-graham-doddsville]], [[net-net-stocks]], [[inflation-investing-graham]]), 1 synthesis ([[graham-investing-philosophy]]), 2 runbook ([[defensive-investor-checklist]], [[enterprising-investor-checklist]]). Aggiornate 5 pagine esistenti con cross-link e aggiornamenti non-distruttivi: [[warren-buffett]], [[mr-market]], [[margin-of-safety]], [[defensive-vs-enterprising-investor]], [[value-investing-rule-engine]] (sezione Genealogia). Gap aperti: graham-bond-formulas-modern-regime, net-net-implementation-gap. — files touched: 19
+
 ## [2026-05-22] ci-stabilize Sprint 3 PR #1 — green pipeline 7/7
 Layer: be + fe + qa + infra (claude, branch sprint3/auth-watchlist) | files modified: 14 | files created: 1
 Punto di partenza: SHA 3bd357c con 6/169 AnalysisControllerIT failures + diverse latenti Track A scoperti dopo il merge master.
