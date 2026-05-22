@@ -120,3 +120,22 @@ Decisioni runtime: JDK21 in runtime stage (ADR-009 §2), source-compatibility re
 Decisione fe-e2e scaffold-only: Playwright non è dipendenza in src/frontend/package.json (TSK-030 esplicito), test E2E reali pianificati TSK-022/036. Job placeholder con echo per mantenere visibilità CI senza false-positive.
 DoD: 4/4 spuntati (verifica statica — `docker build` non eseguito per vincolo "pure config-time generation"; struttura Dockerfile + Spring static-locations + YAML pipeline validati manualmente).
 Follow-up Sprint 3: TSK-022 (Playwright E2E suite reale) + TSK-036 (add playwright dep al frontend).
+
+## [2026-05-22] develop TSK-025 -> V006 moat_checklist_entry migration
+Layer: db (agent, Track B branch sprint3/auth-watchlist) | US-016 EP-005 | files created: 1
+Created: src/backend/src/main/resources/db/migration/V006__create_moat_checklist.sql (DDL verbatim da design schema.sql §moat_checklist_entry: UUID PK, FK users(id) CASCADE + stocks(ticker), CHECK su moat_type + status, UNIQUE (user_id, ticker, moat_type)).
+DoD: V006 si attesta dopo V001-V005 esistenti senza conflitti; constraint unique gestisce idempotenza upsert da MoatChecklistService (TSK-026).
+
+## [2026-05-22] develop TSK-028 -> V005 watchlists + V008 fmp_event_log
+Layer: db (agent, Track B branch sprint3/auth-watchlist) | US-017 EP-006 | files created: 1 / renamed: 1 / modified: 1
+Created: src/backend/src/main/resources/db/migration/V005__create_watchlists.sql (watchlists + watchlist_items, partial unique index su (user_id) WHERE is_default=true, UNIQUE (watchlist_id, ticker), idx (watchlist_id, added_at DESC)).
+Renamed: V005__create_fmp_api_event_log.sql -> V008__create_fmp_event_log.sql (slot canonico schema.sql §V008, decisione documentata nel commento di testa: nessuna migration history promossa in produzione, rinominata in coerenza con TSK-028 che riserva V005 a watchlists).
+DoD: order applicativo V001 (users) -> V002 (stocks) -> V003-V004 (FMP cache + rule engine) -> V005 (watchlists, FK users + stocks) -> V006 (moat, FK users + stocks) -> V007 (dcf overrides, FK users + stocks) -> V008 (fmp event log, FK stocks). Tutte le FK soddisfatte dall'ordine numerico.
+
+## [2026-05-22] develop TSK-033 -> AuthController + SecurityConfig + JwtService
+Layer: be (agent, Track B branch sprint3/auth-watchlist) | EP-006 | files created: 12 / modified: 2 / deleted: 1
+Created: security/JwtService.kt (JJWT 0.12+ HS256, claims sub=userId + email + iat + exp), security/UserPrincipal.kt, security/UserDetailsServiceImpl.kt, security/JwtAuthenticationFilter.kt (OncePerRequestFilter), security/SecurityConfig.kt (SessionCreationPolicy.STATELESS, BCryptPasswordEncoder(12), policy endpoint da ADR-006), persistence/entity/User.kt + RefreshToken.kt, persistence/repository/UserRepository.kt + RefreshTokenRepository.kt, service/AuthService.kt (register/login/refresh/logout + refresh-token rotation), api/AuthController.kt, api/model/AuthDtos.kt, test/api/AuthControllerIT.kt (6 test Testcontainers).
+Modified: api/error/GlobalExceptionHandler.kt (+handleEmailConflict 409 RFC 9457), api/DcfOverrideController.kt (rimosso stub X-User-Id, ora @AuthenticationPrincipal — flag esplicito nel file 'JWT in TSK-033').
+Deleted: config/SecurityConfig.kt (stub permissivo TSK-031, sostituito da security/SecurityConfig.kt).
+Verifica: build Gradle non eseguita locally (JDK 17 non installato); review manuale API JJWT 0.12 + Spring Security 6. CI gating su gradle test/contract-check.
+DoD: registrazione + login + refresh + logout coperti da 6 test IT; 409 ProblemDetails per email duplicata; SecurityFilterChain stateless JWT con policy da ADR-006.

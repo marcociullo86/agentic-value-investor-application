@@ -2,6 +2,7 @@ package com.valueinvesting.webapp.api.error
 
 import com.valueinvesting.webapp.fmp.FmpTickerNotFoundException
 import com.valueinvesting.webapp.fmp.FmpUnavailableException
+import com.valueinvesting.webapp.service.EmailAlreadyRegisteredException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.ConstraintViolationException
 import org.slf4j.LoggerFactory
@@ -182,6 +183,22 @@ class GlobalExceptionHandler(
             request = req,
         )
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(problem)
+    }
+
+    @ExceptionHandler(EmailAlreadyRegisteredException::class)
+    fun handleEmailConflict(
+        ex: EmailAlreadyRegisteredException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        val problem = mapper.build(
+            status = HttpStatus.CONFLICT,
+            type = "https://api/errors/email-already-registered",
+            title = "Email already registered",
+            detail = "An account with this email already exists",
+            request = req,
+            extensions = mapOf("email" to ex.email),
+        )
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(problem)
     }
 
     @ExceptionHandler(Exception::class)

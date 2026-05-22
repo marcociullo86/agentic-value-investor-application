@@ -1,16 +1,19 @@
 -- =============================================================================
--- V005 - fmp_api_event_log (EP-002, US-006, TSK-011)
+-- V008 - fmp_api_event_log (EP-002, US-006, TSK-011 + renumber TSK-028)
 -- Audit/observability per gli eventi FMP (rate limiting, 5xx, CB open, fallback
 -- stale, ticker non trovato). Popolata in modo asincrono da FmpEventLogger.
 --
--- Canonicamente V008 in design_&_architecture/data/schema.sql:155-167, ma il
--- TPM non ha emesso TSK separati per V005-V008 e TSK-011 dichiara dipendenza
--- dura su questa tabella -> migration creata qui come V005 (naming locale).
--- DDL verbatim da schema.sql; nessuna decisione architetturale nuova.
+-- Numerazione: TSK-028 (Sprint 3) ripristina lo slot canonico V008 previsto da
+-- design_&_architecture/data/schema.sql:155-167; lo slot V005 viene riservato a
+-- watchlists/watchlist_items come da TSK-028 stesso. La migration è stata
+-- originariamente creata come V005 (TSK-011 Sprint 1) per assenza di un TSK
+-- separato; rinominata qui senza alterazione del DDL — il checksum Flyway non
+-- è ancora promosso su ambienti condivisi (R1.0 pre-release, no migration
+-- history in produzione).
 -- [^src: design_&_architecture/data/schema.sql §fmp_api_event_log]
 -- [^src: design_&_architecture/data/er-diagram.md §fmp_api_event_log]
 -- [^src: design_&_architecture/decisions/ADR-008-observability-logging.md]
--- [^src: management/kanban/.../TSK-011.md §Scope tecnico]
+-- [^src: management/kanban/EP-006-watchlist-utente/US-017-gestione-watchlist/TSK-028.md §Scope tecnico]
 -- =============================================================================
 
 CREATE TABLE fmp_api_event_log (
