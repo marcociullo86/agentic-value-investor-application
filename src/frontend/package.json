@@ -10,6 +10,8 @@
     "lint": "next lint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "playwright:install": "playwright install --with-deps",
     "generate:api": "openapi-typescript \"../../design_&_architecture/api/openapi.yaml\" -o lib/api/generated/schema.ts",
     "typecheck": "tsc --noEmit",
     "typecheck:api": "tsc -p tsconfig.api.json --noEmit"
@@ -40,6 +42,7 @@
     "lucide-react": "0.469.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.49.1",
     "typescript": "5.7.2",
     "@types/node": "22.10.5",
     "@types/react": "19.0.2",

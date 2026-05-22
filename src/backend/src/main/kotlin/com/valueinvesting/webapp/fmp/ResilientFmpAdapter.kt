@@ -6,6 +6,7 @@ import com.valueinvesting.webapp.fmp.dto.IncomeStatementDto
 import com.valueinvesting.webapp.fmp.dto.KeyMetricsDto
 import com.valueinvesting.webapp.fmp.dto.ProfileDto
 import com.valueinvesting.webapp.fmp.dto.ScreenedStockDto
+import com.valueinvesting.webapp.fmp.dto.SearchHitDto
 import io.github.resilience4j.bulkhead.Bulkhead
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException
 import io.github.resilience4j.circuitbreaker.CircuitBreaker
@@ -80,6 +81,15 @@ class ResilientFmpAdapter(
         // ticker "-" è un placeholder per il logger (screener non è per-ticker).
         execute("stock-screener", "-") {
             delegate.screen(marketCapMoreThan, marketCapLowerThan, sector, limit)
+        }
+
+    override fun searchSymbol(query: String, limit: Int): List<SearchHitDto> =
+        // Placeholder "-" per il logger ticker: /search non è per-ticker.
+        // La chain Resilience4j (Bulkhead/CB/Retry/RateLimiter) si applica
+        // identica agli altri endpoint — la `/search` è soggetta al medesimo
+        // rate limit FMP, quindi NON saltiamo la gate.
+        execute("search", "-") {
+            delegate.searchSymbol(query, limit)
         }
 
     /**

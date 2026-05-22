@@ -1,0 +1,10 @@
+{
+  "items": [
+    {
+      "ticker": "AAPL",
+      "companyName": "Apple Inc.",
+      "sector": "INFORMATION_TECHNOLOGY",
+      "marketCapUsd": 3000000000000
+    }
+  ]
+}

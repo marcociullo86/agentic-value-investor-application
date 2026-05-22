@@ -2,10 +2,15 @@ package com.valueinvesting.webapp.service
 
 import com.valueinvesting.webapp.api.model.ScreenerResultPage
 import com.valueinvesting.webapp.api.model.SearchResultItem
+import com.valueinvesting.webapp.api.model.SearchResultList
+import com.valueinvesting.webapp.api.model.StockProfile
 import com.valueinvesting.webapp.domain.GicsSector
 import com.valueinvesting.webapp.domain.MarketCapBand
 import com.valueinvesting.webapp.fmp.FmpAdapter
+import com.valueinvesting.webapp.fmp.FmpCacheService
+import com.valueinvesting.webapp.fmp.dto.ProfileDto
 import com.valueinvesting.webapp.fmp.dto.ScreenedStockDto
+import com.valueinvesting.webapp.fmp.dto.SearchHitDto
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.nio.charset.StandardCharsets
@@ -13,8 +18,10 @@ import java.util.Base64
 
 // SearchService — facade per le ricerche/screener (US-001 + US-002).
 //
-// Per TSK-005 implementiamo solo `screen(...)`. La ricerca free-text (US-001)
-// sarà aggiunta dal TSK dedicato.
+// Espone:
+//   - `screen(criteria)`     → US-002 (TSK-005), screener parametrico.
+//   - `search(query)`        → US-001 (TSK-002), ricerca free-text per ticker/nome.
+//   - `validateTicker(t)`    → US-001 (TSK-002), validazione esistenza + profilo.
 //
 // Decisione cache: **NO cache** sullo screener in questa prima implementazione.
 //   Razionale: combinatoria parametri (5 bande × 11 settori × excludeHardToPredict ×
@@ -46,12 +53,127 @@ import java.util.Base64
 //
 // [^src: design_&_architecture/components/backend-components.md §SearchService]
 // [^src: management/kanban/EP-001-ricerca-e-screening/US-002-screener-parametrico/TSK-005.md §SearchService.screen]
+// [^src: management/kanban/EP-001-ricerca-e-screening/US-001-ricerca-ticker-simbolo/TSK-002.md §SearchService]
 @Service
 class SearchService(
     private val fmpAdapter: FmpAdapter,
+    private val fmpCacheService: FmpCacheService,
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
+
+    // ----- US-001: ricerca free-text + validazione ticker --------------------
+    //
+    // Decisione validazione: SOLO `IllegalArgumentException` lato service.
+    //   Razionale: la pre-validazione jakarta `@RequestParam` su String non offre
+    //   un guadagno netto rispetto a require(...) qui (stesso esito 400
+    //   ProblemDetails via GlobalExceptionHandler), e mantiene la regola di
+    //   normalizzazione (uppercase BEFORE chiamata FMP, US-001 AC) come single
+    //   source of truth: il controller delega tutto, il service è l'unico
+    //   custode delle business rules. Niente disallineamento tra annotazione
+    //   controller e regex service.
+    //
+    // Decisione DTO API: RIUSO di SearchResultItem (creato da TSK-005) per
+    //   /api/search items. Razionale: lo schema OpenAPI §components/schemas/
+    //   SearchResultItem è condiviso fra /api/search e /api/screener — entrambi
+    //   ritornano "candidato lista" con {ticker, companyName, sector?,
+    //   marketCapUsd?}. Per /api/search popoliamo solo ticker+companyName
+    //   perché l'endpoint FMP /search NON restituisce sector/marketCap: lasciamo
+    //   null sui due campi opzionali (semantica "non disponibile da questa
+    //   call"). Per arricchirli serve una seconda call /profile per hit (N+1
+    //   inaccettabile per autocomplete tipico); il client UI ottiene poi i
+    //   dettagli completi tramite click → /api/search/{ticker} → StockProfile.
+    //   Per /api/search/{ticker} usiamo lo schema dedicato `StockProfile`
+    //   (campi differenti: industry, currentPrice, dataSnapshotAt).
+
+    fun search(query: String): SearchResultList {
+        // Normalizzazione + validazione PRIMA della call FMP (US-001 AC).
+        val normalized = normalizeQuery(query)
+
+        val hits: List<SearchHitDto> = fmpAdapter.searchSymbol(
+            query = normalized,
+            limit = SEARCH_MAX_RESULTS,
+        )
+
+        val items: List<SearchResultItem> = hits
+            .filter { !it.symbol.isNullOrBlank() }
+            // FMP a volte restituisce duplicati (cross-listing). Dedupe per symbol.
+            .distinctBy { it.symbol!!.uppercase() }
+            .map { it.toSearchResultItem() }
+
+        log.debug("search query='{}' hits={} mapped={}", normalized, hits.size, items.size)
+        return SearchResultList(items = items)
+    }
+
+    fun validateTicker(ticker: String): StockProfile {
+        // Normalizzazione + validazione PRIMA della call FMP (US-001 AC).
+        val normalized = normalizeTicker(ticker)
+
+        // Cache-aside via FmpCacheService (TTL profile 1h, US-005 §lazy upsert
+        // su stocks). Se il ticker non esiste, l'adapter FMP solleva
+        // FmpTickerNotFoundException → GlobalExceptionHandler → 404 RFC 9457.
+        val cached = fmpCacheService.getOrFetchProfile(normalized) {
+            fmpAdapter.getProfile(normalized)
+        }
+        val dto: ProfileDto = cached.value
+
+        return StockProfile(
+            ticker = normalized,
+            // OpenAPI required: companyName. Se FMP omette → fallback al ticker
+            // (stessa convenzione di SearchService.screen → toSearchResultItem).
+            companyName = dto.companyName?.takeIf { it.isNotBlank() } ?: normalized,
+            sector = dto.sector,
+            industry = dto.industry,
+            marketCapUsd = dto.marketCap,
+            currentPrice = dto.price,
+            dataSnapshotAt = cached.fetchedAt,
+        )
+    }
+
+    // Validazione query free-text: 1..32 char, charset [A-Z0-9.-] post-uppercase.
+    // La query supporta sia ticker (es. "AAPL") sia nome parziale ("APPL").
+    // Charset volutamente restrittivo per ridurre il rischio injection in
+    // upstream (FMP non documenta encoding rules) e perché US-001 AC limita
+    // l'input a "1-6 caratteri alfanumerici"; il TSK porta il limite a 32 per
+    // coprire il caso di company-name partial. Vedi gap se ulteriormente esteso.
+    private fun normalizeQuery(query: String): String {
+        require(query.isNotBlank()) { "query must not be blank" }
+        val upper = query.trim().uppercase()
+        require(upper.length in 1..SEARCH_MAX_QUERY_LENGTH) {
+            "query length must be in [1, $SEARCH_MAX_QUERY_LENGTH] (got ${upper.length})"
+        }
+        require(QUERY_PATTERN.matches(upper)) {
+            "query contains invalid characters (allowed: A-Z 0-9 . -, got '$upper')"
+        }
+        return upper
+    }
+
+    // Validazione ticker: 1..10 char, charset [A-Z0-9.-] post-uppercase.
+    // Coerente con `openapi.yaml §components/parameters/Ticker` (pattern
+    // ^[A-Za-z0-9.\-]{1,10}$).
+    private fun normalizeTicker(ticker: String): String {
+        require(ticker.isNotBlank()) { "ticker must not be blank" }
+        val upper = ticker.trim().uppercase()
+        require(upper.length in 1..TICKER_MAX_LENGTH) {
+            "ticker length must be in [1, $TICKER_MAX_LENGTH] (got ${upper.length})"
+        }
+        require(TICKER_PATTERN.matches(upper)) {
+            "ticker contains invalid characters (allowed: A-Z 0-9 . -, got '$upper')"
+        }
+        return upper
+    }
+
+    private fun SearchHitDto.toSearchResultItem(): SearchResultItem = SearchResultItem(
+        ticker = symbol!!.uppercase(),
+        // OpenAPI required: companyName. Se FMP omette `name` → fallback al
+        // symbol (rara, ma documentata per ETF/IPO recenti). Mai null.
+        companyName = name?.takeIf { it.isNotBlank() } ?: symbol!!.uppercase(),
+        // SearchResultItem espone {sector, marketCapUsd} (OpenAPI), entrambi
+        // assenti nel payload /search FMP → null. Il client UI li ottiene poi
+        // tramite click su risultato → /api/search/{ticker} → StockProfile.
+        sector = null,
+        marketCapUsd = null,
+    )
 
     fun screen(criteria: ScreenerCriteria): ScreenerResultPage {
         require(criteria.limit in 1..MAX_LIMIT) {
@@ -167,5 +289,15 @@ class SearchService(
     companion object {
         const val DEFAULT_LIMIT = 50
         const val MAX_LIMIT = 200
+
+        // US-001 — ricerca free-text. Limite per page e bound charset di input.
+        const val SEARCH_MAX_RESULTS = 20
+        const val SEARCH_MAX_QUERY_LENGTH = 32
+        // Coerente con openapi.yaml §components/parameters/Ticker pattern.
+        const val TICKER_MAX_LENGTH = 10
+        // Charset post-uppercase: A-Z 0-9 dot dash (no whitespace, no quote, no
+        // angle brackets → blocca payload tipo "<script>").
+        private val QUERY_PATTERN = Regex("^[A-Z0-9.\\-]+$")
+        private val TICKER_PATTERN = Regex("^[A-Z0-9.\\-]+$")
     }
 }

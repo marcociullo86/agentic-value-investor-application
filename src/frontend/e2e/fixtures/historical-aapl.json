@@ -1,0 +1,16 @@
+{
+  "ticker": "AAPL",
+  "dataSnapshotAt": "2026-05-22T10:00:00Z",
+  "points": [
+    { "fiscalYear": 2016, "revenue": 215639000000, "netIncome": 45687000000, "isMissing": false },
+    { "fiscalYear": 2017, "revenue": 229234000000, "netIncome": 48351000000, "isMissing": false },
+    { "fiscalYear": 2018, "revenue": 265595000000, "netIncome": 59531000000, "isMissing": false },
+    { "fiscalYear": 2019, "revenue": 260174000000, "netIncome": 55256000000, "isMissing": false },
+    { "fiscalYear": 2020, "revenue": 274515000000, "netIncome": 57411000000, "isMissing": false },
+    { "fiscalYear": 2021, "revenue": 365817000000, "netIncome": 94680000000, "isMissing": false },
+    { "fiscalYear": 2022, "revenue": 394328000000, "netIncome": 99803000000, "isMissing": false },
+    { "fiscalYear": 2023, "revenue": 383285000000, "netIncome": 96995000000, "isMissing": false },
+    { "fiscalYear": 2024, "revenue": 391035000000, "netIncome": 93736000000, "isMissing": false },
+    { "fiscalYear": 2025, "revenue": 406000000000, "netIncome": 97000000000, "isMissing": false }
+  ]
+}

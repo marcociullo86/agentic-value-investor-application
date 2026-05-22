@@ -1,0 +1,62 @@
+{
+  "ticker": "AAPL",
+  "evaluatedAt": "2026-05-22T10:00:00Z",
+  "signals": [
+    {
+      "ruleId": "CAPEX_INTENSITY_10Y_AVG",
+      "signal": "GREEN",
+      "observedValue": 0.18,
+      "threshold": "CapEx/NetIncome < 25%",
+      "rationale": "Media 10y CapEx/Utile netto 18% — bassa intensità di capitale"
+    },
+    {
+      "ruleId": "CURRENT_RATIO_LATEST",
+      "signal": "YELLOW",
+      "observedValue": 0.88,
+      "threshold": "Current Ratio ≥ 1.5 (GREEN) / ≥ 1.0 (YELLOW)",
+      "rationale": "Current Ratio 0.88 — sotto soglia, ma Apple gestisce cassa negativa strutturalmente"
+    },
+    {
+      "ruleId": "DEBT_TO_INCOME_LATEST",
+      "signal": "YELLOW",
+      "observedValue": 4.2,
+      "threshold": "LongTermDebt/NetIncome < 4 (GREEN) / < 5 (YELLOW)",
+      "rationale": "Rapporto debito/reddito 4.2 — nella banda di attenzione"
+    },
+    {
+      "ruleId": "GROSS_MARGIN_10Y_AVG",
+      "signal": "GREEN",
+      "observedValue": 0.435,
+      "threshold": "Gross Margin ≥ 40%",
+      "rationale": "Gross margin medio 10y 43.5% — pricing power solido"
+    },
+    {
+      "ruleId": "NET_MARGIN_10Y_AVG",
+      "signal": "GREEN",
+      "observedValue": 0.245,
+      "threshold": "Net Margin > 10%",
+      "rationale": "Net margin medio 10y 24.5%"
+    },
+    {
+      "ruleId": "ROE_10Y_AVG",
+      "signal": "RED",
+      "observedValue": null,
+      "threshold": "ROE ≥ 15%",
+      "rationale": "ROE non calcolabile per patrimonio netto negativo (buyback intensivi)"
+    },
+    {
+      "ruleId": "ROIC_10Y_AVG",
+      "signal": "GREEN",
+      "observedValue": 0.28,
+      "threshold": "ROIC ≥ 12%",
+      "rationale": "ROIC medio 10y 28% — allocazione capitale eccellente"
+    }
+  ],
+  "grahamNumber": 47.43,
+  "dcfIntrinsicValue": 180.5,
+  "dcfMethod": "GREENWALD",
+  "mosSignal": "YELLOW",
+  "currentPriceAtEval": 195.0,
+  "dataSnapshotAt": "2026-05-22T10:00:00Z",
+  "isStale": false
+}
