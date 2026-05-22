@@ -13,7 +13,7 @@ tags: [runbook, rule-engine, value-investing, kotlin, fmp, roe, roic, dcf, margi
 ## Prerequisiti
 
 - Backend Kotlin/Spring Boot configurato (vedi [[webapp-architecture-vi]]).
-- API Key FMP attiva e configurata (vedi [[fmp-auth]]).
+- API Key FMP attiva e configurata (vedi [[fmp-api]]).
 - Accesso agli endpoint: `income-statement`, `balance-sheet-statement`, `cash-flow-statement`, `key-metrics` (tutti con `limit=10`).
 - Cache layer 24h attivo (PostgreSQL o in-memory) per ridurre le chiamate FMP.
 
@@ -142,9 +142,9 @@ Esporre il risultato tramite endpoint REST o GraphQL. Includere sempre il timest
 [[intrinsic-value]]
 [[margin-of-safety]]
 [[graham-number]]
-[[fmp-financial-statements]]
-[[fmp-metrics-ratios]]
-[[fmp-auth]]
+[[fmp-financial-statements-stable]]
+[[fmp-key-metrics-ratios]]
+[[fmp-api]]
 
 ## Pagine collegate
 [[vi-06-webapp-value-investing-fsd]]

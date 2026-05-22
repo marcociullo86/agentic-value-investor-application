@@ -13,7 +13,7 @@ tags: [runbook, value-investing, sec, 10-k, 10-q, buffett, analysis]
 ## Prerequisiti
 
 - Simbolo azionario del titolo da analizzare (es. `AAPL`).
-- API key FMP configurata (vedi [[fmp-auth]]).
+- API key FMP configurata (vedi [[fmp-api]]).
 - Accesso a EDGAR (https://www.sec.gov/cgi-bin/browse-edgar) per il testo narrativo 10-K/10-Q.
 
 ## Step 1 — Comprendi il Business (Item 1)
@@ -47,7 +47,7 @@ Leggi il MD&A e applica il Test dell'Onesta':
 
 ## Step 4 — Analisi Incrociata dei Tre Rendiconti (Item 8)
 
-Recupera i dati via FMP API (vedi [[fmp-financial-statements]]):
+Recupera i dati via FMP API (vedi [[fmp-financial-statements-stable]]):
 
 ```
 GET /income-statement/{symbol}?period=annual&limit=10
@@ -77,7 +77,7 @@ Leggi le Note al Bilancio su EDGAR. Attenzione a:
 
 ## Step 6 — Verifica del Fossato Economico
 
-Recupera metriche storiche (5-10 anni) via [[fmp-metrics-ratios]]:
+Recupera metriche storiche (5-10 anni) via [[fmp-key-metrics-ratios]]:
 
 ```
 GET /key-metrics/{symbol}?period=annual&limit=10
@@ -101,7 +101,7 @@ Se ROE e ROIC sono elevati e stabili nel tempo → probabile [[economic-moat]]. 
 2. Proietta gli Owner Earnings su 10 anni con un tasso di crescita conservativo.
 3. Attualizza con tasso di sconto (es. rendimento Treasury 10Y + premio rischio).
 4. Applica uno sconto del 25-30% come [[margin-of-safety]].
-5. Confronta con il prezzo di mercato corrente (via [[fmp-quotes]]).
+5. Confronta con il prezzo di mercato corrente (via [[fmp-quotes-stable]]).
 
 Riferimento consensus: controlla anche il DCF FMP: `GET /discounted-cash-flow/{symbol}`.
 
@@ -121,10 +121,10 @@ Riferimento consensus: controlla anche il DCF FMP: `GET /discounted-cash-flow/{s
 [[economic-moat]]
 [[intrinsic-value]]
 [[mr-market]]
-[[fmp-financial-statements]]
-[[fmp-metrics-ratios]]
-[[fmp-quotes]]
-[[fmp-auth]]
+[[fmp-financial-statements-stable]]
+[[fmp-key-metrics-ratios]]
+[[fmp-quotes-stable]]
+[[fmp-api]]
 
 ## Pagine collegate
 [[vi-05-analisi-10k-10q-buffett]]

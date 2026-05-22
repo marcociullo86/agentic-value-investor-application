@@ -32,7 +32,7 @@ Fonte dati: `GET /api/v3/key-metrics/{ticker}?limit=10` (ROIC, ROE) e `GET /api/
 - **Gross Margin > 40%**: indicatore di vantaggio competitivo durevole ([[economic-moat]]).
 - **Net Margin > 10%**: efficienza complessiva del business.
 
-Fonte dati: `GET /api/v3/income-statement/{ticker}?limit=10` per calcolo, oppure [[fmp-metrics-ratios]] (Financial Ratios TTM). [^src: raw/06_Documento_Funzionale_WebApp_Value_Investing.md §RF3: Il "Value Investing Rule Engine" (Logica di Business)]
+Fonte dati: `GET /api/v3/income-statement/{ticker}?limit=10` per calcolo, oppure [[fmp-key-metrics-ratios]] (Financial Ratios TTM). [^src: raw/06_Documento_Funzionale_WebApp_Value_Investing.md §RF3: Il "Value Investing Rule Engine" (Logica di Business)]
 
 #### Solidita' Finanziaria
 
@@ -76,15 +76,15 @@ Per ogni regola, il motore emette un segnale classificatorio: [^src: raw/06_Docu
 
 ## Relazione con FMP API
 
-Ogni regola del motore si mappa direttamente a endpoint FMP (vedi [[fmp-financial-statements]] e [[fmp-metrics-ratios]]). Il backend Kotlin applica caching 24h per ridurre il numero di chiamate API. [^src: raw/06_Documento_Funzionale_WebApp_Value_Investing.md §3. Flusso dei Dati (Data Flow)]
+Ogni regola del motore si mappa direttamente a endpoint FMP (vedi [[fmp-financial-statements-stable]] e [[fmp-key-metrics-ratios]]). Il backend Kotlin applica caching 24h per ridurre il numero di chiamate API. [^src: raw/06_Documento_Funzionale_WebApp_Value_Investing.md §3. Flusso dei Dati (Data Flow)]
 
 ## Concetti correlati
 [[margin-of-safety]]
 [[graham-number]]
 [[intrinsic-value]]
 [[economic-moat]]
-[[fmp-financial-statements]]
-[[fmp-metrics-ratios]]
+[[fmp-financial-statements-stable]]
+[[fmp-key-metrics-ratios]]
 
 ## Pagine collegate
 [[vi-06-webapp-value-investing-fsd]]

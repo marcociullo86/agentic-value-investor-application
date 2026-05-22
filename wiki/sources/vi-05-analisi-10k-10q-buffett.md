@@ -22,7 +22,7 @@ Raw che fornisce un runbook in 5 step per sezionare il 10-K/10-Q, e codifica le 
 | §2 Step procedurali (Item 1, 1A, 7, 8, Note) | [[sec-filings-analysis]], [[sec-10k-10q-analysis-playbook]] |
 | §3A Cerchio di Competenza | [[warren-buffett]] |
 | §3B Fossato Economico (4 forme) | [[economic-moat]] |
-| §3C Regole finanziarie quantitative | [[intrinsic-value]], [[fmp-metrics-ratios]] |
+| §3C Regole finanziarie quantitative | [[intrinsic-value]], [[fmp-key-metrics-ratios]] |
 | §3D Valutazione del Management | [[warren-buffett]] |
 | §4 Margine di Sicurezza (Owner Earnings, DCF) | [[margin-of-safety]], [[intrinsic-value]] |
 
@@ -32,8 +32,8 @@ Raw che fornisce un runbook in 5 step per sezionare il 10-K/10-Q, e codifica le 
 [[margin-of-safety]]
 [[intrinsic-value]]
 [[warren-buffett]]
-[[fmp-financial-statements]]
-[[fmp-metrics-ratios]]
+[[fmp-financial-statements-stable]]
+[[fmp-key-metrics-ratios]]
 
 ## Pagine collegate
 [[vi-03-analisi-fondamentale-valutazione]]

@@ -50,7 +50,7 @@ L'inflazione erode il potere d'acquisto dei rendimenti obbligazionari, rendendo 
 [[mr-market]]
 [[economic-moat]]
 [[graham-number]]
-[[fmp-metrics-ratios]]
+[[fmp-key-metrics-ratios]]
 
 ## Pagine collegate
 [[vi-01-principi-fondamentali]]

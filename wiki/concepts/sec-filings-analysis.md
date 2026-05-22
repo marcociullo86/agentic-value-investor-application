@@ -41,13 +41,13 @@ L'analisi segue una sequenza precisa che va dall'operativo al finanziario: [^src
 
 ### Dati FMP per supportare l'analisi SEC
 
-I tre rendiconti del 10-K/10-Q sono accessibili programmaticamente tramite [[fmp-financial-statements]] (Income Statement, Balance Sheet, Cash Flow Statement). Le metriche calcolate (ROE, ROIC, margini, ratios) sono disponibili via [[fmp-metrics-ratios]].
+I tre rendiconti del 10-K/10-Q sono accessibili programmaticamente tramite [[fmp-financial-statements-stable]] (Income Statement, Balance Sheet, Cash Flow Statement). Le metriche calcolate (ROE, ROIC, margini, ratios) sono disponibili via [[fmp-key-metrics-ratios]].
 
 ## Concetti correlati
 [[intrinsic-value]]
 [[economic-moat]]
-[[fmp-financial-statements]]
-[[fmp-metrics-ratios]]
+[[fmp-financial-statements-stable]]
+[[fmp-key-metrics-ratios]]
 
 ## Pagine collegate
 [[vi-05-analisi-10k-10q-buffett]]

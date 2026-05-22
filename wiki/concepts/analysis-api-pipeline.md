@@ -96,7 +96,7 @@ Verifica coerenza L5 su `master`: `AnalyzeTickerService` orchestra ancora 7 `Rul
 [[graham-number]]
 [[intrinsic-value]]
 [[openapi-contract-check]]
-[[fmp-financial-statements]]
+[[fmp-financial-statements-stable]]
 
 ## Pagine collegate
 

@@ -36,13 +36,13 @@ La presenza di un moat si verifica con metriche storiche (almeno 5-10 anni): [^s
 - **ROIC > 12-15%**: vera redditività considerando anche il debito.
 - **CapEx basso** (< 25-30% utile netto): il business non richiede investimenti massicci per mantenere la propria posizione.
 
-Questi dati sono recuperabili tramite [[fmp-metrics-ratios]] (Financial Ratios, Key Metrics) e [[fmp-financial-statements]] (Income Statement per i margini).
+Questi dati sono recuperabili tramite [[fmp-key-metrics-ratios]] (Financial Ratios, Key Metrics) e [[fmp-financial-statements-stable]] (Income Statement per i margini).
 
 ## Concetti correlati
 [[margin-of-safety]]
 [[intrinsic-value]]
-[[fmp-metrics-ratios]]
-[[fmp-financial-statements]]
+[[fmp-key-metrics-ratios]]
+[[fmp-financial-statements-stable]]
 
 ## Pagine collegate
 [[vi-04-gestione-rischio-psicologia]]

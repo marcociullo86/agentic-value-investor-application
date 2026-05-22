@@ -1,0 +1,83 @@
+Empower Your AI Agents with Institutional-Grade Financial Data
+We are excited to announce that Financial Modeling Prep (FMP) now supports the Model Context Protocol (MCP). This new integration allows you to connect FMP's 70,000+ stock data points directly into AI agents (like Claude, Cursor, or custom bots) without writing a single line of API wrapper code.
+
+What is the Model Context Protocol (MCP)?
+Think of MCP as a "USB-C port" for Artificial Intelligence.
+
+Before MCP, if you wanted an AI to access a specific dataset (like your calendar, a database, or stock prices), you had to write custom code to "glue" them together. This created a messy web of unique integrations for every new tool.
+
+MCP changes that. It is an open standard (introduced by Anthropic) that provides a universal way for AI applications ("Clients") to connect to external data sources ("Servers").
+
+Standardized: Once a data source speaks "MCP," any AI agent can instantly understand how to use it.
+Discoverable: The AI automatically learns what tools are available (e.g., "Get Stock Price," "Get Balance Sheet") without you needing to paste API documentation into the chat.
+Why is This Valuable?
+For developers and financial analysts, MCP solves three critical problems:
+
+Zero "Glue Code": You don't need to write Python scripts to fetch data, parse JSON, and feed it to the LLM. The MCP server handles the data fetching automatically.
+Smarter Agents: Instead of hallucinating financial data, your AI agent has a direct, real-time line to FMP's database. It can "call" the right tool exactly when it needs to answer a question.
+Token Efficiency: You no longer need to paste massive API documentation into the prompt to teach the AI how to use FMP. The protocol handles the tool definitions efficiently, saving your context window for actual analysis.
+Introducing the FMP MCP Server
+Our new MCP Server wraps all of our traditional REST API endpoints into ready-to-use AI tools.
+
+When you connect your AI agent to FMP's MCP server:
+
+Instant Tool Access: The AI instantly gains the ability to "pull" real-time prices, historical statements, and technical indicators.
+Seamless Integration: Each request made by the AI simply counts toward your existing API limits—no new accounts or complex billing required.
+Context-Aware: The AI knows exactly which parameters are required (e.g., "Ticker," "Date," "Period") because the MCP server provides strict definitions.
+Step-by-Step Connection Guide
+Prerequisites
+
+An active FMP API Key (Get one here).
+An MCP-compatible client (e.g., Claude Desktop, Cursor, or a custom script).
+The Connection URL
+
+This is the "magic link" you will need for all integrations:
+
+https://financialmodelingprep.com/mcp?apikey=oUdvSzgNGs7vakHDT3ykjybKKQpqWzlA
+
+A. How to Connect to Claude (Online and Desktop)
+Open Settings and select the Connectors section.
+Select Add custom connector and paste the FMP Connection URL into the "Remote MCP Server URL" field. Enter a name of your choice in the "Name" field and select Add.
+Start a new Claude chat, and FMP's tools will be readily available. You can simply ask: "Compare the P/E ratio of Apple and Microsoft over the last 5 years."
+B. How to Connect to Cloudflare Workers AI
+Navigate to the Cloudflare Workers AI Playground.
+Locate the MCP Servers section on the left sidebar.
+Paste the FMP Connection URL (from above) into the "Server URL" field.
+Click Add.
+The available FMP tools will appear in the list. You can now prompt the AI: "Use the FMP tool to find the latest earnings for NVDA."
+C. How to Connect via Python
+If you are building a custom agent using Python, you can use standard MCP libraries. Here is a simple example using FastMCP:
+
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+import asyncio
+from fastmcp import Client
+
+
+async def main():
+    client = Client("https://financialmodelingprep.com/mcp?apikey=FMP_API_KEY")
+
+    async with client:
+        print(await client.list_tools())
+        # [Tool(name="quote", description="...", inputSchema={...}), …]
+        print(await client.call_tool("quote", {"symbol": "AAPL"}))
+        # CallToolResult(..., structured_content={'data': [{'symbol': 'AAPL', 'name': 'Apple Inc.', 'price': 281.37, …}]})
+
+asyncio.run(main())
+
+Use Cases: What Can You Build?
+The "Junior Analyst" Chatbot: A standardized chat interface where portfolio managers can ask natural language questions ("Show me the debt-to-equity trend for Tesla vs. Ford") and get accurate, data-backed charts and answers.
+Automated Due Diligence: An agent that autonomously wakes up when a stock drops 5%, pulls the latest news and SEC filings via MCP, summarizes the cause, and emails you a report.
+Live Investment Research: Connect FMP to an IDE like Cursor to get live financial context right inside your code editor while building fintech apps.

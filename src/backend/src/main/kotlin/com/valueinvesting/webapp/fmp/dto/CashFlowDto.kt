@@ -1,19 +1,22 @@
 package com.valueinvesting.webapp.fmp.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
 
 // FMP Cash Flow Statement DTO — nullable-aware per US-004 AC.
+// Migrato a `/stable` API (TSK-050): @JsonProperty mappa `filingDate`/`fiscalYear`
+// dell'API stable sui nomi Kotlin storici per evitare rinomi downstream.
 // [^src: design_&_architecture/decisions/ADR-004-fmp-integration.md §Adapter pattern]
-// [^src: wiki/concepts/fmp-financial-statements.md §Cash Flow]
+// [^src: wiki/concepts/fmp-financial-statements-stable.md]
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class CashFlowDto(
     val date: String? = null,
     val symbol: String? = null,
     val reportedCurrency: String? = null,
     val cik: String? = null,
-    val fillingDate: String? = null,
+    @JsonProperty("filingDate") val fillingDate: String? = null,
     val acceptedDate: String? = null,
-    val calendarYear: String? = null,
+    @JsonProperty("fiscalYear") val calendarYear: String? = null,
     val period: String? = null,
     val netIncome: Double? = null,
     val depreciationAndAmortization: Double? = null,

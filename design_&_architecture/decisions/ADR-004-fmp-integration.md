@@ -69,7 +69,15 @@ US-006 AC "eventi di rate limit risultano tracciati in canale di osservabilita'"
 
 ### 7. Endpoint base URL
 
-Configurabile via property `fmp.base-url` (default `https://financialmodelingprep.com/api/v3`). Il gap `fmp-endpoint-base-urls` resta aperto: la configurazione e' parametrica, quindi correggibile senza rebuild.
+Configurabile via property `fmp.base-url` (default `https://financialmodelingprep.com/stable`).
+
+**Migrazione 2026-05-22 — v3 → stable** [^src: wiki/syntheses/fmp-api-overview.md §Migration table v3→stable]:
+
+FMP ha dismesso gli endpoint v3 il 2025-08-31; la base URL passa da `https://financialmodelingprep.com/api/v3` (deprecata) a `https://financialmodelingprep.com/stable`. La nuova API mantiene gli stessi nomi di endpoint critici ma cambia la convenzione di passaggio del ticker da path-variable a query parameter (`/profile/{ticker}` → `/profile?symbol={ticker}`) e rinomina alcuni endpoint: `/search` → `/search-symbol` (+ nuovo `/search-name`), `/stock-screener` → `/company-screener`. Il dettaglio completo dei 263 endpoint disponibili è in [[fmp-api]] e nelle 13 concept page per sezione (Company Search, Company Information, Financial Statements, Key Metrics, Quotes, Stock Lists, Executives, News, Market Performance, Commodities, Cryptocurrency, Forex, ETFs).
+
+**Invariante**: la sezione §1 (Adapter interface) e le sezioni §2-§6 (cache, resilienza, fallback, observability, API key) restano valide senza modifiche. Cambia solo l'implementazione di `FmpAdapterRestClient` (paths + parametri) e la shape dei DTO se la nuova doc rivela campi rinominati. Tracciamento del cambio nel TSK dedicato sotto EP-002.
+
+Gap `fmp-endpoint-base-urls` chiuso da questa migrazione; gap residui aperti su rate limiting e formato errori (`fmp-stable-rate-limiting`, `fmp-stable-error-codes` — vedi `wiki/gaps.md`).
 
 ## Conseguenze
 
@@ -80,7 +88,8 @@ Configurabile via property `fmp.base-url` (default `https://financialmodelingpre
 
 ## Pagine collegate
 
-- [[fmp-api]] / [[fmp-api-overview]] / [[fmp-api-quickstart]]
+- [[fmp-api]] / [[fmp-api-overview]] / [[fmp-api-quickstart]] (post-migrazione v3→stable)
+- [[value-investing-fmp-integration]] — mapping endpoint stable ↔ rule engine
 - [[webapp-architecture-vi]]
 - [overview.md](../overview.md)
 - [components/backend-components.md](../components/backend-components.md)

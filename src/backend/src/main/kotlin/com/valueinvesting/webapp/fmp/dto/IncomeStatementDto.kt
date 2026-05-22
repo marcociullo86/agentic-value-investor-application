@@ -1,20 +1,25 @@
 package com.valueinvesting.webapp.fmp.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
 
 // FMP Income Statement DTO — nullable-aware per "campi mancanti = assenti, mai 0".
+// Migrato a `/stable` API (TSK-050): `filingDate` rimpiazza il typo storico
+// `fillingDate`, `fiscalYear` rimpiazza `calendarYear`, `epsDiluted` rimpiazza
+// `epsdiluted`. I nomi Kotlin restano per back-compat downstream
+// (FinancialYearAligner, HistoricalSeriesService, rule engine) via @JsonProperty.
 // [^src: design_&_architecture/components/backend-components.md §Validazione null safety]
 // [^src: design_&_architecture/decisions/ADR-004-fmp-integration.md §Adapter pattern]
-// [^src: wiki/concepts/fmp-financial-statements.md §I Tre Rendiconti]
+// [^src: wiki/concepts/fmp-financial-statements-stable.md]
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class IncomeStatementDto(
     val date: String? = null,
     val symbol: String? = null,
     val reportedCurrency: String? = null,
     val cik: String? = null,
-    val fillingDate: String? = null,
+    @JsonProperty("filingDate") val fillingDate: String? = null,
     val acceptedDate: String? = null,
-    val calendarYear: String? = null,
+    @JsonProperty("fiscalYear") val calendarYear: String? = null,
     val period: String? = null,
     val revenue: Double? = null,
     val costOfRevenue: Double? = null,
@@ -41,7 +46,7 @@ data class IncomeStatementDto(
     val netIncome: Double? = null,
     val netIncomeRatio: Double? = null,
     val eps: Double? = null,
-    val epsdiluted: Double? = null,
+    @JsonProperty("epsDiluted") val epsdiluted: Double? = null,
     val weightedAverageShsOut: Double? = null,
     val weightedAverageShsOutDil: Double? = null,
 )

@@ -73,7 +73,7 @@ Aggiunta ai requisiti: checkbox/preset **"Exclude Hard-to-Predict Sectors"**. Se
 ## Concetti correlati
 [[webapp-architecture-vi]]
 [[value-investing-rule-engine]]
-[[fmp-search]]
+[[fmp-company-search]]
 [[warren-buffett]]
 [[economic-moat]]
 

@@ -8,8 +8,9 @@ release: R1.0
 ---
 # Sprint Plan — R1.0 MVP
 
-> Copertura: **EP-001 + EP-002 + EP-003 + EP-004 + EP-005 + EP-006** (20 US, 49 TSK).
+> Copertura: **EP-001 + EP-002 + EP-003 + EP-004 + EP-005 + EP-006** (21 US, 50 TSK).
 > Sprint 1–3 completati. Sprint 4 copre i delta ADR-010 (US-018/019) e ADR-011 (US-020).
+> Sprint 5 copre la manutenzione tecnica US-021 (migrazione FMP v3 → /stable, ADR-004 §7).
 > Generato da TPM secondo PATTERN.md §3 + §13. ADR-010 e ADR-011 accettati 2026-05-22.
 
 ---
@@ -124,25 +125,47 @@ GET override, feasibility 422, dcfMethodSource, Vary header, FE panel, OpenAPI).
 
 ---
 
-## Lookahead Sprint 5 (candidati, non generati)
+## Sprint 5 — Manutenzione FMP: migrazione adapter v3 → /stable (EP-002 US-021)
 
-Nessun TSK in backlog non coperto dopo Sprint 4 per R1.0. Se emergono US di R1.1
-(EP-005 partial, compliance, SSO) → avviare `/dev` su ADR futuro.
+**Obiettivo:** Ripristinare la piena operatività delle chiamate FMP migrando
+`FmpAdapterRestClient` (+ DTO + fixture + test) dagli endpoint v3 dismessi
+(EOL 2025-08-31) alla nuova API `/stable`. Nessuna modifica all'interfaccia pubblica
+`FmpAdapter` né alla pipeline cache/resilienza.
+
+**Capacity indicativa:** 8h di lavoro agente.
+
+| TSK | Titolo | Layer | Consumer | Estimate | Depends on | Status |
+|-----|--------|-------|----------|----------|------------|--------|
+| TSK-050 | BE — Migrazione FmpAdapterRestClient + DTO + fixture da v3 a /stable | be | agent | L | TSK-009 | todo |
+
+**Milestone Sprint 5:**
+- `GET /api/search?query=TTD` → risultato non vuoto con "The Trade Desk Inc.".
+- `GET /api/screener?marketCap=LARGE,MEGA` → pagina risultati senza 503.
+- `GET /api/analysis/AAPL` → dati financials reali senza 403/503.
+- `./gradlew test` verde completo.
+- Container `vi-app` healthy dopo rebuild; smoke test end-to-end ok.
+- Gap `fmp-stable-adapter-migration` marcabile come risolto da wiki-keeper.
 
 ---
 
-## Riepilogo TSK per layer (R1.0 completo, Sprint 1–4)
+## Lookahead Sprint 6 (candidati, non generati)
 
-| Layer | TSK Sprint 1–3 (done) | TSK Sprint 4 (todo) | Totale |
-|-------|-----------------------|---------------------|--------|
-| infra | 2 | 0 | 2 |
-| db | 6 | 1 (TSK-040) | 7 |
-| be | 17 | 5 (TSK-039/041/044/045/046/049) | 23 |
-| fe | 11 | 2 (TSK-043/048) | 13 |
-| qa | 5 | 2 (TSK-042/047) | 7 |
-| **Totale** | **38** | **11** | **49** |
+Dopo TSK-050 nessun altro TSK in backlog aperto per R1.0. Se emergono US di R1.1
+(EP-005 partial, compliance, SSO) → avviare `/dev` su ADR futuro. Gap non bloccanti
+residui: `fmp-stable-rate-limiting`, `fmp-stable-error-codes`, `fmp-stable-analyst-estimates`.
 
-> Nota: TSK-049 (OpenAPI, layer be) incluso nel conteggio be Sprint 4 → totale be Sprint 4 = 6 (TSK-039/041/044/045/046/049).
+---
+
+## Riepilogo TSK per layer (R1.0 completo, Sprint 1–5)
+
+| Layer | TSK Sprint 1–3 (done) | TSK Sprint 4 (todo) | TSK Sprint 5 (todo) | Totale |
+|-------|-----------------------|---------------------|---------------------|--------|
+| infra | 2 | 0 | 0 | 2 |
+| db | 6 | 1 (TSK-040) | 0 | 7 |
+| be | 17 | 6 (TSK-039/041/044/045/046/049) | 1 (TSK-050) | 24 |
+| fe | 11 | 2 (TSK-043/048) | 0 | 13 |
+| qa | 5 | 2 (TSK-042/047) | 0 | 7 |
+| **Totale** | **38** | **11** | **1** | **50** |
 
 ---
 
@@ -156,4 +179,10 @@ TSK-018 (done) ──→ TSK-045 (be) ──→ TSK-047 (qa)
                                   └──→ TSK-049 (be)
 TSK-044 + TSK-046 + TSK-034 (done) ──→ TSK-048 (fe)
 TSK-034 (done) + TSK-041 ──→ TSK-043 (fe)
+```
+
+## Dipendenze critiche Sprint 5
+
+```
+TSK-009 (done) ──→ TSK-050 (be) [standalone, nessun blocco da Sprint 4]
 ```

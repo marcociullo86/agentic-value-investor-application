@@ -57,6 +57,8 @@ utente mostrerà lista vuota senza errori. Nessun impatto su funzionalità core.
 **Sospetta fonte:** documentazione ufficiale FMP (da aggiungere come raw)
 **Impatto:** Il runbook fmp-api-quickstart non puo' documentare i limiti di frequenza; integrazioni produzione potrebbero andare in throttling senza avviso.
 
+**Risolto parzialmente:** 2026-05-22 — La nuova documentazione stable (`raw/fmp_docs.md` + `raw/fmp_docs.json`, 263 endpoint) non documenta i rate limit in modo esplicito. Il gap residuo e' rinominato `fmp-stable-rate-limiting` (aperto sotto). La gestione 429 e' gia' implementata tramite Resilience4j RateLimiter + `FmpEventLogger.log429RateLimited` (TSK-011).
+
 ---
 
 ## 2026-05-20 10:00 — fmp-endpoint-base-urls
@@ -66,6 +68,8 @@ utente mostrerà lista vuota senza errori. Nessun impatto su funzionalità core.
 **Sospetta fonte:** documentazione ufficiale FMP (da aggiungere come raw)
 **Impatto:** Il runbook fmp-api-quickstart contiene URL non verificati; i developer potrebbero usare path errati.
 
+**Risolto:** 2026-05-22 — `raw/fmp_docs.md` + `raw/fmp_docs.json` documentano tutti i 263 endpoint stable con `endpoint_url` verificati (base URL `https://financialmodelingprep.com/stable/`). Il runbook [[fmp-api-quickstart]] e l'entity [[fmp-api]] citano gli URL esatti da questi raw.
+
 ---
 
 ## 2026-05-20 10:00 — fmp-error-codes
@@ -74,6 +78,8 @@ utente mostrerà lista vuota senza errori. Nessun impatto su funzionalità core.
 **Gap:** Nessun codice di errore HTTP o formato di risposta di errore documentato nei raw.
 **Sospetta fonte:** documentazione ufficiale FMP (da aggiungere come raw)
 **Impatto:** Gestione degli errori nelle integrazioni non puo' essere documentata nel wiki.
+
+**Risolto parzialmente:** 2026-05-22 — La nuova doc stable non documenta esplicitamente i codici di errore. Comportamento osservato e documentato nel runbook [[fmp-api-quickstart]] (Step 5): 200 con `[]` per ticker non trovato, 429 per rate limit, 5xx per errori server, 401 per API key invalida. Nessun formato JSON di errore specificato nella doc ufficiale. Gap residuo su formato strutturato degli errori: to-be-rechecked-against-new-docs (nessuna nuova informazione nei raw stable).
 
 ---
 
@@ -168,3 +174,32 @@ ADR-007 §Error format dichiara RFC 9457 §3.2 (extensions al top-level). Quattr
 **Gap:** `src/frontend/next.config.js` impone `output: 'export'` (statico), che richiede `generateStaticParams()` su tutte le route dinamiche. `app/analysis/[ticker]/page.tsx` adesso espone un set hardcoded di 8 ticker (AAPL, MSFT, GOOGL, AMZN, META, NVDA, TSLA, BRK.B) — copre l'E2E (AAPL) e i piu comuni demo ticker ma non e una soluzione di produzione: visitare `/analysis/{ticker}` per qualunque altro simbolo restituisce 404. Il moat-checklist (`app/moat/page.tsx`) ha gia evitato il problema usando query param (`/moat?ticker=AAPL`).
 **Sospetta fonte:** decisione architetturale (lead-architect) — alternative: (a) feed di build-time dal database stocks (richiede prerender step), (b) refactor /analysis/[ticker] -> /analysis?ticker=... (uniforma con /moat), (c) dropping `output: 'export'` per un runtime SSR (cambia deployment ADR-009).
 **Impatto:** Limita il deployment statico a una whitelist di ticker. Track A puo perfezionare il modello in Sprint successivo. Bloccante per MVP: no (la lista copre i ticker piu rilevanti).
+
+---
+
+## 2026-05-22 10:00 — fmp-stable-rate-limiting
+
+**Origine:** wiki-keeper @ ingest fmp_docs.md + fmp_docs.json (migrazione stable)
+**Gap:** La documentazione FMP stable (`raw/fmp_docs.md`, `raw/fmp_docs.json`, 263 endpoint) non specifica i limiti di frequenza: richieste/minuto per piano, quota giornaliera, comportamento esatto dell'HTTP 429. Il gap `fmp-rate-limiting` del 2026-05-20 (basato su v3) e' stato trasferito su stable: le nuove fonti non lo risolvono.
+**Sospetta fonte:** sezione "Pricing" o "Cycle Times" del sito FMP (non inclusa nei raw estratti) — da aggiungere come raw dedicato se necessario per dimensionare il RateLimiterRegistry.
+**Impatto:** Il `FmpResilienceConfig` usa 30 richieste/min come configurazione conservativa (TSK-011). Se il piano FMP effettivo ha limiti diversi, il RateLimiterRegistry deve essere aggiornato. La gestione HTTP 429 e' gia' implementata (`log429RateLimited`, Circuit Breaker). Bloccante: no per MVP.
+
+---
+
+## 2026-05-22 10:00 — fmp-stable-analyst-estimates
+
+**Origine:** wiki-keeper @ ingest fmp_docs.md + fmp_docs.json (migrazione stable)
+**Gap:** La vecchia sezione FMP v3 "Estimates" includeva stime degli analisti (consensus EPS, revenue estimates, price target EPS forward). Nella nuova documentazione stable la sezione "News & Media" copre solo news/press release. Non e' chiaro se le stime analisti siano presenti in un'altra sezione stable non estratta nei raw o se siano state rimosse dall'API stable.
+**Sospetta fonte:** documentazione FMP stable sezione "Analyst Estimates" / "Earnings Calendar" (potenzialmente presenti nel sito ma non nei raw estratti).
+**Impatto:** Il rule engine MVP non usa le stime analisti (focus su dati storici oggettivi). Se future feature richiedono consensus estimates o price target, questo gap dovra' essere risolto prima dell'implementazione. Bloccante: no per MVP.
+
+---
+
+## 2026-05-22 10:00 — fmp-stable-adapter-migration
+
+**Origine:** wiki-keeper @ ingest fmp_docs.md + fmp_docs.json (migrazione stable)
+**Gap:** La documentazione wiki descrive la migrazione necessaria da v3 a stable per `FmpAdapterRestClient` (path URL, parametri, DTO). Nessun TSK e' stato ancora creato per eseguire questa migrazione nel codice. L'adapter attuale (TSK-009) usa ancora path v3.
+**Sospetta fonte:** be-dev — richiede un TSK dedicato "Migrate FmpAdapterRestClient to /stable endpoints".
+**Impatto:** Finche' l'adapter non e' migrato, il backend chiama endpoint v3 dismessi (EOL 2025-08-31) — se FMP mantiene temporaneamente v3 attiva, funziona; se v3 restituisce errori, il sistema non funziona in produzione. La wiki documenta i path corretti in [[fmp-api-quickstart]] e [[fmp-api-overview]]. Bloccante: si, per deployment post-2025-08-31. TSK da aprire urgente.
+
+**Aggiornamento 2026-05-22 — tpm @ generazione TSK-050:** TSK-050 creato sotto EP-002/US-021-manutenzione-fmp-stable (Sprint 5). Il gap e' ora tracciato come `todo` in kanban. Chiusura formale riservata a wiki-keeper dopo completamento TSK-050.

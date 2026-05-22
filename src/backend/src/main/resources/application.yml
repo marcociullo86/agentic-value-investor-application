@@ -107,7 +107,7 @@ app:
     # legacy: non più usato dopo ADR-010, lasciato solo per back-compat config.
     refresh-ttl-days: 30
   fmp:
-    base-url: ${FMP_BASE_URL:https://financialmodelingprep.com/api/v3}
+    base-url: ${FMP_BASE_URL:https://financialmodelingprep.com/stable}
     api-key: ${FMP_API_KEY:}
     mock: false
 

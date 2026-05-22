@@ -36,7 +36,7 @@ data class AppProperties(
 
     // FMP integration parameters [^src: design_&_architecture/decisions/ADR-004-fmp-integration.md]
     data class Fmp(
-        val baseUrl: String = "https://financialmodelingprep.com/api/v3",
+        val baseUrl: String = "https://financialmodelingprep.com/stable",
         val apiKey: String = "",
         val mock: Boolean = false,
     )

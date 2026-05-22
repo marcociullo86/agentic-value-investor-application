@@ -71,8 +71,8 @@ Viene aggiunto un **flag nel database**, sovrascrivibile dall'utente/analista ne
 [[value-investing-rule-engine]]
 [[intrinsic-value]]
 [[warren-buffett]]
-[[fmp-financial-statements]]
-[[fmp-metrics-ratios]]
+[[fmp-financial-statements-stable]]
+[[fmp-key-metrics-ratios]]
 
 ## Pagine collegate
 [[vi-06-webapp-value-investing-fsd]]

@@ -76,8 +76,8 @@ La specifica funzionale FSD raccomanda un'architettura a tre livelli distinti pe
 ## Concetti correlati
 [[value-investing-rule-engine]]
 [[fmp-api]]
-[[fmp-financial-statements]]
-[[fmp-metrics-ratios]]
+[[fmp-financial-statements-stable]]
+[[fmp-key-metrics-ratios]]
 
 ## Pagine collegate
 [[vi-06-webapp-value-investing-fsd]]

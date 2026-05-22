@@ -36,7 +36,7 @@ Un valore intrinseco elevato e stabile e' supportato da: [^src: raw/05_Analisi_1
 - **ROIC > 12-15%**: misura la vera redditività incluso il debito.
 - **Free Cash Flow** positivo e crescente (non assorbito da magazzino o crediti inesigibili).
 
-Questi dati si ottengono via [[fmp-metrics-ratios]] (DCF endpoint, Key Metrics TTM) e [[fmp-financial-statements]] (Cash Flow Statement).
+Questi dati si ottengono via [[fmp-key-metrics-ratios]] (DCF endpoint, Key Metrics TTM) e [[fmp-financial-statements-stable]] (Cash Flow Statement).
 
 ### Il DCF FMP come riferimento
 
@@ -46,8 +46,8 @@ L'endpoint DCF di FMP restituisce un valore intrinseco calcolato da FMP stesso, 
 [[margin-of-safety]]
 [[graham-number]]
 [[economic-moat]]
-[[fmp-metrics-ratios]]
-[[fmp-financial-statements]]
+[[fmp-key-metrics-ratios]]
+[[fmp-financial-statements-stable]]
 
 ## Pagine collegate
 [[vi-03-analisi-fondamentale-valutazione]]

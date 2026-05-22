@@ -50,7 +50,7 @@ Buffett stima gli Owner Earnings (Free Cash Flow modificato), li attualizza con 
 [[margin-of-safety]]
 [[intrinsic-value]]
 [[sec-filings-analysis]]
-[[fmp-metrics-ratios]]
+[[fmp-key-metrics-ratios]]
 
 ## Pagine collegate
 [[benjamin-graham]]

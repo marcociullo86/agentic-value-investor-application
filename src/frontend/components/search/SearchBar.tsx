@@ -1,7 +1,6 @@
 'use client';
 
 import { useId, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -61,8 +60,20 @@ type UiState =
   | { kind: 'not-found' }
   | { kind: 'error'; message: string };
 
+/**
+ * Hard navigation a `/analysis/{ticker}/`. Non usiamo `router.push` (soft nav
+ * Next App Router) perché con `output: 'export'` solo gli 8 ticker in
+ * `generateStaticParams` hanno l'RSC payload `.txt`; per i ticker arbitrari
+ * (es. TTD aggiunto dalla search) la soft nav riusa il React tree pre-renderizzato
+ * con il vecchio ticker (AAPL) senza aggiornare `useParams()`. Hard navigation
+ * forza una full page load: Spring fa forward al template, il bundle JS
+ * idrata sul nuovo URL e `AnalysisPageClient` legge il ticker corretto.
+ */
+function navigateToAnalysis(ticker: string): void {
+  window.location.assign(`/analysis/${encodeURIComponent(ticker)}/`);
+}
+
 export function SearchBar(): React.ReactElement {
-  const router = useRouter();
   const inputId = useId();
   const errorId = useId();
   const [uiState, setUiState] = useState<UiState>({ kind: 'idle' });
@@ -89,7 +100,7 @@ export function SearchBar(): React.ReactElement {
       const exact = items.find((it) => it.ticker.toUpperCase() === normalized);
       if (items.length === 1 || exact) {
         const target = exact ?? items[0]!;
-        router.push(`/analysis/${encodeURIComponent(target.ticker)}`);
+        navigateToAnalysis(target.ticker);
         return;
       }
       setUiState({ kind: 'multi', items });
@@ -186,9 +197,7 @@ export function SearchBar(): React.ReactElement {
             <li key={it.ticker}>
               <button
                 type="button"
-                onClick={() =>
-                  router.push(`/analysis/${encodeURIComponent(it.ticker)}`)
-                }
+                onClick={() => navigateToAnalysis(it.ticker)}
                 className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500 dark:hover:bg-slate-800 dark:focus-visible:bg-slate-800"
               >
                 <span className="font-mono font-semibold">{it.ticker}</span>

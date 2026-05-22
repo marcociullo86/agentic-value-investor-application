@@ -1,60 +1,133 @@
 ---
+id: fmp-api-overview
 type: synthesis
-sources: ["raw/FMP_Docs_1_Auth_and_Search.txt", "raw/FMP_Docs_2_Stock_Directory.txt", "raw/FMP_Docs_3_Company_Info.txt", "raw/FMP_Docs_4_Financial_Statements.txt", "raw/FMP_Docs_5_Metrics_and_Ratios.txt", "raw/FMP_Docs_6_Quotes_and_Prices.txt", "raw/FMP_Docs_7_Executives_and_Compensation.txt", "raw/FMP_Docs_8_News_and_Estimates.txt"]
+sources: ["raw/fmp_docs.md", "raw/fmp_docs.json"]
 status: draft
-created: 2026-05-20
-updated: 2026-05-20
-tags: [fmp, overview, synthesis, api-design]
+created: 2026-05-22
+tags: [fmp, stable, api, overview, synthesis]
 ---
-# Panoramica API FMP — Sintesi Cross-Source
+# FMP API Stable — Panoramica
 
-> FMP API e' una piattaforma REST per dati finanziari che copre 8 domini funzionali con autenticazione unificata via API key; ogni dominio ha endpoint indipendenti con parametri ortogonali. [^src: raw/FMP_Docs_1_Auth_and_Search.txt §Authorization]
+^src: raw/fmp_docs.md (intero documento, 263 endpoint) — ^src: raw/fmp_docs.json (versione strutturata)
 
-## Pattern Architetturale Comune
+Sintesi cross-source dell'API Financial Modeling Prep versione stable. La v3 e' stata dismessa il **2025-08-31**. Tutti gli endpoint usano `https://financialmodelingprep.com/stable/`.
 
-Tutti gli endpoint FMP condividono un pattern uniforme: [^src: raw/FMP_Docs_1_Auth_and_Search.txt §Authorization]
+---
 
-1. **Autenticazione**: API key obbligatoria (header o query param)
-2. **Parametro primario**: tipicamente `symbol`* (stringa) come identificatore principale
-3. **Paginazione**: `page` + `limit` per endpoint di lista
-4. **Periodo**: `period` + `limit` per serie storiche
-5. **Range temporale**: `from` + `to` per filtri su date
+## Dati chiave
 
-## Mappa dei Domini
+| Attributo | Valore |
+|-----------|--------|
+| Provider | Financial Modeling Prep (FMP) |
+| Base URL | `https://financialmodelingprep.com/stable/` |
+| Endpoint totali | **263** |
+| Autenticazione | API key (header `apikey:` o query `?apikey=`) |
+| Documentazione | https://site.financialmodelingprep.com/developer/docs |
+| v3 EOL | 2025-08-31 |
 
-| Dominio | Scope | Copertura |
-|---------|-------|-----------|
-| Auth & Search | Identificazione strumenti | Globale + USA |
-| Stock Directory | Catalogo completo | Globale + USA |
-| Company Info | Dati fondamentali aziendali | Globale + USA |
-| Financial Statements | Rendiconti contabili | Globale |
-| Metrics & Ratios | Analisi quantitativa | Globale |
-| Quotes & Prices | Prezzi real-time | Globale (azioni, crypto, forex, indici) |
-| Executives | Governance e compensi | Globale (profili) + USA (compensi) |
-| News & Estimates | Informativo e sentiment | Globale + USA (SEC) |
+---
 
-## Identificatori Supportati
+## Organizzazione per sezione
 
-FMP supporta quattro identificatori per i titoli azionari: ticker `symbol` (universale), `cik` (SEC/USA), `cusip` (Nord America), `isin` (standard ISO 6166 globale). [^src: raw/FMP_Docs_1_Auth_and_Search.txt §Company Search]
+| # | Sezione | Endpoint tipo | Relevanza progetto |
+|---|---------|---------------|-------------------|
+| 1 | **Company Search** | search-symbol, search-name, search-cik, search-cusip, search-isin | CRITICA (SearchService) |
+| 2 | **Company Information** | profile, company-screener, market-cap, stock-peers | CRITICA (MoS, Screener) |
+| 3 | **Financial Statements** | income-statement, balance-sheet, cash-flow, TTM | CRITICA (7 rules + DCF) |
+| 4 | **Key Metrics & Ratios** | key-metrics, ratios, financial-growth, DCF | CRITICA (ROE, ROIC, BVPS) |
+| 5 | **Stock Lists** | stock-list, etf-list, available-traded | MEDIA (DB seed) |
+| 6 | **Quotes** | quote, batch-quote, historical-price-full | MEDIA (HistoricalChart) |
+| 7 | **Executives & Insiders** | key-executives, insider-trading | BASSA (analisi qualitativa) |
+| 8 | **News & Media** | stock-news, fmp-articles, press-releases | BASSA (UI futura) |
+| 9 | **Market Performance** | sector-performance, biggest-gainers | BASSA (dashboard) |
+| 10 | **Commodities** | quote commodity, historical | OUT OF SCOPE MVP |
+| 11 | **Cryptocurrency** | crypto-list, crypto-quote | OUT OF SCOPE MVP |
+| 12 | **Forex** | forex-list, forex-quote | OUT OF SCOPE MVP |
+| 13 | **ETFs & Mutual Funds** | etf-info, etf-holdings | OUT OF SCOPE MVP |
 
-## TTM come Modalita' Trasversale
+---
 
-Gli endpoint TTM (Trailing Twelve Months) sono disponibili per Financial Statements, Key Metrics, Financial Ratios ed Enterprise Value, offrendo una vista normalizzata sulla stagionalita'. [^src: raw/FMP_Docs_4_Financial_Statements.txt §TTM Financial Statements]
+## Pattern di autenticazione
 
-## Gap identificati
+```
+GET https://financialmodelingprep.com/stable/income-statement?symbol=AAPL&period=annual&limit=10
+apikey: YOUR_API_KEY
+```
 
-Nessun endpoint di rate limiting o error code documentato nei raw disponibili. Per dettagli su limiti di frequenza e codici di errore HTTP, vedere `wiki/gaps.md`.
+Oppure inline: `...?symbol=AAPL&period=annual&limit=10&apikey=YOUR_API_KEY`
 
-## Concetti correlati
-[[fmp-auth]]
-[[fmp-search]]
-[[fmp-financial-statements]]
-[[fmp-metrics-ratios]]
-[[fmp-quotes]]
+---
 
-## Pagine collegate
-[[fmp-api]]
-[[fmp-api-quickstart]]
+## Convention dati critiche
 
-## Storie collegate
-<!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->
+1. **Ordine array**: newest-first. `response[0]` = dato piu' recente.
+2. **`capitalExpenditure`**: NEGATIVO (cash outflow FMP convention). Usare `abs()`.
+3. **`period` parameter**: `annual` o `quarter` (non `FY`/`Q` come in v3).
+4. **`netIncomePerShare` vs `eps`**: non equivalenti. Usare `income-statement.eps` per Graham Number.
+5. **Stable vs v3**: la stable rimuove duplicati e simboli rinominati.
+
+---
+
+## Endpoint critici per MVP (8 endpoint rule engine)
+
+| Priority | Endpoint | Path stable | Sezione |
+|----------|----------|-------------|---------|
+| P0 | Search symbol | `/stable/search-symbol` | Company Search |
+| P0 | Company profile | `/stable/profile` | Company Information |
+| P0 | Income statement | `/stable/income-statement` | Financial Statements |
+| P0 | Balance sheet | `/stable/balance-sheet-statement` | Financial Statements |
+| P0 | Cash flow | `/stable/cash-flow-statement` | Financial Statements |
+| P0 | Key metrics | `/stable/key-metrics` | Key Metrics & Ratios |
+| P1 | Company screener | `/stable/company-screener` | Company Information |
+| P1 | Historical prices | `/stable/historical-price-full` | Quotes |
+
+---
+
+## Migrazioni da v3 (path changes)
+
+| Endpoint | v3 (deprecato) | stable |
+|----------|----------------|--------|
+| Income statement | `/api/v3/income-statement/{symbol}` | `/stable/income-statement?symbol={symbol}` |
+| Balance sheet | `/api/v3/balance-sheet-statement/{symbol}` | `/stable/balance-sheet-statement?symbol={symbol}` |
+| Cash flow | `/api/v3/cash-flow-statement/{symbol}` | `/stable/cash-flow-statement?symbol={symbol}` |
+| Key metrics | `/api/v3/key-metrics/{symbol}` | `/stable/key-metrics?symbol={symbol}` |
+| Profile | `/api/v3/profile/{symbol}` | `/stable/profile?symbol={symbol}` |
+| Quote | `/api/v3/quote/{symbol}` | `/stable/quote?symbol={symbol}` |
+| Search | `/api/v3/search?query=` | `/stable/search-symbol?query=` |
+| Screener | `/api/v3/stock-screener` | `/stable/company-screener` |
+
+**Nota**: il path di query cambia da `/{symbol}` (path variable) a `?symbol={symbol}` (query parameter) per la maggior parte degli endpoint.
+
+---
+
+## Gap noti
+
+- Rate limiting e quote giornaliere non documentati: vedi gap `fmp-stable-rate-limiting` in [[wiki/gaps.md]].
+- Stime analisti (consensus EPS, price target): non trovate nella sezione "News & Media" stable; possibile assenza o sezione separata non documentata nei raw. Vedi gap `fmp-stable-analyst-estimates`.
+
+---
+
+## Pagine concept per sezione
+
+- [[fmp-company-search]] — Company Search
+- [[fmp-company-information]] — Company Information
+- [[fmp-financial-statements-stable]] — Financial Statements
+- [[fmp-key-metrics-ratios]] — Key Metrics & Ratios
+- [[fmp-stock-lists]] — Stock Lists
+- [[fmp-quotes-stable]] — Quotes
+- [[fmp-executives-insiders]] — Executives & Insiders
+- [[fmp-news-media]] — News & Media
+- [[fmp-market-performance]] — Market Performance
+- [[fmp-commodities]] — Commodities
+- [[fmp-cryptocurrency]] — Cryptocurrency
+- [[fmp-forex]] — Forex
+- [[fmp-etfs-funds]] — ETFs & Mutual Funds
+
+---
+
+## Cross-link
+
+- Entity: [[fmp-api]]
+- Source: [[fmp-docs]]
+- Integrazione: [[value-investing-fmp-integration]]
+- Runbook: [[fmp-api-quickstart]]

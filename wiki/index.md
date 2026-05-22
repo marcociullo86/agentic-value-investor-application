@@ -4,7 +4,7 @@ type: index
 title: Wiki Index
 status: draft
 created: 2026-05-20
-updated: 2026-05-21 (v2026-05-21 sync L5 post-contract-check)
+updated: 2026-05-22 (v2026-05-22 FMP stable migration — 21 pagine obsolete sostituite, 17 nuove pagine FMP stable)
 tags: [navigation]
 ---
 # Wiki Index — App Template Demo
@@ -30,7 +30,7 @@ tags: [navigation]
 
 ## Aree tematiche
 
-- **FMP API** — dominio tecnico: autenticazione, ricerca, dati finanziari, quotazioni, metriche via REST API.
+- **FMP API** — dominio tecnico: API stable (base URL `https://financialmodelingprep.com/stable/`), 263 endpoint, autenticazione, ricerca, dati finanziari, quotazioni, metriche. *(Migrazione da v3 completata 2026-05-22)*
 - **Value Investing** — dominio analitico: framework Graham/Buffett, valutazione fondamentale, analisi bilanci SEC.
 - **Product Spec** — specifica funzionale della WebApp di screening value investing: architettura, regole di business, calcolo valore intrinseco, UI.
 
@@ -38,20 +38,13 @@ tags: [navigation]
 
 ## Pagine
 
-### Sources (16)
+### Sources (9)
 
-#### FMP API (8)
+#### FMP API (1)
 
 | Pagina | Documento sorgente | Tag |
 |--------|--------------------|-----|
-| [[fmp-docs-1-auth-and-search]] | FMP_Docs_1_Auth_and_Search.txt | fmp, auth, search |
-| [[fmp-docs-2-stock-directory]] | FMP_Docs_2_Stock_Directory.txt | fmp, directory, symbols |
-| [[fmp-docs-3-company-info]] | FMP_Docs_3_Company_Info.txt | fmp, company, profile |
-| [[fmp-docs-4-financial-statements]] | FMP_Docs_4_Financial_Statements.txt | fmp, financial-statements |
-| [[fmp-docs-5-metrics-and-ratios]] | FMP_Docs_5_Metrics_and_Ratios.txt | fmp, metrics, ratios |
-| [[fmp-docs-6-quotes-and-prices]] | FMP_Docs_6_Quotes_and_Prices.txt | fmp, quotes, realtime |
-| [[fmp-docs-7-executives-and-compensation]] | FMP_Docs_7_Executives_and_Compensation.txt | fmp, executives, compensation |
-| [[fmp-docs-8-news-and-estimates]] | FMP_Docs_8_News_and_Estimates.txt | fmp, news, estimates |
+| [[fmp-docs]] | fmp_docs.md + fmp_docs.json (263 endpoint stable) | fmp, stable, api |
 
 #### Value Investing (5)
 
@@ -71,21 +64,25 @@ tags: [navigation]
 | [[vi-07-risoluzione-q002-q003]] | 07_Risoluzione_Q002_Q003.md | product-spec, frontend, spa, react, nextjs, screener, gics, q002, q003 |
 | [[vi-08-risoluzione-q001-owner-earnings]] | 08_Risoluzione_Q001_Owner_Earnings.md | product-spec, dcf, owner-earnings, buffett, capex, greenwald, q001 |
 
-### Concepts (19)
+### Concepts (22)
 
-#### FMP API (9)
+#### FMP API stable (13)
 
 | Pagina | Descrizione |
 |--------|-------------|
-| [[fmp-auth]] | Autenticazione via API key (header / query param) |
-| [[fmp-search]] | Ricerca titoli per simbolo, nome, CIK, CUSIP/ISIN, screener |
-| [[fmp-stock-directory]] | Catalogo simboli, CIK, ETF, tassonomie |
-| [[fmp-company-info]] | Profili aziendali, market cap, float, M&A |
-| [[fmp-financial-statements]] | Income, balance sheet, cash flow, TTM |
-| [[fmp-metrics-ratios]] | Key metrics, ratios, DCF, EV, Altman/Piotroski |
-| [[fmp-quotes]] | Quotazioni real-time, batch, premarket/aftermarket, crypto/forex |
-| [[fmp-executives]] | Dirigenti, compensi, benchmark retributivo |
-| [[fmp-news-estimates]] | Notizie, corporate action, analisti, SEC, ESG |
+| [[fmp-company-search]] | Ricerca titoli: search-symbol, search-name, CIK, CUSIP, ISIN (stable) |
+| [[fmp-company-information]] | Profili aziendali, market cap, screener parametrico (stable) |
+| [[fmp-financial-statements-stable]] | Income, balance sheet, cash flow, TTM — 263 endpoint (stable) |
+| [[fmp-key-metrics-ratios]] | ROE, ROIC, BVPS, ratios, DCF pre-calcolato (stable) |
+| [[fmp-stock-lists]] | Catalogo simboli, ETF list, available-traded (stable) |
+| [[fmp-quotes-stable]] | Quotazioni real-time, batch, storico OHLCV (stable) |
+| [[fmp-executives-insiders]] | Dirigenti, insider trading, compensi (stable) |
+| [[fmp-news-media]] | News, articoli FMP, press releases (stable) |
+| [[fmp-market-performance]] | Sector performance, gainers, losers (stable) |
+| [[fmp-commodities]] | Materie prime: oro, petrolio, argento (stable) |
+| [[fmp-cryptocurrency]] | Criptovalute: BTC, ETH (stable) |
+| [[fmp-forex]] | Tassi di cambio valutari (stable) |
+| [[fmp-etfs-funds]] | ETF e fondi comuni: info, holdings (stable) |
 
 #### Value Investing (8)
 
@@ -113,7 +110,7 @@ tags: [navigation]
 
 | Pagina | Descrizione |
 |--------|-------------|
-| [[fmp-api]] | Financial Modeling Prep — provider REST API dati finanziari |
+| [[fmp-api]] | Financial Modeling Prep — provider REST API stable (263 endpoint, base URL `/stable/`) |
 | [[benjamin-graham]] | Padre fondatore del value investing (Mr. Market, Margin of Safety, Graham Number) |
 | [[warren-buffett]] | Evoluisce Graham con moat, cerchio di competenza, Owner Earnings |
 
@@ -121,15 +118,16 @@ tags: [navigation]
 
 | Pagina | Descrizione |
 |--------|-------------|
-| [[fmp-api-overview]] | Panoramica architetturale cross-source dell'API FMP |
-| [[value-investing-fmp-integration]] | Mappa metrica value investing → endpoint FMP API (cross-domain) |
+| [[fmp-api-overview]] | Panoramica architetturale cross-source dell'API FMP stable (263 endpoint, 13 sezioni) |
+| [[value-investing-fmp-integration]] | Mappa metrica value investing → endpoint FMP stable; invariante ADR-004 |
 | [[webapp-value-investing-spec]] | Specifica cross-domain: requisiti funzionali → regole Rule Engine → endpoint FMP → architettura |
 
 ### Runbooks (4)
 
 | Pagina | Descrizione |
 |--------|-------------|
-| [[fmp-api-quickstart]] | Procedura di integrazione minima: auth, search, quote, statement |
+| [[fmp-api-quickstart]] | Guida operativa FMP stable: auth, search, profile, statements, key-metrics, screener |
 | [[sec-10k-10q-analysis-playbook]] | Playbook 7-step per analisi 10-K/10-Q con metodo Buffett e FMP API |
 | [[value-investing-rule-engine-runbook]] | Implementazione step-by-step del Rule Engine: acquisizione FMP, validazione regole, DCF, MoS |
 | [[runbook-openapi-contract-check]] | Troubleshooting contract-check: Boot 3.5, PatternParseException, MockMvc vs OpenAPIService |
+
