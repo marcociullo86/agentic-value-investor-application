@@ -62,7 +62,7 @@ describe('SearchBar', () => {
     await user.keyboard('{Enter}');
 
     await waitFor(() => {
-      expect(pushMock).toHaveBeenCalledWith('/analysis/?ticker=AAPL');
+      expect(pushMock).toHaveBeenCalledWith('/analysis?ticker=AAPL');
     });
   });
 

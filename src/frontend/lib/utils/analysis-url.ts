@@ -4,5 +4,5 @@
  */
 export function analysisUrl(ticker: string): string {
   const normalized = ticker.trim().toUpperCase();
-  return `/analysis/?ticker=${encodeURIComponent(normalized)}`;
+  return `/analysis?ticker=${encodeURIComponent(normalized)}`;
 }
