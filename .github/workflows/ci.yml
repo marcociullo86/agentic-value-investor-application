@@ -73,7 +73,7 @@ jobs:
           cache: npm
           cache-dependency-path: src/frontend/package.json
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm install --no-audit --no-fund --legacy-peer-deps
       - name: Run vitest
         # I test placeholder posati da TSK-030 sono in src/frontend/__tests__/utils.
         run: npm run test

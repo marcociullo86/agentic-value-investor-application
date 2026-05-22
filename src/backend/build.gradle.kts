@@ -103,6 +103,18 @@ tasks.withType<Test> {
         "contract.openapi.canonical",
         repoRoot.resolve("design_&_architecture/api/openapi.yaml").absolutePath,
     )
+    // Print the full assertion message + stack trace so CI logs show *why* a
+    // test failed (status mismatch, body diff, etc.), not just the line number.
+    testLogging {
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        events = setOf(
+            org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED,
+            org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_ERROR,
+        )
+        showCauses = true
+        showExceptions = true
+        showStackTraces = true
+    }
 }
 
 tasks.register<Test>("contractCheck") {
