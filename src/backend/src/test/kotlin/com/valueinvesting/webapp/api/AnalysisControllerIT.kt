@@ -164,14 +164,8 @@ class AnalysisControllerIT {
                 status { isNotFound() }
                 jsonPath("$.status") { value(404) }
                 jsonPath("$.title") { value("Ticker not found") }
-                // Spring 6.x ProblemDetail serializes extension fields under
-                // the nested `properties` key (not flattened per RFC 9457 §3.2).
-                // Tracked as gap `be-problemdetail-flatten`: tentative fixes via
-                // mixin / @JsonComponent / serializerByType in commits b385926,
-                // 873b9e6, e8a0880, 20f846b had no observable effect on the
-                // response body. Tests assert the actual shape until a working
-                // flatten path lands.
-                jsonPath("$.properties.ticker") { value("UNKNOWN") }
+                jsonPath("$.ticker") { value("UNKNOWN") }
+                jsonPath("$.properties") { doesNotExist() }
             }
     }
 

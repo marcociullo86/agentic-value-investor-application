@@ -130,9 +130,10 @@ class DcfOverrideContractTest {
             status { isUnprocessableEntity() }
             jsonPath("$.status") { value(422) }
             jsonPath("$.type") { value("https://api/errors/dcf-method-unfeasible") }
-            jsonPath("$.properties.reason") { value("PPE_RATIO_HISTORY_INSUFFICIENT") }
-            jsonPath("$.properties.availableYears") { exists() }
-            jsonPath("$.properties.requiredYears") { value(5) }
+            jsonPath("$.reason") { value("PPE_RATIO_HISTORY_INSUFFICIENT") }
+            jsonPath("$.availableYears") { exists() }
+            jsonPath("$.requiredYears") { value(5) }
+            jsonPath("$.properties") { doesNotExist() }
         }
     }
 

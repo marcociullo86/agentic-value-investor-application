@@ -106,3 +106,5 @@ Verifica coerenza L5 su `master`: `AnalyzeTickerService` orchestra ancora 7 `Rul
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->
+- EP-004 (R1.0 done): US-011…013, US-020 — pipeline analisi e override DCF
+- EP-007 (R1.1): US-021 — conformità formato errori API (RFC 9457 extensions top-level)

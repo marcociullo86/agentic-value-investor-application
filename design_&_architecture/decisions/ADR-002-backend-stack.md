@@ -67,9 +67,22 @@ com.valueinvesting.webapp
 - Build: Gradle Kotlin DSL (`build.gradle.kts`).
 - CI pipeline: build + test + Docker image (vedi [ADR-009](ADR-009-deployment-target.md)).
 
+## Appendice — Allineamento stack v2026 (US-025, 2026-05-22)
+
+| Componente | Versione documentata R1.0 | Stack canonico 2026 |
+|---|---|---|
+| Kotlin | 1.9 | **2.2.x** |
+| Spring Boot | 3.2+ | **3.5.x** |
+| JVM | Java 21 | **17+** (LTS; allineare CI/Dockerfile a Temurin 17 o 21 coerente con host) |
+| Resilience4j | (generico) | **2.2.x** + ordine `Request → CircuitBreaker → Retry` |
+| Errori HTTP | (implicito) | **RFC 9457** flatten — [ADR-012](ADR-012-problemdetail-rfc9457-flatten.md) |
+
+La sezione **Decisione** resta storico; i dev-agent implementano secondo `raw/tech_stack.md`.
+
 ## Pagine collegate
 
 - [[webapp-architecture-vi]]
 - [[value-investing-rule-engine-runbook]]
 - [overview.md](../overview.md)
 - [components/backend-components.md](../components/backend-components.md)
+- [ADR-012](ADR-012-problemdetail-rfc9457-flatten.md)

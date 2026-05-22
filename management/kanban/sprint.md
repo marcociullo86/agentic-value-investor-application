@@ -1,17 +1,18 @@
 <!-- generated, do not edit — rigenerato da tpm ad ogni run -->
 ---
 id: sprint
-title: Sprint Plan — R1.0 MVP
+title: Sprint Plan — R1.0 MVP + R1.1
 generated: 2026-05-22
 tpm: tpm
-release: R1.0
+release: R1.1
+r10_closed: 2026-05-22
 ---
-# Sprint Plan — R1.0 MVP
+# Sprint Plan
 
-> Copertura: **EP-001 + EP-002 + EP-003 + EP-004 + EP-005 + EP-006** (21 US, 50 TSK).
-> Sprint 1–3 completati. Sprint 4 copre i delta ADR-010 (US-018/019) e ADR-011 (US-020).
-> Sprint 5 copre la manutenzione tecnica US-021 (migrazione FMP v3 → /stable, ADR-004 §7).
-> Generato da TPM secondo PATTERN.md §3 + §13. ADR-010 e ADR-011 accettati 2026-05-22.
+> **R1.0 MVP chiuso:** Sprint 1–4 completati (49/49 TSK `done`, 20/20 US, 6/6 EP).
+> **R1.1 attivo:** Sprint 5 — 22 TSK nuovi (TSK-050…071); Sprint 6 lookahead — 1 TSK (TSK-071).
+> Epiche: EP-007, EP-008, EP-009 — US-021…030 `ready`. L4: ADR-012…016 `accepted`.
+> Ordine suggerito PM: **EP-007 ∥ EP-009 US-029 (TSK-068 human)** → **EP-008** → **EP-009 US-030**.
 
 ---
 
@@ -97,92 +98,103 @@ moat checklist → watchlist + auth.
 contract-test generic error, banner FE sessione scaduta) e implementare US-020 (ADR-011:
 GET override, feasibility 422, dcfMethodSource, Vary header, FE panel, OpenAPI).
 
-**Capacity indicativa:** 18h di lavoro agente.
+**Stato:** COMPLETATO (merge `sprint4/dcf-overrides` PR #2 + `sprint4/auth-consolidation` PR #3).
 
 | TSK | Titolo | Layer | Consumer | Estimate | Depends on | Status |
 |-----|--------|-------|----------|----------|------------|--------|
-| TSK-040 | DB V009: add first_issued_at to refresh_tokens | db | agent | XS | TSK-033 | todo |
-| TSK-039 | BE GlobalExceptionHandler: 409 email-already-registered | be | agent | S | TSK-033 | todo |
-| TSK-041 | BE AuthService: sliding refresh TTL 7d + cap 30d | be | agent | M | TSK-033, TSK-040 | todo |
-| TSK-044 | BE DcfOverrideController: GET /api/dcf-overrides/{ticker} | be | agent | S | TSK-018, TSK-033 | todo |
-| TSK-045 | BE DcfFeasibilityCheck + DcfMethodUnfeasibleException + 422 | be | agent | M | TSK-018 | todo |
-| TSK-046 | BE AnalyzeTickerService: auth-aware + dcfMethodSource + Vary | be | agent | M | TSK-018, TSK-033, TSK-044 | todo |
-| TSK-042 | QA Contract-test: generic-error login + 409 register OpenAPI | qa | agent | S | TSK-039, TSK-041 | todo |
-| TSK-047 | QA Contract-test: 4 path US-020 (USER_OVERRIDE, DEFAULT_POLICY x2, Vary, 422) | qa | agent | S | TSK-044, TSK-045, TSK-046 | todo |
-| TSK-049 | BE OpenAPI: GET dcf-overrides, 422, dcfMethodSource, Vary | be | agent | XS | TSK-044, TSK-045, TSK-046 | todo |
-| TSK-043 | FE useAuthStore: gestione 401 + banner sessione scaduta | fe | agent | S | TSK-034, TSK-041 | todo |
-| TSK-048 | FE DcfOverridePanel: badge source + form override + 422 inline | fe | agent | M | TSK-044, TSK-046, TSK-034 | todo |
-
-**Milestone Sprint 4:**
-- `POST /api/auth/register` email duplicata → `409 application/problem+json`.
-- `POST /api/auth/login` email inesistente e password errata → risposta `401` con `detail` identico (contract-test verde).
-- `POST /api/auth/refresh` → sliding 7d; cap 30d da `first_issued_at` → `401`.
-- `GET /api/dcf-overrides/{ticker}` → `200` con override o `404`.
-- `POST /api/dcf-overrides` con metodo non applicabile → `422` con `extensions.reason`.
-- `GET /api/analysis/{ticker}` → `dcfMethodSource` nel payload; header `Vary: Authorization`.
-- FE: badge "Default policy" / "Tuo override" visibile; banner "Sessione scaduta" su 401 non recuperabile.
-- OpenAPI spec allineata; contract-test green in CI.
+| TSK-040 | DB V009: add first_issued_at to refresh_tokens | db | agent | XS | TSK-033 | done |
+| TSK-039 | BE GlobalExceptionHandler: 409 email-already-registered | be | agent | S | TSK-033 | done |
+| TSK-041 | BE AuthService: sliding refresh TTL 7d + cap 30d | be | agent | M | TSK-033, TSK-040 | done |
+| TSK-044 | BE DcfOverrideController: GET /api/dcf-overrides/{ticker} | be | agent | S | TSK-018, TSK-033 | done |
+| TSK-045 | BE DcfFeasibilityCheck + DcfMethodUnfeasibleException + 422 | be | agent | M | TSK-018 | done |
+| TSK-046 | BE AnalyzeTickerService: auth-aware + dcfMethodSource + Vary | be | agent | M | TSK-018, TSK-033, TSK-044 | done |
+| TSK-042 | QA Contract-test: generic-error login + 409 register OpenAPI | qa | agent | S | TSK-039, TSK-041 | done |
+| TSK-047 | QA Contract-test: 4 path US-020 (USER_OVERRIDE, DEFAULT_POLICY x2, Vary, 422) | qa | agent | S | TSK-044, TSK-045, TSK-046 | done |
+| TSK-049 | BE OpenAPI: GET dcf-overrides, 422, dcfMethodSource, Vary | be | agent | XS | TSK-044, TSK-045, TSK-046 | done |
+| TSK-043 | FE useAuthStore: gestione 401 + banner sessione scaduta | fe | agent | S | TSK-034, TSK-041 | done |
+| TSK-048 | FE DcfOverridePanel: badge source + form override + 422 inline | fe | agent | M | TSK-044, TSK-046, TSK-034 | done |
 
 ---
 
-## Sprint 5 — Manutenzione FMP: migrazione adapter v3 → /stable (EP-002 US-021)
+## Sprint 5 — R1.1 Consolidamento produzione (EP-007, EP-008, EP-009)
 
-**Obiettivo:** Ripristinare la piena operatività delle chiamate FMP migrando
-`FmpAdapterRestClient` (+ DTO + fixture + test) dagli endpoint v3 dismessi
-(EOL 2025-08-31) alla nuova API `/stable`. Nessuna modifica all'interfaccia pubblica
-`FmpAdapter` né alla pipeline cache/resilienza.
+**Obiettivo:** Hardening contratti e routing FE, deploy prod Compose+nginx, backup/retention,
+checklist cutover, throttling FMP (default ADR-016); wiki FMP in parallelo (human).
 
-**Capacity indicativa:** 8h di lavoro agente.
+**Stato:** IN CORSO — **Wave 1 COMPLETATA** (14/14 TSK `done`); **TSK-068 done** (US-029 wiki); **Wave 2** 6 TSK `todo` (TSK-061…067).
 
-| TSK | Titolo | Layer | Consumer | Estimate | Depends on | Status |
-|-----|--------|-------|----------|----------|------------|--------|
-| TSK-050 | BE — Migrazione FmpAdapterRestClient + DTO + fixture da v3 a /stable | be | agent | L | TSK-009 | todo |
+**Wave 1 (parallelo, done):** TSK-050…060, TSK-064, TSK-069, TSK-070 — commit `1e15c20` + fix CI `7844c67`…`1882767`.
 
-**Milestone Sprint 5:**
-- `GET /api/search?query=TTD` → risultato non vuoto con "The Trade Desk Inc.".
-- `GET /api/screener?marketCap=LARGE,MEGA` → pagina risultati senza 503.
-- `GET /api/analysis/AAPL` → dati financials reali senza 403/503.
-- `./gradlew test` verde completo.
-- Container `vi-app` healthy dopo rebuild; smoke test end-to-end ok.
-- Gap `fmp-stable-adapter-migration` marcabile come risolto da wiki-keeper.
+**Wave 2 (deploy + wiki human):** TSK-061 → TSK-063 → TSK-065 → TSK-066 → TSK-067; TSK-068 ∥
 
----
+| TSK | Titolo | Layer | Consumer | Est. | Depends on | US | Status |
+|-----|--------|-------|----------|------|------------|-----|--------|
+| TSK-050 | BE FlatteningProblemDetailHttpMessageConverter | be | agent | S | — | US-021 | done |
+| TSK-051 | QA Assert ProblemDetail top-level (IT + contract) | qa | agent | S | TSK-050 | US-021 | done |
+| TSK-052 | BE OpenAPI ProblemDetail extension top-level | be | agent | XS | TSK-050 | US-021 | done |
+| TSK-053 | FE Bump swr peer-compatible React 19 | fe | agent | S | — | US-022 | done |
+| TSK-054 | Infra Rimuovi --legacy-peer-deps CI/Dockerfile | infra | agent | XS | TSK-053 | US-022 | done |
+| TSK-055 | FE Route /analysis?ticker= static export | fe | agent | S | — | US-023 | done |
+| TSK-056 | FE Link interni /analysis?ticker= | fe | agent | S | TSK-055 | US-023 | done |
+| TSK-057 | QA E2E ticker fuori whitelist demo | qa | agent | S | TSK-055, TSK-056 | US-023 | done |
+| TSK-058 | BE Property fmp.cache.profile-ttl-hours | be | agent | XS | — | US-024 | done |
+| TSK-059 | QA Test scadenza cache profilo TTL | qa | agent | S | TSK-058 | US-024 | done |
+| TSK-060 | QA Verifica ADR stack allineati (doc-only) | qa | agent | XS | — | US-025 | done |
+| TSK-061 | Infra docker-compose.prod.yml + nginx TLS | infra | agent | M | TSK-054 | US-026 | todo |
+| TSK-062 | Infra .env.prod.example variabili deploy | infra | agent | XS | TSK-061 | US-026 | todo |
+| TSK-063 | Infra Script backup pg_dump + retention 14d | infra | agent | S | TSK-061 | US-027 | todo |
+| TSK-064 | BE Scheduled purge fmp_api_event_log 90d | be | agent | S | — | US-027 | done |
+| TSK-065 | QA Drill restore PostgreSQL staging | qa | agent | S | TSK-063 | US-027 | todo |
+| TSK-066 | QA Playwright smoke cutover R1.1 staging | qa | agent | M | TSK-050, TSK-057, TSK-061 | US-028 | todo |
+| TSK-067 | QA Esecuzione checklist cutover registro | qa | agent | S | TSK-066, TSK-065, TSK-064 | US-028 | todo |
+| TSK-068 | Human Ingest wiki FMP rate/URL/errori | infra | human | M | — | US-029 | done |
+| TSK-069 | BE Env FMP_RATE_LIMIT_PER_MINUTE | be | agent | S | — | US-030 | done |
+| TSK-070 | QA WireMock 429 retry + event log | qa | agent | S | TSK-069 | US-030 | done |
 
-## Lookahead Sprint 6 (candidati, non generati)
+**Nota US-025:** L4 già allineato (appendici ADR-001/002/003). TSK-060 = verifica formale, **nessun dev L5** salvo drift.
 
-Dopo TSK-050 nessun altro TSK in backlog aperto per R1.0. Se emergono US di R1.1
-(EP-005 partial, compliance, SSO) → avviare `/dev` su ADR futuro. Gap non bloccanti
-residui: `fmp-stable-rate-limiting`, `fmp-stable-error-codes`, `fmp-stable-analyst-estimates`.
-
----
-
-## Riepilogo TSK per layer (R1.0 completo, Sprint 1–5)
-
-| Layer | TSK Sprint 1–3 (done) | TSK Sprint 4 (todo) | TSK Sprint 5 (todo) | Totale |
-|-------|-----------------------|---------------------|---------------------|--------|
-| infra | 2 | 0 | 0 | 2 |
-| db | 6 | 1 (TSK-040) | 0 | 7 |
-| be | 17 | 6 (TSK-039/041/044/045/046/049) | 1 (TSK-050) | 24 |
-| fe | 11 | 2 (TSK-043/048) | 0 | 13 |
-| qa | 5 | 2 (TSK-042/047) | 0 | 7 |
-| **Totale** | **38** | **11** | **1** | **50** |
+**Nota US-029:** TSK-068 `consumer: human` — wiki-keeper; `pending_clarification` su tre gap FMP. Non blocca TSK-069 (default 30/min ADR-016).
 
 ---
 
-## Dipendenze critiche Sprint 4
+## Lookahead Sprint 6 — R1.1 post-wiki FMP
 
-```
-TSK-033 (done) ──→ TSK-040 (db) ──→ TSK-041 (be) ──→ TSK-042 (qa)
-TSK-033 (done) ──→ TSK-039 (be) ──→ TSK-042 (qa)
-TSK-018 (done) ──→ TSK-044 (be) ──→ TSK-046 (be) ──→ TSK-047 (qa)
-TSK-018 (done) ──→ TSK-045 (be) ──→ TSK-047 (qa)
-                                  └──→ TSK-049 (be)
-TSK-044 + TSK-046 + TSK-034 (done) ──→ TSK-048 (fe)
-TSK-034 (done) + TSK-041 ──→ TSK-043 (fe)
-```
+| TSK | Titolo | Layer | Consumer | Est. | Depends on | Status |
+|-----|--------|-------|----------|------|------------|--------|
+| TSK-071 | BE Ricalibra rate limit da wiki post US-029 | be | agent | XS | TSK-068, TSK-069 | todo |
+| TSK-072 | BE Migrazione FmpAdapterRestClient + DTO + fixture da v3 a /stable (ex sprint5 TSK-050 rinumerato) | be | agent | L | TSK-009, TSK-068 | done |
+
+Eseguire TSK-071 solo dopo chiusura gap `fmp-rate-limiting` in wiki con citazione raw.
+TSK-072 (US-031) introdotto retroattivamente: codice gia' implementato nel branch sprint5/tsk-050-fmp-stable-migration (ora rinumerato US-031/TSK-072 per evitare collisione con il TSK-050 di master).
+
+---
+
+## Riepilogo TSK per layer
+
+| Release | Sprint | infra | db | be | fe | qa | Totale |
+|---------|--------|-------|-----|-----|-----|-----|--------|
+| R1.0 | 1–4 done | 2 | 7 | 23 | 13 | 7 | **49** |
+| R1.1 | 5 in corso | 5 | 0 | 5 | 3 | 8 | **21** (14 done, 7 todo) |
+| R1.1 | 6 lookahead | 0 | 0 | 1 | 0 | 0 | **1** |
+| | **Nuovi R1.1** | | | | | | **22** (TSK-050…071) |
+
+---
 
 ## Dipendenze critiche Sprint 5
 
 ```
-TSK-009 (done) ──→ TSK-050 (be) [standalone, nessun blocco da Sprint 4]
+Wave 1 (parallelo)
+  TSK-050 ──→ TSK-051, TSK-052
+  TSK-053 ──→ TSK-054 ──→ TSK-061 ──→ TSK-062, TSK-063 ──→ TSK-065
+  TSK-055 ──→ TSK-056 ──→ TSK-057
+  TSK-058 ──→ TSK-059
+  TSK-069 ──→ TSK-070
+  TSK-068 (human, ∥) ──→ TSK-071 (Sprint 6)
+  TSK-060 (doc verify, ∥)
+
+Cutover
+  TSK-050 + TSK-057 + TSK-061 ──→ TSK-066 ──→ TSK-067
+  TSK-064 + TSK-065 ──→ TSK-067
 ```
+
+**Prossimo `/dev` suggerito:** `TSK-061` (docker-compose.prod + nginx TLS). In parallelo human: `TSK-068` (wiki-keeper ingest FMP). Cutover: TSK-066 dopo deploy staging.

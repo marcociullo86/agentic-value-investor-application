@@ -2,6 +2,7 @@ package com.valueinvesting.webapp.api
 
 import com.valueinvesting.webapp.api.error.GlobalExceptionHandler
 import com.valueinvesting.webapp.api.error.ProblemDetailsMapper
+import com.valueinvesting.webapp.config.ProblemDetailMvcConfig
 import com.valueinvesting.webapp.api.model.ScreenerResultPage
 import com.valueinvesting.webapp.api.model.SearchResultItem
 import com.valueinvesting.webapp.service.ScreenerCriteria
@@ -27,7 +28,7 @@ import org.springframework.test.web.servlet.get
     ],
 )
 @AutoConfigureMockMvc(addFilters = false)
-@Import(GlobalExceptionHandler::class, ProblemDetailsMapper::class)
+@Import(GlobalExceptionHandler::class, ProblemDetailsMapper::class, ProblemDetailMvcConfig::class)
 @ActiveProfiles("test")
 class ScreenerControllerWebMvcTest {
 

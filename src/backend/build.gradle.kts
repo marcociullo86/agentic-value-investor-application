@@ -91,6 +91,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("org.testcontainers:junit-jupiter:${property("testcontainersVersion")}")
     testImplementation("org.testcontainers:postgresql:${property("testcontainersVersion")}")
+    testImplementation("org.wiremock:wiremock-standalone:3.10.0")
     testImplementation("org.assertj:assertj-core")
     testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

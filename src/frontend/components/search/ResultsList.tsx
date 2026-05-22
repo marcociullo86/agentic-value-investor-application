@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { AgGridReact } from 'ag-grid-react';
 import type {
   ColDef,
@@ -10,6 +11,7 @@ import type {
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { formatMarketCap } from '@/lib/utils/formatters';
+import { analysisUrl } from '@/lib/utils/analysis-url';
 
 /**
  * ResultsList — TSK-007 (US-003).
@@ -89,6 +91,7 @@ export function ResultsList({
   emptyMessage = DEFAULT_EMPTY_MESSAGE,
   dark = false,
 }: ResultsListProps): React.ReactElement {
+  const router = useRouter();
 
   // ColDefs memoizzate: Ag-Grid re-istanzia colonne se cambia il riferimento.
   const columnDefs = useMemo<ColDef<ResultsListItem>[]>(
@@ -147,9 +150,7 @@ export function ResultsList({
   function handleRowClicked(event: RowClickedEvent<ResultsListItem>): void {
     const row = event.data;
     if (row === undefined) return;
-    // Hard navigation: vedi commento in SearchBar.tsx — `output: 'export'`
-    // serve solo gli 8 ticker pre-renderizzati via soft nav.
-    window.location.assign(`/analysis/${encodeURIComponent(row.ticker)}/`);
+    router.push(analysisUrl(row.ticker));
   }
 
   // Loading state — skeleton placeholder

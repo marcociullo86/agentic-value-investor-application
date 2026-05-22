@@ -1,8 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { formatMarketCap } from '@/lib/utils/formatters';
 import type { WatchlistItem } from '@/lib/api/watchlist';
+import { analysisUrl } from '@/lib/utils/analysis-url';
 
 /**
  * Watchlist table (TSK-035). Columns: ticker, company, sector, market cap,
@@ -51,15 +53,13 @@ export function WatchlistTable({ items, onRemove, removingTicker }: Props): Reac
             data-testid={`watchlist-row-${item.ticker}`}
           >
             <td className="px-3 py-2 font-medium">
-              {/* Plain <a> (hard navigation): vedi commento in SearchBar.tsx —
-                  output:'export' richiede full page load per ticker arbitrari. */}
-              <a
-                href={`/analysis/${encodeURIComponent(item.ticker)}/`}
+              <Link
+                href={analysisUrl(item.ticker)}
                 className="text-blue-600 hover:underline"
                 data-testid={`watchlist-link-${item.ticker}`}
               >
                 {item.ticker}
-              </a>
+              </Link>
             </td>
             <td className="px-3 py-2 text-slate-700 dark:text-slate-300">
               {item.companyName ?? '—'}

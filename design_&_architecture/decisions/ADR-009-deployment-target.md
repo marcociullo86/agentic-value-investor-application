@@ -104,7 +104,19 @@ Operazioni VCS distruttive (force-push, rebase su branch condivisi) richiedono g
 - Build pipeline CI: Gradle task `gradle bootJar` + `npm run build && npm run export` + `docker build`.
 - Gap aperto a contorno: `arch-deployment-target` (cloud provider, sizing, backup policy) -> da risolvere prima di R1.0 cutover.
 
+## Appendice R1.1 — Target produzione (ADR-015)
+
+Estensione accettata per cutover R1.1 (non supersede questo ADR):
+
+- Topologia: VM + Docker Compose prod + nginx TLS — [ADR-015](ADR-015-deployment-target-r11.md).
+- FE routing: static export mantenuto; analisi su `/analysis?ticker=` — [ADR-013](ADR-013-fe-analysis-routing-static-export.md).
+- Runbook: [operations/deploy-runbook-r11.md](../operations/deploy-runbook-r11.md).
+
+Gap `arch-deployment-target`: modello runtime chiuso; scelta vendor cloud resta operativa.
+
 ## Pagine collegate
 
 - [overview.md](../overview.md)
+- [ADR-015](ADR-015-deployment-target-r11.md)
+- [operations/deploy-runbook-r11.md](../operations/deploy-runbook-r11.md)
 - `factory.config.yaml` (root del repo)

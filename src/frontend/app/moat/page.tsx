@@ -9,7 +9,7 @@ import { MoatChecklist } from '@/components/moat/MoatChecklist';
  * Standalone Moat checklist page (TSK-027) — reachable as `/moat?ticker=AAPL`.
  *
  * Design (frontend-components.md §Routing) places the Moat checklist
- * underneath the analysis dashboard at `/analysis/[ticker]`. That page is
+ * underneath the analysis dashboard at `/analysis?ticker=`. That page is
  * owned by Track A (TSK-021). To keep Track B independent and to honor the
  * `output: 'export'` constraint (no dynamic route segments without
  * `generateStaticParams`), the component is also reachable here via a query

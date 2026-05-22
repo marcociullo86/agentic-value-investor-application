@@ -3,6 +3,7 @@ package com.valueinvesting.webapp.fmp
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.valueinvesting.webapp.config.FmpCacheProperties
 import com.valueinvesting.webapp.fmp.dto.IncomeStatementDto
 import com.valueinvesting.webapp.fmp.dto.ProfileDto
 import com.valueinvesting.webapp.persistence.entity.FmpFinancialSnapshot
@@ -24,8 +25,8 @@ import java.time.ZoneOffset
 import java.util.Optional
 
 // Unit tests for FmpCacheService — the cache-aside layer with TTL 24h (financial)
-// and TTL 1h (profile).  Uses a virtualised `Clock.fixed` to make TTL boundary
-// behaviour deterministic (TSK-010 DoD).
+// and configurable profile TTL via `FmpCacheProperties` (default 1h, ADR-014).
+// Uses a virtualised `Clock.fixed` to make TTL boundary behaviour deterministic.
 //
 // What is exercised here:
 //   1. cache hit < 24h → no fetchFn call (DoD: "Seconda analisi entro 24h non
@@ -48,12 +49,16 @@ class FmpCacheServiceTest {
     private val now = Instant.parse("2026-05-21T10:00:00Z")
     private val fixedClock = Clock.fixed(now, ZoneOffset.UTC)
 
-    private fun newService(clock: Clock = fixedClock) = FmpCacheService(
+    private fun newService(
+        clock: Clock = fixedClock,
+        profileTtlHours: Long = 1,
+    ) = FmpCacheService(
         financialSnapshotRepository = financialRepo,
         profileSnapshotRepository = profileRepo,
         stockRepository = stockRepo,
         objectMapper = objectMapper,
         clock = clock,
+        fmpCacheProperties = FmpCacheProperties(profileTtlHours = profileTtlHours),
     )
 
     private val incomeTypeRef = object : TypeReference<List<IncomeStatementDto>>() {}
@@ -190,7 +195,7 @@ class FmpCacheServiceTest {
     }
 
     @Test
-    fun `getOrFetchProfile refetches when profile cache older than 1h`() {
+    fun `getOrFetchProfile refetches when profile cache older than default 1h TTL`() {
         val cachedAt = now.minus(Duration.ofMinutes(61))
         every { profileRepo.findFirstByTickerOrderByFetchedAtDesc("AAPL") } returns
             FmpProfileSnapshot(ticker = "AAPL", rawPayload = "{}", fetchedAt = cachedAt)
@@ -210,6 +215,88 @@ class FmpCacheServiceTest {
         assertThat(result.value.price).isEqualTo(175.0)
         assertThat(result.fetchedAt).isEqualTo(now)
         verify(exactly = 1) { profileRepo.save(any()) }
+    }
+
+    @Test
+    fun `getOrFetchProfile refetches when cache age exceeds configured profile TTL (ADR-014)`() {
+        val profileTtlHours = 2L
+        val ttl = Duration.ofHours(profileTtlHours)
+        val cachedAt = now.minus(ttl.plusMinutes(1))
+        every { profileRepo.findFirstByTickerOrderByFetchedAtDesc("AAPL") } returns
+            FmpProfileSnapshot(ticker = "AAPL", rawPayload = "{}", fetchedAt = cachedAt)
+        every { profileRepo.save(any()) } answers { firstArg() }
+        every { stockRepo.findById("AAPL") } returns Optional.empty()
+        every { stockRepo.save(any()) } answers { firstArg() }
+
+        val fresh = ProfileDto(symbol = "AAPL", price = 180.0, sector = "Tech")
+        var calls = 0
+        val service = newService(profileTtlHours = profileTtlHours)
+        val result = service.getOrFetchProfile("AAPL") {
+            calls++
+            fresh
+        }
+
+        assertThat(calls).isOne()
+        assertThat(result.value.price).isEqualTo(180.0)
+        assertThat(result.fetchedAt).isEqualTo(now)
+        verify(exactly = 1) { profileRepo.save(any()) }
+    }
+
+    @Test
+    fun `getOrFetchProfile returns cached when within configured profile TTL (ADR-014 override)`() {
+        val profileTtlHours = 2L
+        val ttl = Duration.ofHours(profileTtlHours)
+        val cachedAt = now.minus(ttl.minusMinutes(1))
+        val cachedProfile = ProfileDto(symbol = "AAPL", price = 150.0, sector = "Tech")
+        every { profileRepo.findFirstByTickerOrderByFetchedAtDesc("AAPL") } returns
+            FmpProfileSnapshot(
+                ticker = "AAPL",
+                rawPayload = objectMapper.writeValueAsString(cachedProfile),
+                fetchedAt = cachedAt,
+            )
+
+        var calls = 0
+        val service = newService(profileTtlHours = profileTtlHours)
+        val result = service.getOrFetchProfile("AAPL") {
+            calls++
+            error("fetchFn should NOT be invoked within configured 2h profile TTL")
+        }
+
+        assertThat(calls).isZero()
+        assertThat(result.value.price).isEqualTo(150.0)
+        assertThat(result.fetchedAt).isEqualTo(cachedAt)
+        verify(exactly = 0) { profileRepo.save(any()) }
+    }
+
+    @Test
+    fun `clock advanced past configured profile TTL boundary triggers refetch`() {
+        val profileTtlHours = 2L
+        val cachedAt = Instant.parse("2026-05-21T10:00:00Z")
+        val snapshot = FmpProfileSnapshot(
+            ticker = "AAPL",
+            rawPayload = objectMapper.writeValueAsString(ProfileDto(symbol = "AAPL", price = 100.0)),
+            fetchedAt = cachedAt,
+        )
+        every { profileRepo.findFirstByTickerOrderByFetchedAtDesc("AAPL") } returns snapshot
+        every { profileRepo.save(any()) } answers { firstArg() }
+        every { stockRepo.findById("AAPL") } returns Optional.empty()
+        every { stockRepo.save(any()) } answers { firstArg() }
+
+        val insideTtlClock = Clock.fixed(cachedAt.plus(Duration.ofHours(1).plusMinutes(59)), ZoneOffset.UTC)
+        var hitCalls = 0
+        newService(clock = insideTtlClock, profileTtlHours = profileTtlHours).getOrFetchProfile("AAPL") {
+            hitCalls++
+            ProfileDto(symbol = "AAPL", price = 100.0)
+        }
+        assertThat(hitCalls).isZero()
+
+        val outsideTtlClock = Clock.fixed(cachedAt.plus(Duration.ofHours(2).plusMinutes(1)), ZoneOffset.UTC)
+        var missCalls = 0
+        newService(clock = outsideTtlClock, profileTtlHours = profileTtlHours).getOrFetchProfile("AAPL") {
+            missCalls++
+            ProfileDto(symbol = "AAPL", price = 200.0)
+        }
+        assertThat(missCalls).isOne()
     }
 
     @Test

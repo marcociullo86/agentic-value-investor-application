@@ -2,6 +2,7 @@ package com.valueinvesting.webapp.api
 
 import com.valueinvesting.webapp.api.error.GlobalExceptionHandler
 import com.valueinvesting.webapp.api.error.ProblemDetailsMapper
+import com.valueinvesting.webapp.config.ProblemDetailMvcConfig
 import com.valueinvesting.webapp.api.model.SearchResultItem
 import com.valueinvesting.webapp.api.model.SearchResultList
 import com.valueinvesting.webapp.api.model.StockProfile
@@ -29,7 +30,7 @@ import java.time.Instant
 // [^src: management/kanban/EP-001-ricerca-e-screening/US-001-ricerca-ticker-simbolo/TSK-002.md §Test]
 @WebMvcTest(controllers = [SearchController::class])
 @AutoConfigureMockMvc(addFilters = false)
-@Import(GlobalExceptionHandler::class, ProblemDetailsMapper::class)
+@Import(GlobalExceptionHandler::class, ProblemDetailsMapper::class, ProblemDetailMvcConfig::class)
 @ActiveProfiles("test")
 class SearchControllerWebMvcTest {
 
@@ -183,6 +184,7 @@ class SearchControllerWebMvcTest {
             content { contentType("application/problem+json") }
             jsonPath("$.title") { value("Ticker not found") }
             jsonPath("$.ticker") { value("NONEXIST") }
+            jsonPath("$.properties") { doesNotExist() }
         }
     }
 

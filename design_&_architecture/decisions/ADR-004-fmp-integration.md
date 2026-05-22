@@ -86,6 +86,16 @@ Gap `fmp-endpoint-base-urls` chiuso da questa migrazione; gap residui aperti su 
 - US-006 (resilienza): coperta da Resilience4j + fallback su stale snapshot + event log.
 - Il Rule Engine (EP-003) e i moduli di valutazione (EP-004) consumano sempre i dati tramite `FmpCacheService`, mai chiamando direttamente FMP -> isolamento completo del provider esterno.
 
+## Appendice §2b — TTL profilo (ADR-014, US-024)
+
+Oltre al TTL **24h** su `fmp_financial_snapshot` (§2), la cache **profilo/prezzo** su `fmp_profile_snapshot` usa TTL **1 ora** — dettaglio in [ADR-014](ADR-014-fmp-profile-snapshot-ttl.md). Property: `fmp.cache.profile-ttl-hours` (default `1`).
+
+## Appendice §8 — Operazioni e throttling R1.1 (ADR-016, US-029/030)
+
+- Policy throttling e mapping errori HTTP: [ADR-016](ADR-016-fmp-operations-throttling.md).
+- Gap wiki `fmp-rate-limiting`, `fmp-endpoint-base-urls`, `fmp-error-codes`: restano aperti fino a ingest; valore **30 req/min** resta conservativo fino a numeri ufficiali citati in wiki.
+- Retention `fmp_api_event_log`: **90 giorni** — [operations/deploy-runbook-r11.md](../operations/deploy-runbook-r11.md).
+
 ## Pagine collegate
 
 - [[fmp-api]] / [[fmp-api-overview]] / [[fmp-api-quickstart]] (post-migrazione v3→stable)
@@ -94,3 +104,5 @@ Gap `fmp-endpoint-base-urls` chiuso da questa migrazione; gap residui aperti su 
 - [overview.md](../overview.md)
 - [components/backend-components.md](../components/backend-components.md)
 - [data/er-diagram.md](../data/er-diagram.md)
+- [ADR-014](ADR-014-fmp-profile-snapshot-ttl.md)
+- [ADR-016](ADR-016-fmp-operations-throttling.md)

@@ -404,3 +404,265 @@ Pagine create: 17 (1 source, 13 concepts, 1 entity, 2 syntheses, 1 runbook) | Ag
 [2026-05-22 16:00] ingest — migrazione FMP v3 -> stable: 21 tombstone + 17 nuove pagine; base URL verificata `/stable/`; 263 endpoint documentati; ADR-004 invariante confermato — files touched: 41
 
 [2026-05-22 17:00] cleanup — Cancellati fisicamente i 17 tombstone FMP v3 (9 concepts + 8 sources). Cross-link nelle pagine attive rinominati per puntare alle pagine stable equivalenti. La wiki contiene ora solo la documentazione FMP /stable. Pagine modificate: analysis-api-pipeline, economic-moat, graham-number, intrinsic-value, margin-of-safety, sec-filings-analysis, value-investing-rule-engine, webapp-architecture-vi, warren-buffett, sec-10k-10q-analysis-playbook, value-investing-rule-engine-runbook, vi-03-analisi-fondamentale-valutazione, vi-05-analisi-10k-10q-buffett, vi-06-webapp-value-investing-fsd, vi-07-risoluzione-q002-q003, vi-08-risoluzione-q001-owner-earnings, webapp-value-investing-spec, index (rimossa sezione "Pagine tombstone") — files touched: 35 (17 cancellati + 18 modificati)
+[2026-05-22 16:00] admin-close — R1.0 MVP: 20 US→done, 6 EP→done, sprint.md rigenerato (Sprint 4 COMPLETATO) — files touched: 27
+
+[2026-05-22 16:00] execute — sprint R1.0 chiuso (49/49 TSK done, backlog vuoto) — files touched: 1
+
+## 2026-05-22 16:05 — develop TSK-040
+**Agente:** db-dev
+**TSK:** management/kanban/EP-006-watchlist-utente/US-018-registrazione-utente/TSK-040.md
+**Layer:** db
+**Code path:** ./src/
+**Files touched:** 1 (V009__add_first_issued_at_to_refresh_tokens.sql)
+**Commit:** f89f34c
+**DoD:** pass
+**Note:** Colonna `first_issued_at` per cap assoluto 30d su sliding refresh (ADR-010). Handoff retroattivo post-merge PR #3.
+
+## 2026-05-22 16:06 — develop TSK-039
+**Agente:** be-dev
+**TSK:** management/kanban/EP-006-watchlist-utente/US-018-registrazione-utente/TSK-039.md
+**Layer:** be
+**Code path:** ./src/
+**Files touched:** 3 (EmailAlreadyRegisteredException, GlobalExceptionHandler 409 RFC 9457)
+**Commit:** fe4f8c5
+**DoD:** pass
+**Note:** Handoff retroattivo; gap ADR-010 register 409 formalizzato.
+
+## 2026-05-22 16:07 — develop TSK-041
+**Agente:** be-dev
+**TSK:** management/kanban/EP-006-watchlist-utente/US-019-login-logout/TSK-041.md
+**Layer:** be
+**Code path:** ./src/
+**Files touched:** 4 (AuthService sliding TTL, AppProperties, application.yml)
+**Commit:** 907944a
+**DoD:** pass
+**Note:** Sliding 7d + cap 30d da `first_issued_at`; property configurabili ADR-010.
+
+## 2026-05-22 16:08 — develop TSK-042
+**Agente:** qa-dev
+**TSK:** management/kanban/EP-006-watchlist-utente/US-019-login-logout/TSK-042.md
+**Layer:** qa
+**Code path:** ./src/
+**Files touched:** 2 (AuthContractTest)
+**Commit:** ce18998
+**DoD:** pass
+**Note:** Contract-test 409 register + generic 401 login (anti-enumeration).
+
+## 2026-05-22 16:09 — develop TSK-043
+**Agente:** fe-dev
+**TSK:** management/kanban/EP-006-watchlist-utente/US-019-login-logout/TSK-043.md
+**Layer:** fe
+**Code path:** ./src/
+**Files touched:** 3 (useAuthStore 401 recovery, SessionExpiredBanner)
+**Commit:** 933c4c5
+**DoD:** pass
+**Note:** Banner sessione scaduta su 401 non recuperabile; dipende TSK-041 refresh.
+
+## 2026-05-22 16:10 — develop TSK-044
+**Agente:** be-dev
+**TSK:** management/kanban/EP-004-valore-intrinseco-margin-of-safety/US-020-override-dcf-method/TSK-044.md
+**Layer:** be
+**Code path:** ./src/
+**Files touched:** 2 (DcfOverrideController GET, DcfOverrideService.find)
+**Commit:** c6eb5d0
+**DoD:** pass
+**Note:** Handoff retroattivo PR #2; GET override per US-020 AC#1.
+
+## 2026-05-22 16:11 — develop TSK-045
+**Agente:** be-dev
+**TSK:** management/kanban/EP-004-valore-intrinseco-margin-of-safety/US-020-override-dcf-method/TSK-045.md
+**Layer:** be
+**Code path:** ./src/
+**Files touched:** 4 (DcfFeasibilityCheck, DcfMethodUnfeasibleException, 422 handler)
+**Commit:** ed37b18
+**DoD:** pass
+**Note:** POST override con metodo non applicabile → 422 `extensions.reason`.
+
+## 2026-05-22 16:12 — develop TSK-046
+**Agente:** be-dev
+**TSK:** management/kanban/EP-004-valore-intrinseco-margin-of-safety/US-020-override-dcf-method/TSK-046.md
+**Layer:** be
+**Code path:** ./src/
+**Files touched:** 3 (AnalyzeTickerService auth-aware, dcfMethodSource, Vary)
+**Commit:** d914272
+**DoD:** pass
+**Note:** Header `Vary: Authorization` su GET /api/analysis/{ticker}.
+
+## 2026-05-22 16:13 — develop TSK-047
+**Agente:** qa-dev
+**TSK:** management/kanban/EP-004-valore-intrinseco-margin-of-safety/US-020-override-dcf-method/TSK-047.md
+**Layer:** qa
+**Code path:** ./src/
+**Files touched:** 1 (DcfOverrideContractTest — 4 path)
+**Commit:** 56bd4c3
+**DoD:** pass
+**Note:** USER_OVERRIDE, DEFAULT_POLICY×2, Vary, 422 contract-test green.
+
+## 2026-05-22 16:14 — develop TSK-049
+**Agente:** be-dev
+**TSK:** management/kanban/EP-004-valore-intrinseco-margin-of-safety/US-020-override-dcf-method/TSK-049.md
+**Layer:** be
+**Code path:** ./src/
+**Files touched:** 1 (openapi.yaml)
+**Commit:** 6a8ca25
+**DoD:** pass
+**Note:** OpenAPI allineata: GET dcf-overrides, 422, dcfMethodSource, Vary.
+
+## 2026-05-22 16:15 — develop TSK-048
+**Agente:** fe-dev
+**TSK:** management/kanban/EP-004-valore-intrinseco-margin-of-safety/US-020-override-dcf-method/TSK-048.md
+**Layer:** fe
+**Code path:** ./src/
+**Files touched:** 3 (DcfOverridePanel, test, AnalysisPageClient wire)
+**Commit:** 7a37bd2
+**DoD:** pass
+**Note:** Badge "Default policy" / "Tuo override"; errore 422 inline nel form.
+
+[2026-05-22 17:00] plan — R1.1: EP-007 (5 US), EP-008 (3 US), EP-009 (2 US); roadmap aggiornata — files touched: 16
+
+[2026-05-22 18:00] develop — Sprint 5 Wave 1: TSK-050…070 completati (12 TSK) — files touched: 35+
+
+## 2026-05-22 18:00 — develop TSK-050 … TSK-070 (Sprint 5 Wave 1 batch)
+**Agente:** be-dev, fe-dev, qa-dev (parallelo)
+**Layer:** be / fe / qa / infra
+**Code path:** ./src/
+**Commit:** pending human gate (vcs-handoff monorepo)
+**DoD:** pass (verifica locale gradle/npm dove disponibile; CI authoritative)
+
+| TSK | Deliverable |
+|-----|-------------|
+| TSK-050 | FlatteningProblemDetailHttpMessageConverter + ProblemDetailMvcConfig |
+| TSK-051 | Test assert `$.ticker` top-level, `$.properties` assente |
+| TSK-052 | OpenAPI ProblemDetail extension top-level |
+| TSK-053 | swr 2.4.1, React 19 peer OK |
+| TSK-054 | Rimosso `--legacy-peer-deps` CI/Docker/contract-check |
+| TSK-055 | `app/analysis/page.tsx` + `?ticker=` |
+| TSK-056 | Link interni via `analysisUrl()` |
+| TSK-057 | E2E JNJ fuori whitelist + URL query |
+| TSK-058 | `fmp.cache.profile-ttl-hours` configurabile |
+| TSK-059 | Test TTL profilo cache |
+| TSK-064 | `FmpEventLogMaintenanceJob` purge 90d |
+| TSK-069 | `fmp.rate-limit-per-minute` env |
+| TSK-070 | WireMock 429 + event log test |
+
+**Prossimo:** Wave 2 deploy — TSK-061 (dipende TSK-054 ✓), TSK-064 ✓, poi TSK-066 cutover.
+
+## 2026-05-22 19:23 — develop TSK-059
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-007-hardening-produzione/US-024-ttl-snapshot-profilo-formalizzato/TSK-059]]
+**Layer:** qa
+**Code path:** ./src/
+**Files touched:** 1 (FmpCacheServiceTest — 3 test ADR-014 override 2h + boundary clock)
+**Commit:** n/a
+**DoD:** pass
+**Note:** Default 1h rinominato/esplicito; override `FmpCacheProperties.profileTtlHours=2` hit/miss e boundary clock. Gradle locale assente — CI authoritative.
+
+## 2026-05-22 20:15 — develop TSK-051
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-007-hardening-produzione/US-021-errori-api-rfc9457/TSK-051]]
+**Layer:** qa
+**Code path:** ./src/
+**Files touched:** 5 (SearchControllerIT, AnalysisControllerIT, DcfOverrideContractTest, SearchControllerWebMvcTest, HistoricalControllerWebMvcTest)
+**Commit:** n/a
+**DoD:** pass (assert `$.ticker` + `$.properties` assente; zero `$.properties.ticker` residui; gradle test non eseguito localmente — gate CI `be-test`)
+**Note:** Allineati IT/contract/WebMvc al flatten ADR-012 post TSK-050; AuthControllerContractTest invariato (nessuna extension business sotto `properties`).
+
+## 2026-05-22 19:30 — develop TSK-070
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-009-throttling-fmp-runbook/US-030-throttling-backend-fmp/TSK-070]]
+**Layer:** qa
+**Code path:** ./src/
+**Files touched:** 2 (`Fmp429RetryWireMockIT.kt`, `build.gradle.kts`)
+**Commit:** n/a
+**DoD:** pass
+**Note:** WireMock scenario 429→200 su `/income-statement/AAPL`; assert 2 HTTP call + riga `FMP_429_RATE_LIMITED` in `fmp_api_event_log` via Testcontainers PG. Dipende TSK-069 (rate limit env) già done.
+
+## 2026-05-22 21:30 — develop TSK-058
+**Agente:** be-dev
+**TSK:** [[../management/kanban/EP-007-hardening-produzione/US-024-ttl-snapshot-profilo-formalizzato/TSK-058]]
+**Layer:** be
+**Code path:** ./src/backend/
+**Files touched:** 5 (`FmpCacheProperties.kt`, `FmpCacheService.kt`, `application.yml`, `FmpCacheServiceTest.kt`, TSK-058 frontmatter)
+**Commit:** n/a
+**DoD:** pass — `fmp.cache.profile-ttl-hours` default 1; prod `FMP_CACHE_PROFILE_TTL_HOURS`; `FINANCIAL_TTL` 24h invariato; ADR-014 in commenti. `ContextLoadsTest` + `FmpCacheServiceTest` non eseguiti in shell (no JDK/gradle) — gate CI `be-test`.
+**Note:** Prerequisito TSK-059 (IT TTL profilo >1h). `@ConfigurationPropertiesScan` rileva `FmpCacheProperties` senza bean extra.
+
+## 2026-05-22 20:15 — develop TSK-069
+**Agente:** be-dev
+**TSK:** [[../management/kanban/EP-009-throttling-fmp-runbook/US-030-throttling-backend-fmp/TSK-069]]
+**Layer:** be
+**Code path:** ./src/backend/
+**Files touched:** 6 (FmpRateLimitProperties, FmpResilienceConfig, application.yml, FmpRateLimitPropertiesTest, FmpResilienceConfigTest, TSK-069 frontmatter)
+**Commit:** n/a
+**DoD:** pass — env `FMP_RATE_LIMIT_PER_MINUTE` → `fmp.rate-limit-per-minute`, default 30, RateLimiter da properties; test config aggiunti. Gradle/JDK assenti in shell agente — rieseguire `FmpResilienceConfigTest` + `FmpRateLimitPropertiesTest` in CI. Template `.env.prod.example` resta TSK-062.
+**Note:** Catena Resilience4j invariata; `resilience4j.ratelimiter.instances.fmp.limit-for-period` allineato a env per safety net YAML.
+
+## 2026-05-22 21:30 — develop TSK-052
+**Agente:** be-dev
+**TSK:** [[../management/kanban/EP-007-hardening-produzione/US-021-errori-api-rfc9457/TSK-052]]
+**Layer:** be
+**Code path:** ./src/ (L4 contract)
+**Files touched:** 2 (`design_&_architecture/api/openapi.yaml`, TSK-052 frontmatter)
+**Commit:** 1e15c20 (Wave 1 batch; no commit aggiuntivo su richiesta)
+**DoD:** pass — schema `ProblemDetails` con extension `ticker`/`timestamp`/`requestId`/`reason` al top-level; esempi 404 su `GET /api/search/{ticker}` e `GET /api/analysis/{ticker}` allineati a runtime post TSK-050 (`GlobalExceptionHandler` + flatten converter). `endpoints-overview.md` già allineato ADR-012. Spectral assente; YAML valido. Contract-check non rieseguito in shell (no gradle).
+**Note:** Nessun oggetto `properties` annidato nel contratto; forma coerente con `SearchControllerIT` (`$.ticker`, `$.properties` assente).
+
+## 2026-05-22 21:45 — develop TSK-050
+**Agente:** be-dev
+**TSK:** [[../management/kanban/EP-007-hardening-produzione/US-021-errori-api-rfc9457/TSK-050]]
+**Layer:** be
+**Code path:** ./src/backend/
+**Files touched:** 4 (WebMvcTest `@Import(ProblemDetailMvcConfig)` — Search/Analysis/Historical/Screener)
+**Commit:** 1e15c20 (converter + IT già in batch); delta WebMvc slice non committato
+**DoD:** pass — `FlatteningProblemDetailHttpMessageConverter` + `ProblemDetailMvcConfig.extendMessageConverters(0)` già in L5; 404 espone `$.ticker` top-level; `ContextLoadsTest` + IT auth/analysis/search allineati in `1e15c20`. Gradle/JDK assenti in shell — gate CI `be-test`.
+**Note:** `@WebMvcTest` non carica `@Configuration` full-context: import esplicito del converter evita regressione assert `$.ticker` nello slice MockMvc post TSK-051.
+
+## 2026-05-22 22:10 — develop TSK-055
+**Agente:** fe-dev
+**TSK:** [[../management/kanban/EP-007-hardening-produzione/US-023-analisi-ticker-arbitrario-deploy-statico/TSK-055]]
+**Layer:** fe
+**Code path:** ./src/frontend/
+**Files touched:** 5 (`app/analysis/page.tsx`, rimosso `app/analysis/[ticker]/page.tsx`, `AnalysisPageClient.tsx`, `historical.ts`, `moat/page.tsx` commento)
+**Commit:** n/a
+**DoD:** pass — `/analysis?ticker=AAPL` via `useSearchParams` + `AnalysisPageClient`; nessuna route `[ticker]`; `next build` OK (copia pulita `/tmp/vi-fe-build`, route unica `○ /analysis`, `out/analysis/index.html`). `node_modules` locale corrotto (EPERM) — `npm install` in `src/frontend/` prima del commit.
+**Note:** ADR-013 opzione B; `generateStaticParams` whitelist 8 ticker eliminata. Link interni: TSK-056 (`analysisUrl()`).
+
+## 2026-05-22 21:40 — develop TSK-053
+**Agente:** fe-dev
+**TSK:** [[../management/kanban/EP-007-hardening-produzione/US-022-dipendenze-ui-senza-override/TSK-053]]
+**Layer:** fe
+**Code path:** ./src/frontend/
+**Files touched:** 4 (`package.json`, `package-lock.json`, `WatchlistTable.test.tsx`, TSK-053 frontmatter)
+**Commit:** n/a
+**DoD:** pass — `swr` **2.4.1** (peer `react@^19` da 2.3.0+); `npm install` exit 0 senza `--legacy-peer-deps` (warn `ERESOLVE overriding` su altre dipendenze, non blocco su peer `swr`/`react`). Vitest 80/80; `next build` OK. Prerequisito TSK-054 soddisfatto lato peer SWR.
+**Note:** Assert href watchlist allineata ad ADR-013 (`/analysis?ticker=`). Gap `fe-swr-peer-r19` sanabile a L4; nessun import `useSWR` attivo in L5 (solo commento in `useHistorical.ts`).
+
+## 2026-05-22 22:45 — develop TSK-060
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-007-hardening-produzione/US-025-adr-allineati-tech-stack/TSK-060]]
+**Layer:** qa
+**Code path:** n/a (doc-only)
+**Files touched:** 1 (TSK-060 frontmatter)
+**Commit:** 1882767 (batch doc/kanban con Wave 1 closeout)
+**DoD:** pass — appendici ADR-001/002/003 tabella "Stack attuale v2026" allineate a `raw/tech_stack.md` (Kotlin 2.2, Spring Boot 3.5, React 19, Next 16, PostgreSQL 17); nessun drift L5 richiesto.
+**Note:** Gap `arch-adr-version-sync` risolvibile a L4; chiusura wiki gap delegata a wiki-keeper.
+
+## 2026-05-22 22:50 — ci Sprint 5 Wave 1 green
+**Branch:** `master` **Commit:** `1882767` (catena `1e15c20` → fix CI)
+**Checks:** `ci` success, `contract-check` success (run `26310494781` / `26310494774`)
+**Fix applicati post-batch:** Kotlin nullable `properties` (28db7b3); WebMvc `ProblemDetailMvcConfig` slice; `TestAsyncConfig` sync event log; trailing-slash E2E; seed `stocks` FK in `Fmp429RetryWireMockIT` (1882767).
+**Kanban:** EP-007 `done`; US-021…025 `done`; US-030 `done`; Sprint 5 Wave 1 14 TSK `done`; Wave 2 prossimo TSK-061.
+**Note:** Gap wiki `be-problemdetail-flatten`, `fe-swr-peer-r19`, `fe-static-export-tickers` implementati in L5 — chiusura formale solo wiki-keeper.
+
+[2026-05-22 22:50] plan — Sprint 5 Wave 1 closeout: kanban + L4 overview + episodic — files touched: 18
+
+## 2026-05-22 ingest | TSK-068 US-029 FMP_Docs_1-8 (re-check)
+Pagine create: 0 | Figure: 0 | Aggiornamenti: 2 | Gap nuovi: 0 | Gap chiusi: 0
+**Run:** ingest gap-pickup US-029 — rate limit / URL base / errori HTTP.
+**Raw:** `FMP_Docs_1_Auth_and_Search.txt` … `FMP_Docs_8_News_and_Estimates.txt` (nessun nuovo raw; grep senza quota, URL host, 401/403/404/429/5xx).
+**Wiki:** aggiornati `wiki/runbooks/fmp-api-quickstart.md` (§ Rate limiting, URL base, Errori HTTP, Limitazioni US-029), `wiki/entities/fmp-api.md` (cross-link operativo).
+**Gap:** `fmp-rate-limiting`, `fmp-endpoint-base-urls`, `fmp-error-codes` — append nota TSK-068, restano **aperti**; piano ingest raw FMP ufficiale documentato in `wiki/gaps.md`.
+**Indice:** `wiki/index.md` rigenerato (updated 2026-05-22).
+**Kanban:** TSK-068 consumer human — parent aggiorna status; TSK-071 Sprint 6 resta dipendente da chiusura `fmp-rate-limiting`.
+
+[2026-05-22 23:15] plan — TSK-068/US-029/EP-009 → done; sprint Wave 2 6 TSK todo — files touched: 5

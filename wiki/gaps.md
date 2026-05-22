@@ -58,6 +58,7 @@ utente mostrerà lista vuota senza errori. Nessun impatto su funzionalità core.
 **Impatto:** Il runbook fmp-api-quickstart non puo' documentare i limiti di frequenza; integrazioni produzione potrebbero andare in throttling senza avviso.
 
 **Risolto parzialmente:** 2026-05-22 — La nuova documentazione stable (`raw/fmp_docs.md` + `raw/fmp_docs.json`, 263 endpoint) non documenta i rate limit in modo esplicito. Il gap residuo e' rinominato `fmp-stable-rate-limiting` (aperto sotto). La gestione 429 e' gia' implementata tramite Resilience4j RateLimiter + `FmpEventLogger.log429RateLimited` (TSK-011).
+**TSK-068 (2026-05-22):** Re-verificati `raw/FMP_Docs_1`–`8` (grep: nessuna quota, 429, req/min). Runbook [[fmp-api-quickstart]] § Rate limiting documenta gap + riferimento ADR-016 solo come policy L4. **Stato: aperto.** Piano ingest: aggiungere raw da documentazione FMP ufficiale (pricing, limiti API, FAQ rate limit).
 
 ---
 
@@ -69,6 +70,7 @@ utente mostrerà lista vuota senza errori. Nessun impatto su funzionalità core.
 **Impatto:** Il runbook fmp-api-quickstart contiene URL non verificati; i developer potrebbero usare path errati.
 
 **Risolto:** 2026-05-22 — `raw/fmp_docs.md` + `raw/fmp_docs.json` documentano tutti i 263 endpoint stable con `endpoint_url` verificati (base URL `https://financialmodelingprep.com/stable/`). Il runbook [[fmp-api-quickstart]] e l'entity [[fmp-api]] citano gli URL esatti da questi raw.
+**TSK-068 (2026-05-22):** Raw FMP_Docs senza host/path HTTP; runbook usa placeholder `{base}` + tabella nomi API citabili da raw; URL completi solo via ADR-016 (L4, non provider). **Stato: aperto.** Piano ingest: raw con URL base ufficiali FMP (es. pagine endpoint della doc online).
 
 ---
 
@@ -80,6 +82,7 @@ utente mostrerà lista vuota senza errori. Nessun impatto su funzionalità core.
 **Impatto:** Gestione degli errori nelle integrazioni non puo' essere documentata nel wiki.
 
 **Risolto parzialmente:** 2026-05-22 — La nuova doc stable non documenta esplicitamente i codici di errore. Comportamento osservato e documentato nel runbook [[fmp-api-quickstart]] (Step 5): 200 con `[]` per ticker non trovato, 429 per rate limit, 5xx per errori server, 401 per API key invalida. Nessun formato JSON di errore specificato nella doc ufficiale. Gap residuo su formato strutturato degli errori: to-be-rechecked-against-new-docs (nessuna nuova informazione nei raw stable).
+**TSK-068 (2026-05-22):** Nessun codice HTTP né formato errore nei raw FMP_Docs 1–8; runbook § Errori HTTP elenca gap; mapping adapter solo in ADR-016 (L4). **Stato: aperto.** Piano ingest: raw sezione errori / troubleshooting FMP.
 
 ---
 

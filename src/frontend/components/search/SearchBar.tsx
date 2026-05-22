@@ -1,6 +1,7 @@
 'use client';
 
 import { useId, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -12,6 +13,7 @@ import {
   normalizeTicker,
   type SearchResultItem,
 } from '@/lib/api/search';
+import { analysisUrl } from '@/lib/utils/analysis-url';
 
 /**
  * SearchBar — TSK-003 (US-001).
@@ -60,20 +62,8 @@ type UiState =
   | { kind: 'not-found' }
   | { kind: 'error'; message: string };
 
-/**
- * Hard navigation a `/analysis/{ticker}/`. Non usiamo `router.push` (soft nav
- * Next App Router) perché con `output: 'export'` solo gli 8 ticker in
- * `generateStaticParams` hanno l'RSC payload `.txt`; per i ticker arbitrari
- * (es. TTD aggiunto dalla search) la soft nav riusa il React tree pre-renderizzato
- * con il vecchio ticker (AAPL) senza aggiornare `useParams()`. Hard navigation
- * forza una full page load: Spring fa forward al template, il bundle JS
- * idrata sul nuovo URL e `AnalysisPageClient` legge il ticker corretto.
- */
-function navigateToAnalysis(ticker: string): void {
-  window.location.assign(`/analysis/${encodeURIComponent(ticker)}/`);
-}
-
 export function SearchBar(): React.ReactElement {
+  const router = useRouter();
   const inputId = useId();
   const errorId = useId();
   const [uiState, setUiState] = useState<UiState>({ kind: 'idle' });
@@ -100,7 +90,7 @@ export function SearchBar(): React.ReactElement {
       const exact = items.find((it) => it.ticker.toUpperCase() === normalized);
       if (items.length === 1 || exact) {
         const target = exact ?? items[0]!;
-        navigateToAnalysis(target.ticker);
+        router.push(analysisUrl(target.ticker));
         return;
       }
       setUiState({ kind: 'multi', items });
@@ -197,7 +187,9 @@ export function SearchBar(): React.ReactElement {
             <li key={it.ticker}>
               <button
                 type="button"
-                onClick={() => navigateToAnalysis(it.ticker)}
+                onClick={() =>
+                  router.push(analysisUrl(it.ticker))
+                }
                 className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500 dark:hover:bg-slate-800 dark:focus-visible:bg-slate-800"
               >
                 <span className="font-mono font-semibold">{it.ticker}</span>

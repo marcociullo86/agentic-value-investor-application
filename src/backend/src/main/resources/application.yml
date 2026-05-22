@@ -78,7 +78,7 @@ resilience4j:
   ratelimiter:
     instances:
       fmp:
-        limit-for-period: 30
+        limit-for-period: ${FMP_RATE_LIMIT_PER_MINUTE:30}
         limit-refresh-period: 1m
         timeout-duration: 2s
   bulkhead:
@@ -91,6 +91,14 @@ resilience4j:
       fmp:
         timeout-duration: 10s
         cancel-running-future: true
+
+# FMP cache TTL — profile snapshot (ADR-014); financial stays 24h in code (ADR-004).
+fmp:
+  rate-limit-per-minute: ${FMP_RATE_LIMIT_PER_MINUTE:30}
+  cache:
+    profile-ttl-hours: 1
+  event-log:
+    retention-days: ${FMP_EVENT_LOG_RETENTION_DAYS:90}
 
 # Application-specific properties
 app:
@@ -208,3 +216,8 @@ management:
   endpoint:
     health:
       show-details: never
+
+# Profile snapshot TTL override without rebuild (ADR-014 §Configurazione).
+fmp:
+  cache:
+    profile-ttl-hours: ${FMP_CACHE_PROFILE_TTL_HOURS:1}

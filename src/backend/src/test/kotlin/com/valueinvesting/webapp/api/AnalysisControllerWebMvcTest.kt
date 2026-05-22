@@ -2,6 +2,7 @@ package com.valueinvesting.webapp.api
 
 import com.valueinvesting.webapp.api.error.GlobalExceptionHandler
 import com.valueinvesting.webapp.api.error.ProblemDetailsMapper
+import com.valueinvesting.webapp.config.ProblemDetailMvcConfig
 import com.valueinvesting.webapp.api.model.DcfMethodSource
 import com.valueinvesting.webapp.api.model.RuleEngineResultResponse
 import com.valueinvesting.webapp.ruleengine.RuleSignal
@@ -28,7 +29,7 @@ import java.time.Instant
     ],
 )
 @AutoConfigureMockMvc(addFilters = false)
-@Import(GlobalExceptionHandler::class, ProblemDetailsMapper::class)
+@Import(GlobalExceptionHandler::class, ProblemDetailsMapper::class, ProblemDetailMvcConfig::class)
 @ActiveProfiles("test")
 class AnalysisControllerWebMvcTest {
 

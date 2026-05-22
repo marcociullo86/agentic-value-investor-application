@@ -3,8 +3,9 @@ id: fmp-api
 type: entity
 sources: ["raw/fmp_docs.md", "raw/fmp_docs.json"]
 status: draft
-created: 2026-05-22
-tags: [fmp, api, stable, entity, provider]
+created: 2026-05-20
+updated: 2026-05-22
+tags: [fmp, api, stable, entity, provider, financial-data, operations]
 ---
 # Financial Modeling Prep (FMP) — API Stable
 
@@ -104,3 +105,24 @@ Vedi [[webapp-architecture-vi]] per dettagli implementativi e [[value-investing-
 - Source strutturata: [[fmp-docs]] (`raw/fmp_docs.json`)
 - Runbook operativo: [[fmp-api-quickstart]]
 - Panoramica: [[fmp-api-overview]]
+
+---
+
+## Documentazione operativa (US-029 / TSK-068 + US-031 / TSK-072)
+
+Runbook [[fmp-api-quickstart]] espone sezioni esplicite per rate limiting, URL base e errori HTTP. Stato ingest e migrazione adapter:
+
+| Tema | Stato wiki | Gap |
+|------|------------|-----|
+| Rate limit / 429 | Non specificato dalla doc stable | `fmp-stable-rate-limiting` aperto |
+| URL base (path) | Migrato a `/stable/` (verificato) | `fmp-endpoint-base-urls` chiuso |
+| Codici errore HTTP / body | Documentazione laterale ricostruita da osservazioni | `fmp-stable-error-codes` aperto |
+| Stime analisti (consensus EPS, price target) | Non trovate nella sezione stable | `fmp-stable-analyst-estimates` aperto |
+
+Default throttling e path MVP in configurazione applicativa: ADR-016 (non citazione provider). Dettaglio: [[fmp-api-quickstart]] § Rate limiting, § URL base, § Errori HTTP, § Limitazioni documentazione.
+
+## Storie collegate
+<!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->
+- EP-002 (R1.0 done): US-004, US-005, US-006
+- EP-002 (R1.1): US-031 (TSK-072 — migrazione adapter v3 → /stable)
+- EP-009 (R1.1): US-029, US-030

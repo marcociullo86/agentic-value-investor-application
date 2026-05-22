@@ -1,9 +1,11 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { useScreenerStore } from '@/lib/stores/useScreenerStore';
 import { formatMarketCap } from '@/lib/utils/formatters';
 import type { ScreenerResultItem } from '@/lib/api/screener';
+import { analysisUrl } from '@/lib/utils/analysis-url';
 
 /**
  * ResultsListInline — TSK-006 (US-002).
@@ -27,6 +29,7 @@ import type { ScreenerResultItem } from '@/lib/api/screener';
 const SKELETON_ROWS = 5;
 
 export function ResultsListInline(): React.ReactElement {
+  const router = useRouter();
   const results = useScreenerStore((s) => s.results);
   const loading = useScreenerStore((s) => s.loading);
   const error = useScreenerStore((s) => s.error);
@@ -35,8 +38,7 @@ export function ResultsListInline(): React.ReactElement {
   const loadMore = useScreenerStore((s) => s.loadMore);
 
   function handleRowClick(ticker: string): void {
-    // Hard navigation: vedi commento in SearchBar.tsx.
-    window.location.assign(`/analysis/${encodeURIComponent(ticker)}/`);
+    router.push(analysisUrl(ticker));
   }
 
   // Loading iniziale (no risultati ancora) → skeleton

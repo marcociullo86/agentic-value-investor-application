@@ -23,7 +23,7 @@ src/frontend/
  │    ├── (auth)/
  │    │    ├── login/page.tsx
  │    │    └── register/page.tsx
- │    ├── analysis/[ticker]/page.tsx # dashboard analisi (US-014 + US-015 + US-016)
+ │    ├── analysis/page.tsx          # dashboard analisi ?ticker= (US-014/015/016, ADR-013)
  │    ├── screener/page.tsx          # US-002 + US-003
  │    └── watchlist/page.tsx         # US-017
  ├── components/
@@ -76,7 +76,8 @@ src/frontend/
 | `/` | landing + SearchBar prominente | US-001 |
 | `/search?q=...` | risultati ricerca | US-001 + US-003 |
 | `/screener` | form screener + risultati | US-002 + US-003 |
-| `/analysis/{ticker}` | dashboard completa per ticker | US-014 + US-015 + US-016 |
+| `/analysis?ticker={ticker}` | dashboard completa per ticker (static export, ticker arbitrario) | US-014 + US-015 + US-016 + US-023 |
+| `/moat?ticker={ticker}` | checklist Moat standalone | US-016 |
 | `/watchlist` | watchlist personale | US-017 |
 | `/login`, `/register` | auth | EP-006 |
 
@@ -178,7 +179,8 @@ type ScreenerState = {
 ## Build e deploy
 
 - **Dev**: `next dev` (porta 3000) + proxy a backend (porta 8080) via `next.config.js`.
-- **Prod**: `next build && next export` produce `out/` (static). Serviti dal backend Spring Boot (vedi [ADR-009](../decisions/ADR-009-deployment-target.md)).
+- **Prod**: `next build` con `output: 'export'` produce `out/` (static). Serviti dal backend Spring Boot (vedi [ADR-009](../decisions/ADR-009-deployment-target.md), [ADR-013](../decisions/ADR-013-fe-analysis-routing-static-export.md)).
+- **Navigazione analisi:** SearchBar / ResultsList / watchlist linkano a `/analysis?ticker={T}` (maiuscolo normalizzato); non usare route dinamiche `[ticker]` con static export.
 - **Variables**: `NEXT_PUBLIC_API_BASE_URL` (default `/api`), `NEXT_PUBLIC_BUILD_VERSION`.
 
 ## Testing strategy
@@ -195,5 +197,6 @@ type ScreenerState = {
 - [overview.md](../overview.md)
 - [api/openapi.yaml](../api/openapi.yaml)
 - [ADR-001](../decisions/ADR-001-frontend-stack.md)
+- [ADR-013](../decisions/ADR-013-fe-analysis-routing-static-export.md)
 - [[webapp-architecture-vi]]
 - [[vi-07-risoluzione-q002-q003]]

@@ -5,6 +5,7 @@ title: Wiki Index
 status: draft
 created: 2026-05-20
 updated: 2026-05-22 (v2026-05-22 FMP stable migration + ingest L'Investitore Intelligente B. Graham)
+updated: 2026-05-22 (TSK-068 US-029 fmp-api-quickstart operativo)
 tags: [navigation]
 ---
 # Wiki Index — App Template Demo
@@ -135,6 +136,7 @@ tags: [navigation]
 | Pagina | Descrizione |
 |--------|-------------|
 | [[fmp-api-quickstart]] | Guida operativa FMP stable: auth, search, profile, statements, key-metrics, screener |
+| [[fmp-api-quickstart]] | Integrazione FMP: quickstart, rate limit (gap), URL base (gap), errori HTTP (gap), ADR-016 ref |
 | [[sec-10k-10q-analysis-playbook]] | Playbook 7-step per analisi 10-K/10-Q con metodo Buffett e FMP API |
 | [[value-investing-rule-engine-runbook]] | Implementazione step-by-step del Rule Engine: acquisizione FMP, validazione regole, DCF, MoS |
 | [[runbook-openapi-contract-check]] | Troubleshooting contract-check: Boot 3.5, PatternParseException, MockMvc vs OpenAPIService |

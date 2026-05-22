@@ -127,8 +127,8 @@ test.describe('auth + watchlist', () => {
     // commit waitUntil: SPA navigation in Next.js doesn't fire the `load`
     // event, so the default waitUntil:'load' here would time out even
     // though the URL has already changed.
-    await page.waitForURL(/\/analysis\/MSFT/, { waitUntil: 'commit' });
-    expect(page.url()).toContain('/analysis/MSFT');
+    await page.waitForURL(/\/analysis\/?\?ticker=MSFT/, { waitUntil: 'commit' });
+    expect(page.url()).toContain('ticker=MSFT');
   });
 
   test('5. /watchlist senza login redirige a /login', async ({ page }) => {

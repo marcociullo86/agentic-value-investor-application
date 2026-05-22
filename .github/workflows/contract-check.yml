@@ -36,11 +36,11 @@ jobs:
           cache: npm
           cache-dependency-path: src/frontend/package.json
       - name: Install dependencies
-        # --legacy-peer-deps: swr@2.2.5 vs react@19 peer mismatch.
+        # swr@2.4.1+ supports React 19 (TSK-053).
         # Same pattern as fe-test/fe-e2e jobs in ci.yml and the Dockerfile;
         # follow-up gap `fe-swr-peer-r19` will bump swr once it widens
         # the peer range to include react 19.
-        run: npm install --no-audit --no-fund --legacy-peer-deps
+        run: npm install --no-audit --no-fund
       - name: Generate API types from openapi.yaml
         run: npm run generate:api
       - name: Typecheck generated API types

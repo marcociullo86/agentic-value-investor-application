@@ -2,6 +2,7 @@ package com.valueinvesting.webapp.api
 
 import com.valueinvesting.webapp.api.error.GlobalExceptionHandler
 import com.valueinvesting.webapp.api.error.ProblemDetailsMapper
+import com.valueinvesting.webapp.config.ProblemDetailMvcConfig
 import com.valueinvesting.webapp.api.model.HistoricalSeries
 import com.valueinvesting.webapp.api.model.HistoricalSeriesPoint
 import com.valueinvesting.webapp.fmp.FmpTickerNotFoundException
@@ -28,7 +29,7 @@ import java.time.Instant
 // [^src: management/kanban/EP-005-dashboard-traffic-light-moat/US-015-grafici-storici/TSK-023.md §Test JUnit 5]
 @WebMvcTest(controllers = [HistoricalController::class])
 @AutoConfigureMockMvc(addFilters = false)
-@Import(GlobalExceptionHandler::class, ProblemDetailsMapper::class)
+@Import(GlobalExceptionHandler::class, ProblemDetailsMapper::class, ProblemDetailMvcConfig::class)
 @ActiveProfiles("test")
 class HistoricalControllerWebMvcTest {
 
@@ -81,6 +82,7 @@ class HistoricalControllerWebMvcTest {
             content { contentType("application/problem+json") }
             jsonPath("$.title") { value("Ticker not found") }
             jsonPath("$.ticker") { value("NONEXIST") }
+            jsonPath("$.properties") { doesNotExist() }
         }
     }
 

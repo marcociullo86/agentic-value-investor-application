@@ -12,3 +12,6 @@ node_modules/
 dist/
 build/
 *.log
+
+# Local CI/debug artifacts (portable Gradle, gh run JSON, etc.)
+.ci-tmp/

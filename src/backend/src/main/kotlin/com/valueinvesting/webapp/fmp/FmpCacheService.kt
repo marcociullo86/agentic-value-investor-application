@@ -2,6 +2,7 @@ package com.valueinvesting.webapp.fmp
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.valueinvesting.webapp.config.FmpCacheProperties
 import com.valueinvesting.webapp.fmp.dto.ProfileDto
 import com.valueinvesting.webapp.persistence.entity.FmpFinancialSnapshot
 import com.valueinvesting.webapp.persistence.entity.FmpProfileSnapshot
@@ -19,7 +20,7 @@ import java.time.Instant
 
 // Cache-aside layer between callers (FinancialDataService, SearchService) and
 // FmpAdapter.  Backed by fmp_financial_snapshot (24h TTL) and fmp_profile_snapshot
-// (1h TTL — conservative default while gap `tpm-profile-snapshot-ttl` remains open).
+// (configurable via `fmp.cache.profile-ttl-hours`, default 1h — ADR-014).
 //
 // Strategy (per ADR-004 §Cache layer 24h):
 //   1. Look up the latest snapshot for (ticker, endpoint).
@@ -35,6 +36,7 @@ import java.time.Instant
 // JPA/Hibernate coupling — see also ADR-003 §JSONB rationale.
 //
 // [^src: design_&_architecture/decisions/ADR-004-fmp-integration.md §Cache layer 24h]
+// [^src: design_&_architecture/decisions/ADR-014-fmp-profile-snapshot-ttl.md §Decisione]
 // [^src: design_&_architecture/components/backend-components.md §FmpCacheService]
 // [^src: management/kanban/.../TSK-010.md §Scope tecnico]
 @Service
@@ -44,6 +46,7 @@ class FmpCacheService(
     private val stockRepository: StockRepository,
     private val objectMapper: ObjectMapper,
     private val clock: Clock,
+    private val fmpCacheProperties: FmpCacheProperties,
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -104,7 +107,7 @@ class FmpCacheService(
 
     /**
      * Cache-aside read for the FMP profile endpoint (price + meta).
-     * TTL is 1h (gap `tpm-profile-snapshot-ttl` — default conservative).
+     * TTL from `fmp.cache.profile-ttl-hours` (default 1h, ADR-014).
      * Side effect: upserts the `stocks` row when fetching for an unknown ticker
      * (US-005 "lazy population catalogo").
      */
@@ -119,7 +122,7 @@ class FmpCacheService(
         val now = Instant.now(clock)
         val existing = profileSnapshotRepository.findFirstByTickerOrderByFetchedAtDesc(t)
 
-        if (existing != null && isFresh(existing.fetchedAt, now, PROFILE_TTL)) {
+        if (existing != null && isFresh(existing.fetchedAt, now, fmpCacheProperties.profileTtl)) {
             log.debug("cache hit profile ticker={} age={}s",
                 t, Duration.between(existing.fetchedAt, now).seconds)
             val dto = existing.rawPayload
@@ -208,11 +211,8 @@ class FmpCacheService(
     )
 
     companion object {
-        // 24h TTL for the four heavy statements (US-005 AC).
+        // 24h TTL for the four heavy statements (ADR-004 / US-005 AC).
         val FINANCIAL_TTL: Duration = Duration.ofHours(24)
-        // 1h TTL for profile/price (ADR-004 / er-diagram default; gap
-        // `tpm-profile-snapshot-ttl` open for product decision).
-        val PROFILE_TTL: Duration = Duration.ofHours(1)
     }
 }
 

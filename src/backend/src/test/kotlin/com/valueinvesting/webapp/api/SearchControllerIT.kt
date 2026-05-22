@@ -213,10 +213,9 @@ class SearchControllerIT {
             // Mandatory RFC 9457 fields.
             jsonPath("$.status") { value(404) }
             jsonPath("$.title") { value("Ticker not found") }
-            // Extension field "ticker" set by GlobalExceptionHandler.handleFmpTickerNotFound.
-            // Spring 6.x ProblemDetail serializes extensions under `properties`
-            // (not flattened per RFC 9457 §3.2). See gap `be-problemdetail-flatten`.
-            jsonPath("$.properties.ticker") { value("XXXXXXXX") }
+            // Extension field "ticker" at top-level per RFC 9457 §3.2 (ADR-012).
+            jsonPath("$.ticker") { value("XXXXXXXX") }
+            jsonPath("$.properties") { doesNotExist() }
             // type URI convention from GlobalExceptionHandler.
             jsonPath("$.type") { value("https://api/errors/ticker-not-found") }
         }
