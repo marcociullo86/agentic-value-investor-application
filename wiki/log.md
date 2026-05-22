@@ -218,3 +218,19 @@ Decisioni / deviazioni:
   - Static export (output: 'export') non supporta 'next start' come server runtime - uso 'next dev' per E2E (stesso code path semantico per controllori UI, build di prod testato dal job docker-build).
   - JWT_SIGNING_SECRET pinned (32+ byte) per CI deterministic.
 DoD: 5 scenari coperti; screenshot/trace artifact su failure; CI orchestration BE+FE+DB completa. Verifica locale non possibile (no JDK su workstation), CI gating definitivo.
+
+## [2026-05-22] ci-debug TSK-020 -> AnalysisControllerIT 6/169 falliscono ancora dopo 4 fix attempt
+Layer: be + infra (claude, Track B branch sprint3/auth-watchlist) | files modified: 0 (solo retrigger CI + audit) | files created: 0
+Sintomo CI (run 26279805831 su SHA 3bd357c): tutti i 6 test in AnalysisControllerIT falliscono sulla prima assertion `status { isOk() }` / `isNotFound()` / `isServiceUnavailable()`. Output gradle riporta solo `java.lang.AssertionError at AnalysisControllerIT.kt:75/96/111/129/141/154` senza messaggio di mismatch perche' testLogging non era ancora verbose.
+Catena fix attempt (in ordine cronologico, tutti su sprint3/auth-watchlist):
+  - bfee015 fix(test): Spring Kotlin DSL block per jsonPath isArray (Track A latent bug) — non risolve i 6.
+  - fc6b212 fix(ci,test,security): wire 401 AuthenticationEntryPoint + escludi SecurityAutoConfiguration nelle WebMvcTest slice + service postgres CI — risolve 401 su Moat/Watchlist ma non i 6.
+  - 3bd357c fix(security,test): rimuove @Component da JwtAuthenticationFilter, lo istanzia come @Bean in SecurityConfig — ipotesi: il filtro auto-registrato bypassava @AutoConfigureMockMvc(addFilters=false). Non basta: Spring Boot auto-wrappa qualsiasi Filter-typed @Bean in un FilterRegistrationBean.
+  - 6c6652b fix(ci,test): bump @playwright/test 1.49.1 -> 1.51.1 (peer dep Next 16) + --legacy-peer-deps su fe-test + testLogging exceptionFormat=FULL/showStackTraces — strumentazione per la prossima diagnosi.
+  - c08a67e fix(security): aggiunge esplicito FilterRegistrationBean<JwtAuthenticationFilter> con isEnabled=false per sopprimere l'auto-registrazione servlet-level. Pattern documentato Spring Boot.
+Stato CI: i due commit piu' recenti (6c6652b + c08a67e) NON hanno triggerato workflow run. PR #1 close+reopen non ha riacceso il trigger. Empty commit 472f662 pushato per forzare un evento `synchronize` - nessun workflow run ancora visibile su gh api .../actions/runs?head_sha=472f662.
+Dubbi residui (audit-friendly):
+  - JwtAuthenticationFilter.doFilterInternal: senza Authorization header chiama filterChain.doFilter senza rifiutare nulla -> non spiega da solo lo status mismatch sui 6 test.
+  - MockMvc @AutoConfigureMockMvc(addFilters=false) dovrebbe gia' saltare i FilterRegistrationBean dal context; ipotesi c08a67e da validare con verbose log della prossima CI.
+  - Alternativa low-risk: rimuovere `addFilters = false` da AnalysisControllerIT.kt allineandolo agli altri IT (Watchlist/MoatChecklist/Auth lo omettono e passano). `/api/analysis/**` e' permitAll in SecurityConfig:131-138, quindi filtri attivi non rifiutano. Sidestepperebbe l'intera questione FilterRegistrationBean.
+Next: attendere che CI fire su 472f662, leggere assertion verbosa, decidere se mergeare c08a67e o adottare la fallback (rimozione addFilters=false). Files touched: 0 (questa entry e' audit-only). Commit: pending (wiki-only).
