@@ -120,23 +120,23 @@ Flusso di interazione canonico documentato in [[webapp-architecture-vi]] §Fluss
 
 ### R1.1 — US → ADR (EP-007…009)
 
-| US | ADR / artefatto L4 |
-|---|---|
-| US-021 RFC 9457 flatten | [ADR-012](decisions/ADR-012-problemdetail-rfc9457-flatten.md) |
-| US-022 dipendenze FE | [ADR-001](decisions/ADR-001-frontend-stack.md) appendice stack v2026 |
-| US-023 analisi ticker | [ADR-013](decisions/ADR-013-fe-analysis-routing-static-export.md) |
-| US-024 TTL profilo | [ADR-014](decisions/ADR-014-fmp-profile-snapshot-ttl.md) + [ADR-004](decisions/ADR-004-fmp-integration.md) §2b |
-| US-025 sync versioni ADR | Appendici ADR-001/002/003 |
-| US-026 deploy target | [ADR-015](decisions/ADR-015-deployment-target-r11.md) + runbook |
-| US-027 backup / retention log | [deploy-runbook-r11.md](operations/deploy-runbook-r11.md) |
-| US-028 checklist cutover | [deploy-runbook-r11.md](operations/deploy-runbook-r11.md) |
-| US-029 doc FMP wiki | [ADR-016](decisions/ADR-016-fmp-operations-throttling.md) (L4); wiki US-029 |
-| US-030 throttling BE | [ADR-016](decisions/ADR-016-fmp-operations-throttling.md) |
+| US | ADR / artefatto L4 | L5 (Sprint 5) |
+|---|---|---|
+| US-021 RFC 9457 flatten | [ADR-012](decisions/ADR-012-problemdetail-rfc9457-flatten.md) | **done** (TSK-050…052) |
+| US-022 dipendenze FE | [ADR-001](decisions/ADR-001-frontend-stack.md) appendice stack v2026 | **done** (TSK-053/054) |
+| US-023 analisi ticker | [ADR-013](decisions/ADR-013-fe-analysis-routing-static-export.md) | **done** (TSK-055…057) |
+| US-024 TTL profilo | [ADR-014](decisions/ADR-014-fmp-profile-snapshot-ttl.md) + [ADR-004](decisions/ADR-004-fmp-integration.md) §2b | **done** (TSK-058/059) |
+| US-025 sync versioni ADR | Appendici ADR-001/002/003 | **done** (TSK-060 verify) |
+| US-026 deploy target | [ADR-015](decisions/ADR-015-deployment-target-r11.md) + runbook | todo (TSK-061/062) |
+| US-027 backup / retention log | [deploy-runbook-r11.md](operations/deploy-runbook-r11.md) | parziale — purge 90d **done** (TSK-064); backup/drill todo |
+| US-028 checklist cutover | [deploy-runbook-r11.md](operations/deploy-runbook-r11.md) | todo (TSK-066/067) |
+| US-029 doc FMP wiki | [ADR-016](decisions/ADR-016-fmp-operations-throttling.md) (L4); wiki US-029 | todo human (TSK-068) |
+| US-030 throttling BE | [ADR-016](decisions/ADR-016-fmp-operations-throttling.md) | **done** (TSK-069/070) |
 
 ## Roadmap di rilascio (input PM)
 
 - **R1.0** (chiuso): EP-001 … EP-006 — analisi end-to-end, dashboard, watchlist, auth.
-- **R1.1** (in corso): EP-007 hardening (US-021…025), EP-008 deploy/ops (US-026…028), EP-009 FMP runbook/throttle (US-029…030). Runbook: [operations/deploy-runbook-r11.md](operations/deploy-runbook-r11.md).
+- **R1.1** (in corso): **EP-007 done** (US-021…025, Wave 1 CI `1882767`); **EP-009** US-030 done, US-029 wiki pending; **EP-008** deploy/ops (US-026…028) Wave 2. Runbook: [operations/deploy-runbook-r11.md](operations/deploy-runbook-r11.md).
 
 ## Concetti wiki di riferimento
 

@@ -537,6 +537,26 @@ Stato PR #1: open, mergeStateStatus=CLEAN, 7/7 status checks success (BE — gra
 
 **Prossimo:** Wave 2 deploy — TSK-061 (dipende TSK-054 ✓), TSK-064 ✓, poi TSK-066 cutover.
 
+## 2026-05-22 19:23 — develop TSK-059
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-007-hardening-produzione/US-024-ttl-snapshot-profilo-formalizzato/TSK-059]]
+**Layer:** qa
+**Code path:** ./src/
+**Files touched:** 1 (FmpCacheServiceTest — 3 test ADR-014 override 2h + boundary clock)
+**Commit:** n/a
+**DoD:** pass
+**Note:** Default 1h rinominato/esplicito; override `FmpCacheProperties.profileTtlHours=2` hit/miss e boundary clock. Gradle locale assente — CI authoritative.
+
+## 2026-05-22 20:15 — develop TSK-051
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-007-hardening-produzione/US-021-errori-api-rfc9457/TSK-051]]
+**Layer:** qa
+**Code path:** ./src/
+**Files touched:** 5 (SearchControllerIT, AnalysisControllerIT, DcfOverrideContractTest, SearchControllerWebMvcTest, HistoricalControllerWebMvcTest)
+**Commit:** n/a
+**DoD:** pass (assert `$.ticker` + `$.properties` assente; zero `$.properties.ticker` residui; gradle test non eseguito localmente — gate CI `be-test`)
+**Note:** Allineati IT/contract/WebMvc al flatten ADR-012 post TSK-050; AuthControllerContractTest invariato (nessuna extension business sotto `properties`).
+
 ## 2026-05-22 19:30 — develop TSK-070
 **Agente:** qa-dev
 **TSK:** [[../management/kanban/EP-009-throttling-fmp-runbook/US-030-throttling-backend-fmp/TSK-070]]
@@ -546,3 +566,82 @@ Stato PR #1: open, mergeStateStatus=CLEAN, 7/7 status checks success (BE — gra
 **Commit:** n/a
 **DoD:** pass
 **Note:** WireMock scenario 429→200 su `/income-statement/AAPL`; assert 2 HTTP call + riga `FMP_429_RATE_LIMITED` in `fmp_api_event_log` via Testcontainers PG. Dipende TSK-069 (rate limit env) già done.
+
+## 2026-05-22 21:30 — develop TSK-058
+**Agente:** be-dev
+**TSK:** [[../management/kanban/EP-007-hardening-produzione/US-024-ttl-snapshot-profilo-formalizzato/TSK-058]]
+**Layer:** be
+**Code path:** ./src/backend/
+**Files touched:** 5 (`FmpCacheProperties.kt`, `FmpCacheService.kt`, `application.yml`, `FmpCacheServiceTest.kt`, TSK-058 frontmatter)
+**Commit:** n/a
+**DoD:** pass — `fmp.cache.profile-ttl-hours` default 1; prod `FMP_CACHE_PROFILE_TTL_HOURS`; `FINANCIAL_TTL` 24h invariato; ADR-014 in commenti. `ContextLoadsTest` + `FmpCacheServiceTest` non eseguiti in shell (no JDK/gradle) — gate CI `be-test`.
+**Note:** Prerequisito TSK-059 (IT TTL profilo >1h). `@ConfigurationPropertiesScan` rileva `FmpCacheProperties` senza bean extra.
+
+## 2026-05-22 20:15 — develop TSK-069
+**Agente:** be-dev
+**TSK:** [[../management/kanban/EP-009-throttling-fmp-runbook/US-030-throttling-backend-fmp/TSK-069]]
+**Layer:** be
+**Code path:** ./src/backend/
+**Files touched:** 6 (FmpRateLimitProperties, FmpResilienceConfig, application.yml, FmpRateLimitPropertiesTest, FmpResilienceConfigTest, TSK-069 frontmatter)
+**Commit:** n/a
+**DoD:** pass — env `FMP_RATE_LIMIT_PER_MINUTE` → `fmp.rate-limit-per-minute`, default 30, RateLimiter da properties; test config aggiunti. Gradle/JDK assenti in shell agente — rieseguire `FmpResilienceConfigTest` + `FmpRateLimitPropertiesTest` in CI. Template `.env.prod.example` resta TSK-062.
+**Note:** Catena Resilience4j invariata; `resilience4j.ratelimiter.instances.fmp.limit-for-period` allineato a env per safety net YAML.
+
+## 2026-05-22 21:30 — develop TSK-052
+**Agente:** be-dev
+**TSK:** [[../management/kanban/EP-007-hardening-produzione/US-021-errori-api-rfc9457/TSK-052]]
+**Layer:** be
+**Code path:** ./src/ (L4 contract)
+**Files touched:** 2 (`design_&_architecture/api/openapi.yaml`, TSK-052 frontmatter)
+**Commit:** 1e15c20 (Wave 1 batch; no commit aggiuntivo su richiesta)
+**DoD:** pass — schema `ProblemDetails` con extension `ticker`/`timestamp`/`requestId`/`reason` al top-level; esempi 404 su `GET /api/search/{ticker}` e `GET /api/analysis/{ticker}` allineati a runtime post TSK-050 (`GlobalExceptionHandler` + flatten converter). `endpoints-overview.md` già allineato ADR-012. Spectral assente; YAML valido. Contract-check non rieseguito in shell (no gradle).
+**Note:** Nessun oggetto `properties` annidato nel contratto; forma coerente con `SearchControllerIT` (`$.ticker`, `$.properties` assente).
+
+## 2026-05-22 21:45 — develop TSK-050
+**Agente:** be-dev
+**TSK:** [[../management/kanban/EP-007-hardening-produzione/US-021-errori-api-rfc9457/TSK-050]]
+**Layer:** be
+**Code path:** ./src/backend/
+**Files touched:** 4 (WebMvcTest `@Import(ProblemDetailMvcConfig)` — Search/Analysis/Historical/Screener)
+**Commit:** 1e15c20 (converter + IT già in batch); delta WebMvc slice non committato
+**DoD:** pass — `FlatteningProblemDetailHttpMessageConverter` + `ProblemDetailMvcConfig.extendMessageConverters(0)` già in L5; 404 espone `$.ticker` top-level; `ContextLoadsTest` + IT auth/analysis/search allineati in `1e15c20`. Gradle/JDK assenti in shell — gate CI `be-test`.
+**Note:** `@WebMvcTest` non carica `@Configuration` full-context: import esplicito del converter evita regressione assert `$.ticker` nello slice MockMvc post TSK-051.
+
+## 2026-05-22 22:10 — develop TSK-055
+**Agente:** fe-dev
+**TSK:** [[../management/kanban/EP-007-hardening-produzione/US-023-analisi-ticker-arbitrario-deploy-statico/TSK-055]]
+**Layer:** fe
+**Code path:** ./src/frontend/
+**Files touched:** 5 (`app/analysis/page.tsx`, rimosso `app/analysis/[ticker]/page.tsx`, `AnalysisPageClient.tsx`, `historical.ts`, `moat/page.tsx` commento)
+**Commit:** n/a
+**DoD:** pass — `/analysis?ticker=AAPL` via `useSearchParams` + `AnalysisPageClient`; nessuna route `[ticker]`; `next build` OK (copia pulita `/tmp/vi-fe-build`, route unica `○ /analysis`, `out/analysis/index.html`). `node_modules` locale corrotto (EPERM) — `npm install` in `src/frontend/` prima del commit.
+**Note:** ADR-013 opzione B; `generateStaticParams` whitelist 8 ticker eliminata. Link interni: TSK-056 (`analysisUrl()`).
+
+## 2026-05-22 21:40 — develop TSK-053
+**Agente:** fe-dev
+**TSK:** [[../management/kanban/EP-007-hardening-produzione/US-022-dipendenze-ui-senza-override/TSK-053]]
+**Layer:** fe
+**Code path:** ./src/frontend/
+**Files touched:** 4 (`package.json`, `package-lock.json`, `WatchlistTable.test.tsx`, TSK-053 frontmatter)
+**Commit:** n/a
+**DoD:** pass — `swr` **2.4.1** (peer `react@^19` da 2.3.0+); `npm install` exit 0 senza `--legacy-peer-deps` (warn `ERESOLVE overriding` su altre dipendenze, non blocco su peer `swr`/`react`). Vitest 80/80; `next build` OK. Prerequisito TSK-054 soddisfatto lato peer SWR.
+**Note:** Assert href watchlist allineata ad ADR-013 (`/analysis?ticker=`). Gap `fe-swr-peer-r19` sanabile a L4; nessun import `useSWR` attivo in L5 (solo commento in `useHistorical.ts`).
+
+## 2026-05-22 22:45 — develop TSK-060
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-007-hardening-produzione/US-025-adr-allineati-tech-stack/TSK-060]]
+**Layer:** qa
+**Code path:** n/a (doc-only)
+**Files touched:** 1 (TSK-060 frontmatter)
+**Commit:** 1882767 (batch doc/kanban con Wave 1 closeout)
+**DoD:** pass — appendici ADR-001/002/003 tabella "Stack attuale v2026" allineate a `raw/tech_stack.md` (Kotlin 2.2, Spring Boot 3.5, React 19, Next 16, PostgreSQL 17); nessun drift L5 richiesto.
+**Note:** Gap `arch-adr-version-sync` risolvibile a L4; chiusura wiki gap delegata a wiki-keeper.
+
+## 2026-05-22 22:50 — ci Sprint 5 Wave 1 green
+**Branch:** `master` **Commit:** `1882767` (catena `1e15c20` → fix CI)
+**Checks:** `ci` success, `contract-check` success (run `26310494781` / `26310494774`)
+**Fix applicati post-batch:** Kotlin nullable `properties` (28db7b3); WebMvc `ProblemDetailMvcConfig` slice; `TestAsyncConfig` sync event log; trailing-slash E2E; seed `stocks` FK in `Fmp429RetryWireMockIT` (1882767).
+**Kanban:** EP-007 `done`; US-021…025 `done`; US-030 `done`; Sprint 5 Wave 1 14 TSK `done`; Wave 2 prossimo TSK-061.
+**Note:** Gap wiki `be-problemdetail-flatten`, `fe-swr-peer-r19`, `fe-static-export-tickers` implementati in L5 — chiusura formale solo wiki-keeper.
+
+[2026-05-22 22:50] plan — Sprint 5 Wave 1 closeout: kanban + L4 overview + episodic — files touched: 18

@@ -121,35 +121,35 @@ GET override, feasibility 422, dcfMethodSource, Vary header, FE panel, OpenAPI).
 **Obiettivo:** Hardening contratti e routing FE, deploy prod Compose+nginx, backup/retention,
 checklist cutover, throttling FMP (default ADR-016); wiki FMP in parallelo (human).
 
-**Stato:** IN CORSO — 21 TSK `todo` (Sprint 5) + US-025 doc-only (TSK-060 XS verify).
+**Stato:** IN CORSO — **Wave 1 COMPLETATA** (14/14 TSK `done`, CI `1882767` verde); **Wave 2** 7 TSK `todo` (TSK-061…068).
 
-**Wave 1 (parallelo):** TSK-050, TSK-053, TSK-055, TSK-058, TSK-060, TSK-064, TSK-068, TSK-069
+**Wave 1 (parallelo, done):** TSK-050…060, TSK-064, TSK-069, TSK-070 — commit `1e15c20` + fix CI `7844c67`…`1882767`.
 
-**Wave 2 (post hardening FE/BE):** TSK-061 → TSK-063 → TSK-065 → TSK-066 → TSK-067
+**Wave 2 (deploy + wiki human):** TSK-061 → TSK-063 → TSK-065 → TSK-066 → TSK-067; TSK-068 ∥
 
 | TSK | Titolo | Layer | Consumer | Est. | Depends on | US | Status |
 |-----|--------|-------|----------|------|------------|-----|--------|
-| TSK-050 | BE FlatteningProblemDetailHttpMessageConverter | be | agent | S | — | US-021 | todo |
-| TSK-051 | QA Assert ProblemDetail top-level (IT + contract) | qa | agent | S | TSK-050 | US-021 | todo |
-| TSK-052 | BE OpenAPI ProblemDetail extension top-level | be | agent | XS | TSK-050 | US-021 | todo |
-| TSK-053 | FE Bump swr peer-compatible React 19 | fe | agent | S | — | US-022 | todo |
-| TSK-054 | Infra Rimuovi --legacy-peer-deps CI/Dockerfile | infra | agent | XS | TSK-053 | US-022 | todo |
-| TSK-055 | FE Route /analysis?ticker= static export | fe | agent | S | — | US-023 | todo |
-| TSK-056 | FE Link interni /analysis?ticker= | fe | agent | S | TSK-055 | US-023 | todo |
-| TSK-057 | QA E2E ticker fuori whitelist demo | qa | agent | S | TSK-055, TSK-056 | US-023 | todo |
-| TSK-058 | BE Property fmp.cache.profile-ttl-hours | be | agent | XS | — | US-024 | todo |
-| TSK-059 | QA Test scadenza cache profilo TTL | qa | agent | S | TSK-058 | US-024 | todo |
-| TSK-060 | QA Verifica ADR stack allineati (doc-only) | qa | agent | XS | — | US-025 | todo |
+| TSK-050 | BE FlatteningProblemDetailHttpMessageConverter | be | agent | S | — | US-021 | done |
+| TSK-051 | QA Assert ProblemDetail top-level (IT + contract) | qa | agent | S | TSK-050 | US-021 | done |
+| TSK-052 | BE OpenAPI ProblemDetail extension top-level | be | agent | XS | TSK-050 | US-021 | done |
+| TSK-053 | FE Bump swr peer-compatible React 19 | fe | agent | S | — | US-022 | done |
+| TSK-054 | Infra Rimuovi --legacy-peer-deps CI/Dockerfile | infra | agent | XS | TSK-053 | US-022 | done |
+| TSK-055 | FE Route /analysis?ticker= static export | fe | agent | S | — | US-023 | done |
+| TSK-056 | FE Link interni /analysis?ticker= | fe | agent | S | TSK-055 | US-023 | done |
+| TSK-057 | QA E2E ticker fuori whitelist demo | qa | agent | S | TSK-055, TSK-056 | US-023 | done |
+| TSK-058 | BE Property fmp.cache.profile-ttl-hours | be | agent | XS | — | US-024 | done |
+| TSK-059 | QA Test scadenza cache profilo TTL | qa | agent | S | TSK-058 | US-024 | done |
+| TSK-060 | QA Verifica ADR stack allineati (doc-only) | qa | agent | XS | — | US-025 | done |
 | TSK-061 | Infra docker-compose.prod.yml + nginx TLS | infra | agent | M | TSK-054 | US-026 | todo |
 | TSK-062 | Infra .env.prod.example variabili deploy | infra | agent | XS | TSK-061 | US-026 | todo |
 | TSK-063 | Infra Script backup pg_dump + retention 14d | infra | agent | S | TSK-061 | US-027 | todo |
-| TSK-064 | BE Scheduled purge fmp_api_event_log 90d | be | agent | S | — | US-027 | todo |
+| TSK-064 | BE Scheduled purge fmp_api_event_log 90d | be | agent | S | — | US-027 | done |
 | TSK-065 | QA Drill restore PostgreSQL staging | qa | agent | S | TSK-063 | US-027 | todo |
 | TSK-066 | QA Playwright smoke cutover R1.1 staging | qa | agent | M | TSK-050, TSK-057, TSK-061 | US-028 | todo |
 | TSK-067 | QA Esecuzione checklist cutover registro | qa | agent | S | TSK-066, TSK-065, TSK-064 | US-028 | todo |
 | TSK-068 | Human Ingest wiki FMP rate/URL/errori | infra | human | M | — | US-029 | todo |
-| TSK-069 | BE Env FMP_RATE_LIMIT_PER_MINUTE | be | agent | S | — | US-030 | todo |
-| TSK-070 | QA WireMock 429 retry + event log | qa | agent | S | TSK-069 | US-030 | todo |
+| TSK-069 | BE Env FMP_RATE_LIMIT_PER_MINUTE | be | agent | S | — | US-030 | done |
+| TSK-070 | QA WireMock 429 retry + event log | qa | agent | S | TSK-069 | US-030 | done |
 
 **Nota US-025:** L4 già allineato (appendici ADR-001/002/003). TSK-060 = verifica formale, **nessun dev L5** salvo drift.
 
@@ -172,7 +172,7 @@ Eseguire TSK-071 solo dopo chiusura gap `fmp-rate-limiting` in wiki con citazion
 | Release | Sprint | infra | db | be | fe | qa | Totale |
 |---------|--------|-------|-----|-----|-----|-----|--------|
 | R1.0 | 1–4 done | 2 | 7 | 23 | 13 | 7 | **49** |
-| R1.1 | 5 todo | 5 | 0 | 5 | 3 | 8 | **21** |
+| R1.1 | 5 in corso | 5 | 0 | 5 | 3 | 8 | **21** (14 done, 7 todo) |
 | R1.1 | 6 lookahead | 0 | 0 | 1 | 0 | 0 | **1** |
 | | **Nuovi R1.1** | | | | | | **22** (TSK-050…071) |
 
@@ -195,4 +195,4 @@ Cutover
   TSK-064 + TSK-065 ──→ TSK-067
 ```
 
-**Primo `/dev` suggerito:** `TSK-050` (BE RFC 9457 flatten) in parallelo con `TSK-053` (FE swr) e `TSK-055` (FE routing). Wiki: avviare `TSK-068` con wiki-keeper (human, non `/dev`).
+**Prossimo `/dev` suggerito:** `TSK-061` (docker-compose.prod + nginx TLS). In parallelo human: `TSK-068` (wiki-keeper ingest FMP). Cutover: TSK-066 dopo deploy staging.

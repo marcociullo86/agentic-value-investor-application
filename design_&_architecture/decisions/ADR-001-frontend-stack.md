@@ -54,9 +54,9 @@ Il frontend e' implementato come **Single Page Application** con **React 18** or
 
 **Routing analisi (US-023):** vedi [ADR-013](ADR-013-fe-analysis-routing-static-export.md) — `/analysis?ticker=` al posto di `/analysis/[ticker]`.
 
-**Dipendenze peer (US-022):** finché `swr` non dichiara peer `react@19` ufficiale, ordine di preferenza implementazione: (1) upgrade `swr` alla prima release con peer widened; (2) se assente a cutover R1.1, sostituire call-site SWR con wrapper `fetch` + hook React 19 (nessuna nuova major dependency); (3) **vietato** `--legacy-peer-deps` in CI/Dockerfile/contract-check [^src: management/kanban/EP-007-hardening-produzione/US-022-dipendenze-ui-senza-override/US-022.md §Acceptance Criteria].
+**Dipendenze peer (US-022):** implementato Sprint 5 Wave 1 — `swr@2.4.1` (peer `react@^19`); `--legacy-peer-deps` rimosso da CI, Dockerfile e contract-check (TSK-053/054, commit `1e15c20`). [^src: management/kanban/EP-007-hardening-produzione/US-022-dipendenze-ui-senza-override/US-022.md §Acceptance Criteria]
 
-Gap `arch-adr-version-sync` / `fe-swr-peer-r19`: sanati a livello L4; implementazione L5 segue `raw/tech_stack.md`.
+Gap `arch-adr-version-sync` / `fe-swr-peer-r19`: L4 allineato; L5 conforme a `raw/tech_stack.md` (CI `1882767`). Chiusura formale gap wiki: wiki-keeper.
 
 ## Pagine collegate
 

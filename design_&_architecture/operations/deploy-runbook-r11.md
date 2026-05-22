@@ -28,7 +28,7 @@ deciders: [lead-architect, marco.ciullo]
 
 ## Deploy staging (US-026 AC)
 
-1. **Build CI:** `gradle bootJar` + `npm ci && npm run build` (senza `--legacy-peer-deps` post US-022) + `docker build -t valueinvesting:staging`.
+1. **Build CI:** `gradle bootJar` + `npm ci && npm run build` (senza `--legacy-peer-deps` — US-022/TSK-054 done, CI `1882767`) + `docker build -t valueinvesting:staging`.
 2. **Push** immagine su registry accessibile dall'host staging.
 3. **Sul host:** copiare `docker-compose.prod.yml`, `nginx.conf`, `.env` (permessi `600`).
 4. **Avvio:** `docker compose -f docker-compose.prod.yml up -d`.
