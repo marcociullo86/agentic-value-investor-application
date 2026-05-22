@@ -25,8 +25,8 @@ import java.util.UUID
  * - removeTicker: deletes the row, throws TickerNotInWatchlistException when
  *   the entry is absent (mapped to 404 by GlobalExceptionHandler).
  *
- * [^src: design_&_architecture/components/backend-components.md §WatchlistService]
- * [^src: design_&_architecture/api/openapi.yaml §/api/watchlist/*]
+ * See design_&_architecture/components/backend-components.md §WatchlistService.
+ * See design_&_architecture/api/openapi.yaml §paths under /api/watchlist.
  */
 @Service
 class WatchlistService(

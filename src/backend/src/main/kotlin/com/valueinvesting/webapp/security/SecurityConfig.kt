@@ -18,15 +18,14 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * Stateless JWT-backed security chain (TSK-033) — supersedes the temporary
  * permissive config formerly in `config/SecurityConfig.kt`.
  *
- * Endpoint policy mirrors ADR-006 §Endpoint policy:
- *  - `permitAll`: `/api/auth/*`, `/api/search/*`, `/api/screener`,
- *    `/api/financials/*`, `/api/analysis/*`, `/api/historical/*`,
- *    `/actuator/health`, `/api/openapi.json`, springdoc.
- *  - `authenticated`: `/api/watchlist/*`, `/api/moat-checklist/*`,
- *    `/api/dcf-overrides/*`.
+ * Endpoint policy mirrors ADR-006 §Endpoint policy.
  *
- * [^src: design_&_architecture/decisions/ADR-006-authentication.md §Endpoint policy]
- * [^src: design_&_architecture/components/backend-components.md §SecurityConfig]
+ *  - permitAll: api auth, search, screener, financials, analysis, historical,
+ *    actuator health, openapi.json, springdoc.
+ *  - authenticated: api watchlist, moat-checklist, dcf-overrides.
+ *
+ * See design_&_architecture/decisions/ADR-006-authentication.md §Endpoint policy.
+ * See design_&_architecture/components/backend-components.md §SecurityConfig.
  */
 @Configuration
 @EnableWebSecurity
