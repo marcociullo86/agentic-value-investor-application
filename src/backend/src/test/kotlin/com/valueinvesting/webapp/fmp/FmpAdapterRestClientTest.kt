@@ -22,7 +22,7 @@ import org.springframework.web.client.RestClient
 // [^src: design_&_architecture/components/backend-components.md §Testing strategy]
 class FmpAdapterRestClientTest {
 
-    private val baseUrl = "https://fmp.test/api/v3"
+    private val baseUrl = "https://fmp.test/stable"
     private val apiKey = "test-key"
 
     private lateinit var server: MockRestServiceServer
@@ -47,7 +47,7 @@ class FmpAdapterRestClientTest {
 
     @Test
     fun `getIncomeStatement returns ordered list and preserves nulls`() {
-        server.expect(ExpectedCount.once(), requestTo(org.hamcrest.Matchers.startsWith("$baseUrl/income-statement/AAPL")))
+        server.expect(ExpectedCount.once(), requestTo(org.hamcrest.Matchers.startsWith("$baseUrl/income-statement")))
             .andExpect(method(org.springframework.http.HttpMethod.GET))
             .andExpect(queryParam("apikey", apiKey))
             .andExpect(queryParam("limit", "10"))
@@ -73,7 +73,7 @@ class FmpAdapterRestClientTest {
 
     @Test
     fun `getBalanceSheet maps DTO fields including absent (null) ones`() {
-        server.expect(requestTo(org.hamcrest.Matchers.startsWith("$baseUrl/balance-sheet-statement/AAPL")))
+        server.expect(requestTo(org.hamcrest.Matchers.startsWith("$baseUrl/balance-sheet-statement")))
             .andExpect(method(org.springframework.http.HttpMethod.GET))
             .andRespond(withSuccess(fixture("balance-sheet-aapl.json"), MediaType.APPLICATION_JSON))
 
@@ -91,7 +91,7 @@ class FmpAdapterRestClientTest {
 
     @Test
     fun `getCashFlow returns expected list`() {
-        server.expect(requestTo(org.hamcrest.Matchers.startsWith("$baseUrl/cash-flow-statement/AAPL")))
+        server.expect(requestTo(org.hamcrest.Matchers.startsWith("$baseUrl/cash-flow-statement")))
             .andRespond(withSuccess(fixture("cash-flow-aapl.json"), MediaType.APPLICATION_JSON))
 
         val result = adapter.getCashFlow("AAPL")
@@ -106,7 +106,7 @@ class FmpAdapterRestClientTest {
 
     @Test
     fun `getKeyMetrics preserves null roic for 2023`() {
-        server.expect(requestTo(org.hamcrest.Matchers.startsWith("$baseUrl/key-metrics/AAPL")))
+        server.expect(requestTo(org.hamcrest.Matchers.startsWith("$baseUrl/key-metrics")))
             .andRespond(withSuccess(fixture("key-metrics-aapl.json"), MediaType.APPLICATION_JSON))
 
         val result = adapter.getKeyMetrics("AAPL")
@@ -122,7 +122,7 @@ class FmpAdapterRestClientTest {
 
     @Test
     fun `empty array from FMP triggers FmpTickerNotFoundException`() {
-        server.expect(requestTo(org.hamcrest.Matchers.startsWith("$baseUrl/income-statement/ZZZZ")))
+        server.expect(requestTo(org.hamcrest.Matchers.startsWith("$baseUrl/income-statement")))
             .andRespond(withSuccess(fixture("empty.json"), MediaType.APPLICATION_JSON))
 
         assertThatThrownBy { adapter.getIncomeStatement("ZZZZ") }
@@ -135,7 +135,7 @@ class FmpAdapterRestClientTest {
 
     @Test
     fun `4xx response from FMP triggers FmpTickerNotFoundException`() {
-        server.expect(requestTo(org.hamcrest.Matchers.startsWith("$baseUrl/income-statement/ZZZZ")))
+        server.expect(requestTo(org.hamcrest.Matchers.startsWith("$baseUrl/income-statement")))
             .andRespond(withStatus(HttpStatus.NOT_FOUND))
 
         assertThatThrownBy { adapter.getIncomeStatement("ZZZZ") }
@@ -147,7 +147,7 @@ class FmpAdapterRestClientTest {
 
     @Test
     fun `5xx response from FMP triggers FmpUnavailableException`() {
-        server.expect(requestTo(org.hamcrest.Matchers.startsWith("$baseUrl/income-statement/AAPL")))
+        server.expect(requestTo(org.hamcrest.Matchers.startsWith("$baseUrl/income-statement")))
             .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
         assertThatThrownBy { adapter.getIncomeStatement("AAPL") }
@@ -193,7 +193,7 @@ class FmpAdapterRestClientTest {
 
     @Test
     fun `searchSymbol returns list of SearchHitDto from FMP search endpoint`() {
-        server.expect(ExpectedCount.once(), requestTo(org.hamcrest.Matchers.startsWith("$baseUrl/search")))
+        server.expect(ExpectedCount.once(), requestTo(org.hamcrest.Matchers.startsWith("$baseUrl/search-symbol")))
             .andExpect(method(org.springframework.http.HttpMethod.GET))
             .andExpect(queryParam("apikey", apiKey))
             .andExpect(queryParam("query", "AAPL"))
@@ -213,7 +213,7 @@ class FmpAdapterRestClientTest {
     // Empty list = zero match (legittimo) → emptyList, NO exception.
     @Test
     fun `searchSymbol with empty FMP response returns empty list and not exception`() {
-        server.expect(requestTo(org.hamcrest.Matchers.startsWith("$baseUrl/search")))
+        server.expect(requestTo(org.hamcrest.Matchers.startsWith("$baseUrl/search-symbol")))
             .andRespond(withSuccess(fixture("search-empty.json"), MediaType.APPLICATION_JSON))
 
         val result = adapter.searchSymbol("ZZZNOPE")
@@ -225,7 +225,7 @@ class FmpAdapterRestClientTest {
     // 4xx (non-429) → emptyList (a differenza di fetchList che mappa a NotFound).
     @Test
     fun `searchSymbol with 4xx returns empty list`() {
-        server.expect(requestTo(org.hamcrest.Matchers.startsWith("$baseUrl/search")))
+        server.expect(requestTo(org.hamcrest.Matchers.startsWith("$baseUrl/search-symbol")))
             .andRespond(withStatus(HttpStatus.BAD_REQUEST))
 
         val result = adapter.searchSymbol("AAPL")
@@ -237,7 +237,7 @@ class FmpAdapterRestClientTest {
     // 429 → FmpUnavailableException(429) per Resilience4j chain (rate limit).
     @Test
     fun `searchSymbol with 429 throws FmpUnavailableException`() {
-        server.expect(requestTo(org.hamcrest.Matchers.startsWith("$baseUrl/search")))
+        server.expect(requestTo(org.hamcrest.Matchers.startsWith("$baseUrl/search-symbol")))
             .andRespond(withStatus(HttpStatus.TOO_MANY_REQUESTS))
 
         assertThatThrownBy { adapter.searchSymbol("AAPL") }
@@ -248,7 +248,7 @@ class FmpAdapterRestClientTest {
     // 5xx → FmpUnavailableException (mapped to 503 RFC 9457 a monte).
     @Test
     fun `searchSymbol with 5xx throws FmpUnavailableException`() {
-        server.expect(requestTo(org.hamcrest.Matchers.startsWith("$baseUrl/search")))
+        server.expect(requestTo(org.hamcrest.Matchers.startsWith("$baseUrl/search-symbol")))
             .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
         assertThatThrownBy { adapter.searchSymbol("AAPL") }

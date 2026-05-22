@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import { useAnalysisStore } from '@/lib/stores/useAnalysisStore';
 import { useHistorical } from '@/lib/hooks/useHistorical';
 import { TrafficLightPanel } from '@/components/analysis/TrafficLightPanel';
@@ -43,7 +44,14 @@ export interface AnalysisPageClientProps {
 export function AnalysisPageClient(
   props: AnalysisPageClientProps,
 ): React.ReactElement {
-  const { ticker } = props;
+  // `output: 'export'` produce un set finito di pagine pre-renderizzate
+  // (generateStaticParams in page.tsx). Per supportare ticker arbitrari, il BE
+  // forward `/analysis/{any-ticker}/` a un template; qui leggiamo il ticker
+  // effettivo da `useParams()` (URL reale) invece che dal prop pre-bundleato
+  // nel template HTML, così TTD ecc. funzionano anche senza pre-rendering.
+  // Fallback su prop per i test che istanziano direttamente il componente.
+  const routeParams = useParams<{ ticker?: string }>();
+  const ticker = routeParams?.ticker ?? props.ticker;
   const normalized = ticker.trim().toUpperCase();
 
   const analysis = useAnalysisStore((s) => s.byTicker[normalized]);

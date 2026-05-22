@@ -1,75 +1,144 @@
 ---
+id: value-investing-fmp-integration
 type: synthesis
-sources: ["raw/01_Principi_Fondamentali_Value_Investing.md", "raw/03_Analisi_Fondamentale_e_Valutazione.md", "raw/05_Analisi_10K_10Q_e_Regole_Buffett.md", "raw/FMP_Docs_4_Financial_Statements.txt", "raw/FMP_Docs_5_Metrics_and_Ratios.txt"]
+sources: ["raw/fmp_docs.md", "raw/fmp_docs.json", "raw/01_Principi_Fondamentali_Value_Investing.md", "raw/03_Analisi_Fondamentale_e_Valutazione.md", "raw/05_Analisi_10K_10Q_e_Regole_Buffett.md", "raw/06_Documento_Funzionale_WebApp_Value_Investing.md"]
 status: draft
-created: 2026-05-20
-updated: 2026-05-21
-tags: [synthesis, value-investing, fmp, cross-domain, graham, buffett, financial-statements, metrics]
+created: 2026-05-22
+tags: [fmp, stable, value-investing, rule-engine, integration, adr-004, synthesis]
 ---
-# Come usare FMP API per il Value Investing
+# Value Investing — Mapping Metriche → Endpoint FMP Stable
 
-> Mappatura operativa tra le metriche del value investing (Graham, Buffett) e gli endpoint FMP API disponibili: quale dato prendere, da quale endpoint, per quale calcolo.
+^src: raw/fmp_docs.md §Financial Statements, §Key Metrics, §Company Information — ^src: raw/fmp_docs.json — ^src: raw/03_Analisi_Fondamentale_e_Valutazione.md — ^src: raw/06_Documento_Funzionale_WebApp_Value_Investing.md
 
-## Contesto
+Sintesi cross-dominio che mappa le metriche del framework value investing (Graham/Buffett) agli endpoint FMP stable corrispondenti, con indicazione dell'invariante architetturale BE.
 
-Il dominio value investing (raw 01-05) e il dominio FMP API (raw FMP_Docs 1-8) convergono nell'obiettivo di costruire un agente AI che recupera dati finanziari strutturati e li elabora con i filtri quantitativi di Graham e Buffett. Questa synthesis mappa i punti di contatto concreti. [^src: raw/05_Analisi_10K_10Q_e_Regole_Buffett.md §3C. Le Regole Finanziarie Quantitative]
+**Invariante**: l'**architettura** lato BE definita in ADR-004 (adapter pattern, cache 24h, Resilience4j, event log) **non cambia** con la migrazione v3 -> stable. Cambiano solo i path URL, i parametri di query e i DTO di mapping.
 
-## Mappa Metrica → Endpoint FMP
+---
 
-### Numero di Graham e criteri difensivi
+## 1. Pipeline analisi ticker
 
-| Metrica Graham | Endpoint FMP | Concept |
-|---|---|---|
-| EPS (Utile per Azione) | Key Metrics, Income Statement | [[fmp-financial-statements]] |
-| Book Value per Share | Key Metrics, Balance Sheet | [[fmp-financial-statements]] |
-| Current Ratio | Financial Ratios | [[fmp-metrics-ratios]] |
-| P/E e P/B | Key Metrics, Quote | [[fmp-metrics-ratios]], [[fmp-quotes]] |
-| Dividendi 20 anni | Income Statement (storico, limit=80) | [[fmp-financial-statements]] |
+```
+Ticker
+  |
+  v
+search-symbol / search-name    <- fmp-company-search
+  |
+  v
+profile                         <- fmp-company-information (prezzo corrente, sector)
+  |
+  v
+income-statement (10 anni)      <- fmp-financial-statements-stable
+balance-sheet-statement (10y)   <- fmp-financial-statements-stable
+cash-flow-statement (10y)       <- fmp-financial-statements-stable
+key-metrics (10 anni)           <- fmp-key-metrics-ratios
+  |
+  v
+RuleEngineService (7 regole)    <- rule-engine interno
+GrahamNumberCalculator          <- calcolatore interno
+DcfCalculator (Greenwald/FCF)   <- calcolatore interno
+MarginOfSafetyEvaluator         <- valutatore finale
+  |
+  v
+RuleEngineResult (DB)           <- persistenza JSONB
+```
 
-### Regole Buffett
+---
 
-| Metrica Buffett | Endpoint FMP | Concept |
-|---|---|---|
-| ROE | Financial Ratios TTM | [[fmp-metrics-ratios]] |
-| ROIC | Key Metrics | [[fmp-metrics-ratios]] |
-| Gross Margin, Net Margin | Financial Ratios | [[fmp-metrics-ratios]] |
-| Free Cash Flow | Cash Flow Statement | [[fmp-financial-statements]] |
-| Debito LT / Utile Netto | Balance Sheet + Income Statement | [[fmp-financial-statements]] |
-| CapEx | Cash Flow Statement | [[fmp-financial-statements]] |
-| DCF (riferimento consensus) | DCF endpoint | [[fmp-metrics-ratios]] |
+## 2. Mapping metriche → endpoint FMP stable
 
-[^src: raw/FMP_Docs_5_Metrics_and_Ratios.txt §Key Metrics & TTM Key Metrics API]
+### Regole quantitative (7 segnali)
 
-### Analisi qualitativa SEC
+| Regola (ruleId) | Metrica | Endpoint FMP stable | Campo FMP | Note |
+|-----------------|---------|---------------------|-----------|------|
+| `ROE_10Y_AVG` | ROE medio 10 anni | `/stable/key-metrics` | `roe` | Min 5 anni usabili |
+| `ROIC_10Y_AVG` | ROIC medio 10 anni | `/stable/key-metrics` | `roic` | Min 5 anni usabili |
+| `GROSS_MARGIN_10Y_AVG` | Gross margin medio 10y | `/stable/income-statement` | `grossProfitRatio` (o `grossProfit/revenue`) | Fallback derivato |
+| `NET_MARGIN_10Y_AVG` | Net margin medio 10y | `/stable/income-statement` | `netIncomeRatio` (o `netIncome/revenue`) | Fallback derivato |
+| `CURRENT_RATIO_LATEST` | Current ratio piu' recente | `/stable/balance-sheet-statement` | `totalCurrentAssets / totalCurrentLiabilities` | LATEST year (newest-first [0]) |
+| `DEBT_TO_INCOME_LATEST` | Long term debt / net income | `/stable/balance-sheet-statement` + `/stable/income-statement` | `longTermDebt / netIncome` | LATEST year; INDETERMINATE se netIncome<=0 |
+| `CAPEX_INTENSITY_10Y_AVG` | |CapEx| / netIncome medio 10y | `/stable/cash-flow-statement` + `/stable/income-statement` | `abs(capitalExpenditure) / netIncome`; convenzione FMP: capEx NEGATIVO |
 
-Per la lettura dei 10-K/10-Q (Item 1, 1A, 7, 8, Note), FMP non fornisce il testo narrativo del documento SEC. I rendiconti finanziari strutturati (Item 8) sono invece coperti dagli endpoint Financial Statements. Per il testo narrativo (MD&A, Risk Factors), la fonte rimane direttamente EDGAR o il sito IR dell'azienda. [^src: raw/05_Analisi_10K_10Q_e_Regole_Buffett.md §2. Step Procedurali per l'Analisi di un 10-K / 10-Q]
+### Calcolatori scalari
 
-## Aggiornamenti (v2026-05-21)
+| Calcolatore | Input | Endpoint FMP stable | Campo FMP |
+|-------------|-------|---------------------|-----------|
+| `GrahamNumberCalculator` | EPS + BVPS | `/stable/income-statement` (eps) + `/stable/key-metrics` (bookValuePerShare) | `eps` (NON `netIncomePerShare`) |
+| `DcfCalculator` (Greenwald) | OCF, CapEx, D&A | `/stable/cash-flow-statement` | `operatingCashFlow`, `capitalExpenditure`, `depreciationAndAmortization` |
+| `DcfCalculator` (FCF fallback) | FreeCashFlow | `/stable/cash-flow-statement` | `freeCashFlow` (gia' calcolato da FMP) |
+| `MarginOfSafetyEvaluator` | prezzo corrente | `/stable/profile` | `price` |
 
-Il backend non chiama più FMP direttamente dai controller: `FinancialDataService` e `AnalyzeTickerService` usano `FmpCacheService` (TTL 24h sui 4 statement, 1h su profile) con fallback stale (`X-Data-Stale`). Il consumo applicativo unificato per la valutazione è [[analysis-api-pipeline]] (`GET /api/analysis/{ticker}`).
+---
 
-## Gap residuo
+## 3. Soglie delle regole (invarianti)
 
-FMP non espone dati narrativi SEC (MD&A, Item 1A). Questo limita la copertura dello Step 2 e Step 3 del [[sec-filings-analysis]] quando si usa solo FMP come fonte dati. Vedi `wiki/gaps.md` per il gap `vi-sec-narrative-gap`.
+| ruleId | GREEN | YELLOW | RED | INDETERMINATE |
+|--------|-------|--------|-----|---------------|
+| ROE_10Y_AVG | >15% | 10-15% | <10% | <5 anni dati |
+| ROIC_10Y_AVG | >12% | 8-12% | <8% | <5 anni dati |
+| GROSS_MARGIN_10Y_AVG | >40% | 30-40% | <30% | <5 anni dati |
+| NET_MARGIN_10Y_AVG | >10% | — | <=10% | <5 anni dati |
+| CURRENT_RATIO_LATEST | >2.0 | 1.5-2.0 | <1.5 | assets/liabilities null |
+| DEBT_TO_INCOME_LATEST | <4 | 4-5 | >5 | netIncome<=0 o null |
+| CAPEX_INTENSITY_10Y_AVG | <25% | 25-30% | >30% | netIncome<=0 o null |
 
-## Concetti correlati
-[[margin-of-safety]]
-[[graham-number]]
-[[intrinsic-value]]
-[[economic-moat]]
-[[sec-filings-analysis]]
-[[fmp-financial-statements]]
-[[fmp-metrics-ratios]]
-[[fmp-quotes]]
+---
 
-## Pagine collegate
-[[fmp-api-overview]]
-[[warren-buffett]]
-[[benjamin-graham]]
-[[vi-05-analisi-10k-10q-buffett]]
-[[webapp-value-investing-spec]]
-[[value-investing-rule-engine]]
-[[analysis-api-pipeline]]
+## 4. Screener parametrico (EP-001)
 
-## Storie collegate
-<!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->
+| Filtro | Endpoint FMP stable | Parametro |
+|--------|---------------------|-----------|
+| Market cap (5 fasce: $50M-$200B+) | `/stable/company-screener` | `marketCapMoreThan` + `marketCapLessThan` |
+| Settore GICS (11 settori) | `/stable/company-screener` | `sector` |
+| Exchange | `/stable/company-screener` | `exchange` (es. `NASDAQ,NYSE`) |
+| Esclusione settori hard-to-predict | Filtro applicativo post-screener | `sector NOT IN (Finance, Utilities, ...)` |
+
+---
+
+## 5. Architettura BE — invariante ADR-004
+
+La migrazione v3 -> stable **non richiede cambiamenti architetturali**. Cambiamenti limitati a:
+
+| Componente | Cambiamento richiesto |
+|-----------|----------------------|
+| `FmpAdapterRestClient` | Path URL: `/api/v3/{symbol}` -> `/stable/endpoint?symbol={symbol}` |
+| `IncomeStatementDto` | Verificare campo mapping (es. `period` enum) |
+| `BalanceSheetDto` | Verificare campo mapping |
+| `CashFlowDto` | Verificare `capitalExpenditure` sign (negativo in stable — gia' gestito da `abs()` in CapexIntensityRule) |
+| `KeyMetricsDto` | Verificare `bookValuePerShare` spelling |
+| `ProfileDto` | Verificare `mktCap` vs `marketCap` spelling |
+
+Invarianti (non cambiano):
+- `FmpAdapter` interface e firme metodi
+- `FmpCacheService` logica cache-aside + TTL 24h/1h
+- `ResilientFmpAdapter` (Resilience4j CB/Retry/RateLimiter/Bulkhead)
+- `FmpEventLogger` e `fmp_api_event_log` schema DB
+- `RuleEngineService`, tutte le 7 rule, GrahamNumberCalculator, DcfCalculator
+
+Vedi [[webapp-architecture-vi]] per dettagli implementativi.
+
+---
+
+## 6. Gap e limiti FMP stable (value investing)
+
+| Gap | Descrizione | Impatto |
+|-----|-------------|---------|
+| `vi-sec-narrative-gap` | FMP non espone testo narrativo SEC (10-K Item 1, 1A, 7) | Step 1-3 analisi 10-K richiede EDGAR diretto |
+| `fmp-stable-rate-limiting` | Rate limit non documentato | Cache 24h mitiga; vedi gap aperto |
+| `fmp-stable-analyst-estimates` | Stime analisti (consensus EPS, price target) non trovate nella stable | Non integrabili nel MVP senza verifica |
+
+---
+
+## Cross-link
+
+- Entity: [[fmp-api]]
+- Source: [[fmp-docs]]
+- Panoramica API: [[fmp-api-overview]]
+- Financial statements: [[fmp-financial-statements-stable]]
+- Key metrics: [[fmp-key-metrics-ratios]]
+- Company search: [[fmp-company-search]]
+- Company info: [[fmp-company-information]]
+- Rule engine: [[value-investing-rule-engine]]
+- Architettura: [[webapp-architecture-vi]]
+- Runbook: [[fmp-api-quickstart]]
+- Concetti: [[intrinsic-value]], [[margin-of-safety]], [[economic-moat]], [[graham-number]]

@@ -50,12 +50,30 @@ Buffett stima gli Owner Earnings (Free Cash Flow modificato), li attualizza con 
 [[margin-of-safety]]
 [[intrinsic-value]]
 [[sec-filings-analysis]]
-[[fmp-metrics-ratios]]
+[[fmp-key-metrics-ratios]]
 
 ## Pagine collegate
 [[benjamin-graham]]
 [[vi-05-analisi-10k-10q-buffett]]
 [[vi-04-gestione-rischio-psicologia]]
+
+## Aggiornamenti (v2026-05-22)
+
+**Fonte aggiunta:** `raw/investitore intelligente.txt` — edizione italiana 2020.
+
+### Graham come Figura Fondativa
+
+Buffett descrive il rapporto con Graham con una citazione che va oltre il rapporto professore-allievo:
+
+> "Per me, Ben Graham e' stato molto piu' che un autore o un insegnante. Ha influenzato la mia vita piu' di ogni altro uomo a parte mio padre." [^src: raw/investitore intelligente.txt §Prefazione di Warren Buffett]
+
+Buffett lesse la prima edizione de "L'Investitore Intelligente" all'eta' di 19 anni (inizio 1950) e la definisce "di gran lunga il testo migliore mai scritto sul tema degli investimenti". Lavorò presso Graham-Newman Corp. nel periodo 1954-1956, dove apprese i metodi operativi del framework. [^src: raw/investitore intelligente.txt §Prefazione di Warren Buffett]
+
+### Buffett come Superinvestitore Graham-and-Doddsville
+
+La Buffett Partnership (1957-1969) registra 29.5% lordo annuo vs 7.4% Dow Jones su 13 anni — il rendimento piu' elevato tra i nove "Superinvestitori di Graham-and-Doddsville" presentati da Buffett al convegno Columbia 1984. [^src: raw/investitore intelligente.txt §Appendice 1 — I Superinvestitori di Graham-and-Doddsville]
+
+Vedi [[superinvestors-graham-doddsville]] per l'analisi completa dei nove fondi.
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->

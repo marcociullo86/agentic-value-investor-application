@@ -71,9 +71,10 @@ class FmpAdapterRestClient(
             typeRef = object : ParameterizedTypeReference<List<KeyMetricsDto>>() {},
         )
 
-    // `/profile/{ticker}` returns a single-element list.  We reuse fetchList and
-    // take .first() — semantics for empty (404 / not found) are already enforced
-    // there.  `limit` is irrelevant for /profile but we pass 1 for safety.
+    // `/profile?symbol={ticker}` returns a single-element list.  We reuse
+    // fetchList and take .first() — semantics for empty (404 / not found) are
+    // already enforced there.  `limit` is irrelevant for /profile but we pass 1
+    // for safety; FMP stable accepts it as a no-op query param.
     override fun getProfile(ticker: String): ProfileDto =
         fetchList(
             endpoint = "profile",
@@ -82,7 +83,7 @@ class FmpAdapterRestClient(
             typeRef = object : ParameterizedTypeReference<List<ProfileDto>>() {},
         ).first()
 
-    // `/stock-screener` ha shape diversa dagli altri endpoint (niente {ticker} nel
+    // `/company-screener` ha shape diversa dagli altri endpoint (niente {ticker} nel
     // path, query params arbitrari, lista vuota legittima) → fetch dedicato.
     override fun screen(
         marketCapMoreThan: Long?,
@@ -97,7 +98,7 @@ class FmpAdapterRestClient(
             client.get()
                 .uri { builder ->
                     val b = builder
-                        .path("/stock-screener")
+                        .path("/company-screener")
                         .queryParam("apikey", appProperties.fmp.apiKey)
                         .queryParam("limit", limit)
                     if (marketCapMoreThan != null) b.queryParam("marketCapMoreThan", marketCapMoreThan)
@@ -109,27 +110,27 @@ class FmpAdapterRestClient(
                 .onStatus(HttpStatusCode::is4xxClientError) { _, response ->
                     val status = response.statusCode
                     if (status.value() == 429) {
-                        log.warn("FMP 429 (rate limited) on /stock-screener")
+                        log.warn("FMP 429 (rate limited) on /company-screener")
                         throw FmpUnavailableException(
-                            "FMP rate limited for stock-screener",
+                            "FMP rate limited for company-screener",
                             httpStatus = 429,
                         )
                     }
-                    log.warn("FMP 4xx on /stock-screener status={}", status)
+                    log.warn("FMP 4xx on /company-screener status={}", status)
                     // Per lo screener, un 4xx non è "ticker not found": è una
                     // condizione anomala (parametri rifiutati). La trattiamo come
                     // unavailable così Resilience4j / GlobalExceptionHandler
                     // mappano a 503 invece che a 404 fuorviante.
                     throw FmpUnavailableException(
-                        "FMP returned $status for stock-screener",
+                        "FMP returned $status for company-screener",
                         httpStatus = status.value(),
                     )
                 }
                 .onStatus(HttpStatusCode::is5xxServerError) { _, response ->
                     val status = response.statusCode
-                    log.warn("FMP 5xx on /stock-screener status={}", status)
+                    log.warn("FMP 5xx on /company-screener status={}", status)
                     throw FmpUnavailableException(
-                        "FMP returned $status for stock-screener",
+                        "FMP returned $status for company-screener",
                         httpStatus = status.value(),
                     )
                 }
@@ -138,7 +139,7 @@ class FmpAdapterRestClient(
             throw ex
         } catch (ex: RestClientResponseException) {
             throw FmpUnavailableException(
-                "FMP call failed: ${ex.statusCode} for stock-screener",
+                "FMP call failed: ${ex.statusCode} for company-screener",
                 cause = ex,
                 httpStatus = ex.statusCode.value(),
             )
@@ -148,7 +149,7 @@ class FmpAdapterRestClient(
         return result ?: emptyList()
     }
 
-    // `/search` ha shape simile a `/stock-screener`: nessun {ticker} nel path,
+    // `/search` ha shape simile a `/company-screener`: nessun {ticker} nel path,
     // query param `query` arbitrario, lista vuota legittima (zero match) e NON
     // mappata a FmpTickerNotFoundException — vedi javadoc su FmpAdapter.searchSymbol.
     //
@@ -169,7 +170,7 @@ class FmpAdapterRestClient(
             client.get()
                 .uri { builder ->
                     builder
-                        .path("/search")
+                        .path("/search-symbol")
                         .queryParam("apikey", appProperties.fmp.apiKey)
                         .queryParam("query", query)
                         .queryParam("limit", limit)
@@ -222,10 +223,13 @@ class FmpAdapterRestClient(
     // (catturata nel try/catch del chiamante searchSymbol).
     private class EmptySearchSentinelException : RuntimeException()
 
-    // Generic GET on /{endpoint}/{ticker}?apikey=...&limit=...
-    // Empty list response -> FmpTickerNotFoundException (semantica FMP).
+    // Generic GET on /{endpoint}?symbol={ticker}&apikey=...&limit=...
+    // Stable API (TSK-050): il ticker passa da path-variable a query parameter
+    // `symbol`. Empty list response -> FmpTickerNotFoundException (semantica FMP).
     // Errori HTTP non-2xx → propagati come FmpUnavailableException (la mappatura a 503
     // avverrà nel GlobalExceptionHandler una volta esteso da TSK-011).
+    // [^src: wiki/concepts/fmp-financial-statements-stable.md]
+    // [^src: wiki/concepts/fmp-company-information.md §profile]
     private fun <T> fetchList(
         endpoint: String,
         ticker: String,
@@ -240,10 +244,11 @@ class FmpAdapterRestClient(
             client.get()
                 .uri { builder ->
                     builder
-                        .path("/{endpoint}/{ticker}")
+                        .path("/{endpoint}")
                         .queryParam("apikey", appProperties.fmp.apiKey)
+                        .queryParam("symbol", upperTicker)
                         .queryParam("limit", limit)
-                        .build(endpoint, upperTicker)
+                        .build(endpoint)
                 }
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError) { _, response ->

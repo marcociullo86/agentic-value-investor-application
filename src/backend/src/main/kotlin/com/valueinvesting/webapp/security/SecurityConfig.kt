@@ -123,6 +123,31 @@ class SecurityConfig(
             .authorizeHttpRequests { auth ->
                 auth
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                    // SPA static assets bundled in the BE container (ADR-009 §2).
+                    // Next.js export produces /index.html, /_next/**, and a folder
+                    // per route (trailingSlash: true). These paths must reach the
+                    // static-resource handler without auth; protected APIs live
+                    // exclusively under /api/.
+                    .requestMatchers(
+                        HttpMethod.GET,
+                        "/",
+                        "/index.html",
+                        "/favicon.ico",
+                        "/_next/**",
+                        "/login/**",
+                        "/register/**",
+                        "/watchlist/**",
+                        "/screener/**",
+                        "/moat/**",
+                        "/analysis/**",
+                        "/*.svg",
+                        "/*.png",
+                        "/*.jpg",
+                        "/*.ico",
+                        "/*.txt",
+                        "/*.json",
+                        "/*.webmanifest",
+                    ).permitAll()
                     .requestMatchers(
                         "/api/auth/register",
                         "/api/auth/login",

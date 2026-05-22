@@ -25,7 +25,7 @@ Raw che elenca i sette criteri di Graham per filtrare azioni difensive e present
 [[graham-number]]
 [[intrinsic-value]]
 [[defensive-vs-enterprising-investor]]
-[[fmp-metrics-ratios]]
+[[fmp-key-metrics-ratios]]
 
 ## Pagine collegate
 [[vi-02-investitore-difensivo-intraprendente]]

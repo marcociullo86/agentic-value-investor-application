@@ -1,15 +1,18 @@
 package com.valueinvesting.webapp.fmp.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
 
 // FMP Key Metrics DTO — nullable-aware per US-004 AC.
+// Migrato a `/stable` API (TSK-050): @JsonProperty mappa `fiscalYear`
+// dell'API stable sul nome Kotlin storico per evitare rinomi downstream.
 // [^src: design_&_architecture/decisions/ADR-004-fmp-integration.md §Adapter pattern]
-// [^src: wiki/concepts/fmp-metrics-ratios.md §Key Metrics]
+// [^src: wiki/concepts/fmp-key-metrics-ratios.md]
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class KeyMetricsDto(
     val symbol: String? = null,
     val date: String? = null,
-    val calendarYear: String? = null,
+    @JsonProperty("fiscalYear") val calendarYear: String? = null,
     val period: String? = null,
     val revenuePerShare: Double? = null,
     val netIncomePerShare: Double? = null,

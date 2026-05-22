@@ -40,6 +40,7 @@ services:
   app:
     # The Dockerfile (multi-stage build) is described in ADR-009 §2
     # and will be added as part of the deployment TSK.
+    image: vi-app:latest
     build:
       context: ../..
       dockerfile: src/docker/Dockerfile

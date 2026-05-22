@@ -92,8 +92,8 @@ Il sistema calcola autonomamente tre metriche: [^src: raw/06_Documento_Funzional
 [[margin-of-safety]]
 [[graham-number]]
 [[economic-moat]]
-[[fmp-financial-statements]]
-[[fmp-metrics-ratios]]
+[[fmp-financial-statements-stable]]
+[[fmp-key-metrics-ratios]]
 
 ## Pagine collegate
 [[value-investing-fmp-integration]]

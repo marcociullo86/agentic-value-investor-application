@@ -162,8 +162,10 @@ checklist cutover, throttling FMP (default ADR-016); wiki FMP in parallelo (huma
 | TSK | Titolo | Layer | Consumer | Est. | Depends on | Status |
 |-----|--------|-------|----------|------|------------|--------|
 | TSK-071 | BE Ricalibra rate limit da wiki post US-029 | be | agent | XS | TSK-068, TSK-069 | todo |
+| TSK-072 | BE Migrazione FmpAdapterRestClient + DTO + fixture da v3 a /stable (ex sprint5 TSK-050 rinumerato) | be | agent | L | TSK-009, TSK-068 | done |
 
 Eseguire TSK-071 solo dopo chiusura gap `fmp-rate-limiting` in wiki con citazione raw.
+TSK-072 (US-031) introdotto retroattivamente: codice gia' implementato nel branch sprint5/tsk-050-fmp-stable-migration (ora rinumerato US-031/TSK-072 per evitare collisione con il TSK-050 di master).
 
 ---
 

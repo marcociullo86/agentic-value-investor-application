@@ -42,10 +42,10 @@ Prima di calcolare il Numero di Graham, il titolo deve superare tutti e sette i 
 
 I dati necessari per il calcolo del Numero di Graham sono disponibili tramite FMP: [^src: raw/FMP_Docs_5_Metrics_and_Ratios.txt §Key Metrics & TTM Key Metrics API]
 
-- **EPS**: via Key Metrics o Income Statement ([[fmp-financial-statements]]).
+- **EPS**: via Key Metrics o Income Statement ([[fmp-financial-statements-stable]]).
 - **Book Value per Share**: via Key Metrics o Balance Sheet.
-- **Current Ratio**: via Financial Ratios ([[fmp-metrics-ratios]]).
-- **P/E e P/B**: via Key Metrics o Quotes ([[fmp-quotes]]).
+- **Current Ratio**: via Financial Ratios ([[fmp-key-metrics-ratios]]).
+- **P/E e P/B**: via Key Metrics o Quotes ([[fmp-quotes-stable]]).
 
 ### Estensione moderna: ROE
 
@@ -55,12 +55,14 @@ Il ROE costantemente elevato (> 15%) affianca il Numero di Graham come segnale d
 [[intrinsic-value]]
 [[margin-of-safety]]
 [[defensive-vs-enterprising-investor]]
-[[fmp-metrics-ratios]]
-[[fmp-financial-statements]]
-[[fmp-quotes]]
+[[seven-criteria-defensive-stock-selection]]
+[[fmp-key-metrics-ratios]]
+[[fmp-financial-statements-stable]]
+[[fmp-quotes-stable]]
 
 ## Pagine collegate
 [[vi-03-analisi-fondamentale-valutazione]]
+[[intelligent-investor]]
 [[benjamin-graham]]
 
 ## Aggiornamenti (v2026-05-21)

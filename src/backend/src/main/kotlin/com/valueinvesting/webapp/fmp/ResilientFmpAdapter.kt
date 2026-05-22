@@ -79,7 +79,7 @@ class ResilientFmpAdapter(
         limit: Int,
     ): List<ScreenedStockDto> =
         // ticker "-" è un placeholder per il logger (screener non è per-ticker).
-        execute("stock-screener", "-") {
+        execute("company-screener", "-") {
             delegate.screen(marketCapMoreThan, marketCapLowerThan, sector, limit)
         }
 

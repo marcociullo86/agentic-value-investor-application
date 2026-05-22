@@ -3,21 +3,21 @@
     "symbol": "AAPL",
     "name": "Apple Inc.",
     "currency": "USD",
-    "stockExchange": "NASDAQ Global Select",
-    "exchangeShortName": "NASDAQ"
+    "exchangeFullName": "NASDAQ Global Select",
+    "exchange": "NASDAQ"
   },
   {
     "symbol": "APC",
     "name": "Apple Corp Holdings",
     "currency": "USD",
-    "stockExchange": "New York Stock Exchange",
-    "exchangeShortName": "NYSE"
+    "exchangeFullName": "New York Stock Exchange",
+    "exchange": "NYSE"
   },
   {
     "symbol": "AAPL.NE",
     "name": "Apple Inc. (CDR)",
     "currency": "CAD",
-    "stockExchange": "NEO",
-    "exchangeShortName": "NEO"
+    "exchangeFullName": "NEO",
+    "exchange": "NEO"
   }
 ]

@@ -18,10 +18,10 @@ La FSD del documento 06 formalizza come trasformare i principi analitici Graham/
 
 | Requisito RF | Regola Business | Endpoint FMP | Concept |
 |---|---|---|---|
-| RF3 Redditività | ROE > 15%, ROIC > 12-15% | `/key-metrics/{t}?limit=10` | [[fmp-metrics-ratios]] |
-| RF3 Pricing Power | Gross Margin > 40%, Net Margin > 10% | `/income-statement/{t}?limit=10` | [[fmp-financial-statements]] |
-| RF3 Solidità | Current Ratio > 2; Debito LT/Net < 4 | `/balance-sheet-statement/{t}?limit=10` | [[fmp-financial-statements]] |
-| RF3 CapEx | CapEx/Utile Netto < 25-30% | `/cash-flow-statement/{t}?limit=10` | [[fmp-financial-statements]] |
+| RF3 Redditività | ROE > 15%, ROIC > 12-15% | `/key-metrics/{t}?limit=10` | [[fmp-key-metrics-ratios]] |
+| RF3 Pricing Power | Gross Margin > 40%, Net Margin > 10% | `/income-statement/{t}?limit=10` | [[fmp-financial-statements-stable]] |
+| RF3 Solidità | Current Ratio > 2; Debito LT/Net < 4 | `/balance-sheet-statement/{t}?limit=10` | [[fmp-financial-statements-stable]] |
+| RF3 CapEx | CapEx/Utile Netto < 25-30% | `/cash-flow-statement/{t}?limit=10` | [[fmp-financial-statements-stable]] |
 | RF4 Graham Number | `Sqrt(22.5 * EPS * BVPS)` | `/key-metrics/` + `/income-statement/` | [[graham-number]] |
 | RF4 DCF | FCF proiettato, max 5-7% crescita, DR 9-10% | `/cash-flow-statement/` + `/key-metrics/` | [[intrinsic-value]] |
 | RF4 Margin of Safety | Prezzo < DCF * 0.70 | `/profile/{t}` (prezzo corrente) | [[margin-of-safety]] |
@@ -82,8 +82,8 @@ Endpoint implementati vs contratto completo: vedi [[analysis-api-pipeline]] e `d
 [[margin-of-safety]]
 [[graham-number]]
 [[economic-moat]]
-[[fmp-financial-statements]]
-[[fmp-metrics-ratios]]
+[[fmp-financial-statements-stable]]
+[[fmp-key-metrics-ratios]]
 
 ## Pagine collegate
 [[vi-06-webapp-value-investing-fsd]]

@@ -1,14 +1,16 @@
 ---
 type: runbook
-sources: ["raw/FMP_Docs_1_Auth_and_Search.txt", "raw/FMP_Docs_3_Company_Info.txt", "raw/FMP_Docs_4_Financial_Statements.txt", "raw/FMP_Docs_5_Metrics_and_Ratios.txt", "raw/FMP_Docs_6_Quotes_and_Prices.txt"]
+sources: ["raw/fmp_docs.md", "raw/fmp_docs.json"]
 status: draft
 created: 2026-05-20
-updated: 2026-05-22
-tags: [fmp, quickstart, runbook, integration, rate-limit, errors, us-029]
+updated: 2026-05-23
+tags: [fmp, quickstart, runbook, integration, rate-limit, errors, us-029, us-031, stable]
 ---
-# Quickstart — Integrazione FMP API
+# Quickstart — Integrazione FMP API (`/stable`)
 
 > Procedura minima per autenticarsi, cercare un simbolo, recuperare quotazioni e rendiconti tramite FMP API. Sezioni operative US-029 (rate limit, URL base, errori HTTP) con citazioni `raw/` o gap espliciti.
+>
+> **Nota migrazione (US-031 / TSK-072, 2026-05-22):** la base URL e' passata da `https://financialmodelingprep.com/api/v3` (deprecata 2025-08-31) a `https://financialmodelingprep.com/stable`. Le citazioni `raw/FMP_Docs_*.txt` qui sotto sono **stale** — i file raw originali sono stati sostituiti dall'ingest `raw/fmp_docs.md` + `raw/fmp_docs.json` (263 endpoint stable). Rebuild completo di questo runbook contro la nuova doc e' gap aperto (`fmp-stable-runbook-refresh`).
 
 ## Prerequisiti
 
