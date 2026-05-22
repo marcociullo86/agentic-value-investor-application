@@ -69,6 +69,9 @@ object FmpFixtureLoader {
     fun shortCashFlows(symbol: String = "SHORT"): List<CashFlowDto> =
         tenYearCashFlows(symbol).take(2)
 
+    fun shortBalanceSheets(symbol: String = "LOWPPE"): List<BalanceSheetDto> =
+        tenYearBalanceSheets(symbol).take(2)
+
     private inline fun <reified T> loadList(resource: String): List<T> =
         mapper.readValue(requireNotNull(javaClass.classLoader.getResource(resource)))
 
