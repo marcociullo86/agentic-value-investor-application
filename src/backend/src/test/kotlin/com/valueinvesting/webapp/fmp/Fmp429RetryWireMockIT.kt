@@ -9,7 +9,9 @@ import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 import com.github.tomakehurst.wiremock.stubbing.Scenario
 import com.valueinvesting.webapp.fmp.FmpEventLogger.EventType
+import com.valueinvesting.webapp.persistence.entity.Stock
 import com.valueinvesting.webapp.persistence.repository.FmpApiEventLogRepository
+import com.valueinvesting.webapp.persistence.repository.StockRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
@@ -71,10 +73,16 @@ class Fmp429RetryWireMockIT {
     @Autowired
     private lateinit var eventLogRepository: FmpApiEventLogRepository
 
+    @Autowired
+    private lateinit var stockRepository: StockRepository
+
     @BeforeEach
     fun resetStubsAndEventLog() {
         wireMockServer.resetAll()
         eventLogRepository.deleteAll()
+        stockRepository.deleteAll()
+        // fmp_api_event_log.ticker FK → stocks(ticker) (V008)
+        stockRepository.save(Stock(ticker = "AAPL", companyName = "Apple Inc."))
     }
 
     @Test
