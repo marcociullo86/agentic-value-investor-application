@@ -9,51 +9,79 @@ tags: [planning]
 ---
 # Roadmap — App Template Demo
 
-> Roadmap release-driven. Compilata dal `product-manager` dopo il primo run; riconciliata il 2026-05-20 dopo chiusura Q_001/Q_002/Q_003.
+> Roadmap release-driven. R1.0 MVP chiuso 2026-05-22 (6 EP, 20 US, 49 TSK). R1.1 pianificata post-chiusura amministrativa.
 
 ## Convenzione
 
-- **R1.0 MVP**: epiche ad alta confidence (>= 65%) che coprono il flusso end-to-end minimo (ricerca → dati → verdetto quantitativo + valutazione intrinseca).
-- **R1.1 Consolidamento**: epiche con `confidence < 65%` o che richiedono ulteriore consolidamento UI / persistenza.
-- **R2 Espansione**: capacità avanzate non più presenti dopo la riconciliazione del 2026-05-20.
+- **R1.0 MVP**: flusso end-to-end ricerca → dati → verdetto quantitativo + valutazione intrinseca + dashboard + watchlist/auth (chiuso).
+- **R1.1 Consolidamento produzione**: hardening debito tecnico, deploy/ops, documentazione e throttling FMP.
+- **R2 Espansione**: capacità avanzate non coperte da FSD MVP (SEC narrativo, SSO enterprise, alerting).
 
-## Release 1.0 — MVP
+## Release 1.0 — MVP (chiusa 2026-05-22)
 
-Obiettivo: l'utente cerca un ticker, il sistema scarica i dati di bilancio decennali, produce un verdetto quantitativo strutturato e calcola il valore intrinseco con Margin of Safety.
+Obiettivo: l'utente cerca un ticker, il sistema scarica i dati di bilancio decennali, produce un verdetto quantitativo strutturato e calcola il valore intrinseco con Margin of Safety; dashboard, moat, watchlist e auth.
 
-| Epica | Titolo | Priorità | Confidence |
-|---|---|---|---|
-| [EP-001](kanban/EP-001-ricerca-e-screening/EP-001.md) | Ricerca e Screening titoli | high | 80% |
-| [EP-002](kanban/EP-002-integrazione-fmp-data-provider/EP-002.md) | Integrazione FMP Data Provider | high | 65% |
-| [EP-003](kanban/EP-003-rule-engine-quantitativo/EP-003.md) | Value Investing Rule Engine quantitativo | high | 85% |
-| [EP-004](kanban/EP-004-valore-intrinseco-margin-of-safety/EP-004.md) | Calcolo Valore Intrinseco e Margin of Safety | high | 80% |
-
-Note:
-- EP-001: Q_003 risolta → US-002 promossa a `todo` con criteri definiti (5 fasce cap + lista GICS). Confidence 75% → 80%.
-- EP-004 promossa da R1.1 a R1.0: Q_001 risolta (Owner Earnings = Greenwald primario, FCF fallback). Confidence 55% → 80%.
-
-## Release 1.1 — Dashboard, Moat e watchlist
-
-Obiettivo: completare l'esperienza utente con visualizzazione semaforica integrata, grafici storici, valutazione qualitativa del Moat e persistenza della watchlist personale.
-
-| Epica | Titolo | Priorità | Confidence | Note |
+| Epica | Titolo | Priorità | Confidence | Stato |
 |---|---|---|---|---|
-| [EP-005](kanban/EP-005-dashboard-traffic-light-moat/EP-005.md) | Dashboard, Traffic Light e Moat qualitativo | medium | 75% | Promossa da R2: Q_002 risolta (React + Next.js). |
-| [EP-006](kanban/EP-006-watchlist-utente/EP-006.md) | Watchlist, autenticazione e profilo utente | medium | 70% | Scope esteso il 2026-05-22 con US-018 (registrazione) e US-019 (login/logout). |
+| [EP-001](kanban/EP-001-ricerca-e-screening/EP-001.md) | Ricerca e Screening titoli | high | 80% | done |
+| [EP-002](kanban/EP-002-integrazione-fmp-data-provider/EP-002.md) | Integrazione FMP Data Provider | high | 65% | done |
+| [EP-003](kanban/EP-003-rule-engine-quantitativo/EP-003.md) | Value Investing Rule Engine quantitativo | high | 85% | done |
+| [EP-004](kanban/EP-004-valore-intrinseco-margin-of-safety/EP-004.md) | Calcolo Valore Intrinseco e Margin of Safety | high | 80% | done |
+| [EP-005](kanban/EP-005-dashboard-traffic-light-moat/EP-005.md) | Dashboard, Traffic Light e Moat qualitativo | medium | 75% | done |
+| [EP-006](kanban/EP-006-watchlist-utente/EP-006.md) | Watchlist, autenticazione e profilo utente | medium | 70% | done |
+
+Commit di riferimento chiusura: `940852a` su `master`.
+
+## Release 1.1 — Consolidamento produzione
+
+Obiettivo: chiudere debito tecnico post-MVP, abilitare cutover produzione e allineare throttling/documentazione FMP prima del go-live operativo.
+
+| Epica | Titolo | Priorità | Confidence | US | Note |
+|---|---|---|---|---|---|
+| [EP-007](kanban/EP-007-hardening-produzione/EP-007.md) | Hardening produzione e conformità contratti | high | 85% | 5 | Gap `be-problemdetail-flatten`, `fe-swr-peer-r19`, `fe-static-export-tickers`, `tpm-profile-snapshot-ttl`, `arch-adr-version-sync` |
+| [EP-008](kanban/EP-008-deploy-operativita-produzione/EP-008.md) | Deploy e operatività produzione | high | 78% | 3 | Gap `arch-deployment-target`; prerequisito cutover |
+| [EP-009](kanban/EP-009-throttling-fmp-runbook/EP-009.md) | Throttling FMP e runbook operativo provider | medium | 72% | 2 | Gap `fmp-rate-limiting`, `fmp-endpoint-base-urls`, `fmp-error-codes`; US-030 dopo US-029 |
+
+**Totale R1.1:** 3 epiche, 10 user story (US-021…US-030), tutte `ready`.
+
+### Candidati R1.1+ (non taskizzati — confidence < 65%)
+
+| Tema | Confidence | Gap / nota |
+|---|---|---|
+| SSO enterprise / provider OIDC esterno | 55% | `arch-auth-provider-choice` — evoluzione post-MVP, non bloccante R1.1 |
+| Citation audit lint L4 deferred | 60% | memory episodica 2026-05-22; sanabile con US-025 + lint |
+| Watchlist lazy vs eager creation | 65% | `tpm-watchlist-default-creation` — UX minore, non epica dedicata |
 
 ## Release 2 — Espansione
 
-Nessuna epica attualmente allocata a R2 dopo la riconciliazione del 2026-05-20. Riservata a evoluzioni post-MVP (es. notifiche, alerting, multi-utente).
+| Tema | Confidence | Fonte wiki |
+|---|---|---|
+| Analisi SEC narrativa (10-K Item 1/1A/7) | 45% | `vi-sec-narrative-gap` — richiede EDGAR o provider terzi |
+| Notifiche / alerting watchlist | 40% | Non in FSD MVP |
+| Integrazioni B2B SSO obbligatorio | 50% | `arch-auth-provider-choice` |
+
+Nessuna epica EP-010+ allocata a R2 in questo run.
 
 ## Question aperte che impattano la roadmap
 
-Nessuna question aperta al 2026-05-20. Vedi `management/questions.md` per lo storico [RISOLTE].
+Nessuna question aperta al 2026-05-22. Vedi `management/questions.md` per lo storico [RISOLTE].
 
 ## Gap aperti che impattano la roadmap
 
-- `fmp-rate-limiting`, `fmp-endpoint-base-urls`, `fmp-error-codes` (EP-002): non bloccanti; implementazione conservativa.
+| Gap | Epica R1.1 | Bloccante |
+|---|---|---|
+| be-problemdetail-flatten | EP-007 / US-021 | no |
+| fe-swr-peer-r19 | EP-007 / US-022 | no |
+| fe-static-export-tickers | EP-007 / US-023 | no |
+| tpm-profile-snapshot-ttl | EP-007 / US-024 | no |
+| arch-adr-version-sync | EP-007 / US-025 | no |
+| arch-deployment-target | EP-008 | pre-cutover |
+| fmp-rate-limiting, fmp-endpoint-base-urls, fmp-error-codes | EP-009 | no (US-030 attende US-029) |
+| arch-auth-provider-choice | R2 / candidato | no |
+| vi-sec-narrative-gap | R2 | no |
 
 ## Cronologia riconciliazioni
 
-- **2026-05-20**: chiusura Q_001 / Q_002 / Q_003 da raw 07 + 08. US-002/US-012/US-014/US-015/US-016 sbloccate. EP-004 promossa R1.1 → R1.0 (confidence 55% → 80%). EP-005 promossa R2 → R1.1 (confidence 50% → 75%).
-- **2026-05-22**: full reconcile post Sprint 3 (auth + watchlist mergeed in master). EP-006 esteso a "Watchlist, autenticazione e profilo utente" con US-018 (registrazione) e US-019 (login/logout); confidence 60% → 70%. Aggiunta US-020 (override DCF method per utente autenticato) sotto EP-004, formalizzando TSK-017/018 già implementati su L5.
+- **2026-05-20**: chiusura Q_001 / Q_002 / Q_003. EP-004 promossa R1.0; EP-005 promossa R1.1.
+- **2026-05-22 (mattina)**: reconcile post Sprint 3–4; EP-006 esteso auth; US-020 sotto EP-004.
+- **2026-05-22 (pomeriggio)**: chiusura amministrativa R1.0 MVP. Pianificazione R1.1: EP-007, EP-008, EP-009 con US-021…030.

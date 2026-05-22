@@ -95,5 +95,6 @@ Endpoint implementati vs contratto completo: vedi [[analysis-api-pipeline]] e `d
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->
-- EP-001 Ricerca e Screening — EP-002 Integrazione FMP — EP-003 Rule Engine — EP-004 Valore intrinseco e MoS (incluso override DCF US-020) — EP-005 Dashboard e Moat — EP-006 Watchlist, auth e profilo utente (US-017/018/019)
-- Question hard aperte: nessuna (Q_001 e Q_002 risolte il 2026-05-20; vedi `management/questions.md`).
+- **R1.0 (done):** EP-001…EP-006 (US-001…US-020)
+- **R1.1 (defined):** EP-007 Hardening (US-021…025), EP-008 Deploy/ops (US-026…028), EP-009 Throttling FMP (US-029, US-030)
+- Question hard aperte: nessuna (vedi `management/questions.md`)

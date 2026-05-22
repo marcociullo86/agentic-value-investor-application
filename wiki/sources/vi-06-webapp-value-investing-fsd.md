@@ -104,9 +104,12 @@ Il sistema calcola autonomamente tre metriche: [^src: raw/06_Documento_Funzional
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->
-- EP-001 — Ricerca e Screening titoli (US-001, US-002, US-003)
-- EP-002 — Integrazione FMP Data Provider (US-004, US-005, US-006)
-- EP-003 — Value Investing Rule Engine quantitativo (US-007, US-008, US-009, US-010)
-- EP-004 — Calcolo Valore Intrinseco e Margin of Safety (US-011, US-012, US-013)
-- EP-005 — Dashboard, Traffic Light e Moat qualitativo (US-014, US-015, US-016)
-- EP-006 — Watchlist e profilo utente (US-017)
+- EP-001 — Ricerca e Screening titoli (US-001, US-002, US-003) — **done** R1.0
+- EP-002 — Integrazione FMP Data Provider (US-004, US-005, US-006) — **done** R1.0
+- EP-003 — Value Investing Rule Engine quantitativo (US-007…US-010) — **done** R1.0
+- EP-004 — Valore Intrinseco e Margin of Safety (US-011…US-013, US-020) — **done** R1.0
+- EP-005 — Dashboard, Traffic Light e Moat (US-014…US-016) — **done** R1.0
+- EP-006 — Watchlist, auth e profilo (US-017…US-019) — **done** R1.0
+- EP-007 — Hardening produzione (US-021…US-025) — **R1.1**
+- EP-008 — Deploy e operatività produzione (US-026…US-028) — **R1.1**
+- EP-009 — Throttling FMP e runbook (US-029, US-030) — **R1.1**

@@ -33,12 +33,13 @@ Il backend espone un'API consumata dal frontend SPA (vedi [ADR-001](ADR-001-fron
   - 422 dato di dominio invalido (es. ticker sintatticamente valido ma non esistente su FMP)
   - 429 rate limit cliente
   - 503 FMP indisponibile + nessun fallback cache
-- **Error format**: RFC 9457 Problem Details (`application/problem+json`):
+- **Error format**: RFC 9457 Problem Details (`application/problem+json`); extension al top-level (§3.2) — implementazione [ADR-012](ADR-012-problemdetail-rfc9457-flatten.md):
   ```json
   { "type": "https://api/errors/ticker-not-found",
     "title": "Ticker not found", "status": 404,
     "detail": "Ticker ZZZZ not found on FMP",
-    "instance": "/api/analysis/ZZZZ" }
+    "instance": "/api/analysis/ZZZZ",
+    "ticker": "ZZZZ" }
   ```
 - **Pagination**: cursor-based per liste lunghe (screener, search) con `?cursor=&limit=` (default 50).
 - **Auth header**: `Authorization: Bearer <jwt>` (vedi [ADR-006](ADR-006-authentication.md)).

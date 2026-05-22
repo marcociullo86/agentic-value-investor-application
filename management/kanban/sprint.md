@@ -1,18 +1,18 @@
 <!-- generated, do not edit — rigenerato da tpm ad ogni run -->
 ---
 id: sprint
-title: Sprint Plan — R1.0 MVP
+title: Sprint Plan — R1.0 MVP + R1.1
 generated: 2026-05-22
 tpm: tpm
-release: R1.0
-closed: 2026-05-22
+release: R1.1
+r10_closed: 2026-05-22
 ---
-# Sprint Plan — R1.0 MVP
+# Sprint Plan
 
-> Copertura: **EP-001 + EP-002 + EP-003 + EP-004 + EP-005 + EP-006** (20 US, 49 TSK).
-> **R1.0 MVP chiuso:** Sprint 1–4 completati (49/49 TSK `done`, 20/20 US `done`, 6/6 EP `done`).
-> Sprint 4 ha colmato i delta ADR-010 (US-018/019) e ADR-011 (US-020). Merge PR #2 + PR #3 su `master`.
-> Generato da TPM secondo PATTERN.md §3 + §13. Ultima rigenerazione: chiusura amministrativa 2026-05-22.
+> **R1.0 MVP chiuso:** Sprint 1–4 completati (49/49 TSK `done`, 20/20 US, 6/6 EP).
+> **R1.1 attivo:** Sprint 5 — 22 TSK nuovi (TSK-050…071); Sprint 6 lookahead — 1 TSK (TSK-071).
+> Epiche: EP-007, EP-008, EP-009 — US-021…030 `ready`. L4: ADR-012…016 `accepted`.
+> Ordine suggerito PM: **EP-007 ∥ EP-009 US-029 (TSK-068 human)** → **EP-008** → **EP-009 US-030**.
 
 ---
 
@@ -114,49 +114,85 @@ GET override, feasibility 422, dcfMethodSource, Vary header, FE panel, OpenAPI).
 | TSK-043 | FE useAuthStore: gestione 401 + banner sessione scaduta | fe | agent | S | TSK-034, TSK-041 | done |
 | TSK-048 | FE DcfOverridePanel: badge source + form override + 422 inline | fe | agent | M | TSK-044, TSK-046, TSK-034 | done |
 
-**Milestone Sprint 4:**
-- `POST /api/auth/register` email duplicata → `409 application/problem+json`.
-- `POST /api/auth/login` email inesistente e password errata → risposta `401` con `detail` identico (contract-test verde).
-- `POST /api/auth/refresh` → sliding 7d; cap 30d da `first_issued_at` → `401`.
-- `GET /api/dcf-overrides/{ticker}` → `200` con override o `404`.
-- `POST /api/dcf-overrides` con metodo non applicabile → `422` con `extensions.reason`.
-- `GET /api/analysis/{ticker}` → `dcfMethodSource` nel payload; header `Vary: Authorization`.
-- FE: badge "Default policy" / "Tuo override" visibile; banner "Sessione scaduta" su 401 non recuperabile.
-- OpenAPI spec allineata; contract-test green in CI.
+---
+
+## Sprint 5 — R1.1 Consolidamento produzione (EP-007, EP-008, EP-009)
+
+**Obiettivo:** Hardening contratti e routing FE, deploy prod Compose+nginx, backup/retention,
+checklist cutover, throttling FMP (default ADR-016); wiki FMP in parallelo (human).
+
+**Stato:** IN CORSO — 21 TSK `todo` (Sprint 5) + US-025 doc-only (TSK-060 XS verify).
+
+**Wave 1 (parallelo):** TSK-050, TSK-053, TSK-055, TSK-058, TSK-060, TSK-064, TSK-068, TSK-069
+
+**Wave 2 (post hardening FE/BE):** TSK-061 → TSK-063 → TSK-065 → TSK-066 → TSK-067
+
+| TSK | Titolo | Layer | Consumer | Est. | Depends on | US | Status |
+|-----|--------|-------|----------|------|------------|-----|--------|
+| TSK-050 | BE FlatteningProblemDetailHttpMessageConverter | be | agent | S | — | US-021 | todo |
+| TSK-051 | QA Assert ProblemDetail top-level (IT + contract) | qa | agent | S | TSK-050 | US-021 | todo |
+| TSK-052 | BE OpenAPI ProblemDetail extension top-level | be | agent | XS | TSK-050 | US-021 | todo |
+| TSK-053 | FE Bump swr peer-compatible React 19 | fe | agent | S | — | US-022 | todo |
+| TSK-054 | Infra Rimuovi --legacy-peer-deps CI/Dockerfile | infra | agent | XS | TSK-053 | US-022 | todo |
+| TSK-055 | FE Route /analysis?ticker= static export | fe | agent | S | — | US-023 | todo |
+| TSK-056 | FE Link interni /analysis?ticker= | fe | agent | S | TSK-055 | US-023 | todo |
+| TSK-057 | QA E2E ticker fuori whitelist demo | qa | agent | S | TSK-055, TSK-056 | US-023 | todo |
+| TSK-058 | BE Property fmp.cache.profile-ttl-hours | be | agent | XS | — | US-024 | todo |
+| TSK-059 | QA Test scadenza cache profilo TTL | qa | agent | S | TSK-058 | US-024 | todo |
+| TSK-060 | QA Verifica ADR stack allineati (doc-only) | qa | agent | XS | — | US-025 | todo |
+| TSK-061 | Infra docker-compose.prod.yml + nginx TLS | infra | agent | M | TSK-054 | US-026 | todo |
+| TSK-062 | Infra .env.prod.example variabili deploy | infra | agent | XS | TSK-061 | US-026 | todo |
+| TSK-063 | Infra Script backup pg_dump + retention 14d | infra | agent | S | TSK-061 | US-027 | todo |
+| TSK-064 | BE Scheduled purge fmp_api_event_log 90d | be | agent | S | — | US-027 | todo |
+| TSK-065 | QA Drill restore PostgreSQL staging | qa | agent | S | TSK-063 | US-027 | todo |
+| TSK-066 | QA Playwright smoke cutover R1.1 staging | qa | agent | M | TSK-050, TSK-057, TSK-061 | US-028 | todo |
+| TSK-067 | QA Esecuzione checklist cutover registro | qa | agent | S | TSK-066, TSK-065, TSK-064 | US-028 | todo |
+| TSK-068 | Human Ingest wiki FMP rate/URL/errori | infra | human | M | — | US-029 | todo |
+| TSK-069 | BE Env FMP_RATE_LIMIT_PER_MINUTE | be | agent | S | — | US-030 | todo |
+| TSK-070 | QA WireMock 429 retry + event log | qa | agent | S | TSK-069 | US-030 | todo |
+
+**Nota US-025:** L4 già allineato (appendici ADR-001/002/003). TSK-060 = verifica formale, **nessun dev L5** salvo drift.
+
+**Nota US-029:** TSK-068 `consumer: human` — wiki-keeper; `pending_clarification` su tre gap FMP. Non blocca TSK-069 (default 30/min ADR-016).
 
 ---
 
-## Lookahead Sprint 5 / R1.1 (candidati, non generati)
+## Lookahead Sprint 6 — R1.1 post-wiki FMP
 
-Nessun TSK in backlog per R1.0. Debito tecnico documentato in `wiki/gaps.md` (non bloccante):
-`be-problemdetail-flatten`, `fe-swr-peer-r19`, `fe-static-export-tickers`. Per R1.1:
-compliance, SSO (gap `arch-auth-provider-choice`), deploy target (`arch-deployment-target`).
+| TSK | Titolo | Layer | Consumer | Est. | Depends on | Status |
+|-----|--------|-------|----------|------|------------|--------|
+| TSK-071 | BE Ricalibra rate limit da wiki post US-029 | be | agent | XS | TSK-068, TSK-069 | todo |
 
----
-
-## Riepilogo TSK per layer (R1.0 completo, Sprint 1–4)
-
-| Layer | Sprint 1–3 | Sprint 4 | Totale |
-|-------|------------|----------|--------|
-| infra | 2 | 0 | 2 |
-| db | 6 | 1 | 7 |
-| be | 17 | 6 | 23 |
-| fe | 11 | 2 | 13 |
-| qa | 5 | 2 | 7 |
-| **Totale** | **38** | **11** | **49** |
-
-> Tutti i 49 TSK in stato `done`. US-018/019/020 chiuse con Sprint 4.
+Eseguire TSK-071 solo dopo chiusura gap `fmp-rate-limiting` in wiki con citazione raw.
 
 ---
 
-## Dipendenze critiche Sprint 4
+## Riepilogo TSK per layer
+
+| Release | Sprint | infra | db | be | fe | qa | Totale |
+|---------|--------|-------|-----|-----|-----|-----|--------|
+| R1.0 | 1–4 done | 2 | 7 | 23 | 13 | 7 | **49** |
+| R1.1 | 5 todo | 5 | 0 | 5 | 3 | 8 | **21** |
+| R1.1 | 6 lookahead | 0 | 0 | 1 | 0 | 0 | **1** |
+| | **Nuovi R1.1** | | | | | | **22** (TSK-050…071) |
+
+---
+
+## Dipendenze critiche Sprint 5
 
 ```
-TSK-033 (done) ──→ TSK-040 (db) ──→ TSK-041 (be) ──→ TSK-042 (qa)
-TSK-033 (done) ──→ TSK-039 (be) ──→ TSK-042 (qa)
-TSK-018 (done) ──→ TSK-044 (be) ──→ TSK-046 (be) ──→ TSK-047 (qa)
-TSK-018 (done) ──→ TSK-045 (be) ──→ TSK-047 (qa)
-                                  └──→ TSK-049 (be)
-TSK-044 + TSK-046 + TSK-034 (done) ──→ TSK-048 (fe)
-TSK-034 (done) + TSK-041 ──→ TSK-043 (fe)
+Wave 1 (parallelo)
+  TSK-050 ──→ TSK-051, TSK-052
+  TSK-053 ──→ TSK-054 ──→ TSK-061 ──→ TSK-062, TSK-063 ──→ TSK-065
+  TSK-055 ──→ TSK-056 ──→ TSK-057
+  TSK-058 ──→ TSK-059
+  TSK-069 ──→ TSK-070
+  TSK-068 (human, ∥) ──→ TSK-071 (Sprint 6)
+  TSK-060 (doc verify, ∥)
+
+Cutover
+  TSK-050 + TSK-057 + TSK-061 ──→ TSK-066 ──→ TSK-067
+  TSK-064 + TSK-065 ──→ TSK-067
 ```
+
+**Primo `/dev` suggerito:** `TSK-050` (BE RFC 9457 flatten) in parallelo con `TSK-053` (FE swr) e `TSK-055` (FE routing). Wiki: avviare `TSK-068` con wiki-keeper (human, non `/dev`).

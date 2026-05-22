@@ -56,8 +56,20 @@ Entita' principali:
 - Flyway baseline al primo deploy; ogni migration tracciata.
 - Backup: out of scope per il MVP; documentato in `gaps.md` come gap operativo (vedi `arch-deployment-target`).
 
+## Appendice — Allineamento stack v2026 (US-025, 2026-05-22)
+
+| Componente | Versione documentata R1.0 | Stack canonico 2026 |
+|---|---|---|
+| PostgreSQL | 16 | **17.x** |
+| Flyway | (generico) | **10.x** + `flyway-database-postgresql` |
+| Dev/test | Testcontainers | **postgres:17** image |
+
+`docker-compose` dev e prod target: immagine **`postgres:17`** ([ADR-015](ADR-015-deployment-target-r11.md)). Backup policy: [operations/deploy-runbook-r11.md](../operations/deploy-runbook-r11.md).
+
 ## Pagine collegate
 
 - [[webapp-architecture-vi]]
 - [overview.md](../overview.md)
 - [data/er-diagram.md](../data/er-diagram.md)
+- [ADR-014](ADR-014-fmp-profile-snapshot-ttl.md)
+- [ADR-015](ADR-015-deployment-target-r11.md)

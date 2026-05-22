@@ -37,3 +37,5 @@ Gli endpoint contrassegnati con "Globe Flag" hanno copertura globale. Quelli con
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->
+- EP-002 (R1.0 done): US-004, US-005, US-006
+- EP-009 (R1.1): US-029, US-030

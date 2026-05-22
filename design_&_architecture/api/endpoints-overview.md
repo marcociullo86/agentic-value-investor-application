@@ -76,7 +76,7 @@ US-014 (pannello Traffic Light) consuma `/api/analysis/{ticker}` — non ha endp
 - Header `X-Request-Id` echo del client o generato server-side.
 - Header `X-Data-Snapshot-At` se la response include dati FMP cached.
 - Header `X-Data-Stale: true` se servito fallback su cache scaduta (US-006).
-- Body errori: RFC 9457 Problem Details (`application/problem+json`).
+- Body errori: RFC 9457 Problem Details (`application/problem+json`); **extension members al top-level** (es. `ticker`, non `properties.ticker`) — [ADR-012](../decisions/ADR-012-problemdetail-rfc9457-flatten.md).
 
 ## Pagine collegate
 

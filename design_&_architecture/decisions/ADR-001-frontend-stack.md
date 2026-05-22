@@ -41,9 +41,27 @@ Il frontend e' implementato come **Single Page Application** con **React 18** or
 - Necessario configurare CI per build Next.js + deploy artefatto statico.
 - Schema OpenAPI ([ADR-007](ADR-007-api-contract.md)) usato per generare client TypeScript tipizzato (es. via `openapi-typescript` o `orval`).
 
+## Appendice — Allineamento stack v2026 (US-025, 2026-05-22)
+
+`raw/tech_stack.md` (approvato 2026-05-20) è la fonte canonica per i dev-agent (PATTERN §7 r.10). La sezione **Decisione** sopra resta storico R1.0; lo **stack attuale** è:
+
+| Componente | Versione documentata R1.0 | Stack canonico 2026 |
+|---|---|---|
+| React | 18 | **19.x** |
+| Next.js | 14+ | **16.x** (App Router, Turbopack default) |
+| HTTP client (client) | (implicito) | **SWR** + fetch server |
+| Styling | TailwindCSS | **Tailwind CSS + Radix UI** |
+
+**Routing analisi (US-023):** vedi [ADR-013](ADR-013-fe-analysis-routing-static-export.md) — `/analysis?ticker=` al posto di `/analysis/[ticker]`.
+
+**Dipendenze peer (US-022):** finché `swr` non dichiara peer `react@19` ufficiale, ordine di preferenza implementazione: (1) upgrade `swr` alla prima release con peer widened; (2) se assente a cutover R1.1, sostituire call-site SWR con wrapper `fetch` + hook React 19 (nessuna nuova major dependency); (3) **vietato** `--legacy-peer-deps` in CI/Dockerfile/contract-check [^src: management/kanban/EP-007-hardening-produzione/US-022-dipendenze-ui-senza-override/US-022.md §Acceptance Criteria].
+
+Gap `arch-adr-version-sync` / `fe-swr-peer-r19`: sanati a livello L4; implementazione L5 segue `raw/tech_stack.md`.
+
 ## Pagine collegate
 
 - [[vi-07-risoluzione-q002-q003]]
 - [[webapp-architecture-vi]]
 - [overview.md](../overview.md)
 - [components/frontend-components.md](../components/frontend-components.md)
+- [ADR-013](ADR-013-fe-analysis-routing-static-export.md)

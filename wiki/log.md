@@ -507,3 +507,5 @@ Stato PR #1: open, mergeStateStatus=CLEAN, 7/7 status checks success (BE — gra
 **Commit:** 7a37bd2
 **DoD:** pass
 **Note:** Badge "Default policy" / "Tuo override"; errore 422 inline nel form.
+
+[2026-05-22 17:00] plan — R1.1: EP-007 (5 US), EP-008 (3 US), EP-009 (2 US); roadmap aggiornata — files touched: 16

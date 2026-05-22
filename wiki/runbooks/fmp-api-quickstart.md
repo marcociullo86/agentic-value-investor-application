@@ -77,3 +77,5 @@ GET https://financialmodelingprep.com/api/v3/stock-screener?sector=Technology&ma
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->
+- EP-002 (R1.0 done): US-004, US-005, US-006
+- EP-009 (R1.1): US-029 documentazione rate limit/URL/errori, US-030 throttling backend

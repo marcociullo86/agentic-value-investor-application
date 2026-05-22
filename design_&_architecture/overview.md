@@ -17,14 +17,14 @@ L'applicazione automatizza il workflow di analisi Value Investing (Graham/Buffet
 
 ```
 +----------------------------+
-| L1 — Frontend SPA          |  React 18 + Next.js (SPA/SSG)
+| L1 — Frontend SPA          |  React 19 + Next.js 16.x (SPA/SSG static export)
 | Pages, charts, traffic     |  State: Zustand (default)
 | light, watchlist UI        |  Charts: Recharts; Grid: Ag-Grid Community
 +-------------|--------------+
               | HTTPS / REST JSON (OpenAPI 3.1)
               v
 +----------------------------+
-| L2 — Backend API           |  Kotlin 1.9 + Spring Boot 3.x
+| L2 — Backend API           |  Kotlin 2.2 + Spring Boot 3.5.x
 | Controllers / Services /   |  Spring Web, Spring Data JPA,
 | Rule Engine / FMP Adapter  |  Spring Security (JWT), Resilience4j
 +------|-------------|-------+
@@ -45,14 +45,16 @@ Flusso di interazione canonico documentato in [[webapp-architecture-vi]] §Fluss
 
 ## Livello 1 — Frontend SPA
 
-- **Stack:** React 18 + Next.js (modalita' SPA/SSG, no SSR full-stack). Decisione formalizzata in [ADR-001](decisions/ADR-001-frontend-stack.md) e in [[vi-07-risoluzione-q002-q003]] §ADR Q_002.
+- **Stack:** React 19 + Next.js 16.x (modalita' SPA/SSG static export, no SSR full-stack). Decisione formalizzata in [ADR-001](decisions/ADR-001-frontend-stack.md) (appendice stack v2026) e in [[vi-07-risoluzione-q002-q003]] §ADR Q_002.
+- **R1.1 routing analisi:** `/analysis?ticker={SYMBOL}` — [ADR-013](decisions/ADR-013-fe-analysis-routing-static-export.md).
 - **State management:** Zustand come default (lightweight, store modulare per ticker/watchlist/auth). Alternativa Redux Toolkit lasciata a discrezione del team.
 - **Librerie chiave:** Recharts (grafici storici US-015), Ag-Grid Community (tabelle bilanci e screener US-003), TailwindCSS o equivalente per design system.
 - **Responsabilita':** ricerca (US-001), screener (US-002), lista risultati (US-003), dashboard Traffic Light (US-014), grafici (US-015), checklist Moat (US-016), watchlist (US-017).
 
 ## Livello 2 — Backend API
 
-- **Stack:** Kotlin 1.9 + Spring Boot 3.x. Decisione tecnologica formalizzata in [ADR-002](decisions/ADR-002-backend-stack.md), gia' espressa nella FSD [^src: wiki/concepts/webapp-architecture-vi.md §Livello 2: Backend (Server)].
+- **Stack:** Kotlin 2.2 + Spring Boot 3.5.x. Decisione tecnologica formalizzata in [ADR-002](decisions/ADR-002-backend-stack.md) (appendice stack v2026), gia' espressa nella FSD [^src: wiki/concepts/webapp-architecture-vi.md §Livello 2: Backend (Server)].
+- **Errori API:** RFC 9457 con extension al top-level — [ADR-012](decisions/ADR-012-problemdetail-rfc9457-flatten.md).
 - **Moduli principali (vedi [components/backend-components.md](components/backend-components.md)):**
   - **Controller layer**: endpoint REST (vedi [api/openapi.yaml](api/openapi.yaml) per il contratto completo).
   - **Service layer**: orchestrazione caso d'uso (es. `AnalyzeTickerService`, `ScreenerService`, `WatchlistService`).
@@ -64,9 +66,10 @@ Flusso di interazione canonico documentato in [[webapp-architecture-vi]] §Fluss
 
 ## Livello 3a — Database (PostgreSQL)
 
-- **Stack:** PostgreSQL 16 + Spring Data JPA + Flyway per migrations. Decisione in [ADR-003](decisions/ADR-003-database-postgresql.md).
-- **Schema canonico:** definito in [data/er-diagram.md](data/er-diagram.md). Entita' principali: `users`, `watchlists`, `watchlist_items`, `fmp_financial_snapshot` (cache), `rule_engine_result`, `moat_checklist_entry`, `dcf_method_override`.
-- **Cache 24h:** la tabella `fmp_financial_snapshot` persiste i payload normalizzati per ticker + endpoint + data, con TTL applicato a livello applicativo (US-005).
+- **Stack:** PostgreSQL 17 + Spring Data JPA + Flyway per migrations. Decisione in [ADR-003](decisions/ADR-003-database-postgresql.md) (appendice stack v2026).
+- **Schema canonico:** definito in [data/er-diagram.md](data/er-diagram.md). Entita' principali: `users`, `watchlists`, `watchlist_items`, `fmp_financial_snapshot` (cache), `fmp_profile_snapshot` (cache profilo), `rule_engine_result`, `moat_checklist_entry`, `dcf_method_override`.
+- **Cache 24h (bilanci):** `fmp_financial_snapshot` — TTL 24h (US-005).
+- **Cache 1h (profilo/prezzo):** `fmp_profile_snapshot` — [ADR-014](decisions/ADR-014-fmp-profile-snapshot-ttl.md).
 
 ## Livello 3b — FMP API (provider esterno)
 
@@ -92,6 +95,9 @@ Flusso di interazione canonico documentato in [[webapp-architecture-vi]] §Fluss
 | Resilienza FMP | Resilience4j (retry + circuit breaker + rate limiter) | [ADR-004](decisions/ADR-004-fmp-integration.md) |
 | Logging / metrics | SLF4J + Logback structured + Micrometer + Actuator | [ADR-008](decisions/ADR-008-observability-logging.md) |
 | Deploy | Docker monorepo (BE jar + FE static export) + profili Spring | [ADR-009](decisions/ADR-009-deployment-target.md) |
+| Deploy prod R1.1 | VM + Docker Compose + nginx TLS | [ADR-015](decisions/ADR-015-deployment-target-r11.md) |
+| Problem Details | Extension RFC 9457 top-level | [ADR-012](decisions/ADR-012-problemdetail-rfc9457-flatten.md) |
+| FMP ops / throttle | Policy conservativa + mapping errori | [ADR-016](decisions/ADR-016-fmp-operations-throttling.md) |
 
 ## Mappa US -> componenti
 
@@ -112,10 +118,25 @@ Flusso di interazione canonico documentato in [[webapp-architecture-vi]] §Fluss
 | US-016 checklist Moat | `MoatChecklist` page | `MoatChecklistController` | `moat_checklist_entry` | — |
 | US-017 watchlist | `WatchlistPage` | `WatchlistController`, `WatchlistService` | `watchlists`, `watchlist_items` | — |
 
+### R1.1 — US → ADR (EP-007…009)
+
+| US | ADR / artefatto L4 |
+|---|---|
+| US-021 RFC 9457 flatten | [ADR-012](decisions/ADR-012-problemdetail-rfc9457-flatten.md) |
+| US-022 dipendenze FE | [ADR-001](decisions/ADR-001-frontend-stack.md) appendice stack v2026 |
+| US-023 analisi ticker | [ADR-013](decisions/ADR-013-fe-analysis-routing-static-export.md) |
+| US-024 TTL profilo | [ADR-014](decisions/ADR-014-fmp-profile-snapshot-ttl.md) + [ADR-004](decisions/ADR-004-fmp-integration.md) §2b |
+| US-025 sync versioni ADR | Appendici ADR-001/002/003 |
+| US-026 deploy target | [ADR-015](decisions/ADR-015-deployment-target-r11.md) + runbook |
+| US-027 backup / retention log | [deploy-runbook-r11.md](operations/deploy-runbook-r11.md) |
+| US-028 checklist cutover | [deploy-runbook-r11.md](operations/deploy-runbook-r11.md) |
+| US-029 doc FMP wiki | [ADR-016](decisions/ADR-016-fmp-operations-throttling.md) (L4); wiki US-029 |
+| US-030 throttling BE | [ADR-016](decisions/ADR-016-fmp-operations-throttling.md) |
+
 ## Roadmap di rilascio (input PM)
 
-- **R1.0 MVP**: EP-001 + EP-002 + EP-003 + EP-004 (analisi titolo singolo end-to-end con Traffic Light e MoS).
-- **R1.1**: EP-005 (dashboard arricchita: grafici + checklist Moat) + EP-006 (watchlist + auth).
+- **R1.0** (chiuso): EP-001 … EP-006 — analisi end-to-end, dashboard, watchlist, auth.
+- **R1.1** (in corso): EP-007 hardening (US-021…025), EP-008 deploy/ops (US-026…028), EP-009 FMP runbook/throttle (US-029…030). Runbook: [operations/deploy-runbook-r11.md](operations/deploy-runbook-r11.md).
 
 ## Concetti wiki di riferimento
 
@@ -129,7 +150,7 @@ Flusso di interazione canonico documentato in [[webapp-architecture-vi]] §Fluss
 
 ## Pagine collegate
 
-- [decisions/ADR-001-frontend-stack.md](decisions/ADR-001-frontend-stack.md) ... ADR-009
+- [decisions/ADR-001-frontend-stack.md](decisions/ADR-001-frontend-stack.md) … ADR-016, [operations/deploy-runbook-r11.md](operations/deploy-runbook-r11.md)
 - [api/openapi.yaml](api/openapi.yaml)
 - [data/er-diagram.md](data/er-diagram.md)
 - [components/backend-components.md](components/backend-components.md)
