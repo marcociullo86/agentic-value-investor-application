@@ -20,6 +20,7 @@ describe('useAuthStore', () => {
       accessToken: null,
       refreshToken: null,
       user: null,
+      sessionExpired: false,
     });
     mockedLogin.mockReset();
     mockedLogout.mockReset();
@@ -105,5 +106,49 @@ describe('useAuthStore', () => {
     await expect(useAuthStore.getState().refresh()).rejects.toThrow(
       'No refresh token available',
     );
+  });
+
+  // TSK-043 — session-expired flag (ADR-010 §3).
+  it('starts with sessionExpired=false', () => {
+    expect(useAuthStore.getState().sessionExpired).toBe(false);
+  });
+
+  it('setSessionExpired toggles the flag', () => {
+    useAuthStore.getState().setSessionExpired(true);
+    expect(useAuthStore.getState().sessionExpired).toBe(true);
+    useAuthStore.getState().setSessionExpired(false);
+    expect(useAuthStore.getState().sessionExpired).toBe(false);
+  });
+
+  it('clearSession wipes tokens and user but keeps sessionExpired untouched', () => {
+    useAuthStore.setState({
+      accessToken: 'a',
+      refreshToken: 'r',
+      user: { id: '1', email: 'a@b.c', displayName: null, createdAt: '' },
+      sessionExpired: true,
+    });
+
+    useAuthStore.getState().clearSession();
+
+    const state = useAuthStore.getState();
+    expect(state.accessToken).toBeNull();
+    expect(state.refreshToken).toBeNull();
+    expect(state.user).toBeNull();
+    // The 401 interceptor sets sessionExpired BEFORE calling clearSession,
+    // so clearSession must not race-reset the banner.
+    expect(state.sessionExpired).toBe(true);
+  });
+
+  it('login resets sessionExpired to false', async () => {
+    useAuthStore.setState({ sessionExpired: true });
+    mockedLogin.mockResolvedValueOnce({
+      accessToken: 'access-2',
+      refreshToken: 'refresh-2',
+      expiresInSeconds: 900,
+    });
+
+    await useAuthStore.getState().login('bob@example.com', 'pw');
+
+    expect(useAuthStore.getState().sessionExpired).toBe(false);
   });
 });

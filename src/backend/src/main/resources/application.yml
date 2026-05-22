@@ -99,6 +99,12 @@ app:
   jwt:
     signing-secret: ${JWT_SIGNING_SECRET:}
     access-ttl-minutes: 15
+    # ADR-010 §3 — sliding refresh con cap assoluto.
+    # refresh-sliding-ttl-days: rinnovato ad ogni /refresh riuscito.
+    # refresh-absolute-cap-days: cap dal `first_issued_at` (login originale).
+    refresh-sliding-ttl-days: 7
+    refresh-absolute-cap-days: 30
+    # legacy: non più usato dopo ADR-010, lasciato solo per back-compat config.
     refresh-ttl-days: 30
   fmp:
     base-url: ${FMP_BASE_URL:https://financialmodelingprep.com/api/v3}

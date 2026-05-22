@@ -22,6 +22,13 @@ export interface AuthState {
   readonly accessToken: string | null;
   readonly refreshToken: string | null;
   readonly user: UserProfile | null;
+  /**
+   * Set to true when the silent refresh fails with 401 (cap assoluto raggiunto
+   * o refresh token revocato/scaduto, ADR-010 §3). Toggled back to false on
+   * a successful login or when the user dismisses the banner via "Accedi".
+   * Drives the `SessionExpiredBanner` mounted in the root layout (TSK-043).
+   */
+  readonly sessionExpired: boolean;
   readonly login: (email: string, password: string) => Promise<void>;
   readonly logout: () => Promise<void>;
   readonly refresh: () => Promise<void>;
@@ -30,6 +37,15 @@ export interface AuthState {
     user?: UserProfile | null,
   ) => void;
   readonly setUser: (user: UserProfile | null) => void;
+  readonly setSessionExpired: (value: boolean) => void;
+  /**
+   * Clears all session state without trying to call the backend `/logout` —
+   * used by the 401 interceptor when the refresh chain is no longer
+   * recoverable. Kept distinct from `logout()` (best-effort backend call) to
+   * avoid blocking the UX behind an HTTP round-trip on a server that just
+   * returned 401.
+   */
+  readonly clearSession: () => void;
 }
 
 export type { UserProfile };
@@ -38,6 +54,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   accessToken: null,
   refreshToken: null,
   user: null,
+  sessionExpired: false,
 
   setSession: ({ accessToken, refreshToken }, user = undefined): void => {
     set((prev) => ({
@@ -49,12 +66,23 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   setUser: (user: UserProfile | null): void => set({ user }),
 
+  setSessionExpired: (value: boolean): void => set({ sessionExpired: value }),
+
+  clearSession: (): void =>
+    set({
+      accessToken: null,
+      refreshToken: null,
+      user: null,
+    }),
+
   login: async (email: string, password: string): Promise<void> => {
     const tokens = await apiLogin({ email, password });
     set({
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
       user: { id: '', email, displayName: null, createdAt: '' },
+      // New login always clears the "session expired" banner.
+      sessionExpired: false,
     });
   },
 

@@ -29,4 +29,10 @@ data class RefreshToken(
 
     @Column(name = "revoked_at")
     var revokedAt: Instant? = null,
+
+    // First issuance of this refresh chain (login). Preserved across rotation
+    // so /refresh can enforce the absolute cap.
+    // [^src: design_&_architecture/decisions/ADR-010-auth-consolidation.md §3]
+    @Column(name = "first_issued_at", nullable = false)
+    var firstIssuedAt: Instant = Instant.EPOCH,
 )

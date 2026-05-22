@@ -16,9 +16,21 @@ data class AppProperties(
 
     // JWT signing per RFC 7519/7515 — secret must be >= 256 bits in prod
     // [^src: design_&_architecture/decisions/ADR-006-authentication.md §Token]
+    // [^src: design_&_architecture/decisions/ADR-010-auth-consolidation.md §3]
     data class Jwt(
         val signingSecret: String = "",
         val accessTtlMinutes: Long = 15,
+        // Sliding TTL del refresh: l'expires_at del nuovo refresh emesso a
+        // ogni /refresh riuscito viene riportato a now() + questo valore.
+        val refreshSlidingTtlDays: Long = 7,
+        // Cap assoluto dal `first_issued_at` (login originale): oltre questo
+        // valore /refresh ritorna 401 invalid-refresh, l'utente deve
+        // ri-autenticarsi. Mitiga il rischio di refresh-token "eterno" in
+        // caso di leak persistente.
+        val refreshAbsoluteCapDays: Long = 30,
+        // Legacy single-TTL kept for back-compat with config; non più letto
+        // dall'AuthService dopo ADR-010 (usa refreshSlidingTtlDays).
+        @Deprecated("Replaced by refreshSlidingTtlDays + refreshAbsoluteCapDays (ADR-010 §3)")
         val refreshTtlDays: Long = 30,
     )
 
