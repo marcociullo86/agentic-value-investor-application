@@ -65,9 +65,10 @@ test.describe('auth + watchlist', () => {
 
     // SPA nav via Navbar link — preserves the in-memory Zustand access token.
     // `page.goto('/watchlist')` is a full reload that clears Zustand state,
-    // making AuthGuard kick in and redirect to /login.
+    // making AuthGuard kick in and redirect to /login. No explicit
+    // waitForURL: the default waitUntil:'load' never fires on Next.js soft
+    // navigation; the subsequent getByTestId(...).fill auto-waits anyway.
     await page.getByTestId('nav-watchlist').click();
-    await page.waitForURL('**/watchlist**');
     await page.getByTestId('watchlist-add-input').fill('AAPL');
     await page.getByTestId('watchlist-add-submit').click();
 
@@ -86,9 +87,10 @@ test.describe('auth + watchlist', () => {
 
     // SPA nav via Navbar link — preserves the in-memory Zustand access token.
     // `page.goto('/watchlist')` is a full reload that clears Zustand state,
-    // making AuthGuard kick in and redirect to /login.
+    // making AuthGuard kick in and redirect to /login. No explicit
+    // waitForURL: the default waitUntil:'load' never fires on Next.js soft
+    // navigation; the subsequent getByTestId(...).fill auto-waits anyway.
     await page.getByTestId('nav-watchlist').click();
-    await page.waitForURL('**/watchlist**');
     await page.getByTestId('watchlist-add-input').fill('AAPL');
     await page.getByTestId('watchlist-add-submit').click();
     await expect(page.getByTestId('watchlist-row-AAPL')).toBeVisible();
@@ -113,21 +115,27 @@ test.describe('auth + watchlist', () => {
 
     // SPA nav via Navbar link — preserves the in-memory Zustand access token.
     // `page.goto('/watchlist')` is a full reload that clears Zustand state,
-    // making AuthGuard kick in and redirect to /login.
+    // making AuthGuard kick in and redirect to /login. No explicit
+    // waitForURL: the default waitUntil:'load' never fires on Next.js soft
+    // navigation; the subsequent getByTestId(...).fill auto-waits anyway.
     await page.getByTestId('nav-watchlist').click();
-    await page.waitForURL('**/watchlist**');
     await page.getByTestId('watchlist-add-input').fill('MSFT');
     await page.getByTestId('watchlist-add-submit').click();
     await expect(page.getByTestId('watchlist-row-MSFT')).toBeVisible();
 
     await page.getByTestId('watchlist-link-MSFT').click();
-    await page.waitForURL('**/analysis/MSFT**');
+    // commit waitUntil: SPA navigation in Next.js doesn't fire the `load`
+    // event, so the default waitUntil:'load' here would time out even
+    // though the URL has already changed.
+    await page.waitForURL(/\/analysis\/MSFT/, { waitUntil: 'commit' });
     expect(page.url()).toContain('/analysis/MSFT');
   });
 
   test('5. /watchlist senza login redirige a /login', async ({ page }) => {
     await page.goto('/watchlist');
-    await page.waitForURL('**/login**');
+    // AuthGuard performs router.replace('/login') from a useEffect, which is
+    // a Next.js soft navigation — same waitUntil:'commit' rationale as above.
+    await page.waitForURL(/\/login/, { waitUntil: 'commit' });
     expect(page.url()).toContain('/login');
   });
 });

@@ -18,8 +18,15 @@ group = "com.valueinvesting"
 version = "0.1.0-SNAPSHOT"
 
 java {
+    // JDK 21 toolchain matches:
+    //   - .github/workflows/ci.yml (setup-java@v4 java-version: 21)
+    //   - src/docker/Dockerfile (gradle:8-jdk21-alpine build, temurin:21-jre runtime)
+    //   - ADR-009 §2 Build artifact (Spring Boot 3.5 LTS runtime)
+    // tech_stack.md baseline is "JVM 17+" — JDK 21 satisfies the lower bound;
+    // no source uses Java 21-specific syntax so a downgrade to 17 stays
+    // mechanically possible if needed.
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
 
