@@ -19,11 +19,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * permissive config formerly in `config/SecurityConfig.kt`.
  *
  * Endpoint policy mirrors ADR-006 §Endpoint policy:
- *  - `permitAll`: `/api/auth/**`, `/api/search/**`, `/api/screener`,
- *    `/api/financials/**`, `/api/analysis/**`, `/api/historical/**`,
+ *  - `permitAll`: `/api/auth/*`, `/api/search/*`, `/api/screener`,
+ *    `/api/financials/*`, `/api/analysis/*`, `/api/historical/*`,
  *    `/actuator/health`, `/api/openapi.json`, springdoc.
- *  - `authenticated`: `/api/watchlist/**`, `/api/moat-checklist/**`,
- *    `/api/dcf-overrides/**`.
+ *  - `authenticated`: `/api/watchlist/*`, `/api/moat-checklist/*`,
+ *    `/api/dcf-overrides/*`.
  *
  * [^src: design_&_architecture/decisions/ADR-006-authentication.md §Endpoint policy]
  * [^src: design_&_architecture/components/backend-components.md §SecurityConfig]

@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController
 /**
  * EP-006 authentication endpoints.
  *
- * [^src: design_&_architecture/api/openapi.yaml §paths /api/auth/**]
+ * [^src: design_&_architecture/api/openapi.yaml §paths /api/auth/*]
  * [^src: design_&_architecture/decisions/ADR-006-authentication.md §Endpoint policy]
  */
 @RestController

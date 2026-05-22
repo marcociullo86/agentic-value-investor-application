@@ -26,7 +26,7 @@ import java.util.UUID
  *   the entry is absent (mapped to 404 by GlobalExceptionHandler).
  *
  * [^src: design_&_architecture/components/backend-components.md §WatchlistService]
- * [^src: design_&_architecture/api/openapi.yaml §/api/watchlist/**]
+ * [^src: design_&_architecture/api/openapi.yaml §/api/watchlist/*]
  */
 @Service
 class WatchlistService(
