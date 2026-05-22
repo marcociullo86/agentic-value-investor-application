@@ -165,7 +165,7 @@ class AnalysisControllerIT {
                 jsonPath("$.status") { value(404) }
                 jsonPath("$.title") { value("Ticker not found") }
                 jsonPath("$.ticker") { value("UNKNOWN") }
-                jsonPath("$.properties").doesNotExist()
+                jsonPath("$.properties") { doesNotExist() }
             }
     }
 

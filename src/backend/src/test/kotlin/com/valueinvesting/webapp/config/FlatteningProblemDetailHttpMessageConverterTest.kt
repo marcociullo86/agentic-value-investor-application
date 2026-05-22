@@ -7,6 +7,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpInputMessage
 import org.springframework.http.HttpOutputMessage
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ProblemDetail
 import org.springframework.http.converter.HttpMessageNotReadableException
@@ -31,7 +32,7 @@ class FlatteningProblemDetailHttpMessageConverterTest {
 
     @Test
     fun `writes extension members as top-level siblings not under properties`() {
-        val problem = ProblemDetail.forStatusAndDetail(404, "Ticker ZZZZ not found on FMP")
+        val problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, "Ticker ZZZZ not found on FMP")
         problem.type = URI.create("https://api/errors/ticker-not-found")
         problem.title = "Ticker not found"
         problem.instance = URI.create("/api/search/ZZZZ")

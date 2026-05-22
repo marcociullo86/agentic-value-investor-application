@@ -45,7 +45,7 @@ class FlatteningProblemDetailHttpMessageConverter(
         problemDetail.status?.let { map["status"] = it }
         problemDetail.detail?.let { map["detail"] = it }
         problemDetail.instance?.let { map["instance"] = it.toString() }
-        problemDetail.properties.forEach { (key, value) -> map[key] = value }
+        problemDetail.properties?.forEach { (key, value) -> map[key] = value }
         return map
     }
 }

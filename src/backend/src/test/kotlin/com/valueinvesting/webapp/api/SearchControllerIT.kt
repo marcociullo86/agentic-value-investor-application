@@ -215,7 +215,7 @@ class SearchControllerIT {
             jsonPath("$.title") { value("Ticker not found") }
             // Extension field "ticker" at top-level per RFC 9457 §3.2 (ADR-012).
             jsonPath("$.ticker") { value("XXXXXXXX") }
-            jsonPath("$.properties").doesNotExist()
+            jsonPath("$.properties") { doesNotExist() }
             // type URI convention from GlobalExceptionHandler.
             jsonPath("$.type") { value("https://api/errors/ticker-not-found") }
         }

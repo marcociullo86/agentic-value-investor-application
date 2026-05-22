@@ -184,7 +184,7 @@ class SearchControllerWebMvcTest {
             content { contentType("application/problem+json") }
             jsonPath("$.title") { value("Ticker not found") }
             jsonPath("$.ticker") { value("NONEXIST") }
-            jsonPath("$.properties").doesNotExist()
+            jsonPath("$.properties") { doesNotExist() }
         }
     }
 

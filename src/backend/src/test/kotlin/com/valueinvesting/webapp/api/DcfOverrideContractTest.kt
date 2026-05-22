@@ -133,7 +133,7 @@ class DcfOverrideContractTest {
             jsonPath("$.reason") { value("PPE_RATIO_HISTORY_INSUFFICIENT") }
             jsonPath("$.availableYears") { exists() }
             jsonPath("$.requiredYears") { value(5) }
-            jsonPath("$.properties").doesNotExist()
+            jsonPath("$.properties") { doesNotExist() }
         }
     }
 
