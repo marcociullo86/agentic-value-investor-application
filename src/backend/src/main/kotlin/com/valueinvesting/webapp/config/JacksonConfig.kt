@@ -22,7 +22,14 @@ class JacksonConfig {
     fun jacksonCustomizer(): Jackson2ObjectMapperBuilderCustomizer =
         Jackson2ObjectMapperBuilderCustomizer { builder ->
             builder
-                .modules(JavaTimeModule())
+                // modulesToInstall (additive) — NOT .modules() (replace), since
+                // replacing drops Spring Boot's JsonComponentModule that auto-
+                // discovers @JsonComponent serializers (e.g. our
+                // ProblemDetailJsonSerializer below). JavaTimeModule is auto-
+                // registered by Spring Boot when jackson-datatype-jsr310 is on
+                // the classpath, but we list it explicitly to keep the contract
+                // visible at this config site.
+                .modulesToInstall(JavaTimeModule())
                 .featuresToDisable(
                     SerializationFeature.WRITE_DATES_AS_TIMESTAMPS,
                     DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
