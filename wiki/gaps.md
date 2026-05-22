@@ -143,3 +143,28 @@ utente mostrerà lista vuota senza errori. Nessun impatto su funzionalità core.
 **Gap:** `raw/tech_stack.md` adottato il 2026-05-20 contiene versioni 2026 (Kotlin 2.2, React 19 + Next.js 16.x, PostgreSQL 17) mentre gli ADR-001/002/003 documentano versioni inferiori (React 18, Kotlin 1.9, PostgreSQL 16). PATTERN §7 r.10 dà priorità a `raw/tech_stack.md` per i dev-agent, quindi non cè rischio operativo, ma la divergenza archivistica va sanata.
 **Sospetta fonte:** lead-architect — rilascio di ADR-001-v2, ADR-002-v2, ADR-003-v2 (o update non-distruttivo §7 r.7 sui correnti).
 **Impatto:** Solo documentale. I dev-agent useranno le versioni di `raw/tech_stack.md`. Bloccante: no.
+
+### 2026-05-22 — be-problemdetail-flatten
+
+**Origine:** claude @ ci-stabilize Sprint 3 PR #1
+**Gap:** Spring 6.x (incluso Spring Boot 3.5.0 con Spring Framework 6.2.7) serializza `org.springframework.http.ProblemDetail` con gli extension members annidati sotto la chiave `properties` invece che come fratelli di `type`/`title`/`status`/`detail`/`instance`. Esempio body attuale:
+```
+{"type":"...","title":"...","status":404,"properties":{"ticker":"AAPL","timestamp":"..."}}
+```
+ADR-007 §Error format dichiara RFC 9457 §3.2 (extensions al top-level). Quattro tentativi di flatten (commits b385926 Jackson mixin con @JsonAnyGetter; 873b9e6 StdSerializer + @JsonComponent; e8a0880 modulesToInstall vs modules; 20f846b serializerByType su Jackson2ObjectMapperBuilder) sono tutti landati correttamente ma zero effetto sul body in CI — Spring usa un path serializzazione specifico per `application/problem+json` che bypassa l'ObjectMapper customizer.
+**Sospetta fonte:** custom `HttpMessageConverter` per `application/problem+json` registrato in `WebMvcConfigurer` che bypassa la pipeline Jackson default; oppure aggiornamento a Spring Boot >=3.5.x con il fix per #25801 quando disponibile.
+**Impatto:** I client che si conformano strettamente a RFC 9457 §3.2 (extensions come top-level fields) leggeranno `ticker` solo sotto `properties.ticker`. Per ora tutti i caller noti (FE proprio + test) sanno entrambe le forme. Test BE (AnalysisControllerIT + SearchControllerIT) assertano `$.properties.ticker`. Non bloccante per il MVP. Bloccante: no.
+
+### 2026-05-22 — fe-swr-peer-r19
+
+**Origine:** claude @ ci-stabilize Sprint 3 PR #1
+**Gap:** `swr@2.2.5` dichiara peer range `react@"^16.11.0 || ^17.0.0 || ^18.0.0"`, ma il progetto pinna `react@19.0.0` (raw/tech_stack.md baseline). `npm install` fallisce con ERESOLVE senza `--legacy-peer-deps`. Pattern attualmente applicato in 4 punti: `.github/workflows/ci.yml` (fe-test + fe-e2e + fe-e2e-realbe), `src/docker/Dockerfile` (fe-build stage), `.github/workflows/contract-check.yml` (FE OpenAPI types).
+**Sospetta fonte:** monitoraggio rilasci `swr` su npm/GitHub; bumpare quando una release widens il peer range includendo react 19, rimuovendo i 5 `--legacy-peer-deps`.
+**Impatto:** I `--legacy-peer-deps` rilassano la risoluzione delle dep, lasciando teoricamente possibili incompatibilita runtime nascoste. In pratica swr 2.x funziona con react 19 (nessun regressione osservata in vitest/Playwright/runtime FE). Non bloccante. Bloccante: no.
+
+### 2026-05-22 — fe-static-export-tickers
+
+**Origine:** claude @ ci-stabilize Sprint 3 PR #1
+**Gap:** `src/frontend/next.config.js` impone `output: 'export'` (statico), che richiede `generateStaticParams()` su tutte le route dinamiche. `app/analysis/[ticker]/page.tsx` adesso espone un set hardcoded di 8 ticker (AAPL, MSFT, GOOGL, AMZN, META, NVDA, TSLA, BRK.B) — copre l'E2E (AAPL) e i piu comuni demo ticker ma non e una soluzione di produzione: visitare `/analysis/{ticker}` per qualunque altro simbolo restituisce 404. Il moat-checklist (`app/moat/page.tsx`) ha gia evitato il problema usando query param (`/moat?ticker=AAPL`).
+**Sospetta fonte:** decisione architetturale (lead-architect) — alternative: (a) feed di build-time dal database stocks (richiede prerender step), (b) refactor /analysis/[ticker] -> /analysis?ticker=... (uniforma con /moat), (c) dropping `output: 'export'` per un runtime SSR (cambia deployment ADR-009).
+**Impatto:** Limita il deployment statico a una whitelist di ticker. Track A puo perfezionare il modello in Sprint successivo. Bloccante per MVP: no (la lista copre i ticker piu rilevanti).
