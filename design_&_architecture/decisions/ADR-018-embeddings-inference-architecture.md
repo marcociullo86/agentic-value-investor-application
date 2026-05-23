@@ -1,8 +1,9 @@
 ---
 id: ADR-018
 title: Embeddings inference architecture — sidecar Python FastAPI con Qwen3-Embedding-0.6B
-status: proposed
+status: accepted
 created: 2026-05-23
+accepted: 2026-05-23
 deciders: [lead-architect, marco.ciullo]
 consulted: [tpm, be-dev, infra-dev]
 ---

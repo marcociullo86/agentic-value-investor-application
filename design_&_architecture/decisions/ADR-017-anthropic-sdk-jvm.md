@@ -1,8 +1,9 @@
 ---
 id: ADR-017
 title: Integrazione Anthropic Claude Opus 4.7 dal backend Kotlin/Spring — adapter pattern + Resilience4j
-status: proposed
+status: accepted
 created: 2026-05-23
+accepted: 2026-05-23
 deciders: [lead-architect, marco.ciullo]
 consulted: [tpm, be-dev]
 ---

@@ -1,9 +1,10 @@
 ---
 id: ADR-019
 title: LLM cost telemetry + budget alert (no kill-switch automatico) — LLM on-demand manuale dalla scheda dettaglio
-status: proposed
+status: accepted
 created: 2026-05-23
 updated: 2026-05-23
+accepted: 2026-05-23
 deciders: [lead-architect, marco.ciullo]
 consulted: [tpm, product-manager, be-dev, db-dev]
 pending_clarification: []
