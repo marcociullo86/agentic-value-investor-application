@@ -1,18 +1,19 @@
 <!-- generated, do not edit — rigenerato da tpm ad ogni run -->
 ---
 id: sprint
-title: Sprint Plan — R1.0 MVP + R1.1
-generated: 2026-05-22
+title: Sprint Plan — R1.0 MVP + R1.1 + R2.0
+generated: 2026-05-23
 tpm: tpm
-release: R1.1
+release: R2.0
 r10_closed: 2026-05-22
+r11_closed: TBD
 ---
 # Sprint Plan
 
 > **R1.0 MVP chiuso:** Sprint 1–4 completati (49/49 TSK `done`, 20/20 US, 6/6 EP).
-> **R1.1 attivo:** Sprint 5 — 22 TSK nuovi (TSK-050…071); Sprint 6 lookahead — 1 TSK (TSK-071).
-> Epiche: EP-007, EP-008, EP-009 — US-021…030 `ready`. L4: ADR-012…016 `accepted`.
-> Ordine suggerito PM: **EP-007 ∥ EP-009 US-029 (TSK-068 human)** → **EP-008** → **EP-009 US-030**.
+> **R1.1 attivo:** Sprint 5 — 22 TSK nuovi (TSK-050…072); Sprint 6 lookahead (ex) incluso.
+> **R2.0 pianificato:** Sprint 6–9 — 70 TSK nuovi (TSK-073…142); 20 US nuove (US-032…051), 3 EP (EP-010…012).
+> Ordine suggerito PM: **EP-010 (Sprint 6)** → **EP-011 BE (Sprint 7)** → **EP-011 FE (Sprint 8)** → **EP-012 (Sprint 9)**.
 
 ---
 
@@ -150,6 +151,8 @@ checklist cutover, throttling FMP (default ADR-016); wiki FMP in parallelo (huma
 | TSK-068 | Human Ingest wiki FMP rate/URL/errori | infra | human | M | — | US-029 | done |
 | TSK-069 | BE Env FMP_RATE_LIMIT_PER_MINUTE | be | agent | S | — | US-030 | done |
 | TSK-070 | QA WireMock 429 retry + event log | qa | agent | S | TSK-069 | US-030 | done |
+| TSK-071 | BE Ricalibra rate limit da wiki post US-029 | be | agent | XS | TSK-068, TSK-069 | US-031 | todo |
+| TSK-072 | BE Migrazione FmpAdapterRestClient + DTO + fixture da v3 a /stable | be | agent | L | TSK-009, TSK-068 | US-031 | done |
 
 **Nota US-025:** L4 già allineato (appendici ADR-001/002/003). TSK-060 = verifica formale, **nessun dev L5** salvo drift.
 
@@ -157,15 +160,125 @@ checklist cutover, throttling FMP (default ADR-016); wiki FMP in parallelo (huma
 
 ---
 
-## Lookahead Sprint 6 — R1.1 post-wiki FMP
+## Sprint 6 — Graham Defensive Completeness (EP-010)
 
-| TSK | Titolo | Layer | Consumer | Est. | Depends on | Status |
-|-----|--------|-------|----------|------|------------|--------|
-| TSK-071 | BE Ricalibra rate limit da wiki post US-029 | be | agent | XS | TSK-068, TSK-069 | todo |
-| TSK-072 | BE Migrazione FmpAdapterRestClient + DTO + fixture da v3 a /stable (ex sprint5 TSK-050 rinumerato) | be | agent | L | TSK-009, TSK-068 | done |
+**Obiettivo:** Completare i 6 criteri Graham difensivi mancanti (SIZE_LATEST, EARNINGS_STABILITY_10Y, EPS_GROWTH_10Y, PE_3Y_AVG, PB_LATEST, DIVIDEND_CONTINUITY_20Y) nel Rule Engine, aggiornare TrafficLight FE a 13 ruleId, aggiornare contratto OpenAPI.
 
-Eseguire TSK-071 solo dopo chiusura gap `fmp-rate-limiting` in wiki con citazione raw.
-TSK-072 (US-031) introdotto retroattivamente: codice gia' implementato nel branch sprint5/tsk-050-fmp-stable-migration (ora rinumerato US-031/TSK-072 per evitare collisione con il TSK-050 di master).
+**Dipendenze:** Sprint 5 Wave 2 completata (TSK-072 done — FMP stable migration).
+
+| TSK | Titolo | Layer | Consumer | Est. | US | Status |
+|-----|--------|-------|----------|------|----|--------|
+| TSK-073 | BE Implementa SizeRule (SIZE_LATEST) | be | agent | S | US-032 | ready |
+| TSK-074 | QA Test integrazione SizeRule — 3 scenari | qa | agent | S | US-032 | ready |
+| TSK-075 | BE Implementa EarningsStabilityRule (EARNINGS_STABILITY_10Y) | be | agent | S | US-033 | ready |
+| TSK-076 | QA Test integrazione EarningsStabilityRule — 4 scenari | qa | agent | S | US-033 | ready |
+| TSK-077 | BE Implementa EpsGrowthRule (EPS_GROWTH_10Y) | be | agent | S | US-034 | ready |
+| TSK-078 | QA Test integrazione EpsGrowthRule — 5 scenari | qa | agent | S | US-034 | ready |
+| TSK-079 | BE Implementa Pe3yAvgRule (PE_3Y_AVG) | be | agent | S | US-035 | ready |
+| TSK-080 | QA Test integrazione Pe3yAvgRule — 4 scenari | qa | agent | S | US-035 | ready |
+| TSK-081 | BE Implementa PbLatestRule (PB_LATEST) | be | agent | S | US-036 | ready |
+| TSK-082 | QA Test integrazione PbLatestRule — 4 scenari | qa | agent | S | US-036 | ready |
+| TSK-083 | BE Estendi FmpAdapter con getDividendHistory | be | agent | S | US-037 | ready |
+| TSK-084 | DB Migration V010__fmp_dividend_history_snapshot | db | agent | XS | US-037 | ready |
+| TSK-085 | BE Implementa DividendContinuityRule (DIVIDEND_CONTINUITY_20Y) | be | agent | S | US-037 | ready |
+| TSK-086 | QA Test DividendContinuityRule + contratto adapter | qa | agent | S | US-037 | ready |
+| TSK-087 | BE Estendi OpenAPI con 6 nuovi ruleId Graham | be | agent | S | cross-EP010 | ready |
+| TSK-088 | FE Aggiorna TrafficLight component a 13 ruleId | fe | agent | S | cross-EP010 | ready |
+| TSK-089 | QA Contract test OpenAPI drift — 13 ruleId | qa | agent | XS | cross-EP010 | ready |
+| TSK-090 | QA Integration test E2E EP-010 — AAPL/MSFT/KO fixture | qa | agent | M | cross-EP010 | ready |
+
+**Totale Sprint 6:** 18 TSK (8 be, 1 fe, 1 db, 8 qa)
+
+---
+
+## Sprint 7 — Deep Analysis backend (EP-011 — BE/DB/Infra)
+
+**Obiettivo:** Infrastruttura RAG completa (SEC EDGAR adapter + filing blob cache + pgvector + EmbeddingService sidecar), pipeline analisi qualitativa (MungerInversion LLM + NewsSentiment + PriceAction), cascade verdetto, endpoint `/api/analysis/{ticker}/deep`.
+
+**Dipendenze:** Sprint 6 completato (i 13 ruleId Buffett+Graham necessari per la cascade US-044).
+
+| TSK | Titolo | Layer | Consumer | Est. | US | Status |
+|-----|--------|-------|----------|------|----|--------|
+| TSK-091 | BE SecEdgarAdapter interface + SecEdgarRestClient | be | agent | M | US-038 | ready |
+| TSK-092 | BE Cache CIK→ticker TTL 30gg | be | agent | S | US-038 | ready |
+| TSK-093 | QA WireMock SecEdgarRestClient — rate-limit, 429, cache | qa | agent | S | US-038 | ready |
+| TSK-094 | BE Estendi FmpAdapter con getSecFilings | be | agent | S | US-039 | ready |
+| TSK-095 | DB Migration V011__filing_blob | db | agent | XS | US-039 | ready |
+| TSK-096 | BE Filing10KQDownloaderService — download, HTML strip, persist | be | agent | M | US-039 | ready |
+| TSK-097 | QA Test Filing10KQDownloaderService — cache TTL, limit 50MB | qa | agent | S | US-039 | ready |
+| TSK-098 | DB Migration V012__pgvector_enable + filing_chunks + HNSW | db | agent | S | US-040 | ready |
+| TSK-099 | Infra Sidecar Python FastAPI embeddings Snowflake Arctic Embed L v2.0 | infra | agent | M | US-040 | ready |
+| TSK-100 | BE EmbeddingService Kotlin HTTP client verso sidecar | be | agent | S | US-040 | ready |
+| TSK-101 | BE FilingChunkingService — split testo RecursiveCharSplitter | be | agent | S | US-040 | ready |
+| TSK-102 | BE FilingRagService — persist chunks + embedding + similarity search | be | agent | M | US-040 | ready |
+| TSK-103 | QA Test integrazione pgvector — chunking, embedding, retrieval, idempotenza | qa | agent | M | US-040 | ready |
+| TSK-104 | BE AnthropicClient config + LlmResilienceConfig circuit breaker | be | agent | S | US-041 | ready |
+| TSK-105 | BE MungerInversionAnalyzer — 10 query inversione + prompt template | be | agent | L | US-041 | ready |
+| TSK-106 | DB Migration V013__filing_analysis (deep_analysis_report) | db | agent | XS | US-041 | ready |
+| TSK-107 | QA Test MungerInversionAnalyzer — mock Anthropic + golden response | qa | agent | S | US-041 | ready |
+| TSK-108 | BE Estendi FmpAdapter con getStockNews | be | agent | S | US-042 | ready |
+| TSK-109 | BE NewsSentimentService — classificatore Claude Opus + cache | be | agent | M | US-042 | ready |
+| TSK-110 | DB Migration V014__news_sentiment_analysis | db | agent | XS | US-042 | ready |
+| TSK-111 | QA Test NewsSentimentService — golden dataset, cache, limite 50 LLM | qa | agent | S | US-042 | ready |
+| TSK-112 | BE Estendi FmpAdapter con getHistoricalEod | be | agent | S | US-043 | ready |
+| TSK-113 | BE PriceActionAnalyzer — drawdown 52w + panic/deterioration flags | be | agent | S | US-043 | ready |
+| TSK-114 | QA Test PriceActionAnalyzer — boundary flags + migration V015 | qa | agent | S | US-043 | ready |
+| TSK-115 | BE MungerDecisionService — cascade 6 verdetti | be | agent | M | US-044 | ready |
+| TSK-116 | BE PositionSizeCalculator — port da agent.py | be | agent | S | US-044 | ready |
+| TSK-117 | QA Test MungerDecisionService — 6 combinazioni cascade + determinismo | qa | agent | S | US-044 | ready |
+| TSK-118 | BE DeepAnalysisController + DeepAnalysisService orchestrator | be | agent | M | US-045 | ready |
+| TSK-119 | BE DTO DeepAnalysisResultDto + OpenAPI schema /deep + migration V016 | be | agent | S | US-045 | ready |
+| TSK-120 | QA Integration test E2E /deep — tutti i mock provider | qa | agent | M | US-045 | ready |
+| TSK-121 | QA Contract test OpenAPI /deep — drift guard | qa | agent | S | US-045 | ready |
+
+**Totale Sprint 7:** 31 TSK (15 be, 0 fe, 5 db, 1 infra, 10 qa)
+
+---
+
+## Sprint 8 — Deep Analysis frontend (EP-011 — FE)
+
+**Obiettivo:** Tab "Deep Analysis" sul frontend con tutti i componenti UI (verdict badge, Munger report collapsibile, news sentiment, drawdown chart, filing links), SWR hook, test E2E Playwright.
+
+**Dipendenze:** Sprint 7 completato (endpoint `/api/analysis/{ticker}/deep` disponibile).
+
+| TSK | Titolo | Layer | Consumer | Est. | US | Status |
+|-----|--------|-------|----------|------|----|--------|
+| TSK-122 | FE Route /analysis/{ticker}/deep + page component Next.js | fe | agent | S | US-046 | ready |
+| TSK-123 | FE Componenti UI Deep Analysis (5 componenti) | fe | agent | M | US-046 | ready |
+| TSK-124 | FE API client estensione + SWR hook useDeepAnalysis | fe | agent | S | US-046 | ready |
+| TSK-125 | QA Test E2E Playwright Deep Analysis — happy path + value-trap + invalido | qa | agent | M | US-046 | ready |
+
+**Totale Sprint 8:** 4 TSK (3 fe, 1 qa)
+
+---
+
+## Sprint 9 — Top Value Picks batch (EP-012)
+
+**Obiettivo:** UniverseScreenerService (FMP screener + 13-F + news scout), job notturno cron 02:00 UTC, persistenza top_value_picks, endpoint GET /api/top-picks paginato, pagina FE /top-picks con filtri e deep-link.
+
+**Dipendenze:** Sprint 7 completato (MungerDecisionService, AnthropicClient, SecEdgarAdapter disponibili). Sprint 8 completato per il link alla pagina /deep.
+
+| TSK | Titolo | Layer | Consumer | Est. | US | Status |
+|-----|--------|-------|----------|------|----|--------|
+| TSK-126 | BE UniverseScreenerService — orchestratore FMP NASDAQ+NYSE | be | agent | M | US-047 | ready |
+| TSK-127 | BE InstitutionalHoldingsService — overlay 13-F SEC EDGAR | be | agent | M | US-047 | ready |
+| TSK-128 | BE NewsScoutService — Claude Opus scout top-200 | be | agent | S | US-047 | ready |
+| TSK-129 | BE SectorBlacklist + SETTORI_BUFFETT_OK + FmpAdapter.companyScreener | be | agent | S | US-047 | ready |
+| TSK-130 | QA Test UniverseScreenerService — mock FMP + SEC, dedup, cap 500 | qa | agent | S | US-047 | ready |
+| TSK-131 | BE TopValuePicksJob @Scheduled cron 02:00 UTC + pipeline batch | be | agent | M | US-048 | ready |
+| TSK-132 | BE BatchResilienceConfig — RateLimiter fmp-batch separato | be | agent | S | US-048 | ready |
+| TSK-133 | Infra Migration V017__top_picks_run_log + scheduler enable yaml | infra | agent | XS | US-048 | ready |
+| TSK-134 | QA Test rate-limit batch + idempotenza job | qa | agent | S | US-048 | ready |
+| TSK-135 | DB Migration V016__top_value_picks — PK composta + indice | db | agent | XS | US-049 | ready |
+| TSK-136 | BE TopValuePickEntity + TopValuePickRepository JPA | be | agent | S | US-049 | ready |
+| TSK-137 | QA Test persistenza top_value_picks — PK, retention, indice | qa | agent | S | US-049 | ready |
+| TSK-138 | BE TopPicksController GET /api/top-picks paginazione + filtri | be | agent | M | US-050 | ready |
+| TSK-139 | QA OpenAPI schema /top-picks + contract test + integration test | qa | agent | S | US-050 | ready |
+| TSK-140 | FE Route /top-picks page + tabella ordinabile Next.js | fe | agent | M | US-051 | ready |
+| TSK-141 | FE Filtri sidebar + useTopPicks SWR hook | fe | agent | S | US-051 | ready |
+| TSK-142 | QA Test E2E Playwright /top-picks — filtro, datepicker, navigazione /deep | qa | agent | S | US-051 | ready |
+
+**Totale Sprint 9:** 17 TSK (7 be, 2 fe, 1 db, 1 infra, 6 qa)
 
 ---
 
@@ -175,26 +288,51 @@ TSK-072 (US-031) introdotto retroattivamente: codice gia' implementato nel branc
 |---------|--------|-------|-----|-----|-----|-----|--------|
 | R1.0 | 1–4 done | 2 | 7 | 23 | 13 | 7 | **49** |
 | R1.1 | 5 in corso | 5 | 0 | 5 | 3 | 8 | **21** (14 done, 7 todo) |
-| R1.1 | 6 lookahead | 0 | 0 | 1 | 0 | 0 | **1** |
-| | **Nuovi R1.1** | | | | | | **22** (TSK-050…071) |
+| R1.1 | lookahead | 0 | 0 | 2 | 0 | 0 | **2** (TSK-071 todo, TSK-072 done) |
+| R2.0 | 6 | 0 | 1 | 8 | 1 | 8 | **18** |
+| R2.0 | 7 | 1 | 5 | 15 | 0 | 10 | **31** |
+| R2.0 | 8 | 0 | 0 | 0 | 3 | 1 | **4** |
+| R2.0 | 9 | 1 | 1 | 7 | 2 | 6 | **17** |
+| | **Nuovi R2.0** | | | | | | **70** (TSK-073…142) |
+| | **TOTALE** | | | | | | **142** |
 
 ---
 
-## Dipendenze critiche Sprint 5
+## Dipendenze critiche Sprint 6–9
 
 ```
-Wave 1 (parallelo)
-  TSK-050 ──→ TSK-051, TSK-052
-  TSK-053 ──→ TSK-054 ──→ TSK-061 ──→ TSK-062, TSK-063 ──→ TSK-065
-  TSK-055 ──→ TSK-056 ──→ TSK-057
-  TSK-058 ──→ TSK-059
-  TSK-069 ──→ TSK-070
-  TSK-068 (human, ∥) ──→ TSK-071 (Sprint 6)
-  TSK-060 (doc verify, ∥)
+Sprint 6 (EP-010, parallelo per pair be+qa)
+  TSK-073 ──→ TSK-074
+  TSK-075 ──→ TSK-076
+  TSK-077 ──→ TSK-078
+  TSK-079 ──→ TSK-080
+  TSK-081 ──→ TSK-082
+  TSK-083 + TSK-084 ──→ TSK-085 ──→ TSK-086
+  TSK-073..086 ──→ TSK-087 ──→ TSK-088 ──→ TSK-089 ──→ TSK-090
 
-Cutover
-  TSK-050 + TSK-057 + TSK-061 ──→ TSK-066 ──→ TSK-067
-  TSK-064 + TSK-065 ──→ TSK-067
+Sprint 7 (EP-011 BE, catena sequenziale per blocchi)
+  TSK-091 ──→ TSK-092 ──→ TSK-093
+  TSK-091 + TSK-094 + TSK-095 ──→ TSK-096 ──→ TSK-097
+  TSK-095 ──→ TSK-098
+  TSK-099 ──→ TSK-100
+  TSK-098 + TSK-100 + TSK-101 ──→ TSK-102 ──→ TSK-103
+  TSK-104 + TSK-102 ──→ TSK-105 + TSK-106 ──→ TSK-107
+  TSK-108 + TSK-110 + TSK-104 ──→ TSK-109 ──→ TSK-111
+  TSK-112 + TSK-113 ──→ TSK-114
+  TSK-105 + TSK-109 + TSK-113 ──→ TSK-115 + TSK-116 ──→ TSK-117
+  TSK-115 + TSK-119 ──→ TSK-118 ──→ TSK-120 + TSK-121
+
+Sprint 8 (EP-011 FE)
+  TSK-119 + TSK-118 ──→ TSK-122 + TSK-124 ──→ TSK-123 ──→ TSK-125
+
+Sprint 9 (EP-012)
+  TSK-091 ──→ TSK-127
+  TSK-104 + TSK-108 ──→ TSK-128
+  TSK-126 + TSK-127 + TSK-128 + TSK-129 ──→ TSK-130
+  TSK-132 + TSK-133 + TSK-135 + TSK-136 ──→ TSK-131 ──→ TSK-134
+  TSK-135 + TSK-136 ──→ TSK-137
+  TSK-135 + TSK-136 ──→ TSK-138 ──→ TSK-139
+  TSK-124 + TSK-138 ──→ TSK-140 + TSK-141 ──→ TSK-142
 ```
 
-**Prossimo `/dev` suggerito:** `TSK-061` (docker-compose.prod + nginx TLS). In parallelo human: `TSK-068` (wiki-keeper ingest FMP). Cutover: TSK-066 dopo deploy staging.
+**Prossimo `/dev` suggerito:** `TSK-073` (SizeRule BE) in parallelo con `TSK-074` (QA). Completare Sprint 5 Wave 2 (TSK-061..067) in parallelo se possibile.

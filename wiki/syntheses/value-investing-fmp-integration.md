@@ -142,3 +142,29 @@ Vedi [[webapp-architecture-vi]] per dettagli implementativi.
 - Architettura: [[webapp-architecture-vi]]
 - Runbook: [[fmp-api-quickstart]]
 - Concetti: [[intrinsic-value]], [[margin-of-safety]], [[economic-moat]], [[graham-number]]
+
+---
+
+## Endpoint FMP Aggiuntivi da agent.py
+
+**Fonte**: `raw/09_agent_py_method_analysis.md §3` + `raw/agent.py`. Questi endpoint sono usati da agent.py v2.6.1 e non sono ancora wrappati nel Rule Engine Kotlin MVP. Sono necessari per EP-011 (Deep Analysis) e EP-012 (Batch Universe Screener).
+
+| Endpoint | Nodo agent.py | Uso | EP target |
+|---|---|---|---|
+| `/stable/sec-filings-search/symbol?symbol={symbol}&from={date}&to={date}` | `node_leggi_report_10k` | Lista filing SEC con `formType` (10-K, 10-Q, 8-K) + `finalLink` URL diretto al filing | EP-011 |
+| `/stable/historical-price-eod/full?symbol={symbol}&from={date}&to={date}` | `node_check_price_action` | Storico OHLCV 12 mesi per drawdown 52-settimane | EP-011 |
+| `/stable/news/stock?symbols={symbol}&page=0&limit={N}` | `node_news_sentiment` | News per ticker; agent.py filtra post-hoc a 90gg | EP-011 |
+| `/stable/news/stock-latest?page=0&limit=200` | `node_screener` (Segnale 3 news scout) | News mercato generali per screener universe (nessun ticker specifico) | EP-012 |
+| `/stable/quote?symbol={symbol}` | `node_calcola_valore_buffett` | Prezzo corrente + `sharesOutstanding` + `marketCap` (alternativa leggera a `/stable/profile`) | EP-011 |
+
+[^src: raw/09_agent_py_method_analysis.md §3] [^src: raw/agent.py:1140-1182] [^src: raw/agent.py:1661-1669] [^src: raw/agent.py:1521-1525] [^src: raw/agent.py:790] [^src: raw/agent.py:1801]
+
+### Note di Integrazione
+
+- **`/stable/sec-filings-search/symbol`**: il campo `finalLink` restituisce l'URL diretto al filing SEC (formato HTML o XBRL). agent.py scarica il raw HTML e lo processa con `BSHTMLLoader` + `BeautifulSoup`. Il porting Kotlin richiede un HTTP client che scarichi il contenuto e lo passi al chunker (sidecar Python).
+- **`/stable/historical-price-eod/full`**: i parametri `from`/`to` sono date in formato `YYYY-MM-DD`. agent.py richiede 12 mesi di storico per calcolare il max 52-settimane. Il campo `close` e' usato per il drawdown.
+- **`/stable/news/stock`**: nessun parametro di data; agent.py filtra le news con data > `today - 90gg` post-hoc. La paginazione usa `page=0` + `limit` variabile.
+- **`/stable/news/stock-latest`**: endpoint senza ticker — restituisce le ultime N news di mercato generale. Usato per il segnale "news scout" dello screener (Gemini Flash classifica se le news citano business Buffett-style).
+- **`/stable/quote`**: piu' leggero di `/stable/profile` per il solo recupero del prezzo corrente e `sharesOutstanding`. Usato in `node_calcola_valore_buffett` per dividere il valore totale DCF per le azioni.
+
+Vedi [[value-investor-bot-architecture]] per il mapping completo nodo → endpoint.

@@ -155,6 +155,34 @@ L'Investitore Intelligente, Cap.14, elenca 7 criteri per il portafoglio difensiv
 
 **Implicazione**: il Rule Engine e' una sintesi Graham/Buffett, non una replica meccanica del Cap.14. I criteri piu' facilmente proxy-abili (liquidita', debito, redditività) sono implementati; i criteri che richiedono storico molto lungo (dividendi 20 anni) o che coinvolgono la valutazione del prezzo (P/E, P/B) sono delegati al `grahamNumber` e al `mosSignal`.
 
+## Aggiornamenti (v2026-05-23)
+
+**Fonte aggiunta:** `raw/agent.py` (Value Investor Bot v2.6.1) + `raw/09_agent_py_method_analysis.md`.
+
+### Confronto con agent.py (v2.6.1)
+
+Mapping tra i `ruleId` Kotlin del Rule Engine MVP e i check equivalenti in agent.py, con indicazione dei delta metodologici.
+
+| ruleId Kotlin | Check agent.py | Delta metodologico |
+|---|---|---|
+| `ROE_10Y_AVG` | `roe_medio_5y` (5 anni, non 10) | **Delta**: Kotlin usa 10y (piu' conservativo, allineato Graham); agent.py usa 5y (piu' reattivo, cattura turnaround). Trade-off: 10y favorisce stabilita', 5y favorisce business in crescita. |
+| `ROIC_10Y_AVG` | Non implementato in agent.py | **Delta**: il Rule Engine aggiunge ROIC come misura dell'efficienza di allocazione del capitale (non presente in Graham 1973 ne' in agent.py). |
+| `GROSS_MARGIN_10Y_AVG` | `gross_margin_medio` (5 anni) | **Delta**: lookback differente (10y vs 5y). Stessa soglia implicita (>40%). |
+| `NET_MARGIN_10Y_AVG` | `net_margin_medio` (5 anni) | **Delta**: lookback differente (10y vs 5y). |
+| `CURRENT_RATIO_LATEST` | `current_ratio` calcolato ma non usato nel routing `munger_decision` | **Delta critico**: il Rule Engine Kotlin usa Current Ratio come segnale (GREEN/YELLOW/RED) e lo include nel report; agent.py lo calcola ma non lo applica come gate decisionale. |
+| `DEBT_TO_INCOME_LATEST` | `debt_equity < 0.5` (D/E, non LT-debt/netIncome) | **Delta metodologico**: Kotlin misura Debt/Income in anni di rimborso; agent.py usa D/E come proxy. Entrambi sono varianti Buffett del Criterio 2b Graham (LT Debt ≤ NCAV). |
+| `CAPEX_INTENSITY_10Y_AVG` | `capex / net_income` (implicito in formula OE) | **Delta**: agent.py calcola l'intensita' di CapEx come parte della formula Owner Earnings semplificata (`NI + D&A - |CapEx|`), non come segnale autonomo; il Rule Engine la espone come `ruleId` separato con soglia esplicita (<25% GREEN). |
+| `GrahamNumberCalculator` | Non presente | **Delta**: agent.py non calcola il Graham Number; usa solo il DCF Owner Earnings per la valutazione. |
+| `DcfCalculator` (r=9.5%) | `node_calcola_valore_buffett` (r=4.5%) | **Delta critico**: discount rate 4.5% (risk-free only, Buffett puro) vs 9.5% (WACC standard CFA). Vedi [[dcf-discount-rate-policy]] per l'analisi completa. |
+| n/a (non in Kotlin MVP) | `munger_decision` cascade | **Aggiunta agent.py**: routing a 6 outcomes con anti-value-trap e panic-buy detection. Da portare in EP-011. Vedi [[panic-buy-vs-value-trap-detection]]. |
+| n/a (non in Kotlin MVP) | `node_leggi_report_10k` (RAG Munger) | **Aggiunta agent.py**: analisi qualitativa 10-K/10-Q con 10 query inversione. Da portare in EP-011. Vedi [[munger-inversion-rag]]. |
+
+**Segnali implementati in Kotlin ma non in agent.py**: `ROIC_10Y_AVG`, `GrahamNumber` — aggiunte Kotlin che rafforzano l'analisi rispetto al prototipo Python.
+
+**Segnali in agent.py non ancora in Kotlin**: Current Ratio come gate (non solo calcolato), EPS CAGR con soglia, P/E, P/B, dividendi 20y — tutti da colmare con EP-010.
+
+[^src: raw/09_agent_py_method_analysis.md §2.3] [^src: raw/agent.py:1029-1116] [^src: raw/agent.py:1901-1936]
+
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->
 - EP-003 (Rule Engine quantitativo): US-007 redditività, US-008 pricing power, US-009 solidità, US-010 capitale intensivo

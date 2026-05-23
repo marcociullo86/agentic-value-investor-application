@@ -93,6 +93,8 @@ utente mostrerà lista vuota senza errori. Nessun impatto su funzionalità core.
 **Sospetta fonte:** integrazione con SEC EDGAR API (https://efts.sec.gov/LATEST/search-index) o provider terzi (Polygon.io SEC filings, Intrinio) da aggiungere come raw
 **Impatto:** Il playbook [[sec-10k-10q-analysis-playbook]] non puo' essere completamente automatizzato con soli endpoint FMP; gli Step 1-3 e Step 5 richiedono intervento manuale su EDGAR.
 
+**Risolto parzialmente:** 2026-05-23 — `wiki/concepts/munger-inversion-rag.md` + `wiki/concepts/value-investor-bot-architecture.md` documentano la metodologia di porting: download HTML diretto da SEC EDGAR via `finalLink` (endpoint FMP `/stable/sec-filings-search/symbol`), chunking FAISS RAG, analisi Munger inversion. La metodologia esiste e funziona in agent.py v2.6.1. Rimane gap implementativo lato Kotlin (EP-011 lo colmera' con US-041 + TSK relativi). Chiusura completa riservata al completamento di EP-011.
+
 ---
 
 ## 2026-05-20 14:00 — vi-webapp-owner-earnings-formula
@@ -224,3 +226,108 @@ ADR-007 §Error format dichiara RFC 9457 §3.2 (extensions al top-level). Quattr
 **Gap:** Il criterio net-net (prezzo < 2/3 NCAV) e' documentato in [[net-net-stocks]] e [[enterprising-investor-checklist]] ma non e' implementato come `ruleId` nel [[value-investing-rule-engine]]. I dati FMP necessari (totalCurrentAssets, totalLiabilities, sharesOutstanding) sono disponibili via [[fmp-financial-statements-stable]] ma nessuna regola li aggrega. Il Rule Engine MVP si concentra sui criteri Buffett (ROE, ROIC, Margin, etc.) che sono piu' applicabili ai mercati 2026 dove le net-net sono rare.
 **Sospetta fonte:** decisione di product (PM) su priorita' MVP. Potrebbe essere aggiunto come US in EP-003 o EP-005 in Sprint futuri.
 **Impatto:** L'investitore intraprendente Graham che vuole usare la WebApp per trovare net-net stocks deve usare la checklist manuale ([[enterprising-investor-checklist]] Step 7) senza segnale automatico. Bloccante: no per MVP.
+
+---
+
+## 2026-05-23 — wiki-promote-sec-edgar-adapter-spec
+
+**Origine:** product-manager @ scrittura EP-011 / US-038
+**Gap:** Non esiste una pagina wiki concept dedicata all'adapter SEC EDGAR (interface `SecEdgarAdapter`, rate-limit fair-access ≤ 10 req/s, header User-Agent identificativo + email, cache CIK→ticker TTL 30gg). Il flusso funzionale `wiki/concepts/sec-filings-analysis.md` documenta l'accesso ai filing ma non la spec dell'adapter applicativo. La spec di riferimento attuale è il prototipo Python `agent.py:355-371` (non in wiki/).
+**Sospetta fonte:** lead-architect (ADR adapter SEC) + wiki-keeper (promozione a concept dedicato `sec-edgar-adapter`).
+**Impatto:** US-038 cita `wiki/concepts/sec-filings-analysis.md` come riferimento approssimato; la pending_clarification è marcata in US-038 ma non blocca la storia (il be-dev può procedere con la spec dal codice Python). Bloccante: no.
+
+**Risolto:** 2026-05-23 — `wiki/concepts/clone-investing-13f-overlay.md` documenta l'intera spec dell'adapter SEC EDGAR: endpoint URL, User-Agent policy (`ValueInvestorBot research@valueinvestorbot.com`), rate limit (6-7 req/sec, `SEC_RATE_LIMIT_S=0.15`), caching TTL 30gg, emergency holdings fallback, algoritmo normalizzazione 4-step `nameOfIssuer → ticker` (validato 97.4%). `wiki/concepts/munger-inversion-rag.md` documenta il flusso di download filing via `finalLink`. La spec e' ora completa per US-038 e il be-dev puo' procedere senza riferirsi al codice Python.
+
+---
+
+## 2026-05-23 — wiki-promote-pgvector-concept
+
+**Origine:** product-manager @ scrittura EP-011 / US-040
+**Gap:** Non esiste una pagina wiki concept dedicata al vector store pgvector (estensione PostgreSQL 17, schema `filing_chunks` con embedding 1024-dim, indice HNSW, parametri chunking). La pagina `wiki/concepts/analysis-api-pipeline.md` documenta la pipeline end-to-end ma non lo strato di persistenza vettoriale. Decisione di prodotto: vector store = pgvector (confermata dall'utente il 2026-05-23).
+**Sospetta fonte:** wiki-keeper (promozione a concept dedicato `pgvector-vector-store`) + eventuale ADR di lead-architect su scelta pgvector vs FAISS/external.
+**Impatto:** US-040 cita `wiki/concepts/analysis-api-pipeline.md` come riferimento più vicino. La pending_clarification è marcata in US-040 ma non blocca la storia. Bloccante: no.
+
+---
+
+## 2026-05-23 — wiki-promote-arctic-embed-spec
+
+**Origine:** product-manager @ scrittura EP-011 / US-040
+**Gap:** Non esiste una pagina wiki concept dedicata al modello di embedding scelto (`Snowflake/snowflake-arctic-embed-l-v2.0`, 1024 dim, 8192 token context, MTEB ~67, caricamento locale via HuggingFace, configurabile in `application.yaml` come `embeddings.model.name` per A/B test futuro con Qwen3-Embedding-4B). Decisione di prodotto confermata dall'utente il 2026-05-23.
+**Sospetta fonte:** wiki-keeper (concept dedicato `arctic-embed-l-v2`) + eventuale ADR di lead-architect su scelta embedding model.
+**Impatto:** US-040 nomina il modello nelle Business Rules con tutti i parametri; la pending_clarification è marcata ma non blocca la storia. Bloccante: no.
+
+---
+
+## 2026-05-23 — wiki-promote-fmp-dividend-history
+
+**Origine:** product-manager @ scrittura EP-010 / US-037
+**Gap:** L'endpoint FMP `/stable/historical-price-full/stock_dividend` (storico dividendi 20+ anni) non è documentato nella wiki — manca da `wiki/runbooks/fmp-api-quickstart.md` e da `wiki/concepts/fmp-financial-statements-stable.md`. US-037 (Criterio Graham 4 — Continuità Dividendi 20 anni) richiede l'estensione di `FmpAdapter` con un nuovo metodo `getDividendHistory(ticker, years=20)`.
+**Sospetta fonte:** wiki-keeper (ingest endpoint dividend history dalla doc FMP stable già nei raw) o aggiornamento puntuale di `wiki/runbooks/fmp-api-quickstart.md`.
+**Impatto:** US-037 marca pending_clarification ma non blocca: il be-dev può recuperare lo spec dell'endpoint dai raw FMP stable. Bloccante: no.
+
+---
+
+## 2026-05-23 — wiki-extend-analysis-api-pipeline-deep
+
+**Origine:** product-manager @ scrittura EP-011 / US-045
+**Gap:** La pagina `wiki/concepts/analysis-api-pipeline.md` documenta solo l'endpoint `/api/analysis/{ticker}` standard. L'endpoint `/api/analysis/{ticker}/deep` di EP-011 introduce un payload molto più ampio (verdict_payload, deep_analysis_report, sentiment_summary, price_action_snapshot, filings_used) che non è ancora descritto nel concept.
+**Sospetta fonte:** wiki-keeper — estensione della pagina esistente (o nuova pagina `analysis-api-pipeline-deep`) al completamento di US-045.
+**Impatto:** US-045 ha tutti i Business Rules necessari per implementare l'endpoint, ma la documentazione architetturale wiki resterà non allineata fino all'aggiornamento. Bloccante: no.
+
+---
+
+## 2026-05-23 — wiki-promote-universe-screener-spec
+
+**Origine:** product-manager @ scrittura EP-012 / US-047
+**Gap:** Il servizio `UniverseScreenerService` (orchestratore FMP company-screener + 13-F overlay SEC EDGAR + news scout LLM su universo NASDAQ+NYSE) non ha una pagina wiki concept dedicata. La logica di riferimento è codificata nel prototipo Python `agent.py:744-988`. Le pagine attuali `wiki/runbooks/defensive-investor-checklist.md` e `wiki/concepts/superinvestors-graham-doddsville.md` documentano la teoria ma non l'orchestrazione tecnica.
+**Sospetta fonte:** wiki-keeper (promozione a concept dedicato `universe-screener-service`) + spec da `agent.py`.
+**Impatto:** US-047 ha tutti i Business Rules nella storia; la pending_clarification è marcata ma non blocca lo sviluppo. Bloccante: no.
+
+**Risolto:** 2026-05-23 — `wiki/concepts/value-investor-bot-architecture.md` documenta l'intera orchestrazione tecnica del `node_screener`: 4 segnali aggregati (13-F SEC EDGAR, quant FMP, news LLM scout, settori Buffett), endpoint FMP utilizzati, costanti configurabili (`UNIVERSO_FINALE_MAX_TICKET_NUMBER=30`), modalita' ibrida ticker manuali + screener, blacklist settoriale. `wiki/concepts/clone-investing-13f-overlay.md` approfondisce il Segnale 1 (13-F). La spec e' completa per US-047.
+
+---
+
+## 2026-05-23 — tpm-embeddings-sidecar-vs-djl
+
+**Origine:** tpm @ scrittura TSK EP-010/011/012
+**Gap:** Decisione architetturale non formalizzata in ADR: sidecar Python FastAPI per embeddings (sentence-transformers + Snowflake Arctic Embed L v2.0) versus djl-huggingface JVM-nativo. Il sidecar Python è più semplice e riusa direttamente `sentence-transformers` come `agent.py`, ma aggiunge un container extra al deployment; djl-huggingface semplificherebbe il deployment ma ha supporto limitato per modelli HuggingFace recenti e performance JVM potenzialmente inferiori per inferenza CPU.
+**Sospetta fonte:** lead-architect (ADR dedicato sull'architettura di inferenza embedding).
+**Impatto:** TSK-099 applica default = sidecar Python come da indicazione utente. Non bloccante per lo sviluppo (il sidecar è implementabile indipendentemente). Se il lead-architect decide per djl-huggingface, TSK-099 va rework ma TSK-100 (EmbeddingService HTTP client) rimane valido (solo cambia il target HTTP). Bloccante: no. `pending_clarification` annotato in TSK-099.
+
+---
+
+## 2026-05-23 — tpm-anthropic-sdk-jvm-version
+
+**Origine:** tpm @ scrittura TSK EP-010/011/012
+**Gap:** Verificare la disponibilità ufficiale di `com.anthropic:anthropic-java` SDK su Maven Central al 2026-05-23. Il knowledge cutoff dell'agent è agosto 2025: al momento di scrittura il SDK ufficiale Anthropic Java era in beta (GitHub `anthropics/anthropic-sdk-java`). Se non pubblicato su Maven Central, il fallback è un HTTP client Kotlin diretto verso `https://api.anthropic.com/v1/messages` con header `x-api-key` + `anthropic-version: 2023-06-01` (spec OpenAPI Anthropic pubblica).
+**Sospetta fonte:** lead-architect — verifica disponibilità SDK + decisione fallback.
+**Impatto:** TSK-104 implementa il bean `AnthropicClient` con entrambe le opzioni (SDK ufficiale se disponibile, HTTP diretto come fallback). Non bloccante: l'interfaccia `AnthropicClient` è identica indipendentemente dall'implementazione sottostante. Bloccante: no. `pending_clarification` annotato in TSK-104.
+
+**ADR-017 proposto:** 2026-05-23 — `design_&_architecture/decisions/ADR-017-anthropic-sdk-jvm.md` (status `proposed`) risolve il gap **per design** adottando Opzione C (adapter behind interface `AnthropicClient`): implementazione primaria `AnthropicRestClient` (HTTP diretto via Spring `RestClient` + header `anthropic-version: 2023-06-01`) sempre attiva; implementazione opzionale `AnthropicSdkClient` attivabile via property `anthropic.client.impl=sdk` + `@ConditionalOnClass` quando il SDK ufficiale sarà su Maven Central. Zero impatto sui caller (US-041/042/047) al momento dello switch. Chiusura formale del gap riservata a wiki-keeper dopo (a) accettazione ADR-017 da parte dell'utente e (b) verifica effettiva disponibilità Maven Central del SDK ufficiale.
+
+---
+
+## 2026-05-23 — agent-py-roe-lookback-policy
+
+**Origine:** wiki-keeper @ ingest agent.py + method analysis 2026-05-23
+**Gap:** agent.py v2.6.1 usa ROE medio 5 anni (`roe_medio_5y`); il Rule Engine Kotlin usa ROE 10 anni (`ROE_10Y_AVG`). Non esiste un ADR che formalizzi quale lookback sia corretto per la WebApp e in quale contesto ciascuno debba essere usato. Il raw analitico identifica il trade-off: 5y favorisce turnaround e growth-value, 10y favorisce stabilita' (allineato Graham).
+**Sospetta fonte:** lead-architect (ADR-005-rule-engine-design appendice, o nuovo ADR) + product-manager (decisione se esporre entrambi in Deep Analysis EP-011).
+**Impatto:** Il report Deep Analysis (EP-011) potrebbe voler esporre entrambi i lookback (5y e 10y) come segnali distinti, ma non esiste ancora la specifica. Non blocca l'MVP (ROE_10Y_AVG gia' implementato). Bloccante: no.
+
+---
+
+## 2026-05-23 — agent-py-current-ratio-routing-gap
+
+**Origine:** wiki-keeper @ ingest agent.py + method analysis 2026-05-23
+**Gap:** In agent.py v2.6.1, il `current_ratio` viene calcolato in `node_estrai_dati` e salvato nelle metriche, ma non viene usato come gate nel routing `munger_decision`. Di conseguenza, un'azienda con Current Ratio < 1.5 (Criterio 2 Graham non soddisfatto) puo' comunque ricevere verdetto `APPROVATO` se supera i check ROE+D/E+MoS. Il Rule Engine Kotlin lo gestisce correttamente (segnale RED). Questo e' un bug metodologico latente in agent.py che non deve essere replicato nel porting Kotlin EP-011.
+**Sospetta fonte:** decisione di design agent.py (forse intenzionale — il Criterio 2 Graham non era una priorita' del prototipo).
+**Impatto:** Solo sul prototipo Python (non sul Rule Engine Kotlin che ha gia' il fix). Documentato come avviso per il porting Deep Analysis EP-011. Bloccante: no.
+
+---
+
+## 2026-05-23 — tpm-llm-cost-budget-r2
+
+**Origine:** tpm @ scrittura TSK EP-010/011/012
+**Gap:** Costo stimato Anthropic Claude Opus 4.7 per ticker: ~$0.10-0.15 (10 query Munger + 1 sintesi su ~150k token totali input/output per ticker 10-K medio). Per il batch notturno di EP-012 (30 ticker top-picks × run giornaliera): ~$3-4.50/giorno = ~$90-135/mese. Aggiungendo la classificazione news (US-042) e il news scout (US-048): potenziale +$20-40/mese. Budget mensile totale stimato R2: **$110-175/mese**. Conferma budget richiesta prima del go-live di EP-011/012.
+**Sospetta fonte:** product-manager / utente (conferma budget LLM per R2).
+**Impatto:** Se il budget non è approvato, le US-041 (Munger LLM), US-042 (news sentiment), US-047 (news scout) devono essere riconsiderate con modelli meno costosi (es. Claude Haiku o Claude Sonnet). I TSK corrispondenti (TSK-104, TSK-105, TSK-107, TSK-109, TSK-111, TSK-128) hanno `pending_clarification` implicita. Bloccante: no per sviluppo; sì per go-live EP-011/012 in produzione.

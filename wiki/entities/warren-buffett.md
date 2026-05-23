@@ -75,5 +75,37 @@ La Buffett Partnership (1957-1969) registra 29.5% lordo annuo vs 7.4% Dow Jones 
 
 Vedi [[superinvestors-graham-doddsville]] per l'analisi completa dei nove fondi.
 
+## Aggiornamenti (v2026-05-23)
+
+**Fonte aggiunta:** `raw/agent.py` (Value Investor Bot v2.6.1, che simula il processo decisionale Buffett) + `raw/09_agent_py_method_analysis.md`.
+
+### Owner Earnings — Formula Completa 1986
+
+Nel rapporto annuale Berkshire Hathaway 1986, Buffett definisce gli Owner Earnings come:
+
+```
+Owner Earnings = Net Income
+               + Depreciation & Amortization
+               +/- Other Non-Cash Charges
+               − Maintenance CapEx
+               +/- Delta Working Capital (ΔWC)
+```
+
+La distinzione cruciale rispetto al Free Cash Flow e' la separazione tra **Maintenance CapEx** (necessario a mantenere la capacita' produttiva attuale) e **Growth CapEx** (investimento per espandere la capacita'). Solo il primo riduce gli Owner Earnings; il secondo e' un investimento futuro che produce rendimenti. Vedi [[owner-earnings-formula-variants]] per il confronto tra la formula completa, il metodo Greenwald (rule engine Kotlin) e la formula semplificata di agent.py. [^src: raw/09_agent_py_method_analysis.md §2.2]
+
+[^web: What is Owner Earnings? (The Warren Buffett Guide) — Old School Value — https://www.oldschoolvalue.com/what-is-owner-earnings/]
+
+### Discount Rate Buffett-Style (Risk-Free Only)
+
+Buffett ha storicamente usato il rendimento del Treasury 10Y (risk-free rate) come tasso di sconto per i business che considera "certi come un bond" — business con moat forte, cash flow prevedibili su 10 anni, bassa ciclicita'. La logica: se un business e' abbastanza prevedibile, non merita un premio rischio azionario aggiuntivo rispetto al tasso risk-free.
+
+In agent.py v2.6.1 questo approccio e' implementato come `r = 0.045` (4.5%, corrispondente al Treasury 10Y 2024-2026), con la giustificazione che lo screener pre-filtra severamente su ROE>15%, D/E<0.5, settori Buffett-approvati. [^src: raw/agent.py:1792] [^src: raw/09_agent_py_method_analysis.md §2.1]
+
+**Implicazione per la WebApp**: questa scelta e' difendibile solo in combinazione con un pre-screening severo. Il rule engine Kotlin usa 9.5% (WACC standard) come default piu' conservativo e universalmente applicabile. Vedi [[dcf-discount-rate-policy]] per l'analisi completa e la raccomandazione per EP-011.
+
+### Sector Blacklist — Cerchio di Competenza Operativizzato
+
+Agent.py implementa il "cerchio di competenza" di Buffett come blacklist esplicita di settori da escludere (biotech, mining, airlines, tobacco, gambling, SPAC, crypto). Buffett stesso ha dichiarato di non investire in settori dove non puo' prevedere la traiettoria a 10 anni — e ha venduto tutte le posizioni aeree nel 2020 citando l'imprevedibilita' post-COVID. [^src: raw/09_agent_py_method_analysis.md §2.4]
+
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->
