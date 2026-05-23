@@ -59,19 +59,40 @@ class GrahamNumberCalculator {
     }
 
     /**
-     * Convenience: extracts EPS (income statement latest) + BVPS (key metrics latest)
-     * from a [FinancialDataset] and delegates to [calculate].
+     * Convenience: extracts EPS (income statement latest) + BVPS (derived) from a
+     * [FinancialDataset] and delegates to [calculate].
      *
-     * EPS comes from `IncomeStatementDto.eps` (KeyMetricsDto exposes `netIncomePerShare`
-     * but not `eps` directly, and the US-011 brief refers to EPS as reported).
-     * BVPS comes from `KeyMetricsDto.bookValuePerShare`.
+     * EPS comes from `IncomeStatementDto.eps` (reported, latest fiscal year).
      *
-     * If either list is empty the result is Not Applicable (null EPS or null BVPS).
+     * BVPS source policy (audit 2026-05-23 — schema /stable drift):
+     *  1. Preferred: `KeyMetricsDto.bookValuePerShare` of the latest fiscal year
+     *     (kept for backward-compat in case FMP restores it in /stable/key-metrics
+     *     or callers wire /stable/ratios in the future).
+     *  2. Fallback (current /stable behaviour): derive `BVPS = totalStockholdersEquity
+     *     / weightedAverageShsOutDil` (basic shares fallback). Required because
+     *     `/stable/key-metrics` no longer exposes `bookValuePerShare` (it moved to
+     *     `/stable/ratios`, which the adapter does not currently call). Without
+     *     this derivation `grahamNumber` was systematically `NOT_APPLICABLE` in
+     *     production (verified on TTD analysis 2026-05-23).
+     *
+     * If neither source yields a usable BVPS the result is `applicable = false`.
      */
     fun calculateFromDataset(dataset: FinancialDataset): GrahamResult {
         val eps = dataset.income.firstOrNull()?.eps
         val bvps = dataset.keyMetrics.firstOrNull()?.bookValuePerShare
+            ?: deriveBvpsFromBalanceSheet(dataset)
         return calculate(eps, bvps)
+    }
+
+    private fun deriveBvpsFromBalanceSheet(dataset: FinancialDataset): Double? {
+        val equity = dataset.balance.firstOrNull()?.totalStockholdersEquity
+            ?: dataset.balance.firstOrNull()?.totalEquity
+        if (equity == null || equity <= 0.0) return null
+        val shares = dataset.income.firstOrNull()?.let { latest ->
+            latest.weightedAverageShsOutDil?.takeIf { it > 0.0 }
+                ?: latest.weightedAverageShsOut?.takeIf { it > 0.0 }
+        } ?: return null
+        return equity / shares
     }
 
     private companion object {

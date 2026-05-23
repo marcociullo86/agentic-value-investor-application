@@ -183,6 +183,98 @@ class GrahamNumberCalculatorTest {
         assertThat(result.value).isNull()
     }
 
+    // Audit 2026-05-23 regression: schema /stable/key-metrics non espone più
+    // bookValuePerShare (è spostato in /stable/ratios). Il fallback derivato
+    // BVPS = totalStockholdersEquity / weightedAverageShsOutDil deve impedire
+    // l'avere "Graham Number Non Applicable" sistematico in produzione.
+    @Test
+    fun `calculateFromDataset derives BVPS from equity-over-shares when bookValuePerShare is null`() {
+        val dataset = FinancialDataset(
+            ticker = "TEST",
+            income = listOf(
+                IncomeStatementDto(
+                    eps = 10.0,
+                    weightedAverageShsOutDil = 100.0,
+                    calendarYear = "2024",
+                ),
+            ),
+            balance = listOf(
+                BalanceSheetDto(
+                    totalStockholdersEquity = 1000.0,
+                    calendarYear = "2024",
+                ),
+            ),
+            cashFlow = emptyList(),
+            keyMetrics = listOf(KeyMetricsDto(bookValuePerShare = null, calendarYear = "2024")),
+            dataSnapshotAt = Instant.parse("2026-05-23T00:00:00Z"),
+        )
+
+        // Derived BVPS = 1000 / 100 = 10.0; sqrt(22.5 * 10 * 10) = sqrt(2250) ~ 47.43
+        val result = calc.calculateFromDataset(dataset)
+
+        assertAll(
+            { assertThat(result.applicable).isTrue() },
+            { assertThat(result.value!!).isCloseTo(47.43, within(0.01)) },
+        )
+    }
+
+    @Test
+    fun `calculateFromDataset prefers explicit bookValuePerShare over derivation`() {
+        // Both sources present: explicit BVPS wins so legacy data sources keep working.
+        val dataset = FinancialDataset(
+            ticker = "TEST",
+            income = listOf(
+                IncomeStatementDto(
+                    eps = 10.0,
+                    weightedAverageShsOutDil = 100.0,
+                    calendarYear = "2024",
+                ),
+            ),
+            balance = listOf(
+                BalanceSheetDto(
+                    // Would derive to 50 BVPS, but explicit field below should win.
+                    totalStockholdersEquity = 5000.0,
+                    calendarYear = "2024",
+                ),
+            ),
+            cashFlow = emptyList(),
+            keyMetrics = listOf(KeyMetricsDto(bookValuePerShare = 100.0, calendarYear = "2024")),
+            dataSnapshotAt = Instant.parse("2026-05-23T00:00:00Z"),
+        )
+
+        val result = calc.calculateFromDataset(dataset)
+
+        // Should be 150 (uses explicit BVPS=100) not the derived value
+        assertAll(
+            { assertThat(result.applicable).isTrue() },
+            { assertThat(result.value!!).isCloseTo(150.0, within(1e-6)) },
+        )
+    }
+
+    @Test
+    fun `calculateFromDataset Not Applicable when both BVPS sources are missing`() {
+        val dataset = FinancialDataset(
+            ticker = "TEST",
+            income = listOf(
+                IncomeStatementDto(
+                    eps = 10.0,
+                    weightedAverageShsOutDil = null,
+                    weightedAverageShsOut = null,
+                    calendarYear = "2024",
+                ),
+            ),
+            balance = listOf(BalanceSheetDto(totalStockholdersEquity = 1000.0, calendarYear = "2024")),
+            cashFlow = emptyList(),
+            keyMetrics = listOf(KeyMetricsDto(bookValuePerShare = null, calendarYear = "2024")),
+            dataSnapshotAt = Instant.parse("2026-05-23T00:00:00Z"),
+        )
+
+        val result = calc.calculateFromDataset(dataset)
+
+        assertThat(result.applicable).isFalse()
+        assertThat(result.value).isNull()
+    }
+
     // --- helpers ---
 
     private fun datasetWith(eps: Double?, bvps: Double?): FinancialDataset =

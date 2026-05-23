@@ -35,18 +35,35 @@ data class CashFlowDto(
     val acquisitionsNet: Double? = null,
     val purchasesOfInvestments: Double? = null,
     val salesMaturitiesOfInvestments: Double? = null,
-    val otherInvestingActivites: Double? = null,
-    val netCashUsedForInvestingActivites: Double? = null,
-    val debtRepayment: Double? = null,
-    val commonStockIssued: Double? = null,
+    // Audit 2026-05-23: schema /stable usa `otherInvestingActivities` (i corretta).
+    // Mantenuto nome Kotlin storico con typo per back-compat downstream.
+    @JsonProperty("otherInvestingActivities") val otherInvestingActivites: Double? = null,
+    // Audit 2026-05-23: schema /stable rinomina `netCashUsedForInvestingActivites`
+    // → `netCashProvidedByInvestingActivities` (typo fixato + naming positivo).
+    @JsonProperty("netCashProvidedByInvestingActivities") val netCashUsedForInvestingActivites: Double? = null,
+    // Audit 2026-05-23: schema /stable usa `netDebtIssuance` (issuance netta) al posto di
+    // `debtRepayment` (v3). Mantenuto nome Kotlin storico.
+    @JsonProperty("netDebtIssuance") val debtRepayment: Double? = null,
+    // Audit 2026-05-23: schema /stable rinomina `commonStockIssued` → `commonStockIssuance`.
+    @JsonProperty("commonStockIssuance") val commonStockIssued: Double? = null,
     val commonStockRepurchased: Double? = null,
-    val dividendsPaid: Double? = null,
-    val otherFinancingActivites: Double? = null,
-    val netCashUsedProvidedByFinancingActivities: Double? = null,
+    // Audit 2026-05-23: schema /stable splitta `dividendsPaid` in
+    // `netDividendsPaid` / `commonDividendsPaid` / `preferredDividendsPaid`.
+    // Per back-compat e per il futuro US-037 (DIVIDEND_CONTINUITY_20Y) mappiamo
+    // il field Kotlin storico al `netDividendsPaid` (cassa effettiva pagata in dividendi).
+    @JsonProperty("netDividendsPaid") val dividendsPaid: Double? = null,
+    // Audit 2026-05-23: schema /stable usa `otherFinancingActivities`.
+    @JsonProperty("otherFinancingActivities") val otherFinancingActivites: Double? = null,
+    // Audit 2026-05-23: schema /stable usa `netCashProvidedByFinancingActivities`.
+    @JsonProperty("netCashProvidedByFinancingActivities") val netCashUsedProvidedByFinancingActivities: Double? = null,
     val effectOfForexChangesOnCash: Double? = null,
     val netChangeInCash: Double? = null,
     val cashAtEndOfPeriod: Double? = null,
     val cashAtBeginningOfPeriod: Double? = null,
     val capitalExpenditure: Double? = null,
     val freeCashFlow: Double? = null,
+    // Audit 2026-05-23: campi nuovi /stable utili per analisi future
+    // (es. interest coverage, tax rate effettivo). Opt-in nullable-aware.
+    val incomeTaxesPaid: Double? = null,
+    val interestPaid: Double? = null,
 )

@@ -46,7 +46,9 @@ data class KeyMetricsDto(
     val dividendYield: Double? = null,
     val payoutRatio: Double? = null,
     val salesGeneralAndAdministrativeToRevenue: Double? = null,
-    val researchAndDdevelopementToRevenue: Double? = null,
+    // Audit 2026-05-23: schema /stable usa `researchAndDevelopementToRevenue` (singola D).
+    // Mantenuto nome Kotlin storico con typo "Ddevelopement" (doppia D) per back-compat.
+    @JsonProperty("researchAndDevelopementToRevenue") val researchAndDdevelopementToRevenue: Double? = null,
     val intangiblesToTotalAssets: Double? = null,
     val capexToOperatingCashFlow: Double? = null,
     val capexToRevenue: Double? = null,
@@ -63,9 +65,10 @@ data class KeyMetricsDto(
     val averageReceivables: Double? = null,
     val averagePayables: Double? = null,
     val averageInventory: Double? = null,
-    val daysSalesOutstanding: Double? = null,
-    val daysPayablesOutstanding: Double? = null,
-    val daysOfInventoryOnHand: Double? = null,
+    // Audit 2026-05-23: schema /stable rinomina con prefisso `daysOf...Outstanding`.
+    @JsonProperty("daysOfSalesOutstanding") val daysSalesOutstanding: Double? = null,
+    @JsonProperty("daysOfPayablesOutstanding") val daysPayablesOutstanding: Double? = null,
+    @JsonProperty("daysOfInventoryOutstanding") val daysOfInventoryOnHand: Double? = null,
     val receivablesTurnover: Double? = null,
     val payablesTurnover: Double? = null,
     val inventoryTurnover: Double? = null,

@@ -53,7 +53,8 @@ data class BalanceSheetDto(
     val commonStock: Double? = null,
     val retainedEarnings: Double? = null,
     val accumulatedOtherComprehensiveIncomeLoss: Double? = null,
-    val othertotalStockholdersEquity: Double? = null,
+    // Audit 2026-05-23: schema /stable usa `otherTotalStockholdersEquity` (T maiuscola).
+    @JsonProperty("otherTotalStockholdersEquity") val othertotalStockholdersEquity: Double? = null,
     val totalStockholdersEquity: Double? = null,
     val totalEquity: Double? = null,
     val totalLiabilitiesAndStockholdersEquity: Double? = null,

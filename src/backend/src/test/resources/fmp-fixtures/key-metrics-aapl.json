@@ -5,12 +5,9 @@
     "fiscalYear": "2024",
     "period": "FY",
     "marketCap": 3450000000000,
-    "peRatio": 36.8,
-    "pbRatio": 60.5,
-    "roe": 1.645,
-    "roic": 0.628,
+    "returnOnEquity": 1.645,
+    "returnOnInvestedCapital": 0.628,
     "currentRatio": 0.867,
-    "debtToEquity": 1.51,
     "freeCashFlowYield": 0.0315,
     "grahamNumber": 28.7
   },
@@ -20,10 +17,8 @@
     "fiscalYear": "2023",
     "period": "FY",
     "marketCap": 2700000000000,
-    "peRatio": 27.8,
-    "pbRatio": 43.3,
-    "roe": 1.557,
-    "roic": null,
+    "returnOnEquity": 1.557,
+    "returnOnInvestedCapital": null,
     "currentRatio": 0.988,
     "grahamNumber": 25.3
   }
