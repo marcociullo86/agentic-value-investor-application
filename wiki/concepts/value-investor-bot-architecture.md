@@ -138,6 +138,7 @@ Vedi [[dcf-discount-rate-policy]] per la policy del discount rate (r=4.5% vs r=9
 [[fmp-financial-statements-stable]]
 [[sec-filings-analysis]]
 [[analysis-api-pipeline]]
+[ADR-018 — Embeddings inference architecture](../../design_&_architecture/decisions/ADR-018-embeddings-inference-architecture.md)
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->

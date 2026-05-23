@@ -138,6 +138,7 @@ Vedi gap `tpm-embeddings-sidecar-vs-djl` per la decisione architetturale sull'em
 [[intelligent-investor]]
 [[seven-criteria-defensive-stock-selection]]
 - [ADR-017](../../design_&_architecture/decisions/ADR-017-anthropic-sdk-jvm.md) — Anthropic Claude Opus 4.7 integration (adapter pattern + Resilience4j chain per US-041)
+- [ADR-019](../../design_&_architecture/decisions/ADR-019-llm-cost-budget-telemetry.md) — LLM cost budget R2 + telemetry + kill-switch automatico (containment spesa Claude Opus 4.7 per US-041/042/047)
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->
