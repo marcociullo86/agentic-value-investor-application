@@ -56,7 +56,7 @@ class DcfCalculator(
         }
 
         val growth = cappedGrowthRate(sortedHistorical)
-        val intrinsic = discountedCashFlow(
+        val intrinsicTotal = discountedCashFlow(
             baseCashFlow = sortedHistorical.first(),
             growthRate = growth,
             discountRate = DISCOUNT_RATE,
@@ -64,11 +64,40 @@ class DcfCalculator(
             projectionYears = PROJECTION_YEARS,
         )
 
+        // US-052: convert enterprise-level DCF to per-share fair value so it is
+        // directly comparable with the per-share `currentPrice` used by the
+        // MarginOfSafetyEvaluator. Diluted weighted average shares is preferred
+        // (captures stock-based compensation dilution); fallback to basic.
+        val shares = extractWeightedAverageShares(dataset)
+        if (shares == null || shares <= 0.0) {
+            return DcfResult(
+                intrinsicValue = null,
+                intrinsicValueTotal = intrinsicTotal,
+                sharesUsed = null,
+                method = method,
+                rationale = "DCF totale ${"%.0f".format(intrinsicTotal)} USD ma sharesOutstanding assente — fair value/share non calcolabile.",
+            )
+        }
+        val intrinsicPerShare = intrinsicTotal / shares
+
         return DcfResult(
-            intrinsicValue = intrinsic,
+            intrinsicValue = intrinsicPerShare,
+            intrinsicValueTotal = intrinsicTotal,
+            sharesUsed = shares,
             method = method,
-            rationale = "DCF($method): g=${"%.2f".format(growth * 100)}%, r=${"%.2f".format(DISCOUNT_RATE * 100)}%, TV g=${"%.2f".format(TERMINAL_GROWTH_RATE * 100)}%. ${greenwald.rationale}",
+            rationale = "DCF($method) per-share=${"%.2f".format(intrinsicPerShare)} USD (totale ${"%.0f".format(intrinsicTotal)} / ${"%.0f".format(shares)} shares). g=${"%.2f".format(growth * 100)}%, r=${"%.2f".format(DISCOUNT_RATE * 100)}%, TV g=${"%.2f".format(TERMINAL_GROWTH_RATE * 100)}%.",
         )
+    }
+
+    // US-052: extract the most recent diluted weighted-average share count for
+    // per-share DCF conversion. Diluted preferred (post-SBC dilution); basic
+    // fallback if diluted is null or non-positive. Returns null when no usable
+    // share count is available — caller treats as NOT_CALCULABLE.
+    private fun extractWeightedAverageShares(dataset: FinancialDataset): Double? {
+        val latestIncome = dataset.income.firstOrNull() ?: return null
+        latestIncome.weightedAverageShsOutDil?.takeIf { it > 0.0 }?.let { return it }
+        latestIncome.weightedAverageShsOut?.takeIf { it > 0.0 }?.let { return it }
+        return null
     }
 
     private fun cappedGrowthRate(flowsNewestFirst: List<Double>): Double {

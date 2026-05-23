@@ -53,7 +53,7 @@ data class KeyMetricsDto(
     val capexToDepreciation: Double? = null,
     val stockBasedCompensationToRevenue: Double? = null,
     val grahamNumber: Double? = null,
-    val roic: Double? = null,
+    @JsonProperty("returnOnInvestedCapital") val roic: Double? = null,
     val returnOnTangibleAssets: Double? = null,
     val grahamNetNet: Double? = null,
     val workingCapital: Double? = null,
@@ -69,6 +69,6 @@ data class KeyMetricsDto(
     val receivablesTurnover: Double? = null,
     val payablesTurnover: Double? = null,
     val inventoryTurnover: Double? = null,
-    val roe: Double? = null,
+    @JsonProperty("returnOnEquity") val roe: Double? = null,
     val capexPerShare: Double? = null,
 )

@@ -1,10 +1,10 @@
 <!-- generated, do not edit — rigenerato da tpm ad ogni run -->
 ---
 id: sprint
-title: Sprint Plan — R1.0 MVP + R1.1 + R2.0
+title: Sprint Plan — R1.0 MVP + R1.1 + R1.1.x hotfix + R2.0
 generated: 2026-05-23
 tpm: tpm
-release: R2.0
+release: R2.0 (R1.1.x hotfix in corso)
 r10_closed: 2026-05-22
 r11_closed: TBD
 ---
@@ -12,8 +12,9 @@ r11_closed: TBD
 
 > **R1.0 MVP chiuso:** Sprint 1–4 completati (49/49 TSK `done`, 20/20 US, 6/6 EP).
 > **R1.1 attivo:** Sprint 5 — 22 TSK nuovi (TSK-050…072); Sprint 6 lookahead (ex) incluso.
+> **R1.1.x hotfix:** Sprint 5.5 — 12 TSK nuovi (TSK-143…154); EP-007 fase 2 riaperto; fix bug rule engine produzione (DCF per-share, ROE/ROIC mapping, FE date display).
 > **R2.0 pianificato:** Sprint 6–9 — 70 TSK nuovi (TSK-073…142); 20 US nuove (US-032…051), 3 EP (EP-010…012).
-> Ordine suggerito PM: **EP-010 (Sprint 6)** → **EP-011 BE (Sprint 7)** → **EP-011 FE (Sprint 8)** → **EP-012 (Sprint 9)**.
+> Ordine suggerito PM: **Sprint 5.5 (EP-007 fase 2 hotfix)** → **EP-010 (Sprint 6)** → **EP-011 BE (Sprint 7)** → **EP-011 FE (Sprint 8)** → **EP-012 (Sprint 9)**.
 
 ---
 
@@ -160,6 +161,46 @@ checklist cutover, throttling FMP (default ADR-016); wiki FMP in parallelo (huma
 
 ---
 
+## Sprint 5.5 — Hotfix R1.1.x bug rule engine (EP-007 fase 2)
+
+**Obiettivo:** Correggere tre bug produzione scoperti il 2026-05-23 nel rule engine e nel frontend: (1) DCF intrinsic value era il totale aziendale invece del valore per azione (falso GREEN su TTD); (2) ROE e ROIC sistematicamente NOT_CALCULABLE per mismatch @JsonProperty su KeyMetricsDto; (3) campo "Dati al" nel FE mostrasse epoch ms grezzo invece di data leggibile.
+
+**Scope:** TSK-143..154 — 12 task, stima ~1.5 settimane.
+
+**Dipendenze:** Sprint 5 Wave 1 completata (TSK-072 done — FMP stable migration). Sprint 5 Wave 2 (deploy infra) parallela e non bloccante per questo hotfix.
+
+**Ordering raccomandato:** TSK-148 (ROE/ROIC fix, XS, sblocca analisi su 2 segnali su 7 per tutti i ticker) → TSK-143 (DCF fix, S, corregge il bug più visibile in produzione) → TSK-151 (FE helper, XS) in parallelo con TSK-144/TSK-145. Poi test suites TSK-149/TSK-150/TSK-146/TSK-147/TSK-152/TSK-153/TSK-154 in cascata.
+
+| TSK | Titolo | Layer | Consumer | Est. | US | Status |
+|-----|--------|-------|----------|------|-----|--------|
+| TSK-143 | BE DcfCalculator: divide per sharesOutstanding; AnalyzeTickerService wiring | be | agent | S | US-052 | todo |
+| TSK-144 | BE MarginOfSafetyEvaluator: rationale messaggi per-share | be | agent | XS | US-052 | todo |
+| TSK-145 | BE DcfResult: campo sharesUsed (audit) + OpenAPI description | be | agent | S | US-052 | todo |
+| TSK-146 | QA DcfCalculatorTest + MarginOfSafetyEvaluatorTest + AnalysisControllerIT (TTD/AAPL/MSFT + edge case shares null) | qa | agent | M | US-052 | todo |
+| TSK-147 | QA Contract test OpenAPI drift: dcfIntrinsicValue description per-share | qa | agent | XS | US-052 | todo |
+| TSK-148 | BE KeyMetricsDto: @JsonProperty("returnOnEquity") su roe + @JsonProperty("returnOnInvestedCapital") su roic | be | agent | XS | US-053 | todo |
+| TSK-149 | QA KeyMetricsDtoTest: deserializzazione fixture /stable con returnOnEquity/returnOnInvestedCapital | qa | agent | S | US-053 | todo |
+| TSK-150 | QA Integration test rule engine: ROE_10Y_AVG e ROIC_10Y_AVG non NOT_CALCULABLE su AAPL/MSFT/TTD | qa | agent | S | US-053 | todo |
+| TSK-151 | FE Crea lib/format-date.ts con formatSnapshotDate(value: number\|string): string | fe | agent | XS | US-054 | todo |
+| TSK-152 | FE Sostituire raw display dataSnapshotAt in analysis/[ticker]/page.tsx con formatSnapshotDate | fe | agent | S | US-054 | todo |
+| TSK-153 | QA Vitest unit test formatSnapshotDate (epoch ms, ISO string, edge cases null/NaN) | qa | agent | XS | US-054 | todo |
+| TSK-154 | QA Playwright E2E: /analysis/AAPL verifica "Dati al" mostra mese abbreviato, non numero epoch | qa | agent | XS | US-054 | todo |
+
+**Totale Sprint 5.5:** 12 TSK (3 be, 2 fe, 7 qa)
+
+**Dipendenze interne Sprint 5.5:**
+```
+TSK-143 ──→ TSK-144
+TSK-143 ──→ TSK-145
+TSK-143 + TSK-144 + TSK-145 ──→ TSK-146 ──→ TSK-147
+TSK-148 ──→ TSK-149 ──→ TSK-150
+TSK-151 ──→ TSK-152
+TSK-151 ──→ TSK-153
+TSK-152 + TSK-153 ──→ TSK-154
+```
+
+---
+
 ## Sprint 6 — Graham Defensive Completeness (EP-010)
 
 **Obiettivo:** Completare i 6 criteri Graham difensivi mancanti (SIZE_LATEST, EARNINGS_STABILITY_10Y, EPS_GROWTH_10Y, PE_3Y_AVG, PB_LATEST, DIVIDEND_CONTINUITY_20Y) nel Rule Engine, aggiornare TrafficLight FE a 13 ruleId, aggiornare contratto OpenAPI.
@@ -289,12 +330,13 @@ checklist cutover, throttling FMP (default ADR-016); wiki FMP in parallelo (huma
 | R1.0 | 1–4 done | 2 | 7 | 23 | 13 | 7 | **49** |
 | R1.1 | 5 in corso | 5 | 0 | 5 | 3 | 8 | **21** (14 done, 7 todo) |
 | R1.1 | lookahead | 0 | 0 | 2 | 0 | 0 | **2** (TSK-071 todo, TSK-072 done) |
+| R1.1.x | 5.5 hotfix | 0 | 0 | 3 | 2 | 7 | **12** (TSK-143…154) |
 | R2.0 | 6 | 0 | 1 | 8 | 1 | 8 | **18** |
 | R2.0 | 7 | 1 | 5 | 15 | 0 | 10 | **31** |
 | R2.0 | 8 | 0 | 0 | 0 | 3 | 1 | **4** |
 | R2.0 | 9 | 1 | 1 | 7 | 2 | 6 | **17** |
 | | **Nuovi R2.0** | | | | | | **70** (TSK-073…142) |
-| | **TOTALE** | | | | | | **142** |
+| | **TOTALE** | | | | | | **154** |
 
 ---
 

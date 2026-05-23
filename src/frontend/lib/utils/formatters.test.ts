@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   formatCurrency,
+  formatDate,
   formatMarketCap,
   formatPercent,
   formatRatio,
@@ -36,5 +37,50 @@ describe('formatters', () => {
     expect(formatCurrency(Number.NaN)).toBe('—');
     expect(formatPercent(Number.POSITIVE_INFINITY)).toBe('—');
     expect(formatMarketCap(Number.NaN)).toBe('—');
+  });
+
+  // US-054 — formatDate non deve mai produrre un numero in formato locale.
+  // Regression test del bug originale: 1779484360919 ms diviso 1000 e
+  // formattato come Intl.NumberFormat produceva "1.779.484.360,919".
+  describe('formatDate', () => {
+    it('ISO-8601 string → data leggibile UTC', () => {
+      const out = formatDate('2026-05-22T11:12:40Z');
+      expect(out).toMatch(/22 mag 2026/);
+      expect(out).toMatch(/11:12/);
+      expect(out).toMatch(/UTC/);
+      // Regressione bug: non deve assomigliare a un numero in italiano
+      expect(out).not.toMatch(/^[0-9.,]+$/);
+    });
+
+    it('epoch number in ms → data leggibile', () => {
+      // 1779484360919 ms = 22 maggio 2026 11:12:40 UTC
+      const out = formatDate(1779484360919);
+      expect(out).toMatch(/22 mag 2026/);
+      expect(out).toMatch(/11:12/);
+      // Regressione bug originale: questa era esattamente la stringa visibile
+      // nel report TTD prima del fix
+      expect(out).not.toBe('1.779.484.360,919');
+    });
+
+    it('epoch number in secondi → scalato a ms e formattato', () => {
+      // 1779484360 sec = 22 maggio 2026 11:12:40 UTC (stessa data)
+      const out = formatDate(1779484360);
+      expect(out).toMatch(/22 mag 2026/);
+    });
+
+    it('numeric string ms → data leggibile', () => {
+      const out = formatDate('1779484360919');
+      expect(out).toMatch(/22 mag 2026/);
+    });
+
+    it('null/undefined/empty → em-dash', () => {
+      expect(formatDate(null)).toBe('—');
+      expect(formatDate(undefined)).toBe('—');
+      expect(formatDate('')).toBe('—');
+    });
+
+    it('input non parsabile → em-dash', () => {
+      expect(formatDate('not a date')).toBe('—');
+    });
   });
 });
