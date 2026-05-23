@@ -1,18 +1,36 @@
 ---
 id: ADR-018
-title: Embeddings inference architecture — sidecar Python FastAPI con Snowflake Arctic Embed L v2.0
+title: Embeddings inference architecture — sidecar Python FastAPI con Qwen3-Embedding-0.6B
 status: proposed
 created: 2026-05-23
 deciders: [lead-architect, marco.ciullo]
 consulted: [tpm, be-dev, infra-dev]
 ---
-# ADR-018 — Embeddings inference architecture: sidecar Python FastAPI
+# ADR-018 — Embeddings inference architecture: sidecar Python FastAPI con Qwen3-Embedding-0.6B
+
+## Aggiornamento 2026-05-23 — Switch modello da Arctic Embed L v2.0 a Qwen3-Embedding-0.6B
+
+A seguito dell'analisi comparativa con l'utente (2026-05-23), il modello scelto passa
+da `Snowflake/snowflake-arctic-embed-l-v2.0` (MTEB ~55.6 retrieval, 8192 ctx, 2.3 GB
+RAM) a **`Qwen/Qwen3-Embedding-0.6B`** (MTEB ~64.6 retrieval, **32K context**, 2.5 GB
+RAM). Motivazione:
+
+- +9 punti MTEB retrieval a parità sostanziale di footprint RAM (+200 MB)
+- Context 32K elimina ogni problema di frammentazione su 10-K Item lunghi
+  (Item 1A Risk Factors spesso > 8K token; in Arctic richiedeva chunking
+  aggressivo che disperdeva contesto)
+- Modello recente (Q4 2025) ma allineato a `sentence-transformers` standard
+- Output dim 1024 (Matryoshka, configurabile da 64 a 1024) → schema
+  `filing_chunks.embedding vector(1024)` invariato
+
+L'architettura sidecar + interface `EmbeddingService` Kotlin + Resilience4j chain
+restano invariate.
 
 ## Contesto
 
 EP-011 (Deep Analysis 10-K/10-Q) introduce per la prima volta nella WebApp Value Investing l'uso di embedding semantici per RAG su filing SEC. La pipeline ricalca il flusso del prototipo Python `agent.py`: download 10-K + 10-Q da SEC EDGAR → chunking → embedding → persistenza in pgvector → retrieval top-K per le 10 query di Munger inversion [^src: wiki/concepts/value-investor-bot-architecture.md §"Flusso Principale"].
 
-Il modello scelto per gli embeddings — decisione di prodotto già confermata dall'utente il 2026-05-23 — è **`Snowflake/snowflake-arctic-embed-l-v2.0`** (1024 dimensioni, 8192 token di context, MTEB ~67). Il deployment è **locale** (no cloud paid embeddings), con la possibilità di A/B test futuri (es. `Qwen3-Embedding-4B`) tramite property `embeddings.model.name` [^src: wiki/gaps.md §wiki-promote-arctic-embed-spec].
+Il modello scelto per gli embeddings — decisione di prodotto già confermata dall'utente il 2026-05-23 — è **`Qwen/Qwen3-Embedding-0.6B`** (1024 dimensioni Matryoshka, **32K token di context**, MTEB ~64.6 retrieval). Il deployment è **locale** (no cloud paid embeddings), con la possibilità di A/B test futuri (es. `Qwen3-Embedding-4B` per qualità massima, o `Snowflake/snowflake-arctic-embed-l-v2.0` come fallback più maturo) tramite property `embeddings.model.name` [^src: wiki/gaps.md §wiki-promote-arctic-embed-spec].
 
 TSK-099 (`infra: sidecar Python embeddings`) ha applicato come default un sidecar Python FastAPI basato su `sentence-transformers`, ma il gap `tpm-embeddings-sidecar-vs-djl` (2026-05-23) segnala l'assenza di un ADR formale che valuti l'alternativa JVM-nativa (`djl-huggingface`) [^src: wiki/gaps.md §tpm-embeddings-sidecar-vs-djl]. Questo ADR risolve il gap per design.
 
@@ -28,7 +46,7 @@ Il prototipo Python di riferimento (`agent.py:1353-1372`) inizializza embedding 
 ## Decision Drivers
 
 1. **Compatibilità con il flusso di riferimento `agent.py`** — il prototipo usa `sentence-transformers` Python-side; il porting Kotlin deve replicare la stessa qualità di embedding senza divergenze metodologiche (qualità retrieval RAG non degradata) [^src: raw/agent.py:1353-1372].
-2. **Vincoli del modello Arctic Embed L v2.0** — modello recente (2024+), ottimizzato per `sentence-transformers` nativo. La conversione a formato ONNX (necessaria per `djl-huggingface`) richiede passi manuali via HuggingFace `optimum` e non è documentata ufficialmente da Snowflake al 2026-05-23.
+2. **Vincoli del modello Qwen3-Embedding-0.6B** — modello recente (Q4 2025), ottimizzato per `sentence-transformers` nativo + output Matryoshka 1024-dim. La conversione a formato ONNX (necessaria per `djl-huggingface`) richiede passi manuali via HuggingFace `optimum` e non è ottimizzata per architettura Qwen al 2026-05-23.
 3. **Stack Kotlin/Spring per il backend** — `raw/tech_stack.md` §Backend fissa Kotlin 2.2.x + Spring Boot 3.5.x. Le chiamate dal `EmbeddingService` Kotlin devono integrarsi nella chain `RateLimiter → CircuitBreaker → Retry → HTTP` di Resilience4j (analogamente ad [ADR-004](ADR-004-fmp-integration.md) §1 e [ADR-017](ADR-017-anthropic-sdk-jvm.md) §5) [^src: raw/tech_stack.md §Backend].
 4. **Configurabilità modello per A/B test** — il modello deve essere configurabile via `embeddings.model.name` senza ricompilazione, per testare Qwen3-Embedding-4B o altre alternative future [^src: wiki/gaps.md §wiki-promote-arctic-embed-spec].
 5. **Privacy 10-K** — i 10-K SEC sono dati pubblici, ma la decisione di prodotto è **embedding locali** (no cloud paid embeddings come OpenAI / Voyage AI / Cohere) per coerenza con la policy aziendale e per evitare costi ricorrenti.
@@ -54,7 +72,7 @@ Usare un provider cloud (OpenAI `text-embedding-3-large`, Voyage AI `voyage-3-la
 
 ## Decision Outcome
 
-**Scelta: Opzione A — Sidecar Python FastAPI con `sentence-transformers` + Snowflake Arctic Embed L v2.0.**
+**Scelta: Opzione A — Sidecar Python FastAPI con `sentence-transformers` + Qwen3-Embedding-0.6B.**
 
 ### 1. Architettura sidecar
 
@@ -86,11 +104,11 @@ Nuovo container Docker `embeddings-sidecar` orchestrato via Docker Compose accan
 | `normalize` | `bool` (opzionale, default `true`) | Normalizzazione L2 per Cosine Similarity (allineato `agent.py:1360`) |
 | **Response 200** | | |
 | `embeddings` | `list[list[float]]` | Una lista da 1024 float per ogni testo, stesso ordine dell'input. |
-| `model` | `str` | `"Snowflake/snowflake-arctic-embed-l-v2.0"` |
+| `model` | `str` | `"Qwen/Qwen3-Embedding-0.6B"` |
 | `dim` | `int` | `1024` |
 | `tokens_used` | `int` | Total token consumati (per monitoring throughput) |
 | **Response 4xx** | | |
-| `400` | `{detail: "..."}` | Input malformato (lista vuota, testi > 8192 token, etc.) |
+| `400` | `{detail: "..."}` | Input malformato (lista vuota, testi > 32K token, etc.) |
 | `503` | `{detail: "..."}` | Model not loaded (cold start in corso) |
 
 **Health check**: endpoint `GET /healthz` ritorna `{status: "ready", model: "...", loaded_at: "..."}` solo quando il modello è in RAM. Docker Compose `healthcheck` punta a `/healthz`.
@@ -137,7 +155,7 @@ Property override:
 | Property | Default | Env var |
 |---|---|---|
 | `embeddings.base-url` | `http://embeddings-sidecar:8000` | `EMBEDDINGS_BASE_URL` |
-| `embeddings.model.name` | `Snowflake/snowflake-arctic-embed-l-v2.0` | `EMBEDDINGS_MODEL_NAME` |
+| `embeddings.model.name` | `Qwen/Qwen3-Embedding-0.6B` | `EMBEDDINGS_MODEL_NAME` |
 | `embeddings.dimension` | `1024` | `EMBEDDINGS_DIMENSION` |
 | `embeddings.batch.size` | `100` | `EMBEDDINGS_BATCH_SIZE` |
 | `embeddings.timeout-seconds` | `30` | `EMBEDDINGS_TIMEOUT_SECONDS` |
@@ -155,7 +173,7 @@ services:
       dockerfile: Dockerfile
     image: webapp/embeddings-sidecar:latest
     environment:
-      - MODEL_NAME=Snowflake/snowflake-arctic-embed-l-v2.0
+      - MODEL_NAME=Qwen/Qwen3-Embedding-0.6B
       - MODEL_CACHE_DIR=/models
       - DEVICE=cpu          # 'cuda' opzionale su host con GPU
       - WORKERS=1
@@ -166,12 +184,12 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 90s    # Cold start ~30-60s per scaricare + caricare Arctic Embed L v2 (~1.3 GB)
+      start_period: 90s    # Cold start ~30-60s per scaricare + caricare Qwen3-Embedding-0.6B (~1.4 GB)
     networks: [backend-net]
     deploy:
       resources:
         limits:
-          memory: 4G        # Arctic Embed L v2.0 carica ~2 GB in RAM; 4 GB margine.
+          memory: 4G        # Qwen3-Embedding-0.6B carica ~2.5 GB in RAM; 4 GB margine.
 
 volumes:
   embeddings-model-cache:
@@ -267,7 +285,7 @@ async def embed(req: EmbedRequest):
 
 - Dipendenza Python aggiuntiva nel monorepo (`src/embeddings-sidecar/`). Compatibile con [ADR-009](ADR-009-deployment-target.md) §monorepo Docker.
 - Il sidecar è **stateless** rispetto ai chunk: lo storage rimane in pgvector (US-040). Restart del sidecar = nessuna perdita dati.
-- Il modello `Snowflake/snowflake-arctic-embed-l-v2.0` è confermato come scelta di prodotto dall'utente — non oggetto di questo ADR. Eventuale downgrade a un modello più piccolo (es. `bge-small-en-v1.5`) per ridurre footprint RAM resta configurabile via `embeddings.model.name` senza modificare codice.
+- Il modello `Qwen/Qwen3-Embedding-0.6B` è confermato come scelta di prodotto dall'utente — non oggetto di questo ADR. Eventuale downgrade a un modello più piccolo (es. `bge-small-en-v1.5`) per ridurre footprint RAM resta configurabile via `embeddings.model.name` senza modificare codice.
 
 ## Validation
 
@@ -311,7 +329,7 @@ async def embed(req: EmbedRequest):
 ### Opzione A — Sidecar Python FastAPI (scelta)
 
 **Pro**:
-- **Compatibilità nativa** con `Snowflake/snowflake-arctic-embed-l-v2.0` via `sentence-transformers` (ecosistema HuggingFace ufficiale; nessuna conversione ONNX).
+- **Compatibilità nativa** con `Qwen/Qwen3-Embedding-0.6B` via `sentence-transformers` (ecosistema HuggingFace ufficiale; nessuna conversione ONNX).
 - Drop-in compatibile con `agent.py:1353-1372` (stesso codice di riferimento), riduce divergenze metodologiche tra prototipo Python e porting Kotlin.
 - **Update modello = `pip install -U`** + rebuild image. Aggiornamento rapido senza decompilazione ONNX.
 - Performance CPU ottimale: `sentence-transformers` ha kernel ottimizzati per inference batch (NumPy + PyTorch).

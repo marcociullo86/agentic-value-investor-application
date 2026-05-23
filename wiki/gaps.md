@@ -345,3 +345,5 @@ ADR-007 §Error format dichiara RFC 9457 §3.2 (extensions al top-level). Quattr
 **Sospetta fonte:** wiki-keeper — aggiornamento puntuale di `wiki/concepts/fmp-key-metrics-ratios.md` §Response shape key-metrics (campi critici).
 **Impatto:** Non bloccante per il fix US-053 (la verità sta nel raw; TSK-148 corregge il codice indipendentemente dall'aggiornamento wiki). Documentale — evita confusione per futuri manutentori. Bloccante: no.
 **TSK correlati:** TSK-148 (fix codice), TSK-149 (test deserializzazione con nomi reali).
+
+**Risolto:** 2026-05-23 — aggiornato fmp-key-metrics-ratios.md §"Aggiornamenti v2026-05-23". Documentati: 6 field rinominati v3→stable con tabella @JsonProperty, ~18 field assenti da /stable/key-metrics (spostati in /stable/ratios) con nota su null silenzioso e fallback derivato, caso speciale bookValuePerShare con formula BVPS = totalStockholdersEquity / weightedAverageShsOutDil (commit bdb2d3e). Gap documentale chiuso.
