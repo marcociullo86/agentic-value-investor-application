@@ -90,8 +90,14 @@ class Fmp429RetryWireMockIT {
         val incomeFixture = ClassPathResource("fmp-fixtures/income-statement-aapl.json")
             .inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
 
+        // Audit 2026-05-23: post-migrazione /stable (TSK-050) FmpAdapterRestClient
+        // passa il ticker come query param `symbol`, NON più nel path. Il path
+        // canonico stable è `/income-statement?symbol=AAPL`. Lo stub WireMock va
+        // adeguato al nuovo schema, altrimenti il match fallisce e WireMock
+        // risponde 404 (interpretato dal client come FmpTickerNotFoundException).
         wireMockServer.stubFor(
-            get(urlPathEqualTo("/income-statement/AAPL"))
+            get(urlPathEqualTo("/income-statement"))
+                .withQueryParam("symbol", equalTo("AAPL"))
                 .withQueryParam("apikey", equalTo(API_KEY))
                 .withQueryParam("limit", equalTo("10"))
                 .inScenario(SCENARIO)
@@ -104,7 +110,8 @@ class Fmp429RetryWireMockIT {
                 ),
         )
         wireMockServer.stubFor(
-            get(urlPathEqualTo("/income-statement/AAPL"))
+            get(urlPathEqualTo("/income-statement"))
+                .withQueryParam("symbol", equalTo("AAPL"))
                 .withQueryParam("apikey", equalTo(API_KEY))
                 .withQueryParam("limit", equalTo("10"))
                 .inScenario(SCENARIO)
@@ -124,7 +131,8 @@ class Fmp429RetryWireMockIT {
 
         wireMockServer.verify(
             2,
-            getRequestedFor(urlPathEqualTo("/income-statement/AAPL"))
+            getRequestedFor(urlPathEqualTo("/income-statement"))
+                .withQueryParam("symbol", equalTo("AAPL"))
                 .withQueryParam("apikey", equalTo(API_KEY))
                 .withQueryParam("limit", equalTo("10")),
         )
