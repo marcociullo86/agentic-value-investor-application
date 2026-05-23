@@ -72,7 +72,7 @@ function getDateFormatter(key: string, options: Intl.DateTimeFormatOptions): Int
  *  - epoch in millisecondi (number o numeric string)
  *  - epoch in secondi (number, scalato se < 1e12)
  *
- * Output di default: "22 mag 2026, 11:12 UTC" (locale it-IT, UTC fisso per
+ * Output di default: "22 mag 2026, 21:12 UTC" (locale it-IT, UTC fisso per
  * coerenza con `dataSnapshotAt` che è UTC server-side).
  */
 export function formatDate(value: string | number | null | undefined): string {

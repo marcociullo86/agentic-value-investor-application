@@ -53,17 +53,17 @@ describe('formatters', () => {
     });
 
     it('epoch number in ms → data leggibile', () => {
-      // 1779484360919 ms = 22 maggio 2026 11:12:40 UTC
+      // 1779484360919 ms = 22 maggio 2026 21:12:40 UTC
       const out = formatDate(1779484360919);
       expect(out).toMatch(/22 mag 2026/);
-      expect(out).toMatch(/11:12/);
+      expect(out).toMatch(/21:12/);
       // Regressione bug originale: questa era esattamente la stringa visibile
       // nel report TTD prima del fix
       expect(out).not.toBe('1.779.484.360,919');
     });
 
     it('epoch number in secondi → scalato a ms e formattato', () => {
-      // 1779484360 sec = 22 maggio 2026 11:12:40 UTC (stessa data)
+      // 1779484360 sec = 22 maggio 2026 21:12:40 UTC (stessa data)
       const out = formatDate(1779484360);
       expect(out).toMatch(/22 mag 2026/);
     });
