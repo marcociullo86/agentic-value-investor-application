@@ -47,7 +47,11 @@ class AnalyzeTickerService(
         // would attempt to insert a snapshot before the stock exists and trip
         // the FK constraint -> DataIntegrityViolationException -> 500.
         val profile = fetchProfileWithFallback(t)
-        val dataset = fetchDatasetSync(t)
+        val datasetRaw = fetchDatasetSync(t)
+        // EP-010: enrich the dataset with currentPrice from the profile so
+        // Pe3yAvgRule and PbLatestRule (TSK-079/081) can read it via the
+        // stateless ValuationRule contract (no FmpAdapter injection in rules).
+        val dataset = datasetRaw.copy(currentPrice = profile.value.price)
 
         val signals = ruleEngineService.evaluateAll(dataset)
         val graham = grahamNumberCalculator.calculateFromDataset(dataset)

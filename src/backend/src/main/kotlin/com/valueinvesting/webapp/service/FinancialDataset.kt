@@ -19,4 +19,10 @@ data class FinancialDataset(
     val dataSnapshotAt: Instant,
     val isStale: Boolean = false,
     val staleReason: String? = null,
+    // EP-010 — current quote price from ProfileDto.price, needed by Pe3yAvgRule
+    // (TSK-079) and PbLatestRule (TSK-081). Optional/nullable to preserve
+    // backward-compat with the 9 rules that operate purely on historical FMP
+    // financials. Populated by AnalyzeTickerService.analyze() after the profile
+    // fetch, BEFORE calling RuleEngineService.evaluateAll().
+    val currentPrice: Double? = null,
 )
