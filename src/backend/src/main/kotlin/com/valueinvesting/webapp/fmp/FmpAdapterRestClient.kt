@@ -3,6 +3,7 @@ package com.valueinvesting.webapp.fmp
 import com.valueinvesting.webapp.config.AppProperties
 import com.valueinvesting.webapp.fmp.dto.BalanceSheetDto
 import com.valueinvesting.webapp.fmp.dto.CashFlowDto
+import com.valueinvesting.webapp.fmp.dto.DividendRecord
 import com.valueinvesting.webapp.fmp.dto.IncomeStatementDto
 import com.valueinvesting.webapp.fmp.dto.KeyMetricsDto
 import com.valueinvesting.webapp.fmp.dto.ProfileDto
@@ -222,6 +223,103 @@ class FmpAdapterRestClient(
     // FmpUnavailableException. Marker-only, mai propagata fuori dall'adapter
     // (catturata nel try/catch del chiamante searchSymbol).
     private class EmptySearchSentinelException : RuntimeException()
+
+    // `/stable/dividends?symbol={ticker}` — serie storica dividendi.
+    //
+    // Differenza con fetchList():
+    //   - lista vuota è risultato legittimo (ticker senza dividendi, es. growth
+    //     stock pre-2024) → ritorna emptyList(), NON FmpTickerNotFoundException.
+    //   - 4xx (non 429) → emptyList() per coerenza semantica "no dividends",
+    //     non not-found ticker (il ticker può esistere ma non aver mai pagato).
+    //   - nessun parametro `limit` (l'endpoint non lo documenta).
+    //
+    // Error policy:
+    //   - 429 → FmpUnavailableException(429) (rate-limited, route resilienza).
+    //   - 5xx → FmpUnavailableException(status).
+    //   - 4xx (non 429) → emptyList() (tratta come zero dividendi).
+    //
+    // Ordinamento: DESC by `date` (string ISO `yyyy-MM-dd` → lex ordering ==
+    // cronologico). Record con `date == null` finiscono in coda (compareBy nullsLast).
+    override fun getDividendHistory(ticker: String): List<DividendRecord> {
+        require(ticker.isNotBlank()) { "ticker must not be blank" }
+        val upperTicker = ticker.uppercase()
+        val typeRef = object : ParameterizedTypeReference<List<DividendRecord>>() {}
+
+        val result: List<DividendRecord>? = try {
+            client.get()
+                .uri { builder ->
+                    builder
+                        .path("/dividends")
+                        .queryParam("apikey", appProperties.fmp.apiKey)
+                        .queryParam("symbol", upperTicker)
+                        .build()
+                }
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError) { _, response ->
+                    val status = response.statusCode
+                    if (status.value() == 429) {
+                        log.warn(
+                            "FMP 429 (rate limited) on /dividends ticker={}",
+                            upperTicker,
+                        )
+                        throw FmpUnavailableException(
+                            "FMP rate limited for dividends/$upperTicker",
+                            httpStatus = 429,
+                        )
+                    }
+                    // Per /dividends un 4xx non è "ticker not found" né anomalia
+                    // bloccante — trattiamo come "nessun dividendo" (zero record).
+                    log.warn(
+                        "FMP 4xx on /dividends ticker={} status={} — treating as empty",
+                        upperTicker, status,
+                    )
+                    throw EmptyDividendsSentinelException()
+                }
+                .onStatus(HttpStatusCode::is5xxServerError) { _, response ->
+                    val status = response.statusCode
+                    log.warn(
+                        "FMP 5xx on /dividends ticker={} status={}",
+                        upperTicker, status,
+                    )
+                    throw FmpUnavailableException(
+                        "FMP returned $status for dividends/$upperTicker",
+                        httpStatus = status.value(),
+                    )
+                }
+                .body(typeRef)
+        } catch (ex: EmptyDividendsSentinelException) {
+            return emptyList()
+        } catch (ex: FmpUnavailableException) {
+            throw ex
+        } catch (ex: RestClientResponseException) {
+            throw FmpUnavailableException(
+                "FMP call failed: ${ex.statusCode} for dividends/$upperTicker",
+                cause = ex,
+                httpStatus = ex.statusCode.value(),
+            )
+        }
+
+        if (result.isNullOrEmpty()) {
+            return emptyList()
+        }
+        // DESC by ex-dividend date (ISO `yyyy-MM-dd` lex ordering == cronologico).
+        // Record con date null finiscono in coda.
+        val dateDescNullsLast: Comparator<DividendRecord> = Comparator { a, b ->
+            val da = a.date
+            val db = b.date
+            when {
+                da == null && db == null -> 0
+                da == null -> 1   // null after non-null
+                db == null -> -1
+                else -> db.compareTo(da)   // descending
+            }
+        }
+        return result.sortedWith(dateDescNullsLast)
+    }
+
+    // Sentinel locale per /dividends 4xx (non 429) → emptyList senza errore.
+    // Mai propagata fuori dall'adapter.
+    private class EmptyDividendsSentinelException : RuntimeException()
 
     // Generic GET on /{endpoint}?symbol={ticker}&apikey=...&limit=...
     // Stable API (TSK-050): il ticker passa da path-variable a query parameter

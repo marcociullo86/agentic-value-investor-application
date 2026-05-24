@@ -2,6 +2,7 @@ package com.valueinvesting.webapp.fmp
 
 import com.valueinvesting.webapp.fmp.dto.BalanceSheetDto
 import com.valueinvesting.webapp.fmp.dto.CashFlowDto
+import com.valueinvesting.webapp.fmp.dto.DividendRecord
 import com.valueinvesting.webapp.fmp.dto.IncomeStatementDto
 import com.valueinvesting.webapp.fmp.dto.KeyMetricsDto
 import com.valueinvesting.webapp.fmp.dto.ProfileDto
@@ -57,4 +58,26 @@ interface FmpAdapter {
     // [^src: management/kanban/EP-001-ricerca-e-screening/US-001-ricerca-ticker-simbolo/TSK-002.md §FmpAdapter]
     // [^src: design_&_architecture/decisions/ADR-004-fmp-integration.md §Adapter pattern]
     fun searchSymbol(query: String, limit: Int = 20): List<SearchHitDto>
+
+    // `/stable/dividends?symbol={ticker}` — serie storica dividendi (Dividends
+    // Company API). L'endpoint non documenta parametri `from`/`to`/`limit`:
+    // ritorna la serie completa. Il filtraggio temporale (es. 20-anni per la
+    // regola DividendContinuityRule, TSK-085) è demandato al consumer.
+    //
+    // Lista vuota = ticker senza dividendi (es. tech growth pre-2024). NON
+    // deve sollevare FmpTickerNotFoundException — l'adapter ritorna
+    // `emptyList()`. Le rule trattano lista vuota come INDETERMINATE.
+    //
+    // L'adapter ordina DESC by `date` (string ISO `yyyy-MM-dd` → lex ordering
+    // == cronologico) per convenience. Il consumer può riordinare se serve.
+    //
+    // Cache: il caller (es. DividendDataService futuro / TSK-085) wrappa
+    // questa chiamata con `FmpCacheService.getOrFetch` usando il label
+    // `"dividends"`, TTL 24h. NB: la migration V003 elenca solo 4 endpoint
+    // nella CHECK constraint `fmp_fin_snap_endpoint_chk` — TSK-084 aggiunge
+    // `'dividends'` alla whitelist DB.
+    //
+    // [^src: raw/fmp_docs.md §Earnings, Dividends, Splits — Dividends Company API]
+    // [^src: management/kanban/EP-010-graham-defensive-completeness/US-037-regola-continuita-dividendi-graham/TSK-083.md]
+    fun getDividendHistory(ticker: String): List<DividendRecord>
 }

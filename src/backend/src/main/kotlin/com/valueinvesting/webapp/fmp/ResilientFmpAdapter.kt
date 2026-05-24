@@ -2,6 +2,7 @@ package com.valueinvesting.webapp.fmp
 
 import com.valueinvesting.webapp.fmp.dto.BalanceSheetDto
 import com.valueinvesting.webapp.fmp.dto.CashFlowDto
+import com.valueinvesting.webapp.fmp.dto.DividendRecord
 import com.valueinvesting.webapp.fmp.dto.IncomeStatementDto
 import com.valueinvesting.webapp.fmp.dto.KeyMetricsDto
 import com.valueinvesting.webapp.fmp.dto.ProfileDto
@@ -91,6 +92,9 @@ class ResilientFmpAdapter(
         execute("search", "-") {
             delegate.searchSymbol(query, limit)
         }
+
+    override fun getDividendHistory(ticker: String): List<DividendRecord> =
+        execute("dividends", ticker) { delegate.getDividendHistory(ticker) }
 
     /**
      * Apply chain decorators in order Bulkhead -> CB -> Retry, then gate the
