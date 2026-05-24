@@ -25,4 +25,13 @@ data class FinancialDataset(
     // financials. Populated by AnalyzeTickerService.analyze() after the profile
     // fetch, BEFORE calling RuleEngineService.evaluateAll().
     val currentPrice: Double? = null,
+    // EP-010 — dividend history series from FmpAdapter.getDividendHistory(),
+    // needed by DividendContinuityRule (TSK-085, US-037 Graham criterio 4).
+    // Default `emptyList()` preserves backward-compat with the 10 pre-existing
+    // rules that do not consult dividends. Populated by
+    // AnalyzeTickerService.analyze() after the profile/dataset fetch, with
+    // failure tolerance (FMP unavailable -> empty list -> rule INDETERMINATE).
+    // Cached via FmpCacheService.getOrFetch(endpoint="dividends", TTL 24h)
+    // (V011 adds 'dividends' to the fmp_financial_snapshot.endpoint CHECK).
+    val dividends: List<com.valueinvesting.webapp.fmp.dto.DividendRecord> = emptyList(),
 )

@@ -1,5 +1,6 @@
 package com.valueinvesting.webapp.service
 
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.valueinvesting.webapp.api.model.DcfMethodSource
 import com.valueinvesting.webapp.api.model.RuleEngineResultResponse
@@ -7,6 +8,7 @@ import com.valueinvesting.webapp.security.UserPrincipal
 import com.valueinvesting.webapp.fmp.FmpAdapter
 import com.valueinvesting.webapp.fmp.FmpCacheService
 import com.valueinvesting.webapp.fmp.FmpUnavailableException
+import com.valueinvesting.webapp.fmp.dto.DividendRecord
 import com.valueinvesting.webapp.persistence.entity.RuleEngineResultEntity
 import com.valueinvesting.webapp.persistence.repository.DcfMethodOverrideRepository
 import com.valueinvesting.webapp.persistence.repository.RuleEngineResultRepository
@@ -48,10 +50,20 @@ class AnalyzeTickerService(
         // the FK constraint -> DataIntegrityViolationException -> 500.
         val profile = fetchProfileWithFallback(t)
         val datasetRaw = fetchDatasetSync(t)
+        // EP-010 (TSK-085): fetch dividend history with failure tolerance.
+        // Same pattern as fetchProfileWithFallback — if FMP is down or the
+        // ticker has no dividend coverage, we degrade to empty list and let
+        // DividendContinuityRule resolve to INDETERMINATE (US-037 AC). The
+        // call is cache-aside via FmpCacheService.getOrFetch using the same
+        // "dividends" label whitelisted by V011 in fmp_financial_snapshot.
+        val dividends = fetchDividendsWithFallback(t)
         // EP-010: enrich the dataset with currentPrice from the profile so
         // Pe3yAvgRule and PbLatestRule (TSK-079/081) can read it via the
         // stateless ValuationRule contract (no FmpAdapter injection in rules).
-        val dataset = datasetRaw.copy(currentPrice = profile.value.price)
+        val dataset = datasetRaw.copy(
+            currentPrice = profile.value.price,
+            dividends = dividends,
+        )
 
         val signals = ruleEngineService.evaluateAll(dataset)
         val graham = grahamNumberCalculator.calculateFromDataset(dataset)
@@ -117,6 +129,31 @@ class AnalyzeTickerService(
             throw ex
         }
 
+    // TSK-085: cache-aside fetch of dividend history with full failure
+    // tolerance. Unlike fetchProfileWithFallback, a missing dividend payload
+    // is NOT fatal to the analysis — the rule degrades to INDETERMINATE and
+    // the other 12 rules continue normally (US-037 AC: "Ticker senza
+    // dividendi -> INDETERMINATE, non RED"). Cached via the same
+    // FmpCacheService.getOrFetch used by the 4 heavy statements, labelled
+    // "dividends" (whitelisted by V011 CHECK constraint).
+    private fun fetchDividendsWithFallback(ticker: String): List<DividendRecord> =
+        runCatching {
+            fmpCacheService
+                .getOrFetch(
+                    ticker = ticker,
+                    endpoint = ENDPOINT_DIVIDENDS,
+                    typeRef = object : TypeReference<List<DividendRecord>>() {},
+                    fetchFn = { fmpAdapter.getDividendHistory(ticker) },
+                )
+                .value
+        }.getOrElse { ex ->
+            log.warn(
+                "Dividend history fetch failed for {} — DividendContinuityRule will degrade to INDETERMINATE: {}",
+                ticker, ex.message,
+            )
+            emptyList()
+        }
+
     private fun persistResult(response: RuleEngineResultResponse, snapshotAt: Instant) {
         val entity = RuleEngineResultEntity(
             ticker = response.ticker,
@@ -130,5 +167,10 @@ class AnalyzeTickerService(
             sourceSnapshotFetchedAt = snapshotAt,
         )
         ruleEngineResultRepository.save(entity)
+    }
+
+    private companion object {
+        // Endpoint label per FmpCacheService — must match V011 CHECK whitelist.
+        const val ENDPOINT_DIVIDENDS = "dividends"
     }
 }
