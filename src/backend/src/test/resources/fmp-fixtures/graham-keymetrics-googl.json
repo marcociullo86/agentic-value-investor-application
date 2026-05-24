@@ -1,0 +1,113 @@
+[
+  {
+    "symbol": "GOOGL",
+    "date": "2024-12-31",
+    "fiscalYear": "2024",
+    "period": "FY",
+    "marketCap": 2200000000000,
+    "returnOnEquity": 0.330,
+    "returnOnInvestedCapital": 0.250,
+    "currentRatio": 2.051,
+    "freeCashFlowYield": 0.033,
+    "bookValuePerShare": 24.92
+  },
+  {
+    "symbol": "GOOGL",
+    "date": "2023-12-31",
+    "fiscalYear": "2023",
+    "period": "FY",
+    "marketCap": 1750000000000,
+    "returnOnEquity": 0.260,
+    "returnOnInvestedCapital": 0.210,
+    "currentRatio": 1.865,
+    "bookValuePerShare": 22.52
+  },
+  {
+    "symbol": "GOOGL",
+    "date": "2022-12-31",
+    "fiscalYear": "2022",
+    "period": "FY",
+    "marketCap": 1200000000000,
+    "returnOnEquity": 0.234,
+    "returnOnInvestedCapital": 0.196,
+    "currentRatio": 2.370,
+    "bookValuePerShare": 19.49
+  },
+  {
+    "symbol": "GOOGL",
+    "date": "2021-12-31",
+    "fiscalYear": "2021",
+    "period": "FY",
+    "marketCap": 1900000000000,
+    "returnOnEquity": 0.304,
+    "returnOnInvestedCapital": 0.245,
+    "currentRatio": 2.929,
+    "bookValuePerShare": 18.37
+  },
+  {
+    "symbol": "GOOGL",
+    "date": "2020-12-31",
+    "fiscalYear": "2020",
+    "period": "FY",
+    "marketCap": 1200000000000,
+    "returnOnEquity": 0.183,
+    "returnOnInvestedCapital": 0.158,
+    "currentRatio": 3.074,
+    "bookValuePerShare": 15.93
+  },
+  {
+    "symbol": "GOOGL",
+    "date": "2019-12-31",
+    "fiscalYear": "2019",
+    "period": "FY",
+    "marketCap": 920000000000,
+    "returnOnEquity": 0.182,
+    "returnOnInvestedCapital": 0.160,
+    "currentRatio": 3.373,
+    "bookValuePerShare": 13.40
+  },
+  {
+    "symbol": "GOOGL",
+    "date": "2018-12-31",
+    "fiscalYear": "2018",
+    "period": "FY",
+    "marketCap": 730000000000,
+    "returnOnEquity": 0.193,
+    "returnOnInvestedCapital": 0.170,
+    "currentRatio": 3.923,
+    "bookValuePerShare": 11.56
+  },
+  {
+    "symbol": "GOOGL",
+    "date": "2017-12-31",
+    "fiscalYear": "2017",
+    "period": "FY",
+    "marketCap": 720000000000,
+    "returnOnEquity": 0.085,
+    "returnOnInvestedCapital": 0.075,
+    "currentRatio": 5.148,
+    "bookValuePerShare": 10.47
+  },
+  {
+    "symbol": "GOOGL",
+    "date": "2016-12-31",
+    "fiscalYear": "2016",
+    "period": "FY",
+    "marketCap": 550000000000,
+    "returnOnEquity": 0.147,
+    "returnOnInvestedCapital": 0.130,
+    "currentRatio": 6.166,
+    "bookValuePerShare": 9.35
+  },
+  {
+    "symbol": "GOOGL",
+    "date": "2015-12-31",
+    "fiscalYear": "2015",
+    "period": "FY",
+    "marketCap": 500000000000,
+    "returnOnEquity": 0.130,
+    "returnOnInvestedCapital": 0.117,
+    "currentRatio": 5.117,
+    "bookValuePerShare": 8.87
+  }
+]

@@ -1,0 +1,113 @@
+[
+  {
+    "symbol": "MSFT",
+    "date": "2024-06-30",
+    "fiscalYear": "2024",
+    "period": "FY",
+    "marketCap": 3000000000000,
+    "returnOnEquity": 0.380,
+    "returnOnInvestedCapital": 0.290,
+    "currentRatio": 1.666,
+    "freeCashFlowYield": 0.025,
+    "bookValuePerShare": 36.0
+  },
+  {
+    "symbol": "MSFT",
+    "date": "2023-06-30",
+    "fiscalYear": "2023",
+    "period": "FY",
+    "marketCap": 2500000000000,
+    "returnOnEquity": 0.351,
+    "returnOnInvestedCapital": 0.270,
+    "currentRatio": 1.701,
+    "bookValuePerShare": 28.0
+  },
+  {
+    "symbol": "MSFT",
+    "date": "2022-06-30",
+    "fiscalYear": "2022",
+    "period": "FY",
+    "marketCap": 2200000000000,
+    "returnOnEquity": 0.437,
+    "returnOnInvestedCapital": 0.290,
+    "currentRatio": 1.780,
+    "bookValuePerShare": 24.0
+  },
+  {
+    "symbol": "MSFT",
+    "date": "2021-06-30",
+    "fiscalYear": "2021",
+    "period": "FY",
+    "marketCap": 2200000000000,
+    "returnOnEquity": 0.432,
+    "returnOnInvestedCapital": 0.280,
+    "currentRatio": 2.080,
+    "bookValuePerShare": 21.0
+  },
+  {
+    "symbol": "MSFT",
+    "date": "2020-06-30",
+    "fiscalYear": "2020",
+    "period": "FY",
+    "marketCap": 1600000000000,
+    "returnOnEquity": 0.394,
+    "returnOnInvestedCapital": 0.270,
+    "currentRatio": 2.519,
+    "bookValuePerShare": 17.0
+  },
+  {
+    "symbol": "MSFT",
+    "date": "2019-06-30",
+    "fiscalYear": "2019",
+    "period": "FY",
+    "marketCap": 1050000000000,
+    "returnOnEquity": 0.425,
+    "returnOnInvestedCapital": 0.260,
+    "currentRatio": 2.529,
+    "bookValuePerShare": 14.0
+  },
+  {
+    "symbol": "MSFT",
+    "date": "2018-06-30",
+    "fiscalYear": "2018",
+    "period": "FY",
+    "marketCap": 740000000000,
+    "returnOnEquity": 0.190,
+    "returnOnInvestedCapital": 0.150,
+    "currentRatio": 2.482,
+    "bookValuePerShare": 12.0
+  },
+  {
+    "symbol": "MSFT",
+    "date": "2017-06-30",
+    "fiscalYear": "2017",
+    "period": "FY",
+    "marketCap": 610000000000,
+    "returnOnEquity": 0.258,
+    "returnOnInvestedCapital": 0.180,
+    "currentRatio": 2.965,
+    "bookValuePerShare": 14.0
+  },
+  {
+    "symbol": "MSFT",
+    "date": "2016-06-30",
+    "fiscalYear": "2016",
+    "period": "FY",
+    "marketCap": 450000000000,
+    "returnOnEquity": 0.218,
+    "returnOnInvestedCapital": 0.170,
+    "currentRatio": 2.352,
+    "bookValuePerShare": 13.0
+  },
+  {
+    "symbol": "MSFT",
+    "date": "2015-06-30",
+    "fiscalYear": "2015",
+    "period": "FY",
+    "marketCap": 350000000000,
+    "returnOnEquity": 0.133,
+    "returnOnInvestedCapital": 0.100,
+    "currentRatio": 2.502,
+    "bookValuePerShare": 12.0
+  }
+]

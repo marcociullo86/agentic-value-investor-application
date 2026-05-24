@@ -1,0 +1,26 @@
+[
+  {
+    "date": "2024-12-31",
+    "symbol": "GOOGL",
+    "fiscalYear": "2024",
+    "period": "FY",
+    "netIncome": 100118000000,
+    "depreciationAndAmortization": 16050000000,
+    "operatingCashFlow": 125300000000,
+    "capitalExpenditure": -52200000000,
+    "freeCashFlow": 73100000000,
+    "netDividendsPaid": 0
+  },
+  {
+    "date": "2023-12-31",
+    "symbol": "GOOGL",
+    "fiscalYear": "2023",
+    "period": "FY",
+    "netIncome": 73795000000,
+    "depreciationAndAmortization": 11946000000,
+    "operatingCashFlow": 101700000000,
+    "capitalExpenditure": -32251000000,
+    "freeCashFlow": 69500000000,
+    "netDividendsPaid": 0
+  }
+]

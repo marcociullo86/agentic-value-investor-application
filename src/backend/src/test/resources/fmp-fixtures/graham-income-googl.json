@@ -1,0 +1,92 @@
+[
+  {
+    "date": "2024-12-31",
+    "symbol": "GOOGL",
+    "fiscalYear": "2024",
+    "period": "FY",
+    "revenue": 350018000000,
+    "netIncome": 100118000000,
+    "eps": 8.04
+  },
+  {
+    "date": "2023-12-31",
+    "symbol": "GOOGL",
+    "fiscalYear": "2023",
+    "period": "FY",
+    "revenue": 307394000000,
+    "netIncome": 73795000000,
+    "eps": 5.80
+  },
+  {
+    "date": "2022-12-31",
+    "symbol": "GOOGL",
+    "fiscalYear": "2022",
+    "period": "FY",
+    "revenue": 282836000000,
+    "netIncome": 59972000000,
+    "eps": 4.56
+  },
+  {
+    "date": "2021-12-31",
+    "symbol": "GOOGL",
+    "fiscalYear": "2021",
+    "period": "FY",
+    "revenue": 257637000000,
+    "netIncome": 76033000000,
+    "eps": 5.61
+  },
+  {
+    "date": "2020-12-31",
+    "symbol": "GOOGL",
+    "fiscalYear": "2020",
+    "period": "FY",
+    "revenue": 182527000000,
+    "netIncome": 40269000000,
+    "eps": 2.93
+  },
+  {
+    "date": "2019-12-31",
+    "symbol": "GOOGL",
+    "fiscalYear": "2019",
+    "period": "FY",
+    "revenue": 161857000000,
+    "netIncome": 34343000000,
+    "eps": 2.46
+  },
+  {
+    "date": "2018-12-31",
+    "symbol": "GOOGL",
+    "fiscalYear": "2018",
+    "period": "FY",
+    "revenue": 136819000000,
+    "netIncome": 30736000000,
+    "eps": 2.18
+  },
+  {
+    "date": "2017-12-31",
+    "symbol": "GOOGL",
+    "fiscalYear": "2017",
+    "period": "FY",
+    "revenue": 110855000000,
+    "netIncome": 12662000000,
+    "eps": 0.90
+  },
+  {
+    "date": "2016-12-31",
+    "symbol": "GOOGL",
+    "fiscalYear": "2016",
+    "period": "FY",
+    "revenue": 90272000000,
+    "netIncome": 19478000000,
+    "eps": 1.39
+  },
+  {
+    "date": "2015-12-31",
+    "symbol": "GOOGL",
+    "fiscalYear": "2015",
+    "period": "FY",
+    "revenue": 74989000000,
+    "netIncome": 16348000000,
+    "eps": 1.15
+  }
+]

@@ -1,0 +1,92 @@
+[
+  {
+    "date": "2024-06-30",
+    "symbol": "MSFT",
+    "fiscalYear": "2024",
+    "period": "FY",
+    "revenue": 245122000000,
+    "netIncome": 88136000000,
+    "eps": 11.80
+  },
+  {
+    "date": "2023-06-30",
+    "symbol": "MSFT",
+    "fiscalYear": "2023",
+    "period": "FY",
+    "revenue": 211915000000,
+    "netIncome": 72361000000,
+    "eps": 9.72
+  },
+  {
+    "date": "2022-06-30",
+    "symbol": "MSFT",
+    "fiscalYear": "2022",
+    "period": "FY",
+    "revenue": 198270000000,
+    "netIncome": 72738000000,
+    "eps": 9.65
+  },
+  {
+    "date": "2021-06-30",
+    "symbol": "MSFT",
+    "fiscalYear": "2021",
+    "period": "FY",
+    "revenue": 168088000000,
+    "netIncome": 61271000000,
+    "eps": 8.05
+  },
+  {
+    "date": "2020-06-30",
+    "symbol": "MSFT",
+    "fiscalYear": "2020",
+    "period": "FY",
+    "revenue": 143015000000,
+    "netIncome": 44281000000,
+    "eps": 5.76
+  },
+  {
+    "date": "2019-06-30",
+    "symbol": "MSFT",
+    "fiscalYear": "2019",
+    "period": "FY",
+    "revenue": 125843000000,
+    "netIncome": 39240000000,
+    "eps": 5.06
+  },
+  {
+    "date": "2018-06-30",
+    "symbol": "MSFT",
+    "fiscalYear": "2018",
+    "period": "FY",
+    "revenue": 110360000000,
+    "netIncome": 16571000000,
+    "eps": 2.13
+  },
+  {
+    "date": "2017-06-30",
+    "symbol": "MSFT",
+    "fiscalYear": "2017",
+    "period": "FY",
+    "revenue": 96571000000,
+    "netIncome": 25489000000,
+    "eps": 3.25
+  },
+  {
+    "date": "2016-06-30",
+    "symbol": "MSFT",
+    "fiscalYear": "2016",
+    "period": "FY",
+    "revenue": 91154000000,
+    "netIncome": 20539000000,
+    "eps": 2.56
+  },
+  {
+    "date": "2015-06-30",
+    "symbol": "MSFT",
+    "fiscalYear": "2015",
+    "period": "FY",
+    "revenue": 93580000000,
+    "netIncome": 12193000000,
+    "eps": 1.48
+  }
+]

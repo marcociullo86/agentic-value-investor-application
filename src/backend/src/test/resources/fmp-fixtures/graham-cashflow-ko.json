@@ -1,0 +1,26 @@
+[
+  {
+    "date": "2024-12-31",
+    "symbol": "KO",
+    "fiscalYear": "2024",
+    "period": "FY",
+    "netIncome": 10625000000,
+    "depreciationAndAmortization": 1060000000,
+    "operatingCashFlow": 11600000000,
+    "capitalExpenditure": -2054000000,
+    "freeCashFlow": 9546000000,
+    "netDividendsPaid": -8317000000
+  },
+  {
+    "date": "2023-12-31",
+    "symbol": "KO",
+    "fiscalYear": "2023",
+    "period": "FY",
+    "netIncome": 10714000000,
+    "depreciationAndAmortization": 950000000,
+    "operatingCashFlow": 11600000000,
+    "capitalExpenditure": -2054000000,
+    "freeCashFlow": 9546000000,
+    "netDividendsPaid": -8317000000
+  }
+]

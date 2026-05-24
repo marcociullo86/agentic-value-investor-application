@@ -1,0 +1,12 @@
+{
+  "symbol": "MSFT",
+  "price": 400.0,
+  "marketCap": 3000000000000,
+  "companyName": "Microsoft Corporation",
+  "sector": "Technology",
+  "industry": "Software—Infrastructure",
+  "currency": "USD",
+  "exchangeFullName": "NASDAQ Global Select",
+  "exchange": "NASDAQ",
+  "country": "US"
+}

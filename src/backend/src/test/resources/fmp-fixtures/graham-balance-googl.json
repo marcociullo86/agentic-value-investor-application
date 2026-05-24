@@ -1,0 +1,30 @@
+[
+  {
+    "date": "2024-12-31",
+    "symbol": "GOOGL",
+    "fiscalYear": "2024",
+    "period": "FY",
+    "cashAndCashEquivalents": 30897000000,
+    "totalCurrentAssets": 167800000000,
+    "propertyPlantEquipmentNet": 134345000000,
+    "totalAssets": 450227000000,
+    "totalCurrentLiabilities": 81814000000,
+    "longTermDebt": 10959000000,
+    "totalLiabilities": 130139000000,
+    "totalStockholdersEquity": 314088000000
+  },
+  {
+    "date": "2023-12-31",
+    "symbol": "GOOGL",
+    "fiscalYear": "2023",
+    "period": "FY",
+    "cashAndCashEquivalents": 24048000000,
+    "totalCurrentAssets": 152671000000,
+    "propertyPlantEquipmentNet": 118900000000,
+    "totalAssets": 402392000000,
+    "totalCurrentLiabilities": 81814000000,
+    "longTermDebt": 13253000000,
+    "totalLiabilities": 119013000000,
+    "totalStockholdersEquity": 283379000000
+  }
+]

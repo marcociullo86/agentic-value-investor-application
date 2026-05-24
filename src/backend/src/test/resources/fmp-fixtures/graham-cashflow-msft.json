@@ -1,0 +1,26 @@
+[
+  {
+    "date": "2024-06-30",
+    "symbol": "MSFT",
+    "fiscalYear": "2024",
+    "period": "FY",
+    "netIncome": 88136000000,
+    "depreciationAndAmortization": 15200000000,
+    "operatingCashFlow": 118500000000,
+    "capitalExpenditure": -55700000000,
+    "freeCashFlow": 74100000000,
+    "netDividendsPaid": -21800000000
+  },
+  {
+    "date": "2023-06-30",
+    "symbol": "MSFT",
+    "fiscalYear": "2023",
+    "period": "FY",
+    "netIncome": 72361000000,
+    "depreciationAndAmortization": 13200000000,
+    "operatingCashFlow": 87500000000,
+    "capitalExpenditure": -28100000000,
+    "freeCashFlow": 59400000000,
+    "netDividendsPaid": -20600000000
+  }
+]

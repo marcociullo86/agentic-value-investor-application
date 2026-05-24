@@ -1,0 +1,30 @@
+[
+  {
+    "date": "2024-06-30",
+    "symbol": "MSFT",
+    "fiscalYear": "2024",
+    "period": "FY",
+    "cashAndCashEquivalents": 39700000000,
+    "totalCurrentAssets": 159900000000,
+    "propertyPlantEquipmentNet": 135100000000,
+    "totalAssets": 512200000000,
+    "totalCurrentLiabilities": 95900000000,
+    "longTermDebt": 42700000000,
+    "totalLiabilities": 243800000000,
+    "totalStockholdersEquity": 268400000000
+  },
+  {
+    "date": "2023-06-30",
+    "symbol": "MSFT",
+    "fiscalYear": "2023",
+    "period": "FY",
+    "cashAndCashEquivalents": 34700000000,
+    "totalCurrentAssets": 156700000000,
+    "propertyPlantEquipmentNet": 95800000000,
+    "totalAssets": 411900000000,
+    "totalCurrentLiabilities": 92100000000,
+    "longTermDebt": 41300000000,
+    "totalLiabilities": 206200000000,
+    "totalStockholdersEquity": 205700000000
+  }
+]

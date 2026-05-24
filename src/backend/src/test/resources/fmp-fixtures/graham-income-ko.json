@@ -1,0 +1,92 @@
+[
+  {
+    "date": "2024-12-31",
+    "symbol": "KO",
+    "fiscalYear": "2024",
+    "period": "FY",
+    "revenue": 47062000000,
+    "netIncome": 10625000000,
+    "eps": 2.47
+  },
+  {
+    "date": "2023-12-31",
+    "symbol": "KO",
+    "fiscalYear": "2023",
+    "period": "FY",
+    "revenue": 45754000000,
+    "netIncome": 10714000000,
+    "eps": 2.47
+  },
+  {
+    "date": "2022-12-31",
+    "symbol": "KO",
+    "fiscalYear": "2022",
+    "period": "FY",
+    "revenue": 43004000000,
+    "netIncome": 9542000000,
+    "eps": 2.19
+  },
+  {
+    "date": "2021-12-31",
+    "symbol": "KO",
+    "fiscalYear": "2021",
+    "period": "FY",
+    "revenue": 38655000000,
+    "netIncome": 9771000000,
+    "eps": 2.25
+  },
+  {
+    "date": "2020-12-31",
+    "symbol": "KO",
+    "fiscalYear": "2020",
+    "period": "FY",
+    "revenue": 33014000000,
+    "netIncome": 8985000000,
+    "eps": 2.07
+  },
+  {
+    "date": "2019-12-31",
+    "symbol": "KO",
+    "fiscalYear": "2019",
+    "period": "FY",
+    "revenue": 37266000000,
+    "netIncome": 8985000000,
+    "eps": 2.07
+  },
+  {
+    "date": "2018-12-31",
+    "symbol": "KO",
+    "fiscalYear": "2018",
+    "period": "FY",
+    "revenue": 31856000000,
+    "netIncome": 6434000000,
+    "eps": 2.10
+  },
+  {
+    "date": "2017-12-31",
+    "symbol": "KO",
+    "fiscalYear": "2017",
+    "period": "FY",
+    "revenue": 35410000000,
+    "netIncome": 6000000000,
+    "eps": 2.00
+  },
+  {
+    "date": "2016-12-31",
+    "symbol": "KO",
+    "fiscalYear": "2016",
+    "period": "FY",
+    "revenue": 41863000000,
+    "netIncome": 6527000000,
+    "eps": 2.00
+  },
+  {
+    "date": "2015-12-31",
+    "symbol": "KO",
+    "fiscalYear": "2015",
+    "period": "FY",
+    "revenue": 44294000000,
+    "netIncome": 7351000000,
+    "eps": 2.00
+  }
+]

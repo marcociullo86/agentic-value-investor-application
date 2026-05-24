@@ -1,0 +1,30 @@
+[
+  {
+    "date": "2024-12-31",
+    "symbol": "KO",
+    "fiscalYear": "2024",
+    "period": "FY",
+    "cashAndCashEquivalents": 9366000000,
+    "totalCurrentAssets": 22958000000,
+    "propertyPlantEquipmentNet": 10049000000,
+    "totalAssets": 98980000000,
+    "totalCurrentLiabilities": 28724000000,
+    "longTermDebt": 35547000000,
+    "totalLiabilities": 90000000000,
+    "totalStockholdersEquity": 8980000000
+  },
+  {
+    "date": "2023-12-31",
+    "symbol": "KO",
+    "fiscalYear": "2023",
+    "period": "FY",
+    "cashAndCashEquivalents": 9366000000,
+    "totalCurrentAssets": 24900000000,
+    "propertyPlantEquipmentNet": 10100000000,
+    "totalAssets": 97700000000,
+    "totalCurrentLiabilities": 27800000000,
+    "longTermDebt": 35500000000,
+    "totalLiabilities": 88600000000,
+    "totalStockholdersEquity": 9100000000
+  }
+]

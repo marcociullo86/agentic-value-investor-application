@@ -1,0 +1,113 @@
+[
+  {
+    "symbol": "KO",
+    "date": "2024-12-31",
+    "fiscalYear": "2024",
+    "period": "FY",
+    "marketCap": 259000000000,
+    "returnOnEquity": 1.73,
+    "returnOnInvestedCapital": 0.16,
+    "currentRatio": 0.799,
+    "freeCashFlowYield": 0.037,
+    "bookValuePerShare": 2.08
+  },
+  {
+    "symbol": "KO",
+    "date": "2023-12-31",
+    "fiscalYear": "2023",
+    "period": "FY",
+    "marketCap": 252000000000,
+    "returnOnEquity": 1.61,
+    "returnOnInvestedCapital": 0.15,
+    "currentRatio": 0.895,
+    "bookValuePerShare": 2.10
+  },
+  {
+    "symbol": "KO",
+    "date": "2022-12-31",
+    "fiscalYear": "2022",
+    "period": "FY",
+    "marketCap": 270000000000,
+    "returnOnEquity": 1.55,
+    "returnOnInvestedCapital": 0.14,
+    "currentRatio": 0.902,
+    "bookValuePerShare": 2.20
+  },
+  {
+    "symbol": "KO",
+    "date": "2021-12-31",
+    "fiscalYear": "2021",
+    "period": "FY",
+    "marketCap": 248000000000,
+    "returnOnEquity": 1.48,
+    "returnOnInvestedCapital": 0.14,
+    "currentRatio": 1.120,
+    "bookValuePerShare": 2.25
+  },
+  {
+    "symbol": "KO",
+    "date": "2020-12-31",
+    "fiscalYear": "2020",
+    "period": "FY",
+    "marketCap": 228000000000,
+    "returnOnEquity": 1.21,
+    "returnOnInvestedCapital": 0.12,
+    "currentRatio": 1.328,
+    "bookValuePerShare": 2.30
+  },
+  {
+    "symbol": "KO",
+    "date": "2019-12-31",
+    "fiscalYear": "2019",
+    "period": "FY",
+    "marketCap": 233000000000,
+    "returnOnEquity": 1.12,
+    "returnOnInvestedCapital": 0.12,
+    "currentRatio": 0.758,
+    "bookValuePerShare": 2.50
+  },
+  {
+    "symbol": "KO",
+    "date": "2018-12-31",
+    "fiscalYear": "2018",
+    "period": "FY",
+    "marketCap": 210000000000,
+    "returnOnEquity": 0.490,
+    "returnOnInvestedCapital": 0.11,
+    "currentRatio": 0.889,
+    "bookValuePerShare": 4.00
+  },
+  {
+    "symbol": "KO",
+    "date": "2017-12-31",
+    "fiscalYear": "2017",
+    "period": "FY",
+    "marketCap": 195000000000,
+    "returnOnEquity": 0.095,
+    "returnOnInvestedCapital": 0.09,
+    "currentRatio": 1.340,
+    "bookValuePerShare": 4.50
+  },
+  {
+    "symbol": "KO",
+    "date": "2016-12-31",
+    "fiscalYear": "2016",
+    "period": "FY",
+    "marketCap": 185000000000,
+    "returnOnEquity": 0.430,
+    "returnOnInvestedCapital": 0.10,
+    "currentRatio": 1.281,
+    "bookValuePerShare": 5.00
+  },
+  {
+    "symbol": "KO",
+    "date": "2015-12-31",
+    "fiscalYear": "2015",
+    "period": "FY",
+    "marketCap": 183000000000,
+    "returnOnEquity": 0.460,
+    "returnOnInvestedCapital": 0.10,
+    "currentRatio": 1.243,
+    "bookValuePerShare": 5.50
+  }
+]
