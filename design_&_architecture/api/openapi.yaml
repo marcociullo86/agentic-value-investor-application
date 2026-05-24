@@ -587,8 +587,51 @@ components:
     RuleSignal:
       type: object
       required: [ruleId, signal, threshold]
+      description: |
+        Esito atomico di una singola regola del Rule Engine per un ticker.
+        Il dettaglio strutturato per-rule (es. yearsPositive, lossYears, pe3yAvg, revenueLatest, ecc.)
+        e' veicolato nel campo `rationale` (stringa human-readable) e in `observedValue` (numerico).
+        La strutturazione tipata per-ruleId (oneOf discriminato / additionalProperties) e' rimandata
+        a un futuro refactor del contratto: non scope di TSK-087/EP-010 per evitare breaking change
+        sui 7 ruleId Buffett gia' in produzione e sui client TS auto-generati.
       properties:
-        ruleId:        { type: string, example: "profitability.roe" }
+        ruleId:
+          type: string
+          description: |
+            Identificatore stabile della regola di valutazione. Set chiuso versionato a contratto.
+            L'x-extension `x-buffett-quality` raggruppa le 7 regole Buffett-leaning (EP-003).
+            L'x-extension `x-graham-defensive` raggruppa le 6 regole Graham defensive (EP-010,
+            Cap.14 "The Defensive Investor and Common Stocks", Intelligent Investor).
+          enum:
+            - ROE_10Y_AVG
+            - ROIC_10Y_AVG
+            - GROSS_MARGIN_10Y_AVG
+            - NET_MARGIN_10Y_AVG
+            - CURRENT_RATIO_LATEST
+            - DEBT_TO_INCOME_LATEST
+            - CAPEX_INTENSITY_10Y_AVG
+            - SIZE_LATEST
+            - EARNINGS_STABILITY_10Y
+            - EPS_GROWTH_10Y
+            - PE_3Y_AVG
+            - PB_LATEST
+            - DIVIDEND_CONTINUITY_20Y
+          example: ROE_10Y_AVG
+          x-buffett-quality:
+            - ROE_10Y_AVG
+            - ROIC_10Y_AVG
+            - GROSS_MARGIN_10Y_AVG
+            - NET_MARGIN_10Y_AVG
+            - CURRENT_RATIO_LATEST
+            - DEBT_TO_INCOME_LATEST
+            - CAPEX_INTENSITY_10Y_AVG
+          x-graham-defensive:
+            - SIZE_LATEST
+            - EARNINGS_STABILITY_10Y
+            - EPS_GROWTH_10Y
+            - PE_3Y_AVG
+            - PB_LATEST
+            - DIVIDEND_CONTINUITY_20Y
         signal:        { $ref: '#/components/schemas/Signal' }
         observedValue: { type: number, nullable: true }
         threshold:     { type: string }
