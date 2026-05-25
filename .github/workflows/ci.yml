@@ -30,7 +30,7 @@ jobs:
       # context boots; the Testcontainers-based ITs still spin up their own
       # ephemeral containers and ignore this service.
       postgres:
-        image: postgres:17-alpine
+        image: pgvector/pgvector:pg17
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres

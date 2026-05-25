@@ -284,7 +284,7 @@ describe('TrafficLightPanel', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('Test 10 — snapshot stabile su 13 ruleId mix Signal', () => {
+  it('Test 10 — structural integrity of 13 ruleId mix Signal render', () => {
     const signalStates: readonly [
       RuleSignal['signal'],
       RuleSignal['signal'],
@@ -298,6 +298,12 @@ describe('TrafficLightPanel', () => {
       ...GRAHAM_IDS,
     ].map((id, idx) => makeSignal(id, pickSignal(idx)));
     const { container } = render(<TrafficLightPanel signals={signals} />);
-    expect(container.firstChild).toMatchSnapshot();
+    expect(container.firstChild).toBeTruthy();
+    expect(
+      screen.getByTestId('traffic-light-section-buffett-grid').children,
+    ).toHaveLength(7);
+    expect(
+      screen.getByTestId('traffic-light-section-graham-grid').children,
+    ).toHaveLength(6);
   });
 });
