@@ -53,7 +53,7 @@ class LlmBudgetConfigService(
     }
 
     @Transactional
-    fun updateBudget(newCapUsd: BigDecimal, userId: Long?, reason: String?): BigDecimal {
+    fun updateBudget(newCapUsd: BigDecimal, userId: java.util.UUID?, reason: String?): BigDecimal {
         val config = budgetConfigRepo.findById(1).orElse(
             LlmBudgetConfigEntity(id = 1, monthlyCapUsd = BigDecimal("50.00"))
         )

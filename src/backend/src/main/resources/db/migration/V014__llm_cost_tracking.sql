@@ -19,7 +19,7 @@ CREATE TABLE llm_call_log (
     endpoint     VARCHAR(64),
     purpose      VARCHAR(32),
     ticker       VARCHAR(16),
-    user_id      BIGINT      NULL,
+    user_id      UUID        NULL,
     request_id   UUID,
     model        VARCHAR(64),
     input_tokens INT         NOT NULL,
@@ -39,7 +39,7 @@ CREATE TABLE llm_budget_config (
     monthly_cap_usd        NUMERIC(10,2) NOT NULL,
     alert_threshold_percent SMALLINT     NOT NULL DEFAULT 80,
     updated_at             TIMESTAMPTZ   NOT NULL DEFAULT now(),
-    updated_by             BIGINT        NULL REFERENCES users(id)
+    updated_by             UUID          NULL REFERENCES users(id)
 );
 
 INSERT INTO llm_budget_config (id, monthly_cap_usd) VALUES (1, 50.00) ON CONFLICT DO NOTHING;

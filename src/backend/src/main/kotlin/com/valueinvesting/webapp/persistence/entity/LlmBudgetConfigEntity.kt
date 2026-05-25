@@ -24,5 +24,5 @@ class LlmBudgetConfigEntity(
     var updatedAt: Instant = Instant.now(),
 
     @Column(name = "updated_by")
-    var updatedBy: Long? = null,
+    var updatedBy: java.util.UUID? = null,
 )

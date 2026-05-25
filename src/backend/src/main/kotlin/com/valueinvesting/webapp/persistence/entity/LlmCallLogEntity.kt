@@ -31,7 +31,7 @@ class LlmCallLogEntity(
     var ticker: String? = null,
 
     @Column(name = "user_id")
-    var userId: Long? = null,
+    var userId: java.util.UUID? = null,
 
     @Column(name = "request_id")
     var requestId: UUID? = null,
