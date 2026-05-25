@@ -83,3 +83,5 @@ Pagine create: 2 | Figure: 0 | Aggiornamenti: 4 (index, gaps, value-investing-ru
 [2026-05-25 13:10] dev(be) TSK-112 — FmpAdapter.getHistoricalEodPrices (GET /stable/historical-price-eod/full?symbol=...) + EodPriceRecord DTO — files touched: 3
 [2026-05-25 13:10] dev(be) TSK-113 — PriceActionAnalyzer (drawdown 52w, ma50/ma200, panicDiscount flag, deteriorationWarning death cross); cache price_action_snapshot (TTL 24h); PriceActionSnapshotEntity + repo — files touched: 3
 [2026-05-25 13:10] dev(db) TSK-114 — V016__price_action_snapshot.sql: tabella price_action_snapshot (UNIQUE ticker+calc_date) — files touched: 1
+[2026-05-25 13:15] dev(fe) TSK-158 — LlmBudgetAdminPanel React component (cap update + freeze toggle + confirmation modal); lib/api/llm-budget.ts; app/admin/page.tsx — files touched: 3
+[2026-05-25 13:15] dev(qa) TSK-159+111 — NewsSentimentServiceTest (classify 20 news, cache hit, limit 50, dominant class); PriceActionAnalyzerTest (panic boundary -30%, deterioration death cross, insufficient series, cache hit) — files touched: 2
