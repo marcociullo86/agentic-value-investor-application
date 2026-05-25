@@ -265,6 +265,8 @@ ADR-007 §Error format dichiara RFC 9457 §3.2 (extensions al top-level). Quattr
 **Sospetta fonte:** wiki-keeper (ingest endpoint dividend history dalla doc FMP stable già nei raw) o aggiornamento puntuale di `wiki/runbooks/fmp-api-quickstart.md`.
 **Impatto:** US-037 marca pending_clarification ma non blocca: il be-dev può recuperare lo spec dell'endpoint dai raw FMP stable. Bloccante: no.
 
+**Risolto:** 2026-05-24 — TSK-083 ha verificato il vero endpoint /stable contro `raw/fmp_docs.md:8997-9020` (Dividends Company API): l'endpoint reale è **`GET /stable/dividends?symbol={ticker}`** (NON `/stable/historical-price-full/stock_dividend`, che era pattern `/api/v3` legacy deprecato 2025-08-31). Implementato `FmpAdapter.getDividendHistory(ticker): List<DividendRecord>` con DTO 9 field nullable (date/recordDate/paymentDate/declarationDate/dividend/adjDividend/yield/frequency). Cache via `FmpCacheService.getOrFetch(endpoint="dividends", TTL=24h)` con whitelist `dividends` aggiunta al CHECK constraint `fmp_fin_snap_endpoint_chk` (migration V011). Estesa anche tabella dedicata `fmp_dividend_history_snapshot` (V010) disponibile per analytics future. Concept page dedicata `wiki/concepts/fmp-dividend-history.md` può essere aggiunta in futuro via wiki-keeper se richiesta separata.
+
 ---
 
 ## 2026-05-23 — wiki-extend-analysis-api-pipeline-deep

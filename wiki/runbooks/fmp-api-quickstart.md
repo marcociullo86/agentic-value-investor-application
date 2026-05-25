@@ -55,7 +55,7 @@ I raw `FMP_Docs_1`–`8` descrivono **nomi API e parametri**, non host né path 
 | Host + versione API (`https://…/api/v3`) | **Non verificabile** da raw FMP_Docs 1–8 |
 | Path relativi MVP (`/profile/{ticker}`, ecc.) | **Non verificabile** da raw FMP_Docs 1–8 |
 
-**Configurazione L5/L4 (non fonte provider):** default applicativo `fmp.base-url` = `https://financialmodelingprep.com/api/v3` e tabella path MVP in ADR-016 [^src: design_&_architecture/decisions/ADR-016-fmp-operations-throttling.md §2. URL base endpoint MVP]. Usare solo per implementazione interna fino a ingest raw ufficiale FMP.
+**Configurazione L5/L4 (non fonte provider):** default applicativo `fmp.base-url` = `https://financialmodelingprep.com/stable` (aggiornato da `/api/v3` con migrazione US-031/TSK-072, 2026-05-22; pre-migrazione era `/api/v3`, deprecato dal 2025-08-31). Tabella path MVP in ADR-016 [^src: design_&_architecture/decisions/ADR-016-fmp-operations-throttling.md §2. URL base endpoint MVP].
 
 ### Template richiesta (placeholder)
 

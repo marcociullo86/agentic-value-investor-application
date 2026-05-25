@@ -38,10 +38,10 @@ Test: unit rule/calculator; E2E `AnalysisControllerIT`; contract `gradle contrac
 Per ogni ticker analizzato, il backend deve invocare i quattro endpoint in parallelo o in sequenza: [^src: raw/06_Documento_Funzionale_WebApp_Value_Investing.md §RF2: Integrazione API (Financial Modeling Prep)]
 
 ```
-GET /api/v3/income-statement/{ticker}?limit=10&apikey={KEY}
-GET /api/v3/balance-sheet-statement/{ticker}?limit=10&apikey={KEY}
-GET /api/v3/cash-flow-statement/{ticker}?limit=10&apikey={KEY}
-GET /api/v3/key-metrics/{ticker}?limit=10&apikey={KEY}
+GET /stable/income-statement?symbol={ticker}&limit=10&apikey={KEY}
+GET /stable/balance-sheet-statement?symbol={ticker}&limit=10&apikey={KEY}
+GET /stable/cash-flow-statement?symbol={ticker}&limit=10&apikey={KEY}
+GET /stable/key-metrics?symbol={ticker}&limit=10&apikey={KEY}
 ```
 
 - Verifica cache 24h prima di ogni chiamata.
@@ -106,7 +106,7 @@ Dati da `key-metrics` (EPS, BVPS dell'anno corrente). [^src: raw/06_Documento_Fu
 
 ### 3c. Margin of Safety
 
-- Recupera prezzo corrente da `GET /api/v3/profile/{ticker}` (campo `price`).
+- Recupera prezzo corrente da `GET /stable/profile?symbol={ticker}` (campo `price`).
 - MoS segnalato (VERDE) se: `prezzoAttuale < valoreDCF * 0.70`.
 - MoS assente (ROSSO) se: `prezzoAttuale >= valoreDCF`.
 

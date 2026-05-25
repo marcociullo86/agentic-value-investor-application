@@ -25,27 +25,27 @@ Le regole sono organizzate in quattro categorie, ognuna mappabile a endpoint FMP
 - **ROE > 15%** costante negli ultimi 5-10 anni.
 - **ROIC > 12-15%** costante negli ultimi 5-10 anni.
 
-Fonte dati: `GET /api/v3/key-metrics/{ticker}?limit=10` (ROIC, ROE) e `GET /api/v3/income-statement/{ticker}?limit=10`. [^src: raw/06_Documento_Funzionale_WebApp_Value_Investing.md §RF3: Il "Value Investing Rule Engine" (Logica di Business)]
+Fonte dati: `GET /stable/key-metrics?symbol={ticker}&limit=10` (ROIC, ROE) e `GET /stable/income-statement?symbol={ticker}&limit=10`. [^src: raw/06_Documento_Funzionale_WebApp_Value_Investing.md §RF3: Il "Value Investing Rule Engine" (Logica di Business)]
 
 #### Pricing Power
 
 - **Gross Margin > 40%**: indicatore di vantaggio competitivo durevole ([[economic-moat]]).
 - **Net Margin > 10%**: efficienza complessiva del business.
 
-Fonte dati: `GET /api/v3/income-statement/{ticker}?limit=10` per calcolo, oppure [[fmp-key-metrics-ratios]] (Financial Ratios TTM). [^src: raw/06_Documento_Funzionale_WebApp_Value_Investing.md §RF3: Il "Value Investing Rule Engine" (Logica di Business)]
+Fonte dati: `GET /stable/income-statement?symbol={ticker}&limit=10` per calcolo, oppure [[fmp-key-metrics-ratios]] (Financial Ratios TTM). [^src: raw/06_Documento_Funzionale_WebApp_Value_Investing.md §RF3: Il "Value Investing Rule Engine" (Logica di Business)]
 
 #### Solidita' Finanziaria
 
 - **Current Ratio > 2** (o > 1.5 per business molto stabili): liquidita' corrente vs obblighi a breve.
 - **Debito Lungo Termine / Utile Netto < 4**: il debito deve essere estinguibile con massimo 4 anni di utili.
 
-Fonte dati: `GET /api/v3/balance-sheet-statement/{ticker}?limit=10` + Income Statement per l'utile netto. [^src: raw/06_Documento_Funzionale_WebApp_Value_Investing.md §RF3: Il "Value Investing Rule Engine" (Logica di Business)]
+Fonte dati: `GET /stable/balance-sheet-statement?symbol={ticker}&limit=10` + Income Statement per l'utile netto. [^src: raw/06_Documento_Funzionale_WebApp_Value_Investing.md §RF3: Il "Value Investing Rule Engine" (Logica di Business)]
 
 #### Capitale Intensivo
 
 - **CapEx / Utile Netto < 25-30%**: identifica business a basso assorbimento di capitale (caratteristica Buffett).
 
-Fonte dati: `GET /api/v3/cash-flow-statement/{ticker}?limit=10` per CapEx e Free Cash Flow. [^src: raw/06_Documento_Funzionale_WebApp_Value_Investing.md §RF3: Il "Value Investing Rule Engine" (Logica di Business)]
+Fonte dati: `GET /stable/cash-flow-statement?symbol={ticker}&limit=10` per CapEx e Free Cash Flow. [^src: raw/06_Documento_Funzionale_WebApp_Value_Investing.md §RF3: Il "Value Investing Rule Engine" (Logica di Business)]
 
 ### Calcolo Valore Intrinseco (RF4)
 
