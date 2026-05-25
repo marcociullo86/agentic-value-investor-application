@@ -151,7 +151,7 @@ export function LlmBudgetAdminPanel() {
         <div className="flex gap-2 pt-2">
           <Modal open={confirmOpen} onOpenChange={setConfirmOpen}>
             <ModalTrigger asChild>
-              <Button variant="default" disabled={loading}>
+              <Button variant="primary" disabled={loading}>
                 Update Cap
               </Button>
             </ModalTrigger>
