@@ -164,7 +164,7 @@ export function LlmBudgetAdminPanel() {
               </ModalDescription>
               <div className="flex gap-2 justify-end mt-4">
                 <ModalClose asChild>
-                  <Button variant="outline">Cancel</Button>
+                  <Button variant="ghost">Cancel</Button>
                 </ModalClose>
                 <Button onClick={handleUpdateBudget} disabled={loading}>
                   {loading ? 'Saving...' : 'Confirm'}
@@ -174,7 +174,7 @@ export function LlmBudgetAdminPanel() {
           </Modal>
 
           <Button
-            variant={status?.frozen ? 'default' : 'destructive'}
+            variant={status?.frozen ? 'primary' : 'destructive'}
             onClick={handleToggleFreeze}
             disabled={loading}
           >
