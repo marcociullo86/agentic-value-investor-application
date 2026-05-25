@@ -33,8 +33,9 @@ interface FmpAdapter {
     // first element or throws FmpTickerNotFoundException on empty response.
     fun getProfile(ticker: String): ProfileDto
 
-    // `/stock-screener` — ritorna i candidati che soddisfano le query params FMP
-    // (`marketCapMoreThan`, `marketCapLowerThan`, `sector`, `limit`).
+    // `/company-screener` — ritorna i candidati che soddisfano le query params FMP
+    // (`marketCapMoreThan`, `marketCapLowerThan`, `sector`, `exchange`, `country`,
+    // `limit`).
     // A differenza degli altri endpoint, lista vuota è un risultato legittimo
     // (zero match) e NON deve sollevare FmpTickerNotFoundException — l'adapter
     // restituisce semplicemente `emptyList()`.
@@ -43,11 +44,23 @@ interface FmpAdapter {
     // `MarketCapBand` → coppia (minUsd, maxUsd) e `GicsSector` → fmpLabel.
     // Il caller è responsabile della merge multi-sector (vedi SearchService.screen).
     //
+    // Parametri exchange/country (TSK-129, EP-012 Top Value Picks):
+    //   - `exchange`: filtra per listing venue. Supporta comma-separated values
+    //     accettati da FMP (es. "NASDAQ,NYSE"). Nullable.
+    //   - `country`: filtra per country code ISO (es. "US"). Nullable.
+    //
+    // Param canonici verificati in raw/fmp_docs.md §Stock ScreenerAPI (riga 519
+    // exchange, riga 527 country).
+    //
     // [^src: management/kanban/EP-001-ricerca-e-screening/US-002-screener-parametrico/TSK-005.md §SearchService.screen]
+    // [^src: management/kanban/EP-012-batch-top-value-picks/US-047-universe-screener-service/TSK-129.md]
+    // [^src: raw/fmp_docs.md §Stock ScreenerAPI]
     fun screen(
         marketCapMoreThan: Long? = null,
         marketCapLowerThan: Long? = null,
         sector: String? = null,
+        exchange: String? = null,
+        country: String? = null,
         limit: Int = 50,
     ): List<ScreenedStockDto>
 

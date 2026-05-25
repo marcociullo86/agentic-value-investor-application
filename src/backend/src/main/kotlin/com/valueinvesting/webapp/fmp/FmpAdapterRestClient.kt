@@ -95,6 +95,8 @@ class FmpAdapterRestClient(
         marketCapMoreThan: Long?,
         marketCapLowerThan: Long?,
         sector: String?,
+        exchange: String?,
+        country: String?,
         limit: Int,
     ): List<ScreenedStockDto> {
         require(limit > 0) { "limit must be > 0" }
@@ -110,6 +112,8 @@ class FmpAdapterRestClient(
                     if (marketCapMoreThan != null) b.queryParam("marketCapMoreThan", marketCapMoreThan)
                     if (marketCapLowerThan != null) b.queryParam("marketCapLowerThan", marketCapLowerThan)
                     if (!sector.isNullOrBlank()) b.queryParam("sector", sector)
+                    if (!exchange.isNullOrBlank()) b.queryParam("exchange", exchange)
+                    if (!country.isNullOrBlank()) b.queryParam("country", country)
                     b.build()
                 }
                 .retrieve()

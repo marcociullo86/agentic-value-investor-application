@@ -80,11 +80,13 @@ class ResilientFmpAdapter(
         marketCapMoreThan: Long?,
         marketCapLowerThan: Long?,
         sector: String?,
+        exchange: String?,
+        country: String?,
         limit: Int,
     ): List<ScreenedStockDto> =
         // ticker "-" è un placeholder per il logger (screener non è per-ticker).
         execute("company-screener", "-") {
-            delegate.screen(marketCapMoreThan, marketCapLowerThan, sector, limit)
+            delegate.screen(marketCapMoreThan, marketCapLowerThan, sector, exchange, country, limit)
         }
 
     override fun searchSymbol(query: String, limit: Int): List<SearchHitDto> =

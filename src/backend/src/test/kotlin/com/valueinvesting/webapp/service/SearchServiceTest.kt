@@ -52,7 +52,7 @@ class SearchServiceTest {
 
         assertThat(page.items).hasSize(1)
         assertThat(page.items.first().ticker).isEqualTo("AAPL")
-        verify(exactly = 1) { fmpAdapter.screen(any(), any(), any(), any()) }
+        verify(exactly = 1) { fmpAdapter.screen(any(), any(), any(), any(), any(), any()) }
     }
 
     // MEGA band → maxUsd null (fascia aperta verso l'alto).
@@ -79,13 +79,13 @@ class SearchServiceTest {
     @Test
     fun `screen with multiple sectors fanouts to N FMP calls and merges`() {
         every {
-            fmpAdapter.screen(any(), any(), eq("Technology"), any())
+            fmpAdapter.screen(any(), any(), eq("Technology"), any(), any(), any())
         } returns listOf(
             ScreenedStockDto(symbol = "AAPL", companyName = "Apple", sector = "Technology", marketCap = 3e12),
             ScreenedStockDto(symbol = "MSFT", companyName = "Microsoft", sector = "Technology", marketCap = 2.8e12),
         )
         every {
-            fmpAdapter.screen(any(), any(), eq("Healthcare"), any())
+            fmpAdapter.screen(any(), any(), eq("Healthcare"), any(), any(), any())
         } returns listOf(
             ScreenedStockDto(symbol = "JNJ", companyName = "Johnson & Johnson", sector = "Healthcare", marketCap = 4e11),
         )
@@ -99,15 +99,15 @@ class SearchServiceTest {
 
         assertThat(page.items).hasSize(3)
         assertThat(page.items.map { it.ticker }).containsExactlyInAnyOrder("AAPL", "MSFT", "JNJ")
-        verify(exactly = 1) { fmpAdapter.screen(any(), any(), eq("Technology"), any()) }
-        verify(exactly = 1) { fmpAdapter.screen(any(), any(), eq("Healthcare"), any()) }
+        verify(exactly = 1) { fmpAdapter.screen(any(), any(), eq("Technology"), any(), any(), any()) }
+        verify(exactly = 1) { fmpAdapter.screen(any(), any(), eq("Healthcare"), any(), any(), any()) }
     }
 
     // Combo (2 bande × 2 settori) → 4 chiamate.
     @Test
     fun `screen with bands x sectors does N x M FMP calls`() {
         every {
-            fmpAdapter.screen(any(), any(), any(), any())
+            fmpAdapter.screen(any(), any(), any(), any(), any(), any())
         } returns emptyList()
 
         service.screen(
@@ -117,19 +117,19 @@ class SearchServiceTest {
             ),
         )
 
-        verify(exactly = 4) { fmpAdapter.screen(any(), any(), any(), any()) }
+        verify(exactly = 4) { fmpAdapter.screen(any(), any(), any(), any(), any(), any()) }
     }
 
     // De-duplica per symbol quando lo stesso ticker compare in più call.
     @Test
     fun `screen deduplicates same symbol across calls`() {
         every {
-            fmpAdapter.screen(any(), any(), eq("Technology"), any())
+            fmpAdapter.screen(any(), any(), eq("Technology"), any(), any(), any())
         } returns listOf(
             ScreenedStockDto(symbol = "AAPL", companyName = "Apple", sector = "Technology", marketCap = 3e12),
         )
         every {
-            fmpAdapter.screen(any(), any(), eq("Communication Services"), any())
+            fmpAdapter.screen(any(), any(), eq("Communication Services"), any(), any(), any())
         } returns listOf(
             // Stesso ticker che FMP reclassifica — non deve apparire duplicato.
             ScreenedStockDto(symbol = "AAPL", companyName = "Apple", sector = "Communication Services", marketCap = 3e12),
@@ -149,7 +149,7 @@ class SearchServiceTest {
     @Test
     fun `screen with excludeHardToPredict filters out FINANCIALS REAL_ESTATE ENERGY from results`() {
         every {
-            fmpAdapter.screen(any(), any(), null, any())
+            fmpAdapter.screen(any(), any(), null, any(), any(), any())
         } returns listOf(
             ScreenedStockDto(symbol = "AAPL", companyName = "Apple", sector = "Technology", marketCap = 3e12),
             ScreenedStockDto(symbol = "JPM", companyName = "JPMorgan", sector = "Financial Services", marketCap = 5e11),
@@ -177,13 +177,13 @@ class SearchServiceTest {
 
         assertThat(page.items).isEmpty()
         assertThat(page.nextCursor).isNull()
-        verify(exactly = 0) { fmpAdapter.screen(any(), any(), any(), any()) }
+        verify(exactly = 0) { fmpAdapter.screen(any(), any(), any(), any(), any(), any()) }
     }
 
     // Lista vuota da FMP → 200 con items vuota (DoD #3).
     @Test
     fun `screen with no FMP match returns empty page`() {
-        every { fmpAdapter.screen(any(), any(), any(), any()) } returns emptyList()
+        every { fmpAdapter.screen(any(), any(), any(), any(), any(), any()) } returns emptyList()
 
         val page = service.screen(
             ScreenerCriteria(
@@ -202,7 +202,7 @@ class SearchServiceTest {
         val items = (1..3).map {
             ScreenedStockDto(symbol = "T$it", companyName = "Co$it", sector = "Technology", marketCap = 1e10)
         }
-        every { fmpAdapter.screen(any(), any(), any(), any()) } returns items
+        every { fmpAdapter.screen(any(), any(), any(), any(), any(), any()) } returns items
 
         val page = service.screen(ScreenerCriteria(limit = 3))
 
