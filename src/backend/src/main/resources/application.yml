@@ -92,6 +92,13 @@ resilience4j:
         timeout-duration: 10s
         cancel-running-future: true
 
+# SEC EDGAR safety-net (source-of-truth è SecEdgarResilienceConfig.kt; questo
+# blocco è documentazione per il rate limit hard-cap SEC fair-access = 10 req/s).
+# [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-038-sec-edgar-adapter/TSK-091.md §4]
+# Note: il bean `secEdgarCircuitBreaker` ecc. è registrato programmaticamente,
+# quindi questa sezione `resilience4j.*.instances.secEdgar` NON è strettamente
+# necessaria — è qui solo per coerenza visiva e per `/actuator/health` annotation.
+
 # FMP cache TTL — profile snapshot (ADR-014); financial stays 24h in code (ADR-004).
 fmp:
   rate-limit-per-minute: ${FMP_RATE_LIMIT_PER_MINUTE:30}
@@ -99,6 +106,35 @@ fmp:
     profile-ttl-hours: 1
   event-log:
     retention-days: ${FMP_EVENT_LOG_RETENTION_DAYS:90}
+
+# SEC EDGAR integration (TSK-091 / US-038 / EP-011)
+# Fair-access policy: rate-limit-per-second hard cap = 10 (NON aumentare).
+# `user-agent.email` deve essere un indirizzo valido raggiungibile in prod
+# (env var SEC_EDGAR_USER_AGENT_EMAIL). Il default `dev@example.com` è solo
+# per dev locale — la SEC può bannare User-Agent palesemente di test.
+# [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-038-sec-edgar-adapter/TSK-091.md §7]
+sec:
+  edgar:
+    base-url: ${SEC_EDGAR_BASE_URL:https://data.sec.gov}
+    files-url: ${SEC_EDGAR_FILES_URL:https://www.sec.gov}
+    user-agent:
+      email: ${SEC_EDGAR_USER_AGENT_EMAIL:dev@example.com}
+    rate-limit-per-second: 10
+    rate-limit-timeout-seconds: 5
+    # TSK-092 — cache ticker→CIK Caffeine expireAfterWrite (default 30 giorni).
+    # company_tickers.json SEC è quasi-statico; refresh ogni 30g rigenera l'intera
+    # cache (~10k entries, ~3 MB) in un singolo HTTP GET.
+    # [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-038-sec-edgar-adapter/TSK-092.md §1,4]
+    cik-cache-ttl-days: 30
+    circuit-breaker:
+      failure-rate-threshold: 50
+      sliding-window-size: 10
+      minimum-number-of-calls: 5
+      wait-duration-in-open-state-seconds: 60
+      permitted-number-of-calls-in-half-open-state: 3
+    retry:
+      max-attempts: 3
+      wait-duration-ms: 1000
 
 # Application-specific properties
 app:
