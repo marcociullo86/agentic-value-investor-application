@@ -109,6 +109,18 @@ L'agente supporta due modalita' di selezione universo: [^src: raw/agent.py:87-10
 - **Manuali + screener** (`TICKER_MANUALI = ["AAPL", ...]`, `INCLUDI_SCREENER = True`): i ticker manuali bypassano il filtro settoriale (Trust mode) ma subiscono tutte le analisi profonde.
 - **Solo manuali** (`INCLUDI_SCREENER = False`): screener saltato, solo analisi dei ticker specificati.
 
+## Avviso di Porting — Current Ratio nel Routing Munger (v2026-05-25)
+
+**Bug metodologico latente in agent.py, NON da replicare in EP-011.**
+
+In `agent.py` v2.6.1, il `current_ratio` viene calcolato in `node_estrai_dati` e salvato nelle metriche del ticker. Tuttavia, **non viene usato come gate nel routing `munger_decision`**. Di conseguenza, un'azienda con Current Ratio < 1.5 (Criterio 2 Graham, segnale RED) può ricevere verdetto `APPROVATO` se supera i check ROE + D/E + MoS. [^src: raw/agent.py:1901-1936]
+
+Il Rule Engine Kotlin gestisce correttamente il Current Ratio: `CURRENT_RATIO_LATEST` è uno dei 13 `ruleId` EP-003 ed è incluso nei 7 signal Buffett-leaning con gate esplicito. [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-044-verdict-cascade-munger/US-044.md]
+
+Questo bug è probabilmente **intenzionale nel prototipo** (il Criterio Graham 2 non era priorità originale di agent.py) ma **non deve essere replicato** nel verdict cascade di US-044 (EP-011). Il porting deve includere il Current Ratio come gate nel cascade Munger.
+
+---
+
 ## Relazione con la WebApp (Porting Kotlin)
 
 Il porting in produzione e' distribuito su tre Epic:

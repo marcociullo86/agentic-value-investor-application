@@ -33,7 +33,7 @@ The Connection URL
 
 This is the "magic link" you will need for all integrations:
 
-https://financialmodelingprep.com/mcp?apikey=oUdvSzgNGs7vakHDT3ykjybKKQpqWzlA
+https://financialmodelingprep.com/mcp?apikey=<FMP_API_KEY>
 
 A. How to Connect to Claude (Online and Desktop)
 Open Settings and select the Connectors section.

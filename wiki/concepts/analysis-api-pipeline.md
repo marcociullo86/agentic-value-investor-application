@@ -79,6 +79,76 @@ Ogni voce è un `RuleSignal` con `ruleId`, `signal` (`GREEN` \| `YELLOW` \| `RED
 - Ogni analisi scrive una riga in `rule_engine_result` (`signals` JSONB, `graham_number`, `dcf_intrinsic_value`, `mos_signal`, `source_snapshot_fetched_at`).
 - Cache FMP 24h (`fmp_financial_snapshot`); fallback stale su `FmpUnavailableException` marca `isStale=true` (US-006). [^src: design_&_architecture/decisions/ADR-004-fmp-integration.md §Fallback su cache scaduta]
 
+## Aggiornamenti (v2026-05-25) — Endpoint `/api/analysis/{ticker}/deep`
+
+EP-011 estende la pipeline con un secondo endpoint orchestratore che incorpora la deep analysis narrativa (RAG 10-K/10-Q + LLM Munger inversion) oltre ai segnali quantitativi. [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-045-endpoint-deep-analysis/US-045.md §Descrizione]
+
+### Contratto HTTP `/deep`
+
+| Elemento | Valore |
+|----------|--------|
+| Metodo / path | `GET /api/analysis/{ticker}/deep` |
+| Query param | `invoke_llm` (`true` \| `false`, default `false`) |
+| Policy LLM | Campi deterministici sempre presenti; campi LLM-dipendenti (`deep_analysis_report`, `sentiment_summary`) popolati **solo se `invoke_llm=true`** |
+| Errori | `404` ticker non risolvibile; `422` con `reason="no_sec_filings"` se nessun filing SEC; `503` con `reason="llm_unavailable"` o `"LLM_FROZEN_BY_ADMIN"` (RFC 9457) |
+
+[^src: management/kanban/EP-011-deep-analysis-10k-10q/US-045-endpoint-deep-analysis/US-045.md §Business Rules]
+
+### Payload risposta `DeepAnalysisResponse`
+
+| Campo | Tipo | Condizione di presenza | Fonte |
+|-------|------|----------------------|-------|
+| `ticker` | `String` | Sempre | — |
+| `generated_at` | `Instant` | Sempre | — |
+| `verdict_payload` | oggetto (US-044) | Sempre (`partial_basis=true` se LLM non invocato) | [[value-investing-rule-engine]] cascade routing |
+| `rule_engine_results` | `List<RuleSignal>` (13 ruleId) | Sempre | EP-010 + EP-003 |
+| `price_action_snapshot` | oggetto (US-043) | Sempre | FMP `/stable/historical-price-eod/full` 12 mesi |
+| `deep_analysis_report` | `String` (testo Markdown) | Solo se `invoke_llm=true` | US-041 — Munger inversion LLM (Claude Opus 4.7) |
+| `sentiment_summary` | oggetto (US-042) | Solo se `invoke_llm=true` | US-042 — classificazione news (`TEMPORARY_PANIC` \| `STRUCTURAL_DAMAGE` \| `NEUTRAL`) |
+| `filings_used` | `List<FilingRef>` (id, form, filed_at) | Sempre (vuoto se no filing) | US-039 — filing_blob |
+| `llm_status` | `String` enum | Sempre | `"INVOKED"` \| `"NOT_INVOKED"` \| `"CACHE_HIT"` \| `"BUDGET_FROZEN"` |
+| `llm_cost_estimate_usd` | `Double?` | Sempre | Stima a priori per decisione client |
+
+[^src: management/kanban/EP-011-deep-analysis-10k-10q/US-045-endpoint-deep-analysis/US-045.md §Business Rules]
+
+### Flusso orchestrazione `/deep`
+
+```mermaid
+sequenceDiagram
+    participant C as DeepAnalysisController
+    participant S as DeepAnalysisOrchestrator
+    participant Q as QuantPipeline (US-038..040,043,044)
+    participant L as LlmPipeline (US-041,042) [opt]
+    participant DB as deep_analysis_event_log
+
+    C->>S: deepAnalyze(ticker, invokeLlm)
+    S->>Q: sec filings fetch + embed + pgvector + price action + verdict cascade
+    alt invokeLlm=true
+        S->>L: MungerInversionService + NewsSentimentService
+        L-->>S: deep_analysis_report + sentiment_summary
+    end
+    S->>DB: log (ticker, cache_hits, llm_calls, total_duration_ms)
+    S-->>C: DeepAnalysisResponse
+```
+
+### Finestre di cache e latenze attese
+
+| Componente | TTL cache | Latenza attesa (cache hit) |
+|------------|-----------|---------------------------|
+| Filing blob (10-K/10-Q) | 90gg | — |
+| Report Munger LLM | 90gg | < 2s (cache hit) |
+| News sentiment | 24h | < 2s (cache hit) |
+| Price action snapshot | 24h | < 2s (cache hit) |
+| Prima esecuzione cold (con LLM) | — | 30–90s |
+
+[^src: management/kanban/EP-011-deep-analysis-10k-10q/US-045-endpoint-deep-analysis/US-045.md §Business Rules]
+
+### Audit log
+
+Ogni esecuzione logga in `deep_analysis_event_log`: `(ticker, generated_at, cache_hits, llm_calls, total_duration_ms)`. [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-045-endpoint-deep-analysis/US-045.md §Business Rules]
+
+---
+
 ## QA collegata
 
 - Test E2E: `AnalysisControllerIT` (Testcontainers + mock FMP, 6 scenari). [^src: src/backend/src/test/kotlin/com/valueinvesting/webapp/api/AnalysisControllerIT.kt]
@@ -97,12 +167,17 @@ Verifica coerenza L5 su `master`: `AnalyzeTickerService` orchestra ancora 7 `Rul
 [[intrinsic-value]]
 [[openapi-contract-check]]
 [[fmp-financial-statements-stable]]
+[[pgvector-vector-store]]
+[[arctic-embed-l-v2]]
+[[munger-inversion-rag]]
+[[panic-buy-vs-value-trap-detection]]
 
 ## Pagine collegate
 
 [[webapp-value-investing-spec]]
 [[value-investing-rule-engine-runbook]]
 [[webapp-architecture-vi]]
+[[value-investor-bot-architecture]]
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->

@@ -2,7 +2,7 @@
 ---
 id: sprint
 title: Sprint Plan — R1.0 MVP + R1.1 + R1.1.x hotfix + R2.0
-generated: 2026-05-23
+generated: 2026-05-25
 tpm: tpm
 release: R2.0 (R1.1.x hotfix in corso)
 r10_closed: 2026-05-22
@@ -13,8 +13,9 @@ r11_closed: TBD
 > **R1.0 MVP chiuso:** Sprint 1–4 completati (49/49 TSK `done`, 20/20 US, 6/6 EP).
 > **R1.1 attivo:** Sprint 5 — 22 TSK nuovi (TSK-050…072); Sprint 6 lookahead (ex) incluso.
 > **R1.1.x hotfix:** Sprint 5.5 — 12 TSK nuovi (TSK-143…154); EP-007 fase 2 riaperto; fix bug rule engine produzione (DCF per-share, ROE/ROIC mapping, FE date display).
-> **R2.0 pianificato:** Sprint 6–9 — 70 TSK nuovi (TSK-073…142); 20 US nuove (US-032…051), 3 EP (EP-010…012).
+> **R2.0 pianificato:** Sprint 6–9 — 79 TSK nuovi (TSK-073…163); 21 US nuove (US-032…055), 3 EP (EP-010…012).
 > Ordine suggerito PM: **Sprint 5.5 (EP-007 fase 2 hotfix)** → **EP-010 (Sprint 6)** → **EP-011 BE (Sprint 7)** → **EP-011 FE (Sprint 8)** → **EP-012 (Sprint 9)**.
+> **Aggiornamento 2026-05-25:** aggiunti TSK-155…163 (ADR-019 LLM cost budget telemetry + ADR-020 ROE dual lookback). TSK-155/156/160/161/162/163 in Sprint 7; TSK-157/158/159 in Sprint 8.
 
 ---
 
@@ -232,9 +233,9 @@ TSK-152 + TSK-153 ──→ TSK-154
 
 ---
 
-## Sprint 7 — Deep Analysis backend (EP-011 — BE/DB/Infra)
+## Sprint 7 — Deep Analysis backend (EP-011 — BE/DB/Infra) + LLM telemetry + ROE dual lookback
 
-**Obiettivo:** Infrastruttura RAG completa (SEC EDGAR adapter + filing blob cache + pgvector + EmbeddingService sidecar), pipeline analisi qualitativa (MungerInversion LLM + NewsSentiment + PriceAction), cascade verdetto, endpoint `/api/analysis/{ticker}/deep`.
+**Obiettivo:** Infrastruttura RAG completa (SEC EDGAR adapter + filing blob cache + pgvector + EmbeddingService sidecar), pipeline analisi qualitativa (MungerInversion LLM + NewsSentiment + PriceAction), cascade verdetto, endpoint `/api/analysis/{ticker}/deep`. Aggiunta (2026-05-25, ADR-019+ADR-020): telemetria LLM + budget config DB/BE + ROE_5Y_AVG + estensione payload /deep + prompt Munger dual lookback.
 
 **Dipendenze:** Sprint 6 completato (i 13 ruleId Buffett+Graham necessari per la cascade US-044).
 
@@ -271,16 +272,40 @@ TSK-152 + TSK-153 ──→ TSK-154
 | TSK-119 | BE DTO DeepAnalysisResultDto + OpenAPI schema /deep + migration V016 | be | agent | S | US-045 | ready |
 | TSK-120 | QA Integration test E2E /deep — tutti i mock provider | qa | agent | M | US-045 | ready |
 | TSK-121 | QA Contract test OpenAPI /deep — drift guard | qa | agent | S | US-045 | ready |
+| TSK-155 | DB Migration V0XX__llm_cost_tracking (llm_cost_counter + llm_call_log + llm_budget_config seed) | db | agent | S | US-055 | todo |
+| TSK-156 | BE LlmCostCounterService + LlmCallLogger AOP + LlmBudgetGuard + endpoint admin GET/POST freeze/PUT budget | be | agent | L | US-055 | todo |
+| TSK-160 | BE RoeCalculator.fiveYearAverage — porting ROE_5Y_AVG da agent.py | be | agent | S | US-045 | todo |
+| TSK-161 | BE Estendi DeepAnalysisResponse con blocco roe (fiveYearAvg + tenYearAvg + dataPoints) + OpenAPI | be | agent | S | US-045 | todo |
+| TSK-162 | BE Aggiorna prompt Munger LLM con entrambi i lookback ROE + nota interpretativa divergenza | be | agent | S | US-041 | todo |
+| TSK-163 | QA Contract test + unit test ROE dual lookback — payload /deep + edge case + golden test divergenza | qa | agent | S | US-045 | todo |
 
-**Totale Sprint 7:** 31 TSK (15 be, 0 fe, 5 db, 1 infra, 10 qa)
+**Totale Sprint 7:** 37 TSK (17 be, 0 fe, 6 db, 1 infra, 13 qa) — +6 TSK da ADR-019/ADR-020
+
+**Dipendenze interne Sprint 7:**
+```
+TSK-091 ──→ TSK-092 ──→ TSK-093
+TSK-091 + TSK-094 + TSK-095 ──→ TSK-096 ──→ TSK-097
+TSK-095 ──→ TSK-098
+TSK-099 ──→ TSK-100
+TSK-098 + TSK-100 + TSK-101 ──→ TSK-102 ──→ TSK-103
+TSK-104 + TSK-102 ──→ TSK-105 + TSK-106 ──→ TSK-107
+TSK-108 + TSK-110 + TSK-104 ──→ TSK-109 ──→ TSK-111
+TSK-112 + TSK-113 ──→ TSK-114
+TSK-105 + TSK-109 + TSK-113 ──→ TSK-115 + TSK-116 ──→ TSK-117
+TSK-115 + TSK-119 ──→ TSK-118 ──→ TSK-120 + TSK-121
+TSK-155 ──→ TSK-156
+TSK-160 ──→ TSK-161 ──→ TSK-162
+TSK-160 + TSK-161 + TSK-162 ──→ TSK-163
+TSK-156 deve precedere TSK-104/TSK-105/TSK-109 (LlmBudgetGuard nella chain Resilience4j)
+```
 
 ---
 
-## Sprint 8 — Deep Analysis frontend (EP-011 — FE)
+## Sprint 8 — Deep Analysis frontend (EP-011 — FE) + LLM budget FE
 
-**Obiettivo:** Tab "Deep Analysis" sul frontend con tutti i componenti UI (verdict badge, Munger report collapsibile, news sentiment, drawdown chart, filing links), SWR hook, test E2E Playwright.
+**Obiettivo:** Tab "Deep Analysis" sul frontend con tutti i componenti UI (verdict badge, Munger report collapsibile, news sentiment, drawdown chart, filing links), SWR hook, test E2E Playwright. Aggiunta (2026-05-25, ADR-019): budget bar scheda dettaglio + LlmBudgetAdminPanel + QA integration tests budget config.
 
-**Dipendenze:** Sprint 7 completato (endpoint `/api/analysis/{ticker}/deep` disponibile).
+**Dipendenze:** Sprint 7 completato (endpoint `/api/analysis/{ticker}/deep` disponibile + LlmBudgetGuard/endpoint admin BE).
 
 | TSK | Titolo | Layer | Consumer | Est. | US | Status |
 |-----|--------|-------|----------|------|----|--------|
@@ -288,8 +313,19 @@ TSK-152 + TSK-153 ──→ TSK-154
 | TSK-123 | FE Componenti UI Deep Analysis (5 componenti) | fe | agent | M | US-046 | ready |
 | TSK-124 | FE API client estensione + SWR hook useDeepAnalysis | fe | agent | S | US-046 | ready |
 | TSK-125 | QA Test E2E Playwright Deep Analysis — happy path + value-trap + invalido | qa | agent | M | US-046 | ready |
+| TSK-157 | FE Budget bar + cache-hit signal sul pulsante Avvia analisi LLM (scheda dettaglio) | fe | agent | S | US-046 | todo |
+| TSK-158 | FE LlmBudgetAdminPanel — campo cap + modal conferma + PUT /admin/llm-cost/budget | fe | agent | M | US-055 | todo |
+| TSK-159 | QA Integration tests LLM budget config — PUT happy path + cache invalidation + audit + 400 + 403 | qa | agent | M | US-055 | todo |
 
-**Totale Sprint 8:** 4 TSK (3 fe, 1 qa)
+**Totale Sprint 8:** 7 TSK (3 fe, 1 qa → originali; +2 fe, +1 qa da ADR-019) — totale: 3 fe, 1 db (nessuno), 3 qa
+
+**Dipendenze interne Sprint 8:**
+```
+TSK-119 + TSK-118 ──→ TSK-122 + TSK-124 ──→ TSK-123 ──→ TSK-125
+TSK-156 + TSK-122 + TSK-124 ──→ TSK-157
+TSK-156 ──→ TSK-158
+TSK-155 + TSK-156 + TSK-158 ──→ TSK-159
+```
 
 ---
 
@@ -332,11 +368,11 @@ TSK-152 + TSK-153 ──→ TSK-154
 | R1.1 | lookahead | 0 | 0 | 2 | 0 | 0 | **2** (TSK-071 todo, TSK-072 done) |
 | R1.1.x | 5.5 hotfix | 0 | 0 | 3 | 2 | 7 | **12** (TSK-143…154) |
 | R2.0 | 6 | 0 | 1 | 8 | 1 | 8 | **18** |
-| R2.0 | 7 | 1 | 5 | 15 | 0 | 10 | **31** |
-| R2.0 | 8 | 0 | 0 | 0 | 3 | 1 | **4** |
+| R2.0 | 7 | 1 | 6 | 19 | 0 | 11 | **37** (+6 da ADR-019/020) |
+| R2.0 | 8 | 0 | 0 | 0 | 5 | 2 | **7** (+3 da ADR-019) |
 | R2.0 | 9 | 1 | 1 | 7 | 2 | 6 | **17** |
-| | **Nuovi R2.0** | | | | | | **70** (TSK-073…142) |
-| | **TOTALE** | | | | | | **154** |
+| | **Nuovi R2.0** | | | | | | **79** (TSK-073…163) |
+| | **TOTALE** | | | | | | **163** |
 
 ---
 
@@ -352,7 +388,7 @@ Sprint 6 (EP-010, parallelo per pair be+qa)
   TSK-083 + TSK-084 ──→ TSK-085 ──→ TSK-086
   TSK-073..086 ──→ TSK-087 ──→ TSK-088 ──→ TSK-089 ──→ TSK-090
 
-Sprint 7 (EP-011 BE, catena sequenziale per blocchi)
+Sprint 7 (EP-011 BE + LLM telemetry + ROE dual lookback)
   TSK-091 ──→ TSK-092 ──→ TSK-093
   TSK-091 + TSK-094 + TSK-095 ──→ TSK-096 ──→ TSK-097
   TSK-095 ──→ TSK-098
@@ -363,9 +399,15 @@ Sprint 7 (EP-011 BE, catena sequenziale per blocchi)
   TSK-112 + TSK-113 ──→ TSK-114
   TSK-105 + TSK-109 + TSK-113 ──→ TSK-115 + TSK-116 ──→ TSK-117
   TSK-115 + TSK-119 ──→ TSK-118 ──→ TSK-120 + TSK-121
+  TSK-155 ──→ TSK-156 (precede TSK-104/105/109 — LlmBudgetGuard in Resilience4j chain)
+  TSK-160 ──→ TSK-161 ──→ TSK-162 ──→ TSK-163
+  TSK-160 + TSK-161 + TSK-162 ──→ TSK-163
 
-Sprint 8 (EP-011 FE)
+Sprint 8 (EP-011 FE + LLM budget FE + QA)
   TSK-119 + TSK-118 ──→ TSK-122 + TSK-124 ──→ TSK-123 ──→ TSK-125
+  TSK-156 + TSK-122 + TSK-124 ──→ TSK-157
+  TSK-156 ──→ TSK-158
+  TSK-155 + TSK-156 + TSK-158 ──→ TSK-159
 
 Sprint 9 (EP-012)
   TSK-091 ──→ TSK-127

@@ -6,6 +6,8 @@ status: draft
 created: 2026-05-20
 updated: 2026-05-22 (v2026-05-22 FMP stable migration + ingest L'Investitore Intelligente B. Graham)
 updated: 2026-05-22 (TSK-068 US-029 fmp-api-quickstart operativo)
+updated: 2026-05-25 (gap-close run: +2 concept EP-011, +1 extend analysis-api-pipeline, +1 note value-investor-bot-architecture)
+updated: 2026-05-25 (gap-close massivo 9 gap + ingest fmp_mcp-server.txt: +1 concept fmp-mcp-integration, +1 source fmp-mcp-server)
 tags: [navigation]
 ---
 # Wiki Index — App Template Demo
@@ -39,13 +41,14 @@ tags: [navigation]
 
 ## Pagine
 
-### Sources (9)
+### Sources (10)
 
-#### FMP API (1)
+#### FMP API (2)
 
 | Pagina | Documento sorgente | Tag |
 |--------|--------------------|-----|
 | [[fmp-docs]] | fmp_docs.md + fmp_docs.json (263 endpoint stable) | fmp, stable, api |
+| [[fmp-mcp-server]] | fmp_mcp-server.txt (annuncio MCP Server FMP) | fmp, mcp, model-context-protocol, llm |
 
 #### Value Investing (6)
 
@@ -66,9 +69,9 @@ tags: [navigation]
 | [[vi-07-risoluzione-q002-q003]] | 07_Risoluzione_Q002_Q003.md | product-spec, frontend, spa, react, nextjs, screener, gics, q002, q003 |
 | [[vi-08-risoluzione-q001-owner-earnings]] | 08_Risoluzione_Q001_Owner_Earnings.md | product-spec, dcf, owner-earnings, buffett, capex, greenwald, q001 |
 
-### Concepts (22)
+### Concepts (25)
 
-#### FMP API stable (13)
+#### FMP API stable (14)
 
 | Pagina | Descrizione |
 |--------|-------------|
@@ -85,6 +88,7 @@ tags: [navigation]
 | [[fmp-cryptocurrency]] | Criptovalute: BTC, ETH (stable) |
 | [[fmp-forex]] | Tassi di cambio valutari (stable) |
 | [[fmp-etfs-funds]] | ETF e fondi comuni: info, holdings (stable) |
+| [[fmp-mcp-integration]] | FMP MCP Server: cos'è MCP, vantaggi vs REST adapter, casi d'uso LLM agent, considerazione architetturale |
 
 #### Value Investing (14)
 
@@ -105,14 +109,16 @@ tags: [navigation]
 | [[inflation-investing-graham]] | Cap.2: azioni con pricing power come hedge parziale all'inflazione |
 | [[superinvestors-graham-doddsville]] | Appendice 1 / Buffett 1984: prova empirica — 9 fondi Graham sovraperformano il mercato |
 
-#### Product Spec (4)
+#### Product Spec / EP-011 (6)
 
 | Pagina | Descrizione |
 |--------|-------------|
 | [[value-investing-rule-engine]] | Motore regole quantitativo: ROE/ROIC/Margin/CurrentRatio/CapEx + DCF + MoS traffic light |
 | [[webapp-architecture-vi]] | Architettura 3-layer: Next.js SPA, Spring Boot 3.5 backend, PostgreSQL; endpoint Sprint 2 su `master` |
-| [[analysis-api-pipeline]] | `GET /api/analysis/{ticker}`: 7 signals + Graham + DCF + MoS + persistenza |
+| [[analysis-api-pipeline]] | `GET /api/analysis/{ticker}` (7 signals + Graham + DCF + MoS) + `GET /api/analysis/{ticker}/deep` (EP-011 deep analysis, payload esteso, invoke_llm policy) |
 | [[openapi-contract-check]] | springdoc 2.8.16 (webmvc-api), MockMvc `/api/openapi.json`, gate CI `contract-check` |
+| [[pgvector-vector-store]] | Vector store EP-011: schema `filing_chunks`, HNSW (m=16, ef=64), chunking 6000/400 char, query similarity pgvector |
+| [[arctic-embed-l-v2]] | Modello embedding EP-011: `Qwen/Qwen3-Embedding-0.6B` (1024-dim, 32K ctx, MTEB ~64.6); A/B test via `embeddings.model.name`; Arctic Embed L v2.0 come fallback |
 
 ### Entities (3)
 

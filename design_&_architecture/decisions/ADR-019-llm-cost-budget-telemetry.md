@@ -3,14 +3,31 @@ id: ADR-019
 title: LLM cost telemetry + budget alert (no kill-switch automatico) — LLM on-demand manuale dalla scheda dettaglio
 status: accepted
 created: 2026-05-23
-updated: 2026-05-23
+updated: 2026-05-25
 accepted: 2026-05-23
 deciders: [lead-architect, marco.ciullo]
-consulted: [tpm, product-manager, be-dev, db-dev]
+consulted: [tpm, product-manager, be-dev, db-dev, fe-dev]
 pending_clarification: []
 supersedes: ADR-019-v1 (kill-switch automatico, rifiutato dall'utente)
 ---
 # ADR-019 v2 — LLM cost telemetry + budget alert (no kill-switch automatico)
+
+## Aggiornamento 2026-05-25 — Budget cap conservativo $50/mese + admin UI runtime
+
+Decisione utente (2026-05-25):
+
+- **Default `llm.budget.monthly-cap-usd` ridotto da $150 → $50/mese.** Motivazione: budget conservativo per pilota R2, allineato allo scenario di costo realistico con cache user-level attiva (~$25/mese realistico, $50 lascia 100% margine senza essere eccessivo). Scalabile via admin UI se traffico/qualità giustificano incremento.
+- **Configurabilità runtime via admin UI**: il cap mensile non è più solo env var, ma modificabile da admin via endpoint `PUT /admin/llm-cost/budget` (ruolo `ADMIN`). La modifica persiste su DB (tabella `llm_budget_config` dedicata, vedi §"Configurazione runtime") ed è loggata in audit per accountability.
+
+Conseguenze:
+
+- Tutti i riferimenti `$150` di seguito sono **storici** della v2 originale (2026-05-23). Il default attuale è **$50**.
+- L'admin può alzare/abbassare il cap senza redeploy; ogni modifica genera audit entry `LLM_BUDGET_CAP_CHANGED` con old/new value, admin user, timestamp.
+- I 3 TSK proposti diventano 4 con l'aggiunta del nuovo TSK-XXX-D (fe `LlmBudgetAdminPanel`, vedi §"Migration & Rollout").
+
+[^src: management/questions.md decisione utente 2026-05-25]
+
+## Aggiornamento 2026-05-23 — Switch policy: LLM on-demand-only
 
 ## Aggiornamento 2026-05-23 — Switch policy: LLM on-demand-only
 
@@ -52,7 +69,7 @@ L'integrazione tecnica del client (`AnthropicClient` interface + `AnthropicRestC
 | Stesso scenario con cache filing-combo 90gg (~10% refresh rate) | ~150 chiamate effettive | **~$75/mese** |
 | Stesso con cache user-level (deduplica click multipli stesso ticker × mese) | ~50 chiamate effettive | **~$25/mese** |
 
-**Range realistico a regime con tutte le cache attive: $30-100/mese.** Budget $150/mese = ~50% margine di sicurezza.
+**Range realistico a regime con tutte le cache attive: $30-100/mese.** Budget storico v2 (2026-05-23): $150/mese. **Budget attuale (2026-05-25): $50/mese** — conservativo per pilota R2, scalabile via admin UI.
 
 ## Decision Drivers
 
@@ -90,7 +107,7 @@ Tutto il traffico Anthropic passa attraverso un servizio esterno con telemetria/
 
 | Property | Default | Env var |
 |---|---|---|
-| `llm.budget.monthly-cap-usd` | `150.00` | `LLM_BUDGET_MONTHLY_CAP_USD` |
+| `llm.budget.monthly-cap-usd` | `50.00` (default 2026-05-25; runtime-configurable via admin UI) | `LLM_BUDGET_MONTHLY_CAP_USD` (override iniziale; valore effettivo letto da `llm_budget_config` se presente) |
 | `llm.budget.alert-threshold-percent` | `80` | `LLM_BUDGET_ALERT_THRESHOLD_PERCENT` |
 | `llm.budget.frozen` | `false` | `LLM_BUDGET_FROZEN` (true → blocca tutte le chiamate LLM, admin-controlled) |
 | `llm.budget.reset-cron` | `0 0 0 1 * *` (1° del mese 00:00 UTC) | `LLM_BUDGET_RESET_CRON` |
@@ -154,18 +171,54 @@ Implementazione: estendere `LlmCallLogger` AOP per controllare cache_hit prima d
 
 | Endpoint | Method | Auth | Funzione |
 |---|---|---|---|
-| `GET /admin/llm-cost` | GET | `ROLE_ADMIN` | Payload: utilization%, budget cap, total cost mese, breakdown per purpose, history 30gg, freeze status |
+| `GET /admin/llm-cost` | GET | `ROLE_ADMIN` | Payload: utilization%, budget cap corrente (letto runtime), total cost mese, breakdown per purpose, history 30gg, freeze status |
 | `POST /admin/llm-cost/freeze` | POST | `ROLE_ADMIN` | Imposta `llm.budget.frozen=true` runtime (no restart). Blocca immediatamente tutte le chiamate LLM. |
 | `POST /admin/llm-cost/unfreeze` | POST | `ROLE_ADMIN` | Sblocca. |
+| `PUT /admin/llm-cost/budget` | PUT | `ROLE_ADMIN` | **(nuovo 2026-05-25)** Aggiorna `monthly_cap_usd` runtime. Body JSON: `{ "monthlyCapUsd": <decimal>, "reason": "<string opzionale>" }`. Valida `monthlyCapUsd > 0`. Persiste in `llm_budget_config`. Emette audit entry `LLM_BUDGET_CAP_CHANGED`. |
 
 Freeze attivo → endpoint LLM-dependent restituiscono `HTTP 503 LLM_FROZEN_BY_ADMIN` (ProblemDetail RFC 9457). I client devono mostrare un banner "Analisi LLM temporaneamente disabilitata dall'amministratore". Endpoint non-LLM continuano a funzionare.
+
+### 4.bis Configurazione runtime (nuovo 2026-05-25)
+
+Il cap mensile è una **runtime configuration** modificabile dall'admin senza redeploy. Modello dati:
+
+#### Tabella `llm_budget_config` (singleton row)
+
+| Colonna | Tipo | Note |
+|---|---|---|
+| `id` | `SMALLINT PRIMARY KEY CHECK (id = 1)` | Singleton row (sempre `id=1`) |
+| `monthly_cap_usd` | `NUMERIC(10,2) NOT NULL` | Cap corrente; seed iniziale `50.00` |
+| `alert_threshold_percent` | `SMALLINT NOT NULL DEFAULT 80` | Soglia alert (estendibile in futuro) |
+| `updated_at` | `TIMESTAMPTZ NOT NULL DEFAULT now()` | |
+| `updated_by` | `BIGINT NULL REFERENCES app_user(id)` | Admin che ha effettuato l'ultima modifica |
+
+**Lettura runtime**: `LlmBudgetGuard` legge `monthly_cap_usd` da `llm_budget_config` (cache in-memory invalidata via Spring event al `PUT /admin/llm-cost/budget`). Fallback su `llm.budget.monthly-cap-usd` (env var, default `50.00`) se la row non esiste (bootstrap).
+
+#### Audit log
+
+Ogni `PUT /admin/llm-cost/budget` emette entry nella tabella audit esistente (ADR-008/ADR-010) con:
+
+- `action = LLM_BUDGET_CAP_CHANGED`
+- `actor_user_id` = admin
+- `payload_json = { "oldCapUsd": <decimal>, "newCapUsd": <decimal>, "reason": "<string>" }`
+- `created_at` = timestamp
+
+Retention audit come definita in ADR-008.
+
+#### Validazione
+
+- `monthlyCapUsd` deve essere `> 0` e `<= 10000` (cap di sicurezza assoluto, configurabile via env `LLM_BUDGET_ABSOLUTE_MAX_USD`).
+- Risposta `400 BUDGET_CAP_INVALID` (RFC 9457) se fuori range.
+- Idempotenza: stesso valore = no-op, nessuna nuova audit entry.
+
+[^src: management/questions.md decisione utente 2026-05-25]
 
 ### 5. Frontend integration (US-046)
 
 Il pulsante "Avvia analisi LLM" nella scheda dettaglio deve mostrare:
 
 - **Stima costo della chiamata**: es. "≈ $0.49" calcolata da `LlmCostEstimator` (max_tokens × pricing).
-- **Utilizzo budget mensile**: es. "Budget mensile usato 23% ($35 / $150)".
+- **Utilizzo budget mensile**: es. "Budget mensile usato 70% ($35 / $50)". Il denominatore è letto runtime dal cap corrente (default $50, modificabile da admin UI).
 - **Cache hit signal**: se l'utente ha già premuto il pulsante per quel ticker nel mese, il pulsante mostra "Mostra analisi precedente" invece di "Avvia analisi LLM" (servita da cache user-level, costo $0).
 
 ### 6. Resilience4j chain LLM (invariata da v1, ADR-017 §5)
@@ -216,13 +269,21 @@ Cron Spring `@Scheduled` `0 0 0 1 * *` UTC: insert nuova row `llm_cost_counter` 
 
 ## Migration & Rollout
 
-1. **Migration `V0XX__llm_cost_tracking.sql`** (TSK nuovo): crea tabelle `llm_cost_counter` + `llm_call_log` + indici + retention job.
-2. **Implementazione `LlmCostCounterService` + `LlmBudgetGuard`** (TSK nuovo, be-dev): UPSERT atomico, freeze check, cache user-level lookup.
-3. **Implementazione `LlmCallLogger` AOP `@Around`** (TSK nuovo, be-dev): aspect su `AnthropicClient.complete` + `GeminiClient.complete` (per segnale 3 scout).
-4. **Endpoint admin** (TSK nuovo, be-dev): `GET /admin/llm-cost` + `POST /admin/llm-cost/{freeze|unfreeze}`.
-5. **Alert Slack** (TSK nuovo, be-dev): `LlmBudgetAlertJob` cron 5min.
-6. **Frontend integration** (TSK nuovo, fe-dev): pulsante "Avvia analisi LLM" con stima costo + budget bar + cache hit handling.
-7. **Test integration**: WireMock + Testcontainers (counter persistence, freeze toggle, cache hit, alert idempotency).
+TSK proposti (riferimenti `TSK-XXX-A..D` da risolvere a numerazione concreta in fase tpm):
+
+1. **TSK-XXX-A — Migration DB** (db-dev): `V0XX__llm_cost_tracking.sql` crea tabelle `llm_cost_counter`, `llm_call_log`, **`llm_budget_config`** (singleton seed `(1, 50.00, 80, now(), NULL)`), indici, retention job.
+2. **TSK-XXX-B — Servizi cost+budget** (be-dev): `LlmCostCounterService`, `LlmBudgetGuard` (legge runtime da `llm_budget_config` con cache+event refresh), `LlmCallLogger` AOP `@Around` su `AnthropicClient.complete` + `GeminiClient.complete`, endpoint admin `GET /admin/llm-cost` + `POST /admin/llm-cost/{freeze|unfreeze}` + **`PUT /admin/llm-cost/budget`** con audit `LLM_BUDGET_CAP_CHANGED`, alert Slack idempotente cron 5min.
+3. **TSK-XXX-C — Frontend integration scheda dettaglio** (fe-dev, US-046): pulsante "Avvia analisi LLM" con stima costo + budget bar (denominatore letto runtime via `GET /admin/llm-cost` o endpoint pubblico read-only `GET /llm-cost/budget-snapshot`) + cache hit handling.
+4. **TSK-XXX-D — Frontend `LlmBudgetAdminPanel`** (fe-dev, **nuovo 2026-05-25**): pannello admin con:
+   - Lettura cap corrente via `GET /admin/llm-cost` (campo `monthlyCapUsd`)
+   - Campo numerico decimal (input `monthlyCapUsd`, validazione client `> 0` e `<= absoluteMax`)
+   - Campo testo opzionale `reason` (motivo modifica per audit)
+   - Modal di conferma con diff `old → new`
+   - Chiamata `PUT /admin/llm-cost/budget` con body `{ "monthlyCapUsd": <decimal>, "reason": "<string>" }`
+   - Gestione errori `400 BUDGET_CAP_INVALID` (ProblemDetail RFC 9457) → toast con `detail`
+   - Refresh utilization% dopo successo
+   - Accessibile solo da utenti con ruolo `ADMIN` (gate UI + check server-side)
+5. **TSK-XXX-E — Test integration**: WireMock + Testcontainers (counter persistence, freeze toggle, cache hit, alert idempotency, **runtime cap change con cache invalidation**, audit entry emessa).
 
 ## Consequences
 
@@ -247,6 +308,9 @@ Cron Spring `@Scheduled` `0 0 0 1 * *` UTC: insert nuova row `llm_cost_counter` 
 - Test: freeze admin endpoint → ogni successiva chiamata LLM ritorna 503 `LLM_FROZEN_BY_ADMIN`.
 - Test: alert 80% inviato una sola volta per mese (idempotenza `alert_80_sent_at`).
 - Test: reset mensile crea nuova row e azzera tutti i contatori cumulativi.
+- Test (nuovo 2026-05-25): `PUT /admin/llm-cost/budget` con `monthlyCapUsd=75.00` aggiorna `llm_budget_config`, emette audit `LLM_BUDGET_CAP_CHANGED`, invalida cache, e successivo `GET /admin/llm-cost` riflette il nuovo cap.
+- Test (nuovo 2026-05-25): `PUT /admin/llm-cost/budget` con `monthlyCapUsd=0` o negativo → `400 BUDGET_CAP_INVALID` (ProblemDetail RFC 9457).
+- Test (nuovo 2026-05-25): utente con ruolo `USER` (non `ADMIN`) riceve `403` su `PUT /admin/llm-cost/budget`.
 
 ## Riferimenti
 
@@ -256,3 +320,53 @@ Cron Spring `@Scheduled` `0 0 0 1 * *` UTC: insert nuova row `llm_cost_counter` 
 - [wiki/concepts/munger-inversion-rag.md](../../wiki/concepts/munger-inversion-rag.md) §"Costo LLM"
 - [wiki/concepts/value-investor-bot-architecture.md](../../wiki/concepts/value-investor-bot-architecture.md) §"Strategia LLM Ibrida"
 - US implicate: US-041, US-042, US-045, US-046, US-047 (con patch 2026-05-23)
+
+## Appendice 2026-05-25 — Budget snapshot visibility
+
+### Contesto
+
+TSK-157 (FE: budget bar sul pulsante "Avvia analisi LLM" della scheda dettaglio US-046) ha sollevato come `pending_clarification` la mancata formalizzazione del lettore della budget bar: §4 di questo ADR definisce solo `GET /admin/llm-cost` con `ROLE_ADMIN`, mentre §5 parla genericamente di "pulsante mostra utilizzo budget mensile" senza qualificare il ruolo. Il punto 3 di "Migration & Rollout" cita esplicitamente due alternative ("endpoint pubblico read-only `GET /llm-cost/budget-snapshot`" come opzione, mai contrattualizzata).
+
+### Decisione: Opzione A — Budget bar visibile solo a `ROLE_ADMIN`, USER non riceve indicatore consumo aggregato
+
+La budget bar nella scheda dettaglio (US-046) riusa l'endpoint esistente `GET /admin/llm-cost` ed è renderizzata **solo per utenti con `ROLE_ADMIN`**. Per utenti `USER` la budget bar non è mostrata; il pulsante "Avvia analisi LLM" mostra esclusivamente la **stima costo della chiamata** (`llm_cost_estimate_usd` dal payload US-045) + tooltip statico.
+
+### Motivazione
+
+1. **La protezione decisionale per USER è già nella stima costo per-click**: `llm_cost_estimate_usd` (campo presente nel payload `GET /api/analysis/{ticker}/deep` di US-045) mostra il costo della singola chiamata che l'utente sta per autorizzare. Questa è la leva di decision-making rilevante per il click; il dato aggregato mensile è metric di governance operativa, non per-decision.
+2. **Pilota R2 single-tenant a basso volume non richiede trasparenza cross-user**: gli utenti demo sono pochi, il cap $50 è basso, la vera leva di controllo è il `POST /admin/llm-cost/freeze` admin-side (§4). Esporre il cap aggregato a USER è una feature di trasparenza che non risolve un problema operativo concreto del pilota.
+3. **Minore surface area = minore information disclosure ciclica**: un endpoint pubblico anche se sanitizzato (con rate-limit, payload aggregato, TTL cache) è un attack-surface aggiuntivo da contrattualizzare, testare cross-role, presidiare con audit. Il beneficio per USER (vedere il cap aggregato che non può influenzare) non giustifica il costo implementativo + di security review.
+
+### Conseguenze su FE (US-046 / TSK-157)
+
+- Componente `LlmBudgetBar`:
+  - Renderizzato **condizionalmente** in base a ruolo utente (`session.user.role === 'ADMIN'`).
+  - Sorgente dati: `GET /admin/llm-cost` (già definito §4, già autorizzato `ROLE_ADMIN`). Nessun nuovo endpoint richiesto.
+  - Refresh on-demand al click del pulsante "Avvia analisi LLM" (no polling).
+- Pulsante "Avvia analisi LLM" per **utenti `USER`**:
+  - Label: `Avvia analisi LLM ≈ $0.49` (solo stima per-call da `llm_cost_estimate_usd`).
+  - Tooltip statico: "Lo step LLM analizza in profondità 10-K e 10-Q via Claude Opus 4.7. Costo a tuo carico (budget condiviso, gestito dall'amministratore). Risultato salvato in cache per il mese corrente."
+  - **Nessuna budget bar visualizzata**.
+- Pulsante "Avvia analisi LLM" per **utenti `ADMIN`**:
+  - Label: `Avvia analisi LLM ≈ $0.49`.
+  - Budget bar accanto/sotto: `Budget mensile usato 70% — $35 / $50` (legge `GET /admin/llm-cost`).
+  - Cache hit signal: identico a USER (`Mostra analisi precedente`).
+- Stato freeze (`503 LLM_FROZEN_BY_ADMIN`): identico per entrambi i ruoli (pulsante disabilitato con label "Analisi LLM temporaneamente disabilitata dall'admin").
+
+### Allineamento testuale con §5 (note interpretative, non-distruttive)
+
+Il riferimento al pulsante che mostra "Budget mensile usato 70% ($35 / $50)" in §5 e in US-046 line 19 (esempio "Budget mensile usato 23% — $35/$150") va letto come **comportamento per `ROLE_ADMIN`**. Per `ROLE_USER` il pulsante si limita alla stima costo della singola chiamata. Questa appendice non modifica §5 (immutabile post-`accepted`) ma ne qualifica l'ambito di applicazione per ruolo.
+
+### Non-azioni
+
+- Endpoint `GET /llm-cost/budget-snapshot` **non viene introdotto**. Citazione storica al punto 3 di "Migration & Rollout" rimane come opzione considerata ma non adottata.
+- Nessuna modifica a `llm_budget_config`, `llm_cost_counter`, `LlmBudgetGuard`, audit log, cache layer.
+
+### Conseguenze su TSK-157
+
+- `pending_clarification` su TSK-157 è risolto: la budget bar è feature ADMIN-only.
+- Il TSK rimane in scope FE; la sezione "Scope" del TSK va aggiornata per riflettere il rendering condizionale per ruolo (azione tpm, fuori dallo scope di questo ADR).
+
+[^src: management/kanban/EP-011-deep-analysis-10k-10q/US-046-frontend-tab-deep-analysis/TSK-157.md §Scelta endpoint]
+[^src: ADR-019 §4 Endpoint admin]
+[^src: ADR-019 §5 Frontend integration (US-046)]

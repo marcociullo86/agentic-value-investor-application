@@ -35,6 +35,8 @@ ad ADR-004 o un nuovo ADR.
 1h; se il valore reale dovesse divergere richiede un hotfix su `FmpCacheService`.
 **Bloccante:** no. `pending_clarification` annotato in TSK-010.
 
+**Risolto:** 2026-05-25 — ADR-014 (`design_&_architecture/decisions/ADR-014-fmp-profile-snapshot-ttl.md`, status: accepted) formalizza TTL = **1 ora** per `fmp_profile_snapshot` (prezzo corrente), configurabile tramite property `fmp.cache.profile-ttl-hours` (default: 1). Nessun impatto su `FmpCacheService` già allineato. `pending_clarification` su TSK-010 rimossa. [[fmp-company-information]] e [[fmp-quotes-stable]] sono i concept di riferimento per la cache profilo. [^src: design_&_architecture/decisions/ADR-014-fmp-profile-snapshot-ttl.md]
+
 ---
 
 ### 2026-05-20 — tpm-watchlist-default-creation
@@ -60,6 +62,8 @@ utente mostrerà lista vuota senza errori. Nessun impatto su funzionalità core.
 **Risolto parzialmente:** 2026-05-22 — La nuova documentazione stable (`raw/fmp_docs.md` + `raw/fmp_docs.json`, 263 endpoint) non documenta i rate limit in modo esplicito. Il gap residuo e' rinominato `fmp-stable-rate-limiting` (aperto sotto). La gestione 429 e' gia' implementata tramite Resilience4j RateLimiter + `FmpEventLogger.log429RateLimited` (TSK-011).
 **TSK-068 (2026-05-22):** Re-verificati `raw/FMP_Docs_1`–`8` (grep: nessuna quota, 429, req/min). Runbook [[fmp-api-quickstart]] § Rate limiting documenta gap + riferimento ADR-016 solo come policy L4. **Stato: aperto.** Piano ingest: aggiungere raw da documentazione FMP ufficiale (pricing, limiti API, FAQ rate limit).
 
+**Risolto parzialmente (policy):** 2026-05-25 — ADR-016 (`design_&_architecture/decisions/ADR-016-fmp-operations-throttling.md`, status: accepted) §4 fissa rate limiter backend: **30 req/60s** con override via `FMP_RATE_LIMIT_PER_MINUTE` env var. I numeri ufficiali FMP (quota per piano, comportamento esatto 429 con retry-after header) restano non documentati in raw — la chiusura completa richiede ingest di raw FMP ufficiale (pagina pricing/rate-limits). Operativamente il backend è coperto dalla policy ADR-016. Calibrazione post-ingest avverrà tramite nuovo ADR (no edit in-place su ADR-016). [[fmp-api-quickstart]] §Rate limiting già cita ADR-016 come policy di riferimento. [^src: design_&_architecture/decisions/ADR-016-fmp-operations-throttling.md]
+
 ---
 
 ## 2026-05-20 10:00 — fmp-endpoint-base-urls
@@ -72,6 +76,8 @@ utente mostrerà lista vuota senza errori. Nessun impatto su funzionalità core.
 **Risolto:** 2026-05-22 — `raw/fmp_docs.md` + `raw/fmp_docs.json` documentano tutti i 263 endpoint stable con `endpoint_url` verificati (base URL `https://financialmodelingprep.com/stable/`). Il runbook [[fmp-api-quickstart]] e l'entity [[fmp-api]] citano gli URL esatti da questi raw.
 **TSK-068 (2026-05-22):** Raw FMP_Docs senza host/path HTTP; runbook usa placeholder `{base}` + tabella nomi API citabili da raw; URL completi solo via ADR-016 (L4, non provider). **Stato: aperto.** Piano ingest: raw con URL base ufficiali FMP (es. pagine endpoint della doc online).
 
+**Risolto parzialmente (policy):** 2026-05-25 — ADR-016 (`design_&_architecture/decisions/ADR-016-fmp-operations-throttling.md`, status: accepted) §2 dichiara come default applicativo `https://financialmodelingprep.com/stable` (post-migrazione TSK-072) e include tabella degli endpoint canonici usati dall'adapter. I raw provider ufficiali FMP non documentano gli URL base in formato HTTP esplicito — la chiusura completa richiede ingest di raw con URL verificati da FMP. Operativamente: [[fmp-api-quickstart]] e [[fmp-api]] espongono il base URL corretto post-TSK-072. [^src: design_&_architecture/decisions/ADR-016-fmp-operations-throttling.md]
+
 ---
 
 ## 2026-05-20 10:00 — fmp-error-codes
@@ -83,6 +89,8 @@ utente mostrerà lista vuota senza errori. Nessun impatto su funzionalità core.
 
 **Risolto parzialmente:** 2026-05-22 — La nuova doc stable non documenta esplicitamente i codici di errore. Comportamento osservato e documentato nel runbook [[fmp-api-quickstart]] (Step 5): 200 con `[]` per ticker non trovato, 429 per rate limit, 5xx per errori server, 401 per API key invalida. Nessun formato JSON di errore specificato nella doc ufficiale. Gap residuo su formato strutturato degli errori: to-be-rechecked-against-new-docs (nessuna nuova informazione nei raw stable).
 **TSK-068 (2026-05-22):** Nessun codice HTTP né formato errore nei raw FMP_Docs 1–8; runbook § Errori HTTP elenca gap; mapping adapter solo in ADR-016 (L4). **Stato: aperto.** Piano ingest: raw sezione errori / troubleshooting FMP.
+
+**Risolto parzialmente (policy):** 2026-05-25 — ADR-016 (`design_&_architecture/decisions/ADR-016-fmp-operations-throttling.md`, status: accepted) §3 fornisce mapping HTTP → comportamento adapter: 401/403 → `FmpAuthException` (no retry), 404 → `emptyList` sentinel, 429 → `FmpUnavailableException` + RateLimiter backoff, 5xx → `FmpUnavailableException` + CircuitBreaker, timeout → `FmpUnavailableException` + Retry. Il formato JSON di risposta di errore FMP non è ancora documentato nei raw — la chiusura completa richiede ingest di raw FMP sezione errori/troubleshooting. Operativamente l'adapter gestisce correttamente tutti i codici HTTP noti. [^src: design_&_architecture/decisions/ADR-016-fmp-operations-throttling.md]
 
 ---
 
@@ -146,6 +154,8 @@ utente mostrerà lista vuota senza errori. Nessun impatto su funzionalità core.
 **Sospetta fonte:** decisione operativa (DevOps/PM-side) da formalizzare prima del cutover R1.0; eventuale raw "operations-runbook" dedicato.
 **Impatto:** Non blocca lo sviluppo (Docker image self-contained e' deploy-target-agnostica). Blocca il cutover di produzione: serve definire backup PostgreSQL, retention `fmp_api_event_log`, scaling. Bloccante: no (per sviluppo R1.0); sì pre-cutover.
 
+**Risolto:** 2026-05-25 — ADR-015 (`design_&_architecture/decisions/ADR-015-deployment-target-r11.md`, status: accepted) adotta Modello R1.1: **1× VM Linux + Docker Compose + nginx TLS terminato + postgres:17**. Sizing: 2 vCPU / 4 GiB RAM / 40 GiB SSD. Cloud provider (AWS/GCP/Azure/Hetzner) resta scelta operativa non bloccante, posticipata al contratto DevOps. Backup PostgreSQL e retention `fmp_api_event_log` definiti nell'ADR (pg_dump giornaliero, retention log 90gg). [[webapp-architecture-vi]] documenta il deployment model. [^src: design_&_architecture/decisions/ADR-015-deployment-target-r11.md]
+
 ---
 
 ## 2026-05-20 19:00 — arch-adr-version-sync
@@ -154,6 +164,8 @@ utente mostrerà lista vuota senza errori. Nessun impatto su funzionalità core.
 **Gap:** `raw/tech_stack.md` adottato il 2026-05-20 contiene versioni 2026 (Kotlin 2.2, React 19 + Next.js 16.x, PostgreSQL 17) mentre gli ADR-001/002/003 documentano versioni inferiori (React 18, Kotlin 1.9, PostgreSQL 16). PATTERN §7 r.10 dà priorità a `raw/tech_stack.md` per i dev-agent, quindi non cè rischio operativo, ma la divergenza archivistica va sanata.
 **Sospetta fonte:** lead-architect — rilascio di ADR-001-v2, ADR-002-v2, ADR-003-v2 (o update non-distruttivo §7 r.7 sui correnti).
 **Impatto:** Solo documentale. I dev-agent useranno le versioni di `raw/tech_stack.md`. Bloccante: no.
+
+**Risolto:** 2026-05-25 — Il lead-architect (deciders: lead-architect + marco.ciullo) ha pubblicato tre ADR-v2 `accepted` che sanano la divergenza tra `raw/tech_stack.md` (2026) e gli ADR originali R1.0 tramite appendici `supersedes_scope` non-distruttive: ADR-001-v2 fissa React 19 + Next.js 16.x + TypeScript current [^src: design_&_architecture/decisions/ADR-001-v2-frontend-stack-versions-2026.md]; ADR-002-v2 fissa Kotlin 2.2.x + Spring Boot 3.5.x + JVM 21 + Resilience4j 2.2.x + Flyway 10.x + JJWT 0.12+ + RFC 9457 [^src: design_&_architecture/decisions/ADR-002-v2-backend-stack-versions-2026.md]; ADR-003-v2 fissa PostgreSQL 17.x + image `postgres:17` + Flyway 10.x [^src: design_&_architecture/decisions/ADR-003-v2-database-postgres-17.md]. Gli ADR originali ADR-001/002/003 restano `accepted` come contesto storico R1.0 (campo `supersedes_scope` limita la sostituzione alle sole versioni, non all'intera decisione). I dev-agent usano le versioni dei v2 ADR, allineate a `raw/tech_stack.md`.
 
 ### 2026-05-22 — be-problemdetail-flatten
 
@@ -165,6 +177,8 @@ utente mostrerà lista vuota senza errori. Nessun impatto su funzionalità core.
 ADR-007 §Error format dichiara RFC 9457 §3.2 (extensions al top-level). Quattro tentativi di flatten (commits b385926 Jackson mixin con @JsonAnyGetter; 873b9e6 StdSerializer + @JsonComponent; e8a0880 modulesToInstall vs modules; 20f846b serializerByType su Jackson2ObjectMapperBuilder) sono tutti landati correttamente ma zero effetto sul body in CI — Spring usa un path serializzazione specifico per `application/problem+json` che bypassa l'ObjectMapper customizer.
 **Sospetta fonte:** custom `HttpMessageConverter` per `application/problem+json` registrato in `WebMvcConfigurer` che bypassa la pipeline Jackson default; oppure aggiornamento a Spring Boot >=3.5.x con il fix per #25801 quando disponibile.
 **Impatto:** I client che si conformano strettamente a RFC 9457 §3.2 (extensions come top-level fields) leggeranno `ticker` solo sotto `properties.ticker`. Per ora tutti i caller noti (FE proprio + test) sanno entrambe le forme. Test BE (AnalysisControllerIT + SearchControllerIT) assertano `$.properties.ticker`. Non bloccante per il MVP. Bloccante: no.
+
+**Risolto:** 2026-05-25 — ADR-012 (`design_&_architecture/decisions/ADR-012-problemdetail-rfc9457-flatten.md`, status: accepted; deciders: lead-architect + marco.ciullo) formalizza l'approccio `FlatteningProblemDetailHttpMessageConverter` (custom `HttpMessageConverter<ProblemDetail>` registrato in `WebMvcConfigurer` che bypassa la pipeline Jackson default, scrive direttamente gli extension members al top-level RFC 9457 §3.2). TSK-050 done: il converter è implementato, i test AnalysisControllerIT + SearchControllerIT assertano `$.ticker` (top-level). Extension members ora al top-level in conformità RFC 9457 §3.2 — [[openapi-contract-check]] e [[webapp-architecture-vi]] aggiornabili come cleanup. [^src: design_&_architecture/decisions/ADR-012-problemdetail-rfc9457-flatten.md]
 
 ### 2026-05-22 — fe-swr-peer-r19
 
@@ -180,6 +194,8 @@ ADR-007 §Error format dichiara RFC 9457 §3.2 (extensions al top-level). Quattr
 **Sospetta fonte:** decisione architetturale (lead-architect) — alternative: (a) feed di build-time dal database stocks (richiede prerender step), (b) refactor /analysis/[ticker] -> /analysis?ticker=... (uniforma con /moat), (c) dropping `output: 'export'` per un runtime SSR (cambia deployment ADR-009).
 **Impatto:** Limita il deployment statico a una whitelist di ticker. Track A puo perfezionare il modello in Sprint successivo. Bloccante per MVP: no (la lista copre i ticker piu rilevanti).
 
+**Risolto:** 2026-05-25 — ADR-013 (`design_&_architecture/decisions/ADR-013-fe-analysis-routing-static-export.md`, status: accepted) adotta Opzione B: refactor `app/analysis/[ticker]/page.tsx` → `app/analysis/page.tsx` con routing via query param `/analysis?ticker={SYMBOL}`, uniforme con `/moat?ticker=`. Questo mantiene `output: 'export'` (nessun cambio deployment ADR-009) ed elimina la whitelist hardcoded dei ticker. US-023 creata per fe-dev come task di implementazione. [[webapp-architecture-vi]] rimane la reference architetturale per il frontend. [^src: design_&_architecture/decisions/ADR-013-fe-analysis-routing-static-export.md]
+
 ---
 
 ## 2026-05-22 10:00 — fmp-stable-rate-limiting
@@ -188,6 +204,8 @@ ADR-007 §Error format dichiara RFC 9457 §3.2 (extensions al top-level). Quattr
 **Gap:** La documentazione FMP stable (`raw/fmp_docs.md`, `raw/fmp_docs.json`, 263 endpoint) non specifica i limiti di frequenza: richieste/minuto per piano, quota giornaliera, comportamento esatto dell'HTTP 429. Il gap `fmp-rate-limiting` del 2026-05-20 (basato su v3) e' stato trasferito su stable: le nuove fonti non lo risolvono.
 **Sospetta fonte:** sezione "Pricing" o "Cycle Times" del sito FMP (non inclusa nei raw estratti) — da aggiungere come raw dedicato se necessario per dimensionare il RateLimiterRegistry.
 **Impatto:** Il `FmpResilienceConfig` usa 30 richieste/min come configurazione conservativa (TSK-011). Se il piano FMP effettivo ha limiti diversi, il RateLimiterRegistry deve essere aggiornato. La gestione HTTP 429 e' gia' implementata (`log429RateLimited`, Circuit Breaker). Bloccante: no per MVP.
+
+**Risolto parzialmente (policy):** 2026-05-25 — ADR-016 (`design_&_architecture/decisions/ADR-016-fmp-operations-throttling.md`, status: accepted) §4 fissa rate limiter 30 req/60s con override `FMP_RATE_LIMIT_PER_MINUTE`. I numeri ufficiali FMP per piano (quota giornaliera, comportamento retry-after) restano non documentati in raw — la chiusura completa richiede ingest di raw FMP ufficiale (sezione pricing/rate-limits). Calibrazione post-ingest tramite nuovo ADR (no edit in-place). [^src: design_&_architecture/decisions/ADR-016-fmp-operations-throttling.md]
 
 ---
 
@@ -208,6 +226,8 @@ ADR-007 §Error format dichiara RFC 9457 §3.2 (extensions al top-level). Quattr
 **Impatto:** Finche' l'adapter non e' migrato, il backend chiama endpoint v3 dismessi (EOL 2025-08-31) — se FMP mantiene temporaneamente v3 attiva, funziona; se v3 restituisce errori, il sistema non funziona in produzione. La wiki documenta i path corretti in [[fmp-api-quickstart]] e [[fmp-api-overview]]. Bloccante: si, per deployment post-2025-08-31. TSK da aprire urgente.
 
 **Aggiornamento 2026-05-22 — tpm @ generazione TSK-050:** TSK-050 creato sotto EP-002/US-021-manutenzione-fmp-stable (Sprint 5). Il gap e' ora tracciato come `todo` in kanban. Chiusura formale riservata a wiki-keeper dopo completamento TSK-050.
+
+**Risolto:** 2026-05-25 — TSK-072 done (`management/kanban/EP-002-integrazione-fmp-data-provider/US-031-fmp-adapter-stable-migration/TSK-072.md`). Migrazione completata: `FmpAdapterRestClient` + DTO + fixture test tutti aggiornati da path v3 a `/stable`. Property applicativa `fmp.base-url=https://financialmodelingprep.com/stable`. Vedi cleanup log entry 2026-05-25 per le 10 citazioni endpoint aggiornate nel wiki. [[fmp-api-quickstart]] e [[fmp-api]] riflettono il base URL corretto. [^src: management/kanban/EP-002-integrazione-fmp-data-provider/US-031-fmp-adapter-stable-migration/TSK-072.md]
 
 ---
 
@@ -247,6 +267,8 @@ ADR-007 §Error format dichiara RFC 9457 §3.2 (extensions al top-level). Quattr
 **Sospetta fonte:** wiki-keeper (promozione a concept dedicato `pgvector-vector-store`) + eventuale ADR di lead-architect su scelta pgvector vs FAISS/external.
 **Impatto:** US-040 cita `wiki/concepts/analysis-api-pipeline.md` come riferimento più vicino. La pending_clarification è marcata in US-040 ma non blocca la storia. Bloccante: no.
 
+**Risolto:** 2026-05-25 — [[pgvector-vector-store]] creata: schema `filing_chunks` completo (colonne, FK, UNIQUE constraint), indice HNSW (m=16, ef_construction=64, vector_cosine_ops), parametri chunking (6000 char, overlap 400) esposti in `application.yaml`, politica idempotenza, flusso ingest, esempio query similarity pgvector, fonti TSK-098 + US-040 + ADR-018.
+
 ---
 
 ## 2026-05-23 — wiki-promote-arctic-embed-spec
@@ -255,6 +277,8 @@ ADR-007 §Error format dichiara RFC 9457 §3.2 (extensions al top-level). Quattr
 **Gap:** Non esiste una pagina wiki concept dedicata al modello di embedding scelto (`Snowflake/snowflake-arctic-embed-l-v2.0`, 1024 dim, 8192 token context, MTEB ~67, caricamento locale via HuggingFace, configurabile in `application.yaml` come `embeddings.model.name` per A/B test futuro con Qwen3-Embedding-4B). Decisione di prodotto confermata dall'utente il 2026-05-23.
 **Sospetta fonte:** wiki-keeper (concept dedicato `arctic-embed-l-v2`) + eventuale ADR di lead-architect su scelta embedding model.
 **Impatto:** US-040 nomina il modello nelle Business Rules con tutti i parametri; la pending_clarification è marcata ma non blocca la storia. Bloccante: no.
+
+**Risolto:** 2026-05-25 — [[arctic-embed-l-v2]] creata: documenta il modello attuale di produzione `Qwen/Qwen3-Embedding-0.6B` (1024 dim Matryoshka, 32K ctx, MTEB ~64.6 retrieval — upgrade confermato in ADR-018 il 2026-05-23 rispetto ad Arctic Embed L v2.0 originale del gap), tabella A/B test con Arctic/Qwen3-4B/bge-large-en come alternative, property `embeddings.model.name` in `application.yaml`, endpoint sidecar `POST /embed`, Resilience4j chain, riferimento al prototipo agent.py.
 
 ---
 
@@ -275,6 +299,8 @@ ADR-007 §Error format dichiara RFC 9457 §3.2 (extensions al top-level). Quattr
 **Gap:** La pagina `wiki/concepts/analysis-api-pipeline.md` documenta solo l'endpoint `/api/analysis/{ticker}` standard. L'endpoint `/api/analysis/{ticker}/deep` di EP-011 introduce un payload molto più ampio (verdict_payload, deep_analysis_report, sentiment_summary, price_action_snapshot, filings_used) che non è ancora descritto nel concept.
 **Sospetta fonte:** wiki-keeper — estensione della pagina esistente (o nuova pagina `analysis-api-pipeline-deep`) al completamento di US-045.
 **Impatto:** US-045 ha tutti i Business Rules necessari per implementare l'endpoint, ma la documentazione architetturale wiki resterà non allineata fino all'aggiornamento. Bloccante: no.
+
+**Risolto:** 2026-05-25 — [[analysis-api-pipeline]] estesa con sezione `## Aggiornamenti (v2026-05-25)` dedicata a `GET /api/analysis/{ticker}/deep`: contratto HTTP (param `invoke_llm`, policy LLM, errori RFC 9457), tabella payload `DeepAnalysisResponse` con tutti i campi (verdict_payload, deep_analysis_report, sentiment_summary, price_action_snapshot, rule_engine_results, filings_used, llm_status, llm_cost_estimate_usd), diagramma di sequenza orchestrazione, finestre di cache e latenze attese, audit log `deep_analysis_event_log`. Fonte primaria: US-045 §Business Rules.
 
 ---
 
@@ -298,6 +324,8 @@ ADR-007 §Error format dichiara RFC 9457 §3.2 (extensions al top-level). Quattr
 
 **ADR-018 proposto:** 2026-05-23 — `design_&_architecture/decisions/ADR-018-embeddings-inference-architecture.md` (status `proposed`) risolve il gap **per design** adottando Opzione A (sidecar Python FastAPI con `sentence-transformers` + `Snowflake/snowflake-arctic-embed-l-v2.0`): container Docker `embeddings-sidecar` orchestrato via Docker Compose, endpoint `POST /embed` (1024-dim, normalize L2), backend Kotlin consumer `EmbeddingService` interface + `EmbeddingRestClient` impl con Resilience4j chain `RateLimiter → CircuitBreaker → Retry → HTTP`, observability via `embeddings_api_event_log` + Micrometer, configurabilità A/B test via `embeddings.model.name`. Pattern coerente con ADR-004 (FMP adapter) e ADR-017 (Anthropic adapter). Conferma del default TSK-099. Chiusura formale del gap riservata a wiki-keeper dopo accettazione ADR-018 da parte dell'utente.
 
+**Risolto:** 2026-05-25 — ADR-018 (`design_&_architecture/decisions/ADR-018-embeddings-inference-architecture.md`, status: accepted; deciders: lead-architect + marco.ciullo, 2026-05-23) adotta sidecar Python FastAPI con `Qwen/Qwen3-Embedding-0.6B` come primario e fallback A/B configurabile via `embeddings.model.name`. Concept [[arctic-embed-l-v2]] documenta lo stato corrente del modello.
+
 ---
 
 ## 2026-05-23 — tpm-anthropic-sdk-jvm-version
@@ -318,6 +346,8 @@ ADR-007 §Error format dichiara RFC 9457 §3.2 (extensions al top-level). Quattr
 **Sospetta fonte:** lead-architect (ADR-005-rule-engine-design appendice, o nuovo ADR) + product-manager (decisione se esporre entrambi in Deep Analysis EP-011).
 **Impatto:** Il report Deep Analysis (EP-011) potrebbe voler esporre entrambi i lookback (5y e 10y) come segnali distinti, ma non esiste ancora la specifica. Non blocca l'MVP (ROE_10Y_AVG gia' implementato). Bloccante: no.
 
+**Risolto:** 2026-05-25 — ADR-020 (`design_&_architecture/decisions/ADR-020-roe-lookback-policy-deep-analysis.md`, status: accepted; deciders: lead-architect + marco.ciullo, 2026-05-25) formalizza la coesistenza di entrambi i segnali ROE nella Deep Analysis (EP-011): `ROE_5Y_AVG` (porting da agent.py, segnale growth/turnaround) e `ROE_10Y_AVG` (Rule Engine Kotlin, segnale stabilità Graham) vengono entrambi esposti nel payload `DeepAnalysisResponse`. EP-010 Graham defensive resta invariato (usa solo `ROE_10Y_AVG`). Il LLM Munger riceve entrambi i segnali con nota interpretativa sulla divergenza attesa. Tre TSK proposti per implementazione: EP011-A (esposizione `ROE_5Y_AVG` nel payload BE), EP011-B (calcolo lookback 5Y in `FmpAdapter`/`RuleEngineService`), EP011-C (prompt LLM Munger con nota interpretativa divergenza). [^src: design_&_architecture/decisions/ADR-020-roe-lookback-policy-deep-analysis.md] Vedi [[value-investor-bot-architecture]] per l'architettura del nodo Deep Analysis e [[value-investing-rule-engine]] per il mapping dei segnali ROE nel Rule Engine Kotlin.
+
 ---
 
 ## 2026-05-23 — agent-py-current-ratio-routing-gap
@@ -326,6 +356,8 @@ ADR-007 §Error format dichiara RFC 9457 §3.2 (extensions al top-level). Quattr
 **Gap:** In agent.py v2.6.1, il `current_ratio` viene calcolato in `node_estrai_dati` e salvato nelle metriche, ma non viene usato come gate nel routing `munger_decision`. Di conseguenza, un'azienda con Current Ratio < 1.5 (Criterio 2 Graham non soddisfatto) puo' comunque ricevere verdetto `APPROVATO` se supera i check ROE+D/E+MoS. Il Rule Engine Kotlin lo gestisce correttamente (segnale RED). Questo e' un bug metodologico latente in agent.py che non deve essere replicato nel porting Kotlin EP-011.
 **Sospetta fonte:** decisione di design agent.py (forse intenzionale — il Criterio 2 Graham non era una priorita' del prototipo).
 **Impatto:** Solo sul prototipo Python (non sul Rule Engine Kotlin che ha gia' il fix). Documentato come avviso per il porting Deep Analysis EP-011. Bloccante: no.
+
+**Risolto:** 2026-05-25 — [[value-investor-bot-architecture]] aggiornata con sezione `## Avviso di Porting — Current Ratio nel Routing Munger (v2026-05-25)`: bug metodologico documentato formalmente (`node_estrai_dati` calcola `current_ratio` ma `munger_decision` non lo usa come gate; il Rule Engine Kotlin ha il gate corretto in `CURRENT_RATIO_LATEST`), avviso esplicito per US-044 (verdict cascade EP-011) di includere il Current Ratio nel cascade Munger.
 
 ---
 
@@ -337,6 +369,18 @@ ADR-007 §Error format dichiara RFC 9457 §3.2 (extensions al top-level). Quattr
 **Impatto:** Se il budget non è approvato, le US-041 (Munger LLM), US-042 (news sentiment), US-047 (news scout) devono essere riconsiderate con modelli meno costosi (es. Claude Haiku o Claude Sonnet). I TSK corrispondenti (TSK-104, TSK-105, TSK-107, TSK-109, TSK-111, TSK-128) hanno `pending_clarification` implicita. Bloccante: no per sviluppo; sì per go-live EP-011/012 in produzione.
 
 **ADR-019 proposto:** 2026-05-23 — `design_&_architecture/decisions/ADR-019-llm-cost-budget-telemetry.md` (status `proposed`) risolve il gap **per design** definendo il meccanismo di containment: (a) budget cap mensile configurabile (default proposto **$150/mese**, range realistico stimato a regime $50-150/mese con cache attiva), (b) telemetria obbligatoria via tabelle DB `llm_cost_counter` (aggregato mensile UPSERT atomico) + `llm_call_log` (1 row/chiamata, retention 90gg) + metriche Micrometer, (c) kill-switch automatico al 90% del cap con comportamento degraded (cache hit serve la risposta; cache miss → HTTP 503 `LLM_BUDGET_EXCEEDED` ProblemDetail), (d) reset mensile cron `0 0 0 1 * *` UTC, (e) override admin via env var `LLM_BUDGET_KILL_SWITCH_ENABLED=false`, (f) endpoint admin `GET /admin/llm-cost` per audit. Tre TSK proposti da aggiungere a EP-011 (TSK-XXX-A be `LlmCostCounterService`, TSK-XXX-B db migration `V0XX__llm_cost_tracking`, TSK-XXX-C be `LlmCallLogger` AOP + admin endpoint). La chiusura formale del gap resta riservata a wiki-keeper dopo (a) accettazione utente di ADR-019, (b) conferma esplicita del valore numerico di `llm.budget.monthly-cap-usd` ($150 proposto è un default lead-architect, non una decisione di prodotto definitiva).
+
+**Risolto:** 2026-05-25 — Decisione utente 2026-05-25: budget mensile LLM = **$50/mese** (default), **configurabile via admin UI** (non solo env var). ADR-019 in aggiornamento da parte del lead-architect (status: proposed → accepted con cap $50 + admin UI). Cita: "Decisione utente 2026-05-25, ADR-019 in aggiornamento (status: proposed → accepted con cap $50 + admin UI)". La property `llm.budget.monthly-cap-usd` avrà default $50 (al posto del $150 proposto in ADR bozza). L'endpoint admin `GET /admin/llm-cost` è già previsto; sarà affiancato da una schermata admin UI di gestione cap. [^src: design_&_architecture/decisions/ADR-019-llm-cost-budget-telemetry.md]
+
+---
+
+## 2026-05-25 — arch-fmp-mcp-vs-rest-adapter
+
+**Origine:** wiki-keeper @ ingest raw/fmp_mcp-server.txt (2026-05-25)
+**Gap:** FMP ha rilasciato un MCP Server (`https://financialmodelingprep.com/mcp`) che espone tutti i 263 endpoint REST come MCP tools. L'architettura attuale usa `FmpAdapterRestClient` (ADR-004, REST) con Resilience4j + cache JSONB. Non esiste una decisione formalizzata su se e quando adottare il canale MCP come alternativa o complemento al REST adapter, in particolare per i flussi LLM-driven (EP-011 Deep Analysis, EP-012 Universe Screener).
+**Sospetta fonte:** lead-architect — decisione architetturale su adozione MCP channel.
+**Impatto:** Non blocca nessuna US corrente (REST adapter funziona). Potenziale riduzione di complessità significativa per EP-011/012 se adottato. Decisione da prendere prima della pianificazione EP-013+. Bloccante: no.
+**Vedi:** [[fmp-mcp-integration]] per analisi comparativa pro/contro.
 
 ---
 
