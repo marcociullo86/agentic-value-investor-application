@@ -75,3 +75,11 @@ Pagine create: 2 | Figure: 0 | Aggiornamenti: 4 (index, gaps, value-investing-ru
 [2026-05-25 13:00] dev(be) TSK-101 — FilingChunkingService recursive char splitter (6000/400 configurabile); ChunkingProperties; unit test 7 casi — files touched: 3
 [2026-05-25 13:00] dev(be) TSK-102 — FilingRagService (indexFiling idempotent + similaritySearch pgvector <=>); JPA entities FilingBlobEntity + FilingChunkEntity; repositories con upsert ON CONFLICT + native similarity query — files touched: 5
 [2026-05-25 13:00] dev(qa) TSK-103 — FilingRagServiceIntegrationTest Testcontainers pgvector/pgvector:pg17; mock EmbeddingService random 1024-dim; test chunking, idempotenza, similarity top-k, latency <200ms — files touched: 1
+[2026-05-25 13:10] dev(db) TSK-155 — V014__llm_cost_tracking.sql: tabelle llm_cost_counter + llm_call_log + llm_budget_config (singleton seed $50); FK users(id) — files touched: 1
+[2026-05-25 13:10] dev(be) TSK-156 — LlmBudgetConfigService + LlmBudgetAdminController (GET/PUT/freeze/unfreeze); JPA entities LlmBudgetConfigEntity + LlmCostCounterEntity + LlmCallLogEntity; repositories; config llm.budget.* in application.yml — files touched: 8
+[2026-05-25 13:10] dev(be) TSK-108 — FmpAdapter.getStockNews (GET /stable/news/stock?tickers=...) + StockNewsItem DTO; window 90gg filtrato; implementato in FmpAdapterRestClient — files touched: 3
+[2026-05-25 13:10] dev(db) TSK-110 — V015__news_sentiment_analysis.sql: tabella news_classification (UNIQUE news_id) + indice ticker/date — files touched: 1
+[2026-05-25 13:10] dev(be) TSK-109 — NewsSentimentService (classify ticker → TEMPORARY_PANIC/STRUCTURAL_DAMAGE/NEUTRAL); cache news_classification; limit 50 LLM calls/ticker; AnthropicClient interface (minimal, ADR-017); NewsClassificationEntity + repo — files touched: 4
+[2026-05-25 13:10] dev(be) TSK-112 — FmpAdapter.getHistoricalEodPrices (GET /stable/historical-price-eod/full?symbol=...) + EodPriceRecord DTO — files touched: 3
+[2026-05-25 13:10] dev(be) TSK-113 — PriceActionAnalyzer (drawdown 52w, ma50/ma200, panicDiscount flag, deteriorationWarning death cross); cache price_action_snapshot (TTL 24h); PriceActionSnapshotEntity + repo — files touched: 3
+[2026-05-25 13:10] dev(db) TSK-114 — V016__price_action_snapshot.sql: tabella price_action_snapshot (UNIQUE ticker+calc_date) — files touched: 1

@@ -4,11 +4,15 @@ import com.valueinvesting.webapp.config.AppProperties
 import com.valueinvesting.webapp.fmp.dto.BalanceSheetDto
 import com.valueinvesting.webapp.fmp.dto.CashFlowDto
 import com.valueinvesting.webapp.fmp.dto.DividendRecord
+import com.valueinvesting.webapp.fmp.dto.EodPriceRecord
 import com.valueinvesting.webapp.fmp.dto.IncomeStatementDto
 import com.valueinvesting.webapp.fmp.dto.KeyMetricsDto
 import com.valueinvesting.webapp.fmp.dto.ProfileDto
 import com.valueinvesting.webapp.fmp.dto.ScreenedStockDto
 import com.valueinvesting.webapp.fmp.dto.SearchHitDto
+import com.valueinvesting.webapp.fmp.dto.StockNewsItem
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import org.slf4j.LoggerFactory
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpStatusCode
@@ -315,6 +319,64 @@ class FmpAdapterRestClient(
             }
         }
         return result.sortedWith(dateDescNullsLast)
+    }
+
+    override fun getStockNews(ticker: String, days: Int): List<StockNewsItem> {
+        require(ticker.isNotBlank()) { "ticker must not be blank" }
+        val upperTicker = ticker.uppercase()
+        val from = LocalDate.now().minusDays(days.toLong()).format(DateTimeFormatter.ISO_LOCAL_DATE)
+        val typeRef = object : ParameterizedTypeReference<List<StockNewsItem>>() {}
+
+        val result: List<StockNewsItem>? = try {
+            client.get()
+                .uri { builder ->
+                    builder
+                        .path("/news/stock")
+                        .queryParam("apikey", appProperties.fmp.apiKey)
+                        .queryParam("tickers", upperTicker)
+                        .queryParam("from", from)
+                        .build()
+                }
+                .retrieve()
+                .body(typeRef)
+        } catch (ex: RestClientResponseException) {
+            log.warn("FMP news error for ticker={} status={}", upperTicker, ex.statusCode)
+            return emptyList()
+        }
+
+        return result?.filter {
+            it.publishedDate != null && it.publishedDate.toLocalDate() >= LocalDate.now().minusDays(days.toLong())
+        } ?: emptyList()
+    }
+
+    override fun getHistoricalEodPrices(ticker: String, days: Int): List<EodPriceRecord> {
+        require(ticker.isNotBlank()) { "ticker must not be blank" }
+        val upperTicker = ticker.uppercase()
+        val from = LocalDate.now().minusDays(days.toLong()).format(DateTimeFormatter.ISO_LOCAL_DATE)
+        val typeRef = object : ParameterizedTypeReference<List<EodPriceRecord>>() {}
+
+        val result: List<EodPriceRecord>? = try {
+            client.get()
+                .uri { builder ->
+                    builder
+                        .path("/historical-price-eod/full")
+                        .queryParam("apikey", appProperties.fmp.apiKey)
+                        .queryParam("symbol", upperTicker)
+                        .queryParam("from", from)
+                        .build()
+                }
+                .retrieve()
+                .body(typeRef)
+        } catch (ex: RestClientResponseException) {
+            log.warn("FMP EOD error for ticker={} status={}", upperTicker, ex.statusCode)
+            throw FmpUnavailableException(
+                "FMP historical EOD failed: ${ex.statusCode} for $upperTicker",
+                cause = ex,
+                httpStatus = ex.statusCode.value(),
+            )
+        }
+
+        return result ?: emptyList()
     }
 
     // Sentinel locale per /dividends 4xx (non 429) → emptyList senza errore.

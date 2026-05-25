@@ -3,11 +3,13 @@ package com.valueinvesting.webapp.fmp
 import com.valueinvesting.webapp.fmp.dto.BalanceSheetDto
 import com.valueinvesting.webapp.fmp.dto.CashFlowDto
 import com.valueinvesting.webapp.fmp.dto.DividendRecord
+import com.valueinvesting.webapp.fmp.dto.EodPriceRecord
 import com.valueinvesting.webapp.fmp.dto.IncomeStatementDto
 import com.valueinvesting.webapp.fmp.dto.KeyMetricsDto
 import com.valueinvesting.webapp.fmp.dto.ProfileDto
 import com.valueinvesting.webapp.fmp.dto.ScreenedStockDto
 import com.valueinvesting.webapp.fmp.dto.SearchHitDto
+import com.valueinvesting.webapp.fmp.dto.StockNewsItem
 
 // Interface to the Financial Modeling Prep external service.
 // Tipizzata e nullable-aware: ogni metodo restituisce una List<DTO> ordinata dalla più
@@ -80,4 +82,12 @@ interface FmpAdapter {
     // [^src: raw/fmp_docs.md §Earnings, Dividends, Splits — Dividends Company API]
     // [^src: management/kanban/EP-010-graham-defensive-completeness/US-037-regola-continuita-dividendi-graham/TSK-083.md]
     fun getDividendHistory(ticker: String): List<DividendRecord>
+
+    // `/stable/news/stock?tickers={ticker}&from=...` — last N days of news.
+    // [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-042-news-sentiment-classifier/TSK-108.md]
+    fun getStockNews(ticker: String, days: Int = 90): List<StockNewsItem>
+
+    // `/stable/historical-price-eod/full?symbol={ticker}&from=...` — EOD prices.
+    // [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-043-price-action-analyzer/TSK-112.md]
+    fun getHistoricalEodPrices(ticker: String, days: Int = 365): List<EodPriceRecord>
 }
