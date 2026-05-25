@@ -8,6 +8,7 @@ import com.valueinvesting.webapp.fmp.dto.KeyMetricsDto
 import com.valueinvesting.webapp.fmp.dto.ProfileDto
 import com.valueinvesting.webapp.fmp.dto.ScreenedStockDto
 import com.valueinvesting.webapp.fmp.dto.SearchHitDto
+import com.valueinvesting.webapp.fmp.dto.SecFilingFmpDto
 import io.github.resilience4j.bulkhead.Bulkhead
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException
 import io.github.resilience4j.circuitbreaker.CircuitBreaker
@@ -95,6 +96,13 @@ class ResilientFmpAdapter(
 
     override fun getDividendHistory(ticker: String): List<DividendRecord> =
         execute("dividends", ticker) { delegate.getDividendHistory(ticker) }
+
+    override fun getSecFilings(
+        ticker: String,
+        formTypes: List<String>,
+        limit: Int,
+    ): List<SecFilingFmpDto> =
+        execute("sec-filings", ticker) { delegate.getSecFilings(ticker, formTypes, limit) }
 
     /**
      * Apply chain decorators in order Bulkhead -> CB -> Retry, then gate the

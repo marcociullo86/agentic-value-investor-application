@@ -8,6 +8,7 @@ import com.valueinvesting.webapp.fmp.dto.KeyMetricsDto
 import com.valueinvesting.webapp.fmp.dto.ProfileDto
 import com.valueinvesting.webapp.fmp.dto.ScreenedStockDto
 import com.valueinvesting.webapp.fmp.dto.SearchHitDto
+import com.valueinvesting.webapp.fmp.dto.SecFilingFmpDto
 
 // Interface to the Financial Modeling Prep external service.
 // Tipizzata e nullable-aware: ogni metodo restituisce una List<DTO> ordinata dalla più
@@ -80,4 +81,32 @@ interface FmpAdapter {
     // [^src: raw/fmp_docs.md §Earnings, Dividends, Splits — Dividends Company API]
     // [^src: management/kanban/EP-010-graham-defensive-completeness/US-037-regola-continuita-dividendi-graham/TSK-083.md]
     fun getDividendHistory(ticker: String): List<DividendRecord>
+
+    // `/stable/sec-filings-search/symbol?symbol={ticker}&limit={limit}` — discovery
+    // SEC filing per ticker via FMP search aggregato. Endpoint canonico verificato
+    // in raw/fmp_docs.md:10815 (SEC Filings By Symbol API, /stable/sec-filings-search/symbol).
+    //
+    // Ritorna metadata (CIK, link, finalLink, filingDate, formType) — NON il body
+    // HTML. Il download HTML è demandato a SecEdgarAdapter (US-038) o
+    // Filing10KQDownloaderService (TSK-096) che orchestra la pipeline completa.
+    //
+    // Filtro `formTypes` applicato lato client dopo fetch (FMP endpoint non
+    // documenta filtro server-side per form type via /symbol). Form types tipici:
+    // "10-K", "10-Q", "10-K/A", "10-Q/A". Default: ["10-K", "10-Q"].
+    //
+    // Lista vuota = ticker senza filing visibili nel range. NON deve sollevare
+    // FmpTickerNotFoundException — l'adapter ritorna `emptyList()`.
+    //
+    // Cache: il caller (Filing10KQDownloaderService, TSK-096) wrappa con
+    // `FmpCacheService.getOrFetch` usando label `"sec-filings"`, TTL 24h.
+    // Migration V012 aggiunge 'sec-filings' al CHECK constraint
+    // `fmp_fin_snap_endpoint_chk` (whitelist endpoint).
+    //
+    // [^src: raw/fmp_docs.md §Sec Filings — SEC Filings By Symbol API]
+    // [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-039-download-cache-filings/TSK-094.md]
+    fun getSecFilings(
+        ticker: String,
+        formTypes: List<String> = listOf("10-K", "10-Q"),
+        limit: Int = 10,
+    ): List<SecFilingFmpDto>
 }

@@ -9,6 +9,7 @@ import com.valueinvesting.webapp.fmp.dto.KeyMetricsDto
 import com.valueinvesting.webapp.fmp.dto.ProfileDto
 import com.valueinvesting.webapp.fmp.dto.ScreenedStockDto
 import com.valueinvesting.webapp.fmp.dto.SearchHitDto
+import com.valueinvesting.webapp.fmp.dto.SecFilingFmpDto
 import org.slf4j.LoggerFactory
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpStatusCode
@@ -320,6 +321,104 @@ class FmpAdapterRestClient(
     // Sentinel locale per /dividends 4xx (non 429) → emptyList senza errore.
     // Mai propagata fuori dall'adapter.
     private class EmptyDividendsSentinelException : RuntimeException()
+
+    // `/stable/sec-filings-search/symbol?symbol={ticker}&limit={limit}` — discovery
+    // SEC filing per ticker via FMP search aggregato (TSK-094, US-039, EP-011).
+    //
+    // Endpoint verificato in raw/fmp_docs.md:10815. Pattern di error-handling
+    // identico a getDividendHistory:
+    //   - 429 → FmpUnavailableException(429).
+    //   - 5xx → FmpUnavailableException(status).
+    //   - 4xx (non 429) → emptyList() (ticker valido ma nessun filing visibile).
+    //
+    // Filtro `formTypes` applicato lato client dopo fetch — FMP /symbol endpoint
+    // non documenta filtro server-side per form type. Default ["10-K", "10-Q"].
+    //
+    // Limit passato a FMP (max 100 per page) + take(limit) client-side per
+    // double-safety. NB: l'endpoint supporta paginazione via `page=N` ma per il
+    // caso d'uso EP-011 (ultimi 10 filing) basta page=0.
+    //
+    // Ordinamento conservato dall'API FMP (DESC by filingDate tipicamente);
+    // se la garanzia futura cambiasse, il consumer può riordinare.
+    //
+    // [^src: raw/fmp_docs.md §Sec Filings — SEC Filings By Symbol API]
+    // [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-039-download-cache-filings/TSK-094.md]
+    override fun getSecFilings(
+        ticker: String,
+        formTypes: List<String>,
+        limit: Int,
+    ): List<SecFilingFmpDto> {
+        require(ticker.isNotBlank()) { "ticker must not be blank" }
+        require(limit > 0) { "limit must be > 0" }
+        val upperTicker = ticker.uppercase()
+        val typeRef = object : ParameterizedTypeReference<List<SecFilingFmpDto>>() {}
+
+        val result: List<SecFilingFmpDto>? = try {
+            client.get()
+                .uri { builder ->
+                    builder
+                        .path("/sec-filings-search/symbol")
+                        .queryParam("apikey", appProperties.fmp.apiKey)
+                        .queryParam("symbol", upperTicker)
+                        .queryParam("limit", limit)
+                        .build()
+                }
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError) { _, response ->
+                    val status = response.statusCode
+                    if (status.value() == 429) {
+                        log.warn(
+                            "FMP 429 (rate limited) on /sec-filings-search/symbol ticker={}",
+                            upperTicker,
+                        )
+                        throw FmpUnavailableException(
+                            "FMP rate limited for sec-filings/$upperTicker",
+                            httpStatus = 429,
+                        )
+                    }
+                    // 4xx non-429 = ticker valido ma zero filing → emptyList sentinel.
+                    log.warn(
+                        "FMP 4xx on /sec-filings-search/symbol ticker={} status={} — treating as empty",
+                        upperTicker, status,
+                    )
+                    throw EmptySecFilingsSentinelException()
+                }
+                .onStatus(HttpStatusCode::is5xxServerError) { _, response ->
+                    val status = response.statusCode
+                    log.warn(
+                        "FMP 5xx on /sec-filings-search/symbol ticker={} status={}",
+                        upperTicker, status,
+                    )
+                    throw FmpUnavailableException(
+                        "FMP returned $status for sec-filings/$upperTicker",
+                        httpStatus = status.value(),
+                    )
+                }
+                .body(typeRef)
+        } catch (ex: EmptySecFilingsSentinelException) {
+            return emptyList()
+        } catch (ex: FmpUnavailableException) {
+            throw ex
+        } catch (ex: RestClientResponseException) {
+            throw FmpUnavailableException(
+                "FMP call failed: ${ex.statusCode} for sec-filings/$upperTicker",
+                cause = ex,
+                httpStatus = ex.statusCode.value(),
+            )
+        }
+
+        if (result.isNullOrEmpty()) {
+            return emptyList()
+        }
+        val formTypesUpper = formTypes.map { it.uppercase() }.toSet()
+        return result
+            .filter { it.formType?.uppercase() in formTypesUpper }
+            .take(limit)
+    }
+
+    // Sentinel locale per /sec-filings-search/symbol 4xx (non 429) → emptyList.
+    // Mai propagata fuori dall'adapter.
+    private class EmptySecFilingsSentinelException : RuntimeException()
 
     // Generic GET on /{endpoint}?symbol={ticker}&apikey=...&limit=...
     // Stable API (TSK-050): il ticker passa da path-variable a query parameter
