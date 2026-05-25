@@ -166,6 +166,19 @@ price-action:
   panic-threshold-pct: -30.0
   deterioration-trend-threshold-pct: -10.0
 
+# UniverseScreenerService — Top Value Picks batch (US-047, EP-012, TSK-126)
+# Default: NASDAQ + NYSE, marketCap > 3B USD, US country, cap 500 candidati.
+# NB: cache-ttl-hours documenta l'intento (6h) ma FmpCacheService.getOrFetch
+# applica TTL fisso 24h. Override TTL = future scope.
+universe:
+  market-cap-more-than: 3000000000
+  exchanges: "NASDAQ,NYSE"
+  country: "US"
+  fmp-max-results: 1000
+  cap-candidates: 500
+  cache-ttl-hours: 6
+  news-scout-seed-top: 200
+
 # Anthropic Claude Opus 4.7 (ADR-017 / TSK-104)
 # API key MUST be set via ANTHROPIC_API_KEY env var in production.
 # Blank value activates the AnthropicClientStub fallback (dev/test).
