@@ -27,7 +27,7 @@ class LlmBudgetConfigService(
 
     @Volatile
     var frozen: Boolean = false
-        private set
+        internal set
 
     fun getMonthlyCapUsd(): BigDecimal {
         cachedCap?.let { return it }
