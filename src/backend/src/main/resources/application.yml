@@ -100,6 +100,20 @@ fmp:
   event-log:
     retention-days: ${FMP_EVENT_LOG_RETENTION_DAYS:90}
 
+# Embeddings sidecar (ADR-018 — Qwen3-Embedding-0.6B, fallback Arctic Embed L v2.0)
+embeddings:
+  sidecar:
+    url: ${EMBEDDINGS_SIDECAR_URL:http://embeddings-sidecar:8001}
+    timeout-seconds: 30
+  batch-size: 32
+  model:
+    name: ${EMBEDDINGS_MODEL_NAME:Qwen/Qwen3-Embedding-0.6B}
+
+# Chunking parameters (US-040 — RecursiveCharSplitter-equivalent)
+chunking:
+  chunk-size: 6000
+  chunk-overlap: 400
+
 # Application-specific properties
 app:
   cors:
