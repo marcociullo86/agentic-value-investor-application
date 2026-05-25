@@ -10,6 +10,7 @@ object FmpFixtureFactory {
         every { adapter.getCashFlow(symbol, any()) } returns FmpFixtureLoader.tenYearCashFlows(symbol)
         every { adapter.getKeyMetrics(symbol, any()) } returns FmpFixtureLoader.tenYearKeyMetrics(symbol)
         every { adapter.getProfile(symbol) } returns FmpFixtureLoader.loadProfile(symbol)
+        every { adapter.getDividendHistory(symbol) } returns emptyList()
     }
 
     fun stubShortCashFlow(adapter: FmpAdapter, symbol: String = "SHORT") {
@@ -18,6 +19,7 @@ object FmpFixtureFactory {
         every { adapter.getCashFlow(symbol, any()) } returns FmpFixtureLoader.shortCashFlows(symbol)
         every { adapter.getKeyMetrics(symbol, any()) } returns FmpFixtureLoader.tenYearKeyMetrics(symbol)
         every { adapter.getProfile(symbol) } returns FmpFixtureLoader.loadProfile(symbol)
+        every { adapter.getDividendHistory(symbol) } returns emptyList()
     }
 
     fun stubLowPpeHistory(adapter: FmpAdapter, symbol: String = "LOWPPE") {
@@ -26,6 +28,7 @@ object FmpFixtureFactory {
         every { adapter.getCashFlow(symbol, any()) } returns FmpFixtureLoader.tenYearCashFlows(symbol)
         every { adapter.getKeyMetrics(symbol, any()) } returns FmpFixtureLoader.tenYearKeyMetrics(symbol)
         every { adapter.getProfile(symbol) } returns FmpFixtureLoader.loadProfile(symbol)
+        every { adapter.getDividendHistory(symbol) } returns emptyList()
     }
 
     fun stubAllUnavailable(adapter: FmpAdapter, symbol: String) {
@@ -35,5 +38,6 @@ object FmpFixtureFactory {
         every { adapter.getCashFlow(symbol, any()) } throws ex
         every { adapter.getKeyMetrics(symbol, any()) } throws ex
         every { adapter.getProfile(symbol) } throws ex
+        every { adapter.getDividendHistory(symbol) } throws ex
     }
 }

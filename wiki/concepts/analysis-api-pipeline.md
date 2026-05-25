@@ -10,7 +10,7 @@ tags: [product-spec, api, rule-engine, dcf, analysis, l5]
 ---
 # Pipeline API di analisi (`GET /api/analysis/{ticker}`)
 
-> Endpoint unificato che orchestra acquisizione dati FMP (con cache), valutazione delle 7 regole quantitative, Graham Number, DCF e Margin of Safety, con persistenza del risultato.
+> Endpoint unificato che orchestra acquisizione dati FMP (con cache), valutazione delle 13 regole quantitative (7 Buffett + 6 Graham), Graham Number, DCF e Margin of Safety, con persistenza del risultato.
 
 ## Contesto
 
@@ -34,7 +34,7 @@ sequenceDiagram
     C->>S: analyze(ticker)
     S->>F: getFinancialDataset (4 endpoint cache-aside)
     S->>S: getOrFetchProfile (prezzo)
-    S->>R: evaluateAll → 7 RuleSignal
+    S->>R: evaluateAll → 13 RuleSignal
     S->>G: calculateFromDataset
     S->>D: calculate (Greenwald / FCF fallback)
     S->>M: evaluate(price, dcf)
@@ -50,10 +50,10 @@ Implementazione: `src/backend/.../service/AnalyzeTickerService.kt`, `api/Analysi
 |----------|--------|
 | Metodo / path | `GET /api/analysis/{ticker}` |
 | Header risposta | `X-Data-Snapshot-At`, `X-Data-Stale`, `Cache-Control: no-store` |
-| Body | `RuleEngineResult` (OpenAPI): `ticker`, `evaluatedAt`, `signals[7]`, `grahamNumber`, `dcfIntrinsicValue`, `dcfMethod`, `mosSignal`, `currentPriceAtEval`, `dataSnapshotAt`, `isStale` |
+| Body | `RuleEngineResult` (OpenAPI): `ticker`, `evaluatedAt`, `signals[13]`, `grahamNumber`, `dcfIntrinsicValue`, `dcfMethod`, `mosSignal`, `currentPriceAtEval`, `dataSnapshotAt`, `isStale` |
 | Errori | `404` ticker non trovato; `503` FMP down senza cache (RFC 9457 ProblemDetails) |
 
-## Sette regole (`signals`)
+## Tredici regole (`signals`)
 
 Ogni voce è un `RuleSignal` con `ruleId`, `signal` (`GREEN` \| `YELLOW` \| `RED` \| `INDETERMINATE` \| `NOT_CALCULABLE`), `observedValue`, `threshold`, `rationale`. Ordinamento deterministico per `ruleId`.
 
@@ -157,7 +157,7 @@ Ogni esecuzione logga in `deep_analysis_event_log`: `(ticker, generated_at, cach
 
 ## Aggiornamenti (v2026-05-21)
 
-Verifica coerenza L5 su `master`: `AnalyzeTickerService` orchestra ancora 7 `RuleSignal` + Graham + DCF + MoS + persistenza `rule_engine_result`; nessuna modifica al contratto path rispetto a Sprint 2. Allowlist contract in `OpenApiContractSupport.IMPLEMENTED_OPERATIONS` include solo `GET /api/analysis/{ticker}` tra gli endpoint di analisi (financials e dcf-overrides separati). [^src: src/backend/src/test/kotlin/com/valueinvesting/webapp/contract/OpenApiContractSupport.kt §IMPLEMENTED_OPERATIONS]
+Verifica coerenza L5 su `master`: `AnalyzeTickerService` orchestra 13 `RuleSignal` (7 Buffett + 6 Graham) + Graham + DCF + MoS + persistenza `rule_engine_result`; EP-010 ha aggiunto le 6 regole Graham defensive. Allowlist contract in `OpenApiContractSupport.IMPLEMENTED_OPERATIONS` include solo `GET /api/analysis/{ticker}` tra gli endpoint di analisi (financials e dcf-overrides separati). [^src: src/backend/src/test/kotlin/com/valueinvesting/webapp/contract/OpenApiContractSupport.kt §IMPLEMENTED_OPERATIONS]
 
 ## Concetti correlati
 

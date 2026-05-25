@@ -81,15 +81,15 @@ class GrahamRulesIntegrationTest {
             "GROSS_MARGIN_10Y_AVG",
             "NET_MARGIN_10Y_AVG",
             "CURRENT_RATIO_LATEST",
-            "DEBT_TO_INCOME_10Y_AVG",
-            "CAPEX_INTENSITY_LATEST",
+            "DEBT_TO_INCOME_LATEST",
+            "CAPEX_INTENSITY_10Y_AVG",
         )
 
         private val JSON: ObjectMapper = jacksonObjectMapper()
 
         @Container
         @JvmStatic
-        val postgres: PostgreSQLContainer<*> = PostgreSQLContainer("postgres:16-alpine")
+        val postgres: PostgreSQLContainer<*> = PostgreSQLContainer("pgvector/pgvector:pg17")
             .withDatabaseName("value_investing_graham_test")
             .withUsername("test")
             .withPassword("test")

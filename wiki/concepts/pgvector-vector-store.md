@@ -29,7 +29,7 @@ Richiede l'immagine Docker `pgvector/pgvector:pg17` invece di `postgres:17` nel 
 
 ## Schema `filing_chunks`
 
-Migration Flyway: `V012__pgvector_enable.sql`. [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-040-vector-store-pgvector/TSK-098.md §Cosa fare]
+Migration Flyway: `V012__create_filing_blob.sql` (prerequisite FK) + `V013__pgvector_enable_filing_chunks.sql` (extension + schema + HNSW). [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-040-vector-store-pgvector/TSK-098.md §Cosa fare]
 
 ```sql
 CREATE TABLE filing_chunks (

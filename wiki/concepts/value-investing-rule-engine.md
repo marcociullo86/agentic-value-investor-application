@@ -109,7 +109,7 @@ Vedi [[vi-08-risoluzione-q001-owner-earnings]] per la specifica completa dei tre
 
 ## Aggiornamenti (v2026-05-21)
 
-**Stato L5 (`master`, Sprint 2 merged):** le sette strategie `ValuationRule` sono implementate in Kotlin con `ruleId` stabili; l'aggregazione avviene in `RuleEngineService.evaluateAll()` (ordinamento lessicografico per `ruleId`). [^src: src/backend/src/main/kotlin/com/valueinvesting/webapp/ruleengine/RuleEngineService.kt]
+**Stato L5 (EP-010 merged):** tredici strategie `ValuationRule` (7 Buffett + 6 Graham defensive) sono implementate in Kotlin con `ruleId` stabili; l'aggregazione avviene in `RuleEngineService.evaluateAll()` (ordinamento lessicografico per `ruleId`). [^src: src/backend/src/main/kotlin/com/valueinvesting/webapp/ruleengine/RuleEngineService.kt]
 
 | ruleId | Classe | Soglia sintetica |
 |--------|--------|------------------|
@@ -123,19 +123,19 @@ Vedi [[vi-08-risoluzione-q001-owner-earnings]] per la specifica completa dei tre
 
 **Segnali:** enum `Signal` include `INDETERMINATE` (dati insufficienti, es. &lt; 5 anni) e `NOT_CALCULABLE` (input assenti) — distinti da `RED`. [^src: design_&_architecture/decisions/ADR-005-rule-engine-design.md]
 
-**Endpoint analisi:** `GET /api/analysis/{ticker}` restituisce `signals` (7 elementi) + `grahamNumber` + `dcfIntrinsicValue` + `dcfMethod` + `mosSignal`. Dettaglio pipeline: [[analysis-api-pipeline]].
+**Endpoint analisi:** `GET /api/analysis/{ticker}` restituisce `signals` (13 elementi: 7 Buffett + 6 Graham) + `grahamNumber` + `dcfIntrinsicValue` + `dcfMethod` + `mosSignal`. Dettaglio pipeline: [[analysis-api-pipeline]].
 
 **DCF implementato:** `DcfCalculator` con `GreenwaldMaintenanceCapexEstimator` (primario) e `FcfFallbackEstimator`; override per utente su `dcf_method_override` (V007). Parametri: growth 5–7%, discount 9.5%, terminal 2.5%.
 
 **Non ancora in produzione (Sprint 3+):** search, screener, historical, moat checklist, auth JWT (TSK-033), watchlist — restano nel contratto OpenAPI pieno ma fuori allowlist `IMPLEMENTED_OPERATIONS`.
 
-**Sync 2026-05-21:** sette regole + Graham + DCF + MoS confermati coerenti con [[analysis-api-pipeline]]; contract CI verifica schema `RuleEngineResult` via springdoc runtime (TSK-037).
+**Sync 2026-05-21:** tredici regole (7 Buffett + 6 Graham, post EP-010) + Graham + DCF + MoS confermati coerenti con [[analysis-api-pipeline]]; contract CI verifica schema `RuleEngineResult` via springdoc runtime (TSK-037).
 
 ## Aggiornamenti (v2026-05-22)
 
-**Fonte aggiunta:** `raw/investitore intelligente.txt` — Cap.14 e' la fonte primaria dei 7 criteri Graham. Il mapping seguente documenta la genealogia dal testo del 1973 al codice Kotlin 2026.
+**Fonte aggiunta:** `raw/investitore intelligente.txt` — Cap.14 e' la fonte primaria dei 7 criteri Graham. Il mapping seguente documenta la genealogia dal testo del 1973 al codice Kotlin 2026. Tutti i 7 criteri sono ora coperti (6 regole dedicate + grahamNumber per P/E×P/B).
 
-### Genealogia: Da Graham Cap.14 ai 7 ruleId
+### Genealogia: Da Graham Cap.14 ai 13 ruleId
 
 L'Investitore Intelligente, Cap.14, elenca 7 criteri per il portafoglio difensivo (vedi [[seven-criteria-defensive-stock-selection]]). La tabella seguente traccia la linea da ogni criterio Graham al `ruleId` corrispondente nel Rule Engine, con la mediazione teorica di Buffett dove la soglia e' stata aggiornata.
 
@@ -149,11 +149,15 @@ L'Investitore Intelligente, Cap.14, elenca 7 criteri per il portafoglio difensiv
 | **Aggiunte Buffett** (non in Graham) | n/a | `GROSS_MARGIN_10Y_AVG` | >40% GREEN | Pricing power; non presente nei 7 criteri originali Graham |
 | **Aggiunte Buffett** (non in Graham) | n/a | `CAPEX_INTENSITY_10Y_AVG` | <25% GREEN | Business a bassa intensita' di capitale; non presente in Graham 1973 |
 
-**Criteri Graham senza ruleId nel MVP**:
-- Criterio 1 (Dimensioni ≥ $100M): non implementato — dati FMP disponibili ma nessun ruleId dedicato.
-- Criterio 4 (Dividendi 20 anni): non implementato — richiederebbe storico FMP dividendi 20 anni.
+**Criteri Graham ora implementati (EP-010)**:
+- Criterio 1 (Dimensioni ≥ $100M): `SIZE_LATEST` — revenue annuo da FMP income-statement.
+- Criterio 3 (Stabilità utili): `EARNINGS_STABILITY_10Y` — utili positivi ogni anno per 10 anni.
+- Criterio 5 (Crescita EPS): `EPS_GROWTH_10Y` — crescita ≥+33% in 10 anni (compound).
+- Criterio 6 (P/E): `PE_3Y_AVG` — media 3 anni ≤15 GREEN.
+- Criterio 7 (P/B): `PB_LATEST` — ≤1.5 GREEN.
+- Criterio 4 (Dividendi 20 anni): `DIVIDEND_CONTINUITY_20Y` — storico FMP dividendi; degrada a INDETERMINATE se dati insufficienti.
 
-**Implicazione**: il Rule Engine e' una sintesi Graham/Buffett, non una replica meccanica del Cap.14. I criteri piu' facilmente proxy-abili (liquidita', debito, redditività) sono implementati; i criteri che richiedono storico molto lungo (dividendi 20 anni) o che coinvolgono la valutazione del prezzo (P/E, P/B) sono delegati al `grahamNumber` e al `mosSignal`.
+**Implicazione**: il Rule Engine copre ora tutti e 7 i criteri Graham Cap.14 (6 ruleId dedicati + `grahamNumber` per P/E×P/B composito) più i 7 criteri Buffett evoluti, per un totale di 13 regole quantitative.
 
 ## Aggiornamenti (v2026-05-23)
 

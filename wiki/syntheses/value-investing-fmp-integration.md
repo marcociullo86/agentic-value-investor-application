@@ -34,7 +34,7 @@ cash-flow-statement (10y)       <- fmp-financial-statements-stable
 key-metrics (10 anni)           <- fmp-key-metrics-ratios
   |
   v
-RuleEngineService (7 regole)    <- rule-engine interno
+RuleEngineService (13 regole)   <- rule-engine interno
 GrahamNumberCalculator          <- calcolatore interno
 DcfCalculator (Greenwald/FCF)   <- calcolatore interno
 MarginOfSafetyEvaluator         <- valutatore finale

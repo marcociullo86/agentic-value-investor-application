@@ -100,6 +100,39 @@ fmp:
   event-log:
     retention-days: ${FMP_EVENT_LOG_RETENTION_DAYS:90}
 
+# Embeddings sidecar (ADR-018 — Qwen3-Embedding-0.6B, fallback Arctic Embed L v2.0)
+embeddings:
+  sidecar:
+    url: ${EMBEDDINGS_SIDECAR_URL:http://embeddings-sidecar:8001}
+    timeout-seconds: 30
+  batch-size: 32
+  model:
+    name: ${EMBEDDINGS_MODEL_NAME:Qwen/Qwen3-Embedding-0.6B}
+
+# Chunking parameters (US-040 — RecursiveCharSplitter-equivalent)
+chunking:
+  chunk-size: 6000
+  chunk-overlap: 400
+
+# News sentiment classifier (US-042)
+news-sentiment:
+  max-llm-calls-per-ticker: 50
+  cache-ttl-hours: 24
+  news-window-days: 90
+
+# Price action analyzer (US-043)
+price-action:
+  min-series-days: 252
+  panic-threshold-pct: -30.0
+  deterioration-trend-threshold-pct: -10.0
+
+# LLM budget (ADR-019)
+llm:
+  budget:
+    monthly-cap-usd: ${LLM_BUDGET_MONTHLY_CAP_USD:50.00}
+    absolute-max-usd: ${LLM_BUDGET_ABSOLUTE_MAX_USD:10000}
+    frozen: false
+
 # Application-specific properties
 app:
   cors:

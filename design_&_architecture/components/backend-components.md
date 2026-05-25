@@ -182,6 +182,7 @@ AnalyzeTickerService.analyze("AAPL")
     |
     v
 RuleEngineService.evaluateAll(financialDataset)
+    |-- Buffett rules (7) ----------------------------------------
     |--> RoeRule.evaluate(dataset)            -> RuleSignal
     |--> RoicRule.evaluate(dataset)           -> RuleSignal
     |--> GrossMarginRule.evaluate(dataset)    -> RuleSignal
@@ -189,6 +190,13 @@ RuleEngineService.evaluateAll(financialDataset)
     |--> CurrentRatioRule.evaluate(dataset)   -> RuleSignal
     |--> DebtToIncomeRule.evaluate(dataset)   -> RuleSignal
     |--> CapexIntensityRule.evaluate(dataset) -> RuleSignal
+    |-- Graham defensive rules (6, EP-010) -----------------------
+    |--> SizeRule.evaluate(dataset)               -> RuleSignal
+    |--> EarningsStabilityRule.evaluate(dataset)  -> RuleSignal
+    |--> EpsGrowthRule.evaluate(dataset)          -> RuleSignal
+    |--> Pe3yAvgRule.evaluate(dataset)            -> RuleSignal
+    |--> PbLatestRule.evaluate(dataset)           -> RuleSignal
+    |--> DividendContinuityRule.evaluate(dataset) -> RuleSignal
     |--> GrahamNumberCalculator.calculate(eps, bvps)
     |--> DcfCalculator.calculate(dataset, override?)
     |        |--> GreenwaldMaintenanceCapexEstimator.estimate(...)  # primario

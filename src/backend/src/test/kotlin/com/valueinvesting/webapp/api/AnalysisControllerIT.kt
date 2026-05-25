@@ -38,7 +38,7 @@ class AnalysisControllerIT {
     companion object {
         @Container
         @JvmStatic
-        val postgres: PostgreSQLContainer<*> = PostgreSQLContainer("postgres:16-alpine")
+        val postgres: PostgreSQLContainer<*> = PostgreSQLContainer("pgvector/pgvector:pg17")
             .withDatabaseName("value_investing_test")
             .withUsername("test")
             .withPassword("test")
@@ -80,7 +80,7 @@ class AnalysisControllerIT {
             header { exists("X-Data-Snapshot-At") }
             header { string("X-Data-Stale", "false") }
             jsonPath("$.ticker") { value("AAPL") }
-            jsonPath("$.signals.length()") { value(7) }
+            jsonPath("$.signals.length()") { value(13) }
             jsonPath("$.grahamNumber") { exists() }
             jsonPath("$.dcfMethod") { exists() }
             jsonPath("$.mosSignal") { exists() }
