@@ -115,7 +115,7 @@ tags: [navigation]
 |--------|-------------|
 | [[value-investing-rule-engine]] | Motore regole quantitativo: ROE/ROIC/Margin/CurrentRatio/CapEx + DCF + MoS traffic light |
 | [[webapp-architecture-vi]] | Architettura 3-layer: Next.js SPA, Spring Boot 3.5 backend, PostgreSQL; endpoint Sprint 2 su `master` |
-| [[analysis-api-pipeline]] | `GET /api/analysis/{ticker}` (7 signals + Graham + DCF + MoS) + `GET /api/analysis/{ticker}/deep` (EP-011 deep analysis, payload esteso, invoke_llm policy) |
+| [[analysis-api-pipeline]] | `GET /api/analysis/{ticker}` (13 signals: 7 Buffett + 6 Graham + Graham Number + DCF + MoS) + `GET /api/analysis/{ticker}/deep` (EP-011 deep analysis, payload esteso, invoke_llm policy) |
 | [[openapi-contract-check]] | springdoc 2.8.16 (webmvc-api), MockMvc `/api/openapi.json`, gate CI `contract-check` |
 | [[pgvector-vector-store]] | Vector store EP-011: schema `filing_chunks`, HNSW (m=16, ef=64), chunking 6000/400 char, query similarity pgvector |
 | [[arctic-embed-l-v2]] | Modello embedding EP-011: `Qwen/Qwen3-Embedding-0.6B` (1024-dim, 32K ctx, MTEB ~64.6); A/B test via `embeddings.model.name`; Arctic Embed L v2.0 come fallback |

@@ -10,7 +10,7 @@ tags: [product-spec, api, rule-engine, dcf, analysis, l5]
 ---
 # Pipeline API di analisi (`GET /api/analysis/{ticker}`)
 
-> Endpoint unificato che orchestra acquisizione dati FMP (con cache), valutazione delle 7 regole quantitative, Graham Number, DCF e Margin of Safety, con persistenza del risultato.
+> Endpoint unificato che orchestra acquisizione dati FMP (con cache), valutazione delle 13 regole quantitative (7 Buffett + 6 Graham), Graham Number, DCF e Margin of Safety, con persistenza del risultato.
 
 ## Contesto
 

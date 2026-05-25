@@ -57,7 +57,7 @@ Il caching 24h e il throttling affrontano parzialmente il gap `fmp-rate-limiting
 | Epica | Sprint | Stato backend (L5) |
 |-------|--------|-------------------|
 | EP-002 FMP | 1 | Adapter, cache 24h, resilienza, `GET /api/financials/{ticker}` |
-| EP-003 Rule Engine | 2 | 7 regole + `RuleEngineService` |
+| EP-003 Rule Engine | 2 | 13 regole (7 Buffett + 6 Graham) + `RuleEngineService` |
 | EP-004 Valutazione | 2 | Graham, DCF Greenwald/FCF, MoS, `GET /api/analysis/{ticker}` |
 | EP-001 Screening | 2–3 | Contratto OpenAPI; **non** implementato (search/screener) |
 | EP-005 Dashboard | 3 | Non implementato (FE Traffic Light, grafici, moat) |

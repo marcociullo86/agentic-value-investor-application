@@ -47,7 +47,7 @@ La definizione di Graham ha tre implicazioni dirette per la WebApp Value Investi
 
 | Condizione Graham | Implementazione Rule Engine |
 |---|---|
-| Analisi approfondita | 7 regole quantitative (ROE, ROIC, Margin, Current Ratio, Debt, CapEx) |
+| Analisi approfondita | 13 regole quantitative: 7 Buffett (ROE, ROIC, Margin, Current Ratio, Debt, CapEx) + 6 Graham (Size, Earnings Stability, EPS Growth, PE, PB, Dividend Continuity) |
 | Sicurezza del capitale | [[margin-of-safety]] — prezzo < 70% valore intrinseco DCF |
 | Rendimento adeguato | Target ROIC > 12-15%, crescita EPS stabile |
 
