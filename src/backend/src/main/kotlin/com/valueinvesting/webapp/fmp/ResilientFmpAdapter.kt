@@ -52,10 +52,10 @@ import java.util.function.Supplier
 @Primary
 class ResilientFmpAdapter(
     @Qualifier("fmpAdapterRestClient") private val delegate: FmpAdapter,
-    private val circuitBreaker: CircuitBreaker,
-    private val retry: Retry,
-    private val rateLimiter: RateLimiter,
-    private val bulkhead: Bulkhead,
+    @Qualifier("fmpCircuitBreaker") private val circuitBreaker: CircuitBreaker,
+    @Qualifier("fmpRetry") private val retry: Retry,
+    @Qualifier("fmpRateLimiter") private val rateLimiter: RateLimiter,
+    @Qualifier("fmpBulkhead") private val bulkhead: Bulkhead,
     private val eventLogger: FmpEventLogger,
 ) : FmpAdapter {
 

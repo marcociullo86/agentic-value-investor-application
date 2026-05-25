@@ -3,6 +3,7 @@ package com.valueinvesting.webapp.fmp
 import io.github.resilience4j.bulkhead.Bulkhead
 import io.github.resilience4j.bulkhead.BulkheadConfig
 import io.github.resilience4j.bulkhead.BulkheadRegistry
+import org.springframework.beans.factory.annotation.Qualifier
 import io.github.resilience4j.circuitbreaker.CircuitBreaker
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
@@ -80,7 +81,7 @@ class FmpResilienceConfig(
         )
 
     @Bean
-    fun fmpCircuitBreaker(registry: CircuitBreakerRegistry): CircuitBreaker =
+    fun fmpCircuitBreaker(@Qualifier("fmpCircuitBreakerRegistry") registry: CircuitBreakerRegistry): CircuitBreaker =
         registry.circuitBreaker(FMP_INSTANCE)
 
     @Bean
@@ -105,7 +106,7 @@ class FmpResilienceConfig(
         )
 
     @Bean
-    fun fmpRetry(registry: RetryRegistry): Retry = registry.retry(FMP_INSTANCE)
+    fun fmpRetry(@Qualifier("fmpRetryRegistry") registry: RetryRegistry): Retry = registry.retry(FMP_INSTANCE)
 
     @Bean
     fun fmpRateLimiterRegistry(): RateLimiterRegistry =
@@ -121,7 +122,7 @@ class FmpResilienceConfig(
         )
 
     @Bean
-    fun fmpRateLimiter(registry: RateLimiterRegistry): RateLimiter =
+    fun fmpRateLimiter(@Qualifier("fmpRateLimiterRegistry") registry: RateLimiterRegistry): RateLimiter =
         registry.rateLimiter(FMP_INSTANCE)
 
     @Bean
@@ -135,7 +136,7 @@ class FmpResilienceConfig(
         )
 
     @Bean
-    fun fmpBulkhead(registry: BulkheadRegistry): Bulkhead = registry.bulkhead(FMP_INSTANCE)
+    fun fmpBulkhead(@Qualifier("fmpBulkheadRegistry") registry: BulkheadRegistry): Bulkhead = registry.bulkhead(FMP_INSTANCE)
 
     @Bean
     fun fmpTimeLimiterRegistry(): TimeLimiterRegistry =
@@ -147,7 +148,7 @@ class FmpResilienceConfig(
         )
 
     @Bean
-    fun fmpTimeLimiter(registry: TimeLimiterRegistry): TimeLimiter =
+    fun fmpTimeLimiter(@Qualifier("fmpTimeLimiterRegistry") registry: TimeLimiterRegistry): TimeLimiter =
         registry.timeLimiter(FMP_INSTANCE)
 
     companion object {

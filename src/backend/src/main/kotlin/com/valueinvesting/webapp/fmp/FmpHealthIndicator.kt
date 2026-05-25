@@ -3,6 +3,7 @@ package com.valueinvesting.webapp.fmp
 import io.github.resilience4j.circuitbreaker.CircuitBreaker
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.stereotype.Component
@@ -31,7 +32,7 @@ import org.springframework.stereotype.Component
 // resilience beans in the same package.
 @Component("fmpHealth")
 class FmpHealthIndicator(
-    registry: CircuitBreakerRegistry,
+    @Qualifier("fmpCircuitBreakerRegistry") registry: CircuitBreakerRegistry,
     private val eventLogger: FmpEventLogger,
 ) : HealthIndicator {
 

@@ -9,6 +9,7 @@ import io.github.resilience4j.ratelimiter.RateLimiterRegistry
 import io.github.resilience4j.retry.Retry
 import io.github.resilience4j.retry.RetryConfig
 import io.github.resilience4j.retry.RetryRegistry
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.time.Duration
@@ -63,7 +64,7 @@ class SecEdgarResilienceConfig(
         )
 
     @Bean
-    fun secEdgarCircuitBreaker(registry: CircuitBreakerRegistry): CircuitBreaker =
+    fun secEdgarCircuitBreaker(@Qualifier("secEdgarCircuitBreakerRegistry") registry: CircuitBreakerRegistry): CircuitBreaker =
         registry.circuitBreaker(SEC_EDGAR_INSTANCE)
 
     @Bean
@@ -81,7 +82,7 @@ class SecEdgarResilienceConfig(
         )
 
     @Bean
-    fun secEdgarRetry(registry: RetryRegistry): Retry = registry.retry(SEC_EDGAR_INSTANCE)
+    fun secEdgarRetry(@Qualifier("secEdgarRetryRegistry") registry: RetryRegistry): Retry = registry.retry(SEC_EDGAR_INSTANCE)
 
     @Bean
     fun secEdgarRateLimiterRegistry(): RateLimiterRegistry =
@@ -95,7 +96,7 @@ class SecEdgarResilienceConfig(
         )
 
     @Bean
-    fun secEdgarRateLimiter(registry: RateLimiterRegistry): RateLimiter =
+    fun secEdgarRateLimiter(@Qualifier("secEdgarRateLimiterRegistry") registry: RateLimiterRegistry): RateLimiter =
         registry.rateLimiter(SEC_EDGAR_INSTANCE)
 
     companion object {
