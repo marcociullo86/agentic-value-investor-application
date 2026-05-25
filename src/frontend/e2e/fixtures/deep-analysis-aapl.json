@@ -1,0 +1,95 @@
+{
+  "ticker": "AAPL",
+  "generatedAt": "2026-05-22T10:00:00Z",
+  "roe": {
+    "fiveYearAvg": 0.45,
+    "tenYearAvg": null,
+    "fiveYearDataPoints": 5,
+    "tenYearDataPoints": 0
+  },
+  "priceAction": {
+    "priceNow": 195.0,
+    "max52w": 220.0,
+    "min52w": 155.0,
+    "drawdownPct": -0.1136,
+    "trend3mPct": 0.052,
+    "ma50": 192.5,
+    "ma200": 185.3,
+    "panicDiscount": false,
+    "deteriorationWarning": false,
+    "seriesDays": 252
+  },
+  "ruleEngineResults": [
+    {
+      "ruleId": "ROE_10Y_AVG",
+      "signal": "GREEN",
+      "observedValue": 0.45,
+      "threshold": "ROE ≥ 15%",
+      "rationale": "ROE medio 10y 45%"
+    },
+    {
+      "ruleId": "GROSS_MARGIN_10Y_AVG",
+      "signal": "GREEN",
+      "observedValue": 0.435,
+      "threshold": "Gross Margin ≥ 40%",
+      "rationale": "Gross margin medio 43.5%"
+    }
+  ],
+  "verdict": {
+    "verdettoClasse": "APPROVATO",
+    "positionSizePct": 4.5,
+    "partialBasis": false,
+    "motivazioneAggregata": "Fondamentali solidi con margini elevati e ROE stabile.",
+    "ruleCountGreen": 5,
+    "ruleCountYellow": 1,
+    "ruleCountRed": 1,
+    "livelloRischio": "RISCHIO_BASSO",
+    "newsSentimentDominante": "NEUTRAL"
+  },
+  "positionSize": {
+    "recommendedPct": 4.5,
+    "rangeLow": 3.0,
+    "rangeHigh": 6.0,
+    "basisVerdict": "APPROVATO",
+    "marginOfSafetyPct": 12.0,
+    "disclaimer": "Indicazione algoritmica, non consiglio finanziario."
+  },
+  "filingsUsed": [
+    {
+      "accessionNumber": "0000320193-24-000081",
+      "formType": "10-K",
+      "filingDate": "2024-11-01"
+    },
+    {
+      "accessionNumber": "0000320193-25-000012",
+      "formType": "10-Q",
+      "filingDate": "2025-02-03"
+    }
+  ],
+  "mungerReport": {
+    "livelloRischio": "RISCHIO_BASSO",
+    "rischiPrincipali": [
+      { "testo": "Concentrazione revenue su iPhone (>50%).", "chunkIndex": 3 },
+      { "testo": "Rischio regolatorio antitrust EU e US.", "chunkIndex": 7 }
+    ],
+    "puntiDiForza": [
+      { "testo": "Ecosistema lock-in con margini elevati.", "chunkIndex": 1 },
+      { "testo": "Cash flow operativo > $100B annuo.", "chunkIndex": 5 }
+    ],
+    "segnaliRecenti10Q": [
+      { "testo": "Revenue Services in crescita del 14% YoY.", "chunkIndex": 2 }
+    ],
+    "filingComboHash": "abc123def456",
+    "llmCallsCount": 3
+  },
+  "newsSentiment": {
+    "total": 25,
+    "panicCount": 3,
+    "structuralCount": 2,
+    "neutralCount": 20,
+    "dominantClass": "NEUTRAL"
+  },
+  "llmStatus": "INVOKED",
+  "llmCalls": 3,
+  "totalDurationMs": 45200
+}

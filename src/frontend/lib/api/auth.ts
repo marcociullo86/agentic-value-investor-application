@@ -29,11 +29,14 @@ export interface TokenPair {
   readonly expiresInSeconds: number;
 }
 
+export type UserRole = 'ADMIN' | 'USER';
+
 export interface UserProfile {
   readonly id: string;
   readonly email: string;
   readonly displayName: string | null;
   readonly createdAt: string;
+  readonly role?: UserRole;
 }
 
 export async function register(body: RegisterRequest): Promise<UserProfile> {

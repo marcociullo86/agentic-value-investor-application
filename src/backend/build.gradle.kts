@@ -78,6 +78,9 @@ dependencies {
     // API docs only (no swagger-ui) — avoids PathPatternParser clash on Boot 3.5 [springdoc#965]
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:${property("springdocVersion")}")
 
+    // HTML stripping for SEC filing text extraction (TSK-096)
+    implementation("org.jsoup:jsoup:1.18.1")
+
     // Observability (Micrometer + Prometheus) [^src: design_&_architecture/decisions/ADR-008-observability-logging.md]
     implementation("io.micrometer:micrometer-registry-prometheus")
     implementation("net.logstash.logback:logstash-logback-encoder:8.0")

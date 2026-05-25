@@ -40,6 +40,12 @@ US-005 (cache 24h) e US-006 (resilienza) sono **cross-cutting**: nessun endpoint
 | POST | `/api/dcf-overrides` | US-012 | si' | Body: `{ticker, forcedMethod: GREENWALD|FCF_FALLBACK}`. Persiste override per utente. |
 | DELETE | `/api/dcf-overrides/{ticker}` | US-012 | si' | Rimuove override (torna a default Greenwald). |
 
+### EP-011 — Deep Analysis 10-K/10-Q
+
+| Method | Path | US | Auth | Note |
+|---|---|---|---|---|
+| GET | `/api/analysis/{ticker}/deep?invoke_llm={bool}` | US-045 | no | Deep analysis pipeline completa. Deterministic: ROE dual-lookback, price action, 13 rule engine signals, verdict cascade, position sizing, filing refs. LLM-dependent (invoke_llm=true): Munger inversion report, news sentiment. Audit trail in `deep_analysis_event_log`. |
+
 ### EP-005 — Dashboard, Traffic Light, Moat
 
 | Method | Path | US | Auth | Note |

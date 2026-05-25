@@ -25,8 +25,8 @@ class FilingRagService(
         val blob = filingBlobRepository.findById(filingBlobId)
             .orElseThrow { IllegalArgumentException("FilingBlob not found: $filingBlobId") }
 
-        val text = blob.chunkableText
-            ?: throw IllegalStateException("FilingBlob $filingBlobId has no chunkable_text")
+        val text = blob.extractedText
+            ?: throw IllegalStateException("FilingBlob $filingBlobId has no extracted_text")
 
         val chunks = chunkingService.chunk(text)
         log.info("Filing {} chunked into {} pieces", filingBlobId, chunks.size)
@@ -39,7 +39,7 @@ class FilingRagService(
                 filingBlobId = filingBlobId,
                 ticker = blob.ticker,
                 filingType = blob.formType,
-                filingDate = blob.filedAt,
+                filingDate = blob.filingDate,
                 chunkIndex = chunk.index,
                 content = chunk.content,
                 embedding = vectorStr,

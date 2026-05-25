@@ -208,26 +208,28 @@ TSK-152 + TSK-153 ──→ TSK-154
 
 **Dipendenze:** Sprint 5 Wave 2 completata (TSK-072 done — FMP stable migration).
 
+**Stato:** COMPLETATO (2026-05-24) — tutti i 18 TSK `done`. EP-010 chiusa.
+
 | TSK | Titolo | Layer | Consumer | Est. | US | Status |
 |-----|--------|-------|----------|------|----|--------|
-| TSK-073 | BE Implementa SizeRule (SIZE_LATEST) | be | agent | S | US-032 | ready |
-| TSK-074 | QA Test integrazione SizeRule — 3 scenari | qa | agent | S | US-032 | ready |
-| TSK-075 | BE Implementa EarningsStabilityRule (EARNINGS_STABILITY_10Y) | be | agent | S | US-033 | ready |
-| TSK-076 | QA Test integrazione EarningsStabilityRule — 4 scenari | qa | agent | S | US-033 | ready |
-| TSK-077 | BE Implementa EpsGrowthRule (EPS_GROWTH_10Y) | be | agent | S | US-034 | ready |
-| TSK-078 | QA Test integrazione EpsGrowthRule — 5 scenari | qa | agent | S | US-034 | ready |
-| TSK-079 | BE Implementa Pe3yAvgRule (PE_3Y_AVG) | be | agent | S | US-035 | ready |
-| TSK-080 | QA Test integrazione Pe3yAvgRule — 4 scenari | qa | agent | S | US-035 | ready |
-| TSK-081 | BE Implementa PbLatestRule (PB_LATEST) | be | agent | S | US-036 | ready |
-| TSK-082 | QA Test integrazione PbLatestRule — 4 scenari | qa | agent | S | US-036 | ready |
-| TSK-083 | BE Estendi FmpAdapter con getDividendHistory | be | agent | S | US-037 | ready |
-| TSK-084 | DB Migration V010__fmp_dividend_history_snapshot | db | agent | XS | US-037 | ready |
-| TSK-085 | BE Implementa DividendContinuityRule (DIVIDEND_CONTINUITY_20Y) | be | agent | S | US-037 | ready |
-| TSK-086 | QA Test DividendContinuityRule + contratto adapter | qa | agent | S | US-037 | ready |
-| TSK-087 | BE Estendi OpenAPI con 6 nuovi ruleId Graham | be | agent | S | cross-EP010 | ready |
-| TSK-088 | FE Aggiorna TrafficLight component a 13 ruleId | fe | agent | S | cross-EP010 | ready |
-| TSK-089 | QA Contract test OpenAPI drift — 13 ruleId | qa | agent | XS | cross-EP010 | ready |
-| TSK-090 | QA Integration test E2E EP-010 — AAPL/MSFT/KO fixture | qa | agent | M | cross-EP010 | ready |
+| TSK-073 | BE Implementa SizeRule (SIZE_LATEST) | be | agent | S | US-032 | done |
+| TSK-074 | QA Test integrazione SizeRule — 3 scenari | qa | agent | S | US-032 | done |
+| TSK-075 | BE Implementa EarningsStabilityRule (EARNINGS_STABILITY_10Y) | be | agent | S | US-033 | done |
+| TSK-076 | QA Test integrazione EarningsStabilityRule — 4 scenari | qa | agent | S | US-033 | done |
+| TSK-077 | BE Implementa EpsGrowthRule (EPS_GROWTH_10Y) | be | agent | S | US-034 | done |
+| TSK-078 | QA Test integrazione EpsGrowthRule — 5 scenari | qa | agent | S | US-034 | done |
+| TSK-079 | BE Implementa Pe3yAvgRule (PE_3Y_AVG) | be | agent | S | US-035 | done |
+| TSK-080 | QA Test integrazione Pe3yAvgRule — 4 scenari | qa | agent | S | US-035 | done |
+| TSK-081 | BE Implementa PbLatestRule (PB_LATEST) | be | agent | S | US-036 | done |
+| TSK-082 | QA Test integrazione PbLatestRule — 4 scenari | qa | agent | S | US-036 | done |
+| TSK-083 | BE Estendi FmpAdapter con getDividendHistory | be | agent | S | US-037 | done |
+| TSK-084 | DB Migration V010__fmp_dividend_history_snapshot | db | agent | XS | US-037 | done |
+| TSK-085 | BE Implementa DividendContinuityRule (DIVIDEND_CONTINUITY_20Y) | be | agent | S | US-037 | done |
+| TSK-086 | QA Test DividendContinuityRule + contratto adapter | qa | agent | S | US-037 | done |
+| TSK-087 | BE Estendi OpenAPI con 6 nuovi ruleId Graham | be | agent | S | cross-EP010 | done |
+| TSK-088 | FE Aggiorna TrafficLight component a 13 ruleId | fe | agent | S | cross-EP010 | done |
+| TSK-089 | QA Contract test OpenAPI drift — 13 ruleId | qa | agent | XS | cross-EP010 | done |
+| TSK-090 | QA Integration test E2E EP-010 — AAPL/MSFT/KO fixture | qa | agent | M | cross-EP010 | done |
 
 **Totale Sprint 6:** 18 TSK (8 be, 1 fe, 1 db, 8 qa)
 
@@ -239,45 +241,47 @@ TSK-152 + TSK-153 ──→ TSK-154
 
 **Dipendenze:** Sprint 6 completato (i 13 ruleId Buffett+Graham necessari per la cascade US-044).
 
+**Stato:** COMPLETATO (2026-05-25) — tutti i 37 TSK `done`. US-038..US-045 + US-055 chiuse.
+
 | TSK | Titolo | Layer | Consumer | Est. | US | Status |
 |-----|--------|-------|----------|------|----|--------|
-| TSK-091 | BE SecEdgarAdapter interface + SecEdgarRestClient | be | agent | M | US-038 | ready |
-| TSK-092 | BE Cache CIK→ticker TTL 30gg | be | agent | S | US-038 | ready |
-| TSK-093 | QA WireMock SecEdgarRestClient — rate-limit, 429, cache | qa | agent | S | US-038 | ready |
-| TSK-094 | BE Estendi FmpAdapter con getSecFilings | be | agent | S | US-039 | ready |
-| TSK-095 | DB Migration V011__filing_blob | db | agent | XS | US-039 | ready |
-| TSK-096 | BE Filing10KQDownloaderService — download, HTML strip, persist | be | agent | M | US-039 | ready |
-| TSK-097 | QA Test Filing10KQDownloaderService — cache TTL, limit 50MB | qa | agent | S | US-039 | ready |
-| TSK-098 | DB Migration V012__pgvector_enable + filing_chunks + HNSW | db | agent | S | US-040 | ready |
-| TSK-099 | Infra Sidecar Python FastAPI embeddings Snowflake Arctic Embed L v2.0 | infra | agent | M | US-040 | ready |
-| TSK-100 | BE EmbeddingService Kotlin HTTP client verso sidecar | be | agent | S | US-040 | ready |
-| TSK-101 | BE FilingChunkingService — split testo RecursiveCharSplitter | be | agent | S | US-040 | ready |
-| TSK-102 | BE FilingRagService — persist chunks + embedding + similarity search | be | agent | M | US-040 | ready |
-| TSK-103 | QA Test integrazione pgvector — chunking, embedding, retrieval, idempotenza | qa | agent | M | US-040 | ready |
-| TSK-104 | BE AnthropicClient config + LlmResilienceConfig circuit breaker | be | agent | S | US-041 | ready |
-| TSK-105 | BE MungerInversionAnalyzer — 10 query inversione + prompt template | be | agent | L | US-041 | ready |
-| TSK-106 | DB Migration V013__filing_analysis (deep_analysis_report) | db | agent | XS | US-041 | ready |
-| TSK-107 | QA Test MungerInversionAnalyzer — mock Anthropic + golden response | qa | agent | S | US-041 | ready |
-| TSK-108 | BE Estendi FmpAdapter con getStockNews | be | agent | S | US-042 | ready |
-| TSK-109 | BE NewsSentimentService — classificatore Claude Opus + cache | be | agent | M | US-042 | ready |
-| TSK-110 | DB Migration V014__news_sentiment_analysis | db | agent | XS | US-042 | ready |
-| TSK-111 | QA Test NewsSentimentService — golden dataset, cache, limite 50 LLM | qa | agent | S | US-042 | ready |
-| TSK-112 | BE Estendi FmpAdapter con getHistoricalEod | be | agent | S | US-043 | ready |
-| TSK-113 | BE PriceActionAnalyzer — drawdown 52w + panic/deterioration flags | be | agent | S | US-043 | ready |
-| TSK-114 | QA Test PriceActionAnalyzer — boundary flags + migration V015 | qa | agent | S | US-043 | ready |
-| TSK-115 | BE MungerDecisionService — cascade 6 verdetti | be | agent | M | US-044 | ready |
-| TSK-116 | BE PositionSizeCalculator — port da agent.py | be | agent | S | US-044 | ready |
-| TSK-117 | QA Test MungerDecisionService — 6 combinazioni cascade + determinismo | qa | agent | S | US-044 | ready |
-| TSK-118 | BE DeepAnalysisController + DeepAnalysisService orchestrator | be | agent | M | US-045 | ready |
-| TSK-119 | BE DTO DeepAnalysisResultDto + OpenAPI schema /deep + migration V016 | be | agent | S | US-045 | ready |
-| TSK-120 | QA Integration test E2E /deep — tutti i mock provider | qa | agent | M | US-045 | ready |
-| TSK-121 | QA Contract test OpenAPI /deep — drift guard | qa | agent | S | US-045 | ready |
-| TSK-155 | DB Migration V0XX__llm_cost_tracking (llm_cost_counter + llm_call_log + llm_budget_config seed) | db | agent | S | US-055 | todo |
-| TSK-156 | BE LlmCostCounterService + LlmCallLogger AOP + LlmBudgetGuard + endpoint admin GET/POST freeze/PUT budget | be | agent | L | US-055 | todo |
-| TSK-160 | BE RoeCalculator.fiveYearAverage — porting ROE_5Y_AVG da agent.py | be | agent | S | US-045 | todo |
-| TSK-161 | BE Estendi DeepAnalysisResponse con blocco roe (fiveYearAvg + tenYearAvg + dataPoints) + OpenAPI | be | agent | S | US-045 | todo |
-| TSK-162 | BE Aggiorna prompt Munger LLM con entrambi i lookback ROE + nota interpretativa divergenza | be | agent | S | US-041 | todo |
-| TSK-163 | QA Contract test + unit test ROE dual lookback — payload /deep + edge case + golden test divergenza | qa | agent | S | US-045 | todo |
+| TSK-091 | BE SecEdgarAdapter interface + SecEdgarRestClient | be | agent | M | US-038 | done |
+| TSK-092 | BE Cache CIK→ticker TTL 30gg | be | agent | S | US-038 | done |
+| TSK-093 | QA WireMock SecEdgarRestClient — rate-limit, 429, cache | qa | agent | S | US-038 | done |
+| TSK-094 | BE Estendi FmpAdapter con getSecFilings | be | agent | S | US-039 | done |
+| TSK-095 | DB Migration V011__filing_blob | db | agent | XS | US-039 | done |
+| TSK-096 | BE Filing10KQDownloaderService — download, HTML strip, persist | be | agent | M | US-039 | done |
+| TSK-097 | QA Test Filing10KQDownloaderService — cache TTL, limit 50MB | qa | agent | S | US-039 | done |
+| TSK-098 | DB Migration V012__pgvector_enable + filing_chunks + HNSW | db | agent | S | US-040 | done |
+| TSK-099 | Infra Sidecar Python FastAPI embeddings Snowflake Arctic Embed L v2.0 | infra | agent | M | US-040 | done |
+| TSK-100 | BE EmbeddingService Kotlin HTTP client verso sidecar | be | agent | S | US-040 | done |
+| TSK-101 | BE FilingChunkingService — split testo RecursiveCharSplitter | be | agent | S | US-040 | done |
+| TSK-102 | BE FilingRagService — persist chunks + embedding + similarity search | be | agent | M | US-040 | done |
+| TSK-103 | QA Test integrazione pgvector — chunking, embedding, retrieval, idempotenza | qa | agent | M | US-040 | done |
+| TSK-104 | BE AnthropicClient config + LlmResilienceConfig circuit breaker | be | agent | S | US-041 | done |
+| TSK-105 | BE MungerInversionAnalyzer — 10 query inversione + prompt template | be | agent | L | US-041 | done |
+| TSK-106 | DB Migration V013__filing_analysis (deep_analysis_report) | db | agent | XS | US-041 | done |
+| TSK-107 | QA Test MungerInversionAnalyzer — mock Anthropic + golden response | qa | agent | S | US-041 | done |
+| TSK-108 | BE Estendi FmpAdapter con getStockNews | be | agent | S | US-042 | done |
+| TSK-109 | BE NewsSentimentService — classificatore Claude Opus + cache | be | agent | M | US-042 | done |
+| TSK-110 | DB Migration V014__news_sentiment_analysis | db | agent | XS | US-042 | done |
+| TSK-111 | QA Test NewsSentimentService — golden dataset, cache, limite 50 LLM | qa | agent | S | US-042 | done |
+| TSK-112 | BE Estendi FmpAdapter con getHistoricalEod | be | agent | S | US-043 | done |
+| TSK-113 | BE PriceActionAnalyzer — drawdown 52w + panic/deterioration flags | be | agent | S | US-043 | done |
+| TSK-114 | QA Test PriceActionAnalyzer — boundary flags + migration V015 | qa | agent | S | US-043 | done |
+| TSK-115 | BE MungerDecisionService — cascade 6 verdetti | be | agent | M | US-044 | done |
+| TSK-116 | BE PositionSizeCalculator — port da agent.py | be | agent | S | US-044 | done |
+| TSK-117 | QA Test MungerDecisionService — 6 combinazioni cascade + determinismo | qa | agent | S | US-044 | done |
+| TSK-118 | BE DeepAnalysisController + DeepAnalysisService orchestrator | be | agent | M | US-045 | done |
+| TSK-119 | BE DTO DeepAnalysisResultDto + OpenAPI schema /deep + migration V016 | be | agent | S | US-045 | done |
+| TSK-120 | QA Integration test E2E /deep — tutti i mock provider | qa | agent | M | US-045 | done |
+| TSK-121 | QA Contract test OpenAPI /deep — drift guard | qa | agent | S | US-045 | done |
+| TSK-155 | DB Migration V0XX__llm_cost_tracking (llm_cost_counter + llm_call_log + llm_budget_config seed) | db | agent | S | US-055 | done |
+| TSK-156 | BE LlmCostCounterService + LlmCallLogger AOP + LlmBudgetGuard + endpoint admin GET/POST freeze/PUT budget | be | agent | L | US-055 | done |
+| TSK-160 | BE RoeCalculator.fiveYearAverage — porting ROE_5Y_AVG da agent.py | be | agent | S | US-045 | done |
+| TSK-161 | BE Estendi DeepAnalysisResponse con blocco roe (fiveYearAvg + tenYearAvg + dataPoints) + OpenAPI | be | agent | S | US-045 | done |
+| TSK-162 | BE Aggiorna prompt Munger LLM con entrambi i lookback ROE + nota interpretativa divergenza | be | agent | S | US-041 | done |
+| TSK-163 | QA Contract test + unit test ROE dual lookback — payload /deep + edge case + golden test divergenza | qa | agent | S | US-045 | done |
 
 **Totale Sprint 7:** 37 TSK (17 be, 0 fe, 6 db, 1 infra, 13 qa) — +6 TSK da ADR-019/ADR-020
 
@@ -307,15 +311,17 @@ TSK-156 deve precedere TSK-104/TSK-105/TSK-109 (LlmBudgetGuard nella chain Resil
 
 **Dipendenze:** Sprint 7 completato (endpoint `/api/analysis/{ticker}/deep` disponibile + LlmBudgetGuard/endpoint admin BE).
 
+**Stato:** COMPLETATO (2026-05-25) — tutti i 7 TSK `done`. US-046 + US-055 FE chiuse.
+
 | TSK | Titolo | Layer | Consumer | Est. | US | Status |
 |-----|--------|-------|----------|------|----|--------|
-| TSK-122 | FE Route /analysis/{ticker}/deep + page component Next.js | fe | agent | S | US-046 | ready |
-| TSK-123 | FE Componenti UI Deep Analysis (5 componenti) | fe | agent | M | US-046 | ready |
-| TSK-124 | FE API client estensione + SWR hook useDeepAnalysis | fe | agent | S | US-046 | ready |
-| TSK-125 | QA Test E2E Playwright Deep Analysis — happy path + value-trap + invalido | qa | agent | M | US-046 | ready |
-| TSK-157 | FE Budget bar + cache-hit signal sul pulsante Avvia analisi LLM (scheda dettaglio) | fe | agent | S | US-046 | todo |
-| TSK-158 | FE LlmBudgetAdminPanel — campo cap + modal conferma + PUT /admin/llm-cost/budget | fe | agent | M | US-055 | todo |
-| TSK-159 | QA Integration tests LLM budget config — PUT happy path + cache invalidation + audit + 400 + 403 | qa | agent | M | US-055 | todo |
+| TSK-122 | FE Route /analysis/{ticker}/deep + page component Next.js | fe | agent | S | US-046 | done |
+| TSK-123 | FE Componenti UI Deep Analysis (5 componenti) | fe | agent | M | US-046 | done |
+| TSK-124 | FE API client estensione + SWR hook useDeepAnalysis | fe | agent | S | US-046 | done |
+| TSK-125 | QA Test E2E Playwright Deep Analysis — happy path + value-trap + invalido | qa | agent | M | US-046 | done |
+| TSK-157 | FE Budget bar + cache-hit signal sul pulsante Avvia analisi LLM (scheda dettaglio) | fe | agent | S | US-046 | done |
+| TSK-158 | FE LlmBudgetAdminPanel — campo cap + modal conferma + PUT /admin/llm-cost/budget | fe | agent | M | US-055 | done |
+| TSK-159 | QA Integration tests LLM budget config — PUT happy path + cache invalidation + audit + 400 + 403 | qa | agent | M | US-055 | done |
 
 **Totale Sprint 8:** 7 TSK (3 fe, 1 qa → originali; +2 fe, +1 qa da ADR-019) — totale: 3 fe, 1 db (nessuno), 3 qa
 
@@ -367,9 +373,9 @@ TSK-155 + TSK-156 + TSK-158 ──→ TSK-159
 | R1.1 | 5 in corso | 5 | 0 | 5 | 3 | 8 | **21** (14 done, 7 todo) |
 | R1.1 | lookahead | 0 | 0 | 2 | 0 | 0 | **2** (TSK-071 todo, TSK-072 done) |
 | R1.1.x | 5.5 hotfix | 0 | 0 | 3 | 2 | 7 | **12** (TSK-143…154) |
-| R2.0 | 6 | 0 | 1 | 8 | 1 | 8 | **18** |
-| R2.0 | 7 | 1 | 6 | 19 | 0 | 11 | **37** (+6 da ADR-019/020) |
-| R2.0 | 8 | 0 | 0 | 0 | 5 | 2 | **7** (+3 da ADR-019) |
+| R2.0 | 6 done | 0 | 1 | 8 | 1 | 8 | **18** |
+| R2.0 | 7 done | 1 | 6 | 19 | 0 | 11 | **37** (+6 da ADR-019/020) |
+| R2.0 | 8 done | 0 | 0 | 0 | 5 | 2 | **7** (+3 da ADR-019) |
 | R2.0 | 9 | 1 | 1 | 7 | 2 | 6 | **17** |
 | | **Nuovi R2.0** | | | | | | **79** (TSK-073…163) |
 | | **TOTALE** | | | | | | **163** |
@@ -419,4 +425,4 @@ Sprint 9 (EP-012)
   TSK-124 + TSK-138 ──→ TSK-140 + TSK-141 ──→ TSK-142
 ```
 
-**Prossimo `/dev` suggerito:** `TSK-073` (SizeRule BE) in parallelo con `TSK-074` (QA). Completare Sprint 5 Wave 2 (TSK-061..067) in parallelo se possibile.
+**Prossimo `/dev` suggerito:** Sprint 9 (EP-012) — `TSK-126` (UniverseScreenerService) in parallelo con `TSK-129` (SectorBlacklist) + `TSK-132` (BatchResilienceConfig) + `TSK-133` (migration) + `TSK-135` (migration). Completare Sprint 5 Wave 2 (TSK-061..067, deploy infra) e Sprint 5.5 hotfix (TSK-143..154) quando prioritario.

@@ -23,6 +23,7 @@ deciders: [lead-architect, marco.ciullo]
 |  - WatchlistController      (US-017)                         |
 |  - AuthController           (EP-006)                         |
 |  - DcfOverrideController    (US-012)                         |
+|  - DeepAnalysisController   (EP-011, US-045)                 |
 |                                                              |
 |  + GlobalExceptionHandler   (mapper -> ProblemDetails)       |
 |  + RequestIdFilter          (X-Request-Id MDC)               |
@@ -41,6 +42,13 @@ deciders: [lead-architect, marco.ciullo]
 |  - WatchlistService         (US-017)                         |
 |  - AuthService              (EP-006)                         |
 |  - DcfOverrideService       (US-012)                         |
+|  - DeepAnalysisService      (EP-011, orchestrator)           |
+|  - MungerDecisionService    (EP-011, verdict cascade)        |
+|  - PositionSizeCalculator   (EP-011, position sizing)        |
+|  - MungerInversionAnalyzer  (EP-011, RAG+LLM queries)       |
+|  - MungerPromptContextBuilder (EP-011, ROE dual lookback)    |
+|  - Filing10KQDownloaderService (EP-011, SEC filing ingest)   |
+|  - FilingRagService         (EP-011, pgvector RAG)           |
 +--------------------------------------------------------------+
             |                |                |
             v                v                v
@@ -102,6 +110,9 @@ com.valueinvesting.webapp
  │    ├── WatchlistController.kt
  │    ├── AuthController.kt
  │    ├── DcfOverrideController.kt
+ │    ├── DeepAnalysisController.kt     # EP-011 (US-045)
+ │    ├── model
+ │    │    └── DeepAnalysisResponse.kt  # EP-011 response DTO
  │    ├── dto/ ... (request/response DTOs aderenti a openapi.yaml)
  │    └── error/
  │         ├── GlobalExceptionHandler.kt
@@ -114,7 +125,22 @@ com.valueinvesting.webapp
  │    ├── MoatChecklistService.kt
  │    ├── WatchlistService.kt
  │    ├── AuthService.kt
- │    └── DcfOverrideService.kt
+ │    ├── DcfOverrideService.kt
+ │    ├── DeepAnalysisService.kt              # EP-011 orchestrator
+ │    ├── DeepAnalysisExceptions.kt           # EP-011 sealed hierarchy
+ │    ├── MungerDecisionService.kt            # EP-011 verdict cascade
+ │    ├── MungerDecisionInput.kt              # EP-011 input DTO
+ │    ├── VerdictPayload.kt                   # EP-011 output DTO
+ │    ├── VerdictClass.kt                     # EP-011 enum (6 verdict)
+ │    ├── PositionSizeCalculator.kt           # EP-011 Kelly-based sizing
+ │    ├── PositionSizeResult.kt               # EP-011 result DTO
+ │    ├── RuleCountByColor.kt                 # EP-011 DTO
+ │    ├── InputRiferimenti.kt                 # EP-011 DTO
+ │    ├── MungerInversionAnalyzer.kt          # EP-011 RAG+LLM (US-041)
+ │    ├── MungerInversionReport.kt            # EP-011 domain model
+ │    ├── MungerQueries.kt                    # EP-011 10 inversion queries
+ │    ├── MungerPromptContextBuilder.kt       # EP-011 ROE dual lookback
+ │    └── Filing10KQDownloaderService.kt      # EP-011 SEC filing download
  ├── ruleengine
  │    ├── RuleEngineService.kt
  │    ├── FinancialDataset.kt
@@ -142,8 +168,20 @@ com.valueinvesting.webapp
  │    │         ├── GreenwaldMaintenanceCapexEstimator.kt
  │    │         ├── FcfFallbackEstimator.kt
  │    │         └── DcfMethod.kt
+ │    ├── calculators
+ │    │    └── RoeCalculator.kt              # EP-011 (fiveYearAvg + tenYearAvg)
  │    └── mos
  │         └── MarginOfSafetyEvaluator.kt
+ ├── llm
+ │    ├── AnthropicClient.kt                 # interface (EP-011, US-041)
+ │    ├── AnthropicRestClient.kt             # impl via Spring RestClient
+ │    ├── AnthropicClientStub.kt             # test stub (no-op)
+ │    ├── AnthropicProperties.kt             # @ConfigurationProperties
+ │    ├── AnthropicConfig.kt                 # @Bean factory
+ │    ├── LlmResilienceConfig.kt             # CB + RateLimiter + Retry
+ │    ├── LlmRequest.kt
+ │    ├── LlmResponse.kt
+ │    └── LlmException.kt                   # sealed hierarchy
  ├── fmp
  │    ├── FmpAdapter.kt                   # interface
  │    ├── FmpAdapterRestClient.kt         # impl
@@ -185,7 +223,10 @@ com.valueinvesting.webapp
  │    │    ├── WatchlistItem.kt
  │    │    ├── MoatChecklistEntry.kt
  │    │    ├── DcfMethodOverride.kt
- │    │    └── FmpApiEvent.kt
+ │    │    ├── FmpApiEvent.kt
+ │    │    ├── FilingBlobEntity.kt             # EP-011 (SEC filing cache)
+ │    │    ├── DeepAnalysisReportEntity.kt     # EP-011 (Munger report)
+ │    │    └── DeepAnalysisEventLogEntity.kt   # EP-011 (audit trail)
  │    └── repository
  │         └── ... (Spring Data JPA Repository<T,ID>)
  ├── security

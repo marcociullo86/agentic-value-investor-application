@@ -393,3 +393,13 @@ ADR-007 §Error format dichiara RFC 9457 §3.2 (extensions al top-level). Quattr
 **TSK correlati:** TSK-148 (fix codice), TSK-149 (test deserializzazione con nomi reali).
 
 **Risolto:** 2026-05-23 — aggiornato fmp-key-metrics-ratios.md §"Aggiornamenti v2026-05-23". Documentati: 6 field rinominati v3→stable con tabella @JsonProperty, ~18 field assenti da /stable/key-metrics (spostati in /stable/ratios) con nota su null silenzioso e fallback derivato, caso speciale bookValuePerShare con formula BVPS = totalStockholdersEquity / weightedAverageShsOutDil (commit bdb2d3e). Gap documentale chiuso.
+
+---
+
+### 2026-05-25 — fe-deep-analysis-static-export-conflict
+
+**Origine:** fe-dev @ TSK-122 implementazione
+**Gap:** `next.config.js` usa `output: 'export'` (static export globale, ADR-009). TSK-122 crea la route `app/analysis/[ticker]/deep/page.tsx` con segmento dinamico `[ticker]` senza `generateStaticParams()`. Il TSK nota esplicitamente "Non usare output: 'export' per questa route (SSR o ISR, non statico)". Con l'attuale config `output: 'export'`, `next build` fallirà su questa route perché non trova `generateStaticParams`. La pagina è implementata come `'use client'` con SWR client-side fetching, quindi funziona in dev mode. Serve una decisione architetturale: rimuovere `output: 'export'` globale (impatta tutte le route), oppure adottare un approccio misto (es. query param per la deep analysis come già fatto per `/analysis?ticker=`), oppure un altro meccanismo.
+**Sospetta fonte:** lead-architect — decisione su `next.config.js` `output` mode per supportare route dinamiche deep analysis.
+**Impatto:** Bloccante per build di produzione della route deep analysis. Non bloccante per dev locale. L'intera pagina è funzionale con `next dev` ma `next build` fallirà.
+**TSK correlati:** TSK-122 (implementazione route), US-046 (frontend tab deep analysis).

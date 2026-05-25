@@ -77,14 +77,18 @@ class FilingRagServiceIntegrationTest {
     private fun createBlob(ticker: String, textLength: Int): FilingBlobEntity {
         val blob = FilingBlobEntity(
             ticker = ticker,
+            cik = "0000320193",
             formType = "10-K",
-            filedAt = LocalDate.of(2025, 1, 15),
-            chunkableText = "x".repeat(textLength),
+            accessionNumber = "0000320193-25-%06d".format(blobCounter++),
+            filingDate = LocalDate.of(2025, 1, 15),
+            extractedText = "x".repeat(textLength),
             fetchedAt = Instant.now(),
             expiresAt = Instant.now().plusSeconds(86400 * 90),
         )
         return filingBlobRepository.save(blob)
     }
+
+    private var blobCounter = 1
 
     @Test
     fun `chunking produces expected number of chunks for 18000 chars`() {

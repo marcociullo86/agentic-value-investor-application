@@ -1,0 +1,73 @@
+{
+  "ticker": "TRAP",
+  "generatedAt": "2026-05-22T11:00:00Z",
+  "roe": {
+    "fiveYearAvg": 0.08,
+    "tenYearAvg": 0.06,
+    "fiveYearDataPoints": 5,
+    "tenYearDataPoints": 10
+  },
+  "priceAction": {
+    "priceNow": 22.5,
+    "max52w": 48.0,
+    "min52w": 18.0,
+    "drawdownPct": -0.531,
+    "trend3mPct": -0.22,
+    "ma50": 25.0,
+    "ma200": 35.0,
+    "panicDiscount": false,
+    "deteriorationWarning": true,
+    "seriesDays": 252
+  },
+  "ruleEngineResults": [
+    {
+      "ruleId": "ROE_10Y_AVG",
+      "signal": "RED",
+      "observedValue": 0.06,
+      "threshold": "ROE ≥ 15%",
+      "rationale": "ROE medio 10y 6% — sotto soglia"
+    }
+  ],
+  "verdict": {
+    "verdettoClasse": "BOCCIATO_VALUE_TRAP",
+    "positionSizePct": 0,
+    "partialBasis": false,
+    "motivazioneAggregata": "Value trap: prezzo apparentemente basso ma fondamentali in deterioramento strutturale.",
+    "ruleCountGreen": 1,
+    "ruleCountYellow": 2,
+    "ruleCountRed": 4,
+    "livelloRischio": "RISCHIO_ESTREMO",
+    "newsSentimentDominante": "STRUCTURAL_DAMAGE"
+  },
+  "positionSize": null,
+  "filingsUsed": [
+    {
+      "accessionNumber": "0001234567-24-000099",
+      "formType": "10-K",
+      "filingDate": "2024-03-15"
+    }
+  ],
+  "mungerReport": {
+    "livelloRischio": "RISCHIO_ESTREMO",
+    "rischiPrincipali": [
+      { "testo": "Fatturato in calo per il terzo anno consecutivo.", "chunkIndex": 1 },
+      { "testo": "Margini in compressione strutturale.", "chunkIndex": 4 }
+    ],
+    "puntiDiForza": [],
+    "segnaliRecenti10Q": [
+      { "testo": "Guidance ribassata per Q3.", "chunkIndex": 2 }
+    ],
+    "filingComboHash": "trap789xyz",
+    "llmCallsCount": 3
+  },
+  "newsSentiment": {
+    "total": 15,
+    "panicCount": 2,
+    "structuralCount": 10,
+    "neutralCount": 3,
+    "dominantClass": "STRUCTURAL_DAMAGE"
+  },
+  "llmStatus": "INVOKED",
+  "llmCalls": 3,
+  "totalDurationMs": 52000
+}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useAnalysisStore } from '@/lib/stores/useAnalysisStore';
 import { useHistorical } from '@/lib/hooks/useHistorical';
@@ -74,7 +75,25 @@ export function AnalysisPageClient(
       data-testid="analysis-page"
       className="mx-auto flex min-h-screen max-w-6xl flex-col gap-6 px-6 py-10"
     >
-      <header className="flex flex-col gap-2">
+      <header className="flex flex-col gap-3">
+        <nav
+          aria-label="Navigazione analisi"
+          className="flex gap-1 border-b border-slate-200 dark:border-slate-800"
+        >
+          <span
+            aria-current="page"
+            className="border-b-2 border-blue-600 px-4 py-2 text-sm font-medium text-blue-600 dark:border-blue-400 dark:text-blue-400"
+          >
+            Analisi Base
+          </span>
+          <Link
+            href={`/analysis/${encodeURIComponent(normalized)}/deep`}
+            className="border-b-2 border-transparent px-4 py-2 text-sm font-medium text-slate-600 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+            data-testid="tab-deep-analysis"
+          >
+            Deep Analysis
+          </Link>
+        </nav>
         <h1
           data-testid="analysis-page-title"
           className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100"

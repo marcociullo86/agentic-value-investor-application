@@ -285,6 +285,63 @@ paths:
         '204': { description: Rimosso }
         '401': { $ref: '#/components/responses/Unauthorized' }
 
+  # ---------------- EP-011 deep analysis ----------------
+  /api/analysis/{ticker}/deep:
+    get:
+      tags: [analysis]
+      summary: Deep analysis completa — ROE + rule engine + verdict + Munger + sentiment (US-045, ADR-020)
+      description: |
+        Orchestrazione deep analysis pipeline: filing ingest → embedding → ROE
+        dual-lookback → rule engine 13 ruleId → price action → verdict cascade →
+        position sizing. I campi LLM-dependent (mungerReport, newsSentiment) sono
+        popolati solo se invoke_llm=true; in default restano null con
+        llmStatus="NOT_INVOKED".
+      parameters:
+        - $ref: '#/components/parameters/Ticker'
+        - name: invoke_llm
+          in: query
+          required: false
+          description: |
+            Enable LLM-dependent blocks (Munger inversion report, news sentiment).
+            Default false — deterministic-only response in < 2s.
+          schema: { type: boolean, default: false }
+      responses:
+        '200':
+          description: Deep analysis result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeepAnalysisResponse'
+        '404':
+          description: Ticker non trovato
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '422':
+          description: Ticker senza filing SEC disponibili
+          content:
+            application/problem+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ProblemDetails'
+                  - type: object
+                    properties:
+                      reason:
+                        type: string
+                        enum: [no_sec_filings]
+        '503':
+          description: FMP o LLM indisponibile
+          content:
+            application/problem+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ProblemDetails'
+                  - type: object
+                    properties:
+                      reason:
+                        type: string
+                        enum: [llm_unavailable, fmp_unavailable]
+
   # ---------------- EP-005 historical + moat ----------------
   /api/historical/{ticker}:
     get:
@@ -802,3 +859,189 @@ components:
         items:
           type: array
           items: { $ref: '#/components/schemas/WatchlistItem' }
+
+    # ---- EP-011 Deep Analysis (ADR-020, US-045) ----
+
+    VerdictClass:
+      type: string
+      enum:
+        - APPROVATO_PANIC_BUY
+        - APPROVATO
+        - WATCHLIST
+        - BOCCIATO_NUMERICO
+        - BOCCIATO_QUALITATIVO
+        - BOCCIATO_VALUE_TRAP
+
+    LivelloRischio:
+      type: string
+      enum:
+        - RISCHIO_BASSO
+        - RISCHIO_MODERATO
+        - RISCHIO_ALTO
+        - RISCHIO_ESTREMO
+
+    SentimentClass:
+      type: string
+      enum:
+        - TEMPORARY_PANIC
+        - STRUCTURAL_DAMAGE
+        - NEUTRAL
+
+    LlmStatus:
+      type: string
+      enum: [INVOKED, NOT_INVOKED, CACHE_HIT]
+
+    RoeBlock:
+      type: object
+      required: [fiveYearDataPoints, tenYearDataPoints]
+      description: |
+        Dual-lookback ROE metrics (ADR-020). Both 5-year (growth/turnaround
+        signal) and 10-year (Graham defensive stability signal) averages
+        exposed side-by-side. Nullable avg fields handle IPO-recent tickers.
+      properties:
+        fiveYearAvg:
+          type: number
+          nullable: true
+          description: 5-year average ROE as fraction (e.g. 0.265 = 26.5%)
+        tenYearAvg:
+          type: number
+          nullable: true
+          description: 10-year average ROE as fraction (e.g. 0.312 = 31.2%)
+        fiveYearDataPoints:
+          type: integer
+          minimum: 0
+          maximum: 5
+        tenYearDataPoints:
+          type: integer
+          minimum: 0
+          maximum: 10
+
+    PriceActionBlock:
+      type: object
+      required: [panicDiscount, deteriorationWarning, seriesDays]
+      description: Price action snapshot — 52-week range, moving averages, signals.
+      properties:
+        priceNow:              { type: number, nullable: true }
+        max52w:                { type: number, nullable: true }
+        min52w:                { type: number, nullable: true }
+        drawdownPct:           { type: number, nullable: true, description: "Drawdown from 52w high as fraction" }
+        trend3mPct:            { type: number, nullable: true, description: "3-month price trend as fraction" }
+        ma50:                  { type: number, nullable: true }
+        ma200:                 { type: number, nullable: true }
+        panicDiscount:         { type: boolean, description: "True if price is in panic-buy territory" }
+        deteriorationWarning:  { type: boolean, description: "True if price trend suggests structural deterioration" }
+        seriesDays:            { type: integer, description: "Number of trading days in the underlying series" }
+
+    VerdictBlock:
+      type: object
+      required: [verdettoClasse, positionSizePct, partialBasis, motivazioneAggregata, ruleCountGreen, ruleCountYellow, ruleCountRed, livelloRischio, newsSentimentDominante]
+      description: Verdict cascade output (US-044).
+      properties:
+        verdettoClasse:          { $ref: '#/components/schemas/VerdictClass' }
+        positionSizePct:         { type: number, description: "Suggested position size as percentage" }
+        partialBasis:            { type: boolean, description: "True when LLM blocks were not invoked" }
+        motivazioneAggregata:    { type: string, description: "Aggregated human-readable motivation" }
+        ruleCountGreen:          { type: integer }
+        ruleCountYellow:         { type: integer }
+        ruleCountRed:            { type: integer }
+        livelloRischio:          { $ref: '#/components/schemas/LivelloRischio' }
+        newsSentimentDominante:  { $ref: '#/components/schemas/SentimentClass' }
+
+    PositionSizeBlock:
+      type: object
+      required: [recommendedPct, rangeLow, rangeHigh, basisVerdict, marginOfSafetyPct, disclaimer]
+      description: Kelly-inspired position sizing recommendation.
+      properties:
+        recommendedPct:    { type: number, description: "Central recommended allocation percentage" }
+        rangeLow:          { type: number, description: "Conservative bound of allocation range" }
+        rangeHigh:         { type: number, description: "Aggressive bound of allocation range" }
+        basisVerdict:      { $ref: '#/components/schemas/VerdictClass' }
+        marginOfSafetyPct: { type: number, description: "Margin of safety percentage used in sizing" }
+        disclaimer:        { type: string }
+
+    InversionItem:
+      type: object
+      required: [testo, chunkIndex]
+      description: Single Munger inversion finding tied to a filing chunk.
+      properties:
+        testo:      { type: string, description: "Inversion finding text" }
+        chunkIndex: { type: integer, description: "Index of the source filing chunk" }
+
+    MungerReportBlock:
+      type: object
+      required: [livelloRischio, rischiPrincipali, puntiDiForza, segnaliRecenti10Q, filingComboHash, llmCallsCount]
+      description: Munger inversion LLM report (US-041). Null when invoke_llm=false.
+      properties:
+        livelloRischio:    { $ref: '#/components/schemas/LivelloRischio' }
+        rischiPrincipali:
+          type: array
+          items: { $ref: '#/components/schemas/InversionItem' }
+        puntiDiForza:
+          type: array
+          items: { $ref: '#/components/schemas/InversionItem' }
+        segnaliRecenti10Q:
+          type: array
+          items: { $ref: '#/components/schemas/InversionItem' }
+        filingComboHash:   { type: string, description: "Hash of the filing combination used for cache keying" }
+        llmCallsCount:     { type: integer }
+
+    NewsSentimentBlock:
+      type: object
+      required: [total, panicCount, structuralCount, neutralCount, dominantClass]
+      description: News sentiment classification summary (US-042). Null when invoke_llm=false.
+      properties:
+        total:           { type: integer }
+        panicCount:      { type: integer }
+        structuralCount: { type: integer }
+        neutralCount:    { type: integer }
+        dominantClass:   { $ref: '#/components/schemas/SentimentClass' }
+
+    FilingRef:
+      type: object
+      required: [accessionNumber, formType, filingDate]
+      description: Reference to a SEC filing used during deep analysis.
+      properties:
+        accessionNumber: { type: string }
+        formType:        { type: string, description: "e.g. 10-K, 10-Q" }
+        filingDate:      { type: string, description: "Filing date (YYYY-MM-DD)" }
+
+    DeepAnalysisResponse:
+      type: object
+      required: [ticker, generatedAt, roe, priceAction, ruleEngineResults, verdict, filingsUsed, llmStatus, llmCalls, totalDurationMs]
+      description: |
+        Full response payload for GET /api/analysis/{ticker}/deep (US-045).
+        Deterministic fields (roe, priceAction, ruleEngineResults, verdict,
+        filingsUsed) are always populated. LLM-dependent fields (mungerReport,
+        newsSentiment) are null when invoke_llm=false. positionSize is null
+        when verdict is BOCCIATO_*.
+      properties:
+        ticker:      { type: string }
+        generatedAt: { type: string, format: date-time }
+        roe:
+          $ref: '#/components/schemas/RoeBlock'
+        priceAction:
+          $ref: '#/components/schemas/PriceActionBlock'
+        ruleEngineResults:
+          type: array
+          items: { $ref: '#/components/schemas/RuleSignal' }
+          description: All 13 rule engine signals (7 Buffett + 6 Graham defensive)
+        verdict:
+          $ref: '#/components/schemas/VerdictBlock'
+        positionSize:
+          $ref: '#/components/schemas/PositionSizeBlock'
+          nullable: true
+          description: Position sizing recommendation, null for BOCCIATO verdicts
+        filingsUsed:
+          type: array
+          items: { $ref: '#/components/schemas/FilingRef' }
+        mungerReport:
+          $ref: '#/components/schemas/MungerReportBlock'
+          nullable: true
+          description: Munger inversion LLM report, null when invoke_llm=false
+        newsSentiment:
+          $ref: '#/components/schemas/NewsSentimentBlock'
+          nullable: true
+          description: News sentiment classification, null when invoke_llm=false
+        llmStatus:   { $ref: '#/components/schemas/LlmStatus' }
+        llmCalls:    { type: integer, description: "Number of LLM API calls made" }
+        totalDurationMs: { type: integer, format: int64, description: "Total pipeline duration in milliseconds" }

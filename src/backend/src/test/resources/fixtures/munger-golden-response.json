@@ -1,0 +1,15 @@
+{
+  "livello_rischio": "RISCHIO_MODERATO",
+  "rischi_principali": [
+    {"testo": "Significant long-term debt ($109B) with rising interest rates creating refinancing risk", "chunk_index": 2},
+    {"testo": "Revenue heavily concentrated in iPhone (52% of total), single product dependency", "chunk_index": 5},
+    {"testo": "Geopolitical risk from supply chain concentration in China/Taiwan", "chunk_index": 8}
+  ],
+  "punti_di_forza": [
+    {"testo": "Ecosystem lock-in with 2.2B active devices creates switching costs moat", "chunk_index": 1},
+    {"testo": "Services segment growing at 14% YoY with 72% gross margin", "chunk_index": 3}
+  ],
+  "segnali_recenti_10q": [
+    {"testo": "Gross margin compression in Greater China (-340bps QoQ) signaling competitive pressure", "chunk_index": 7}
+  ]
+}

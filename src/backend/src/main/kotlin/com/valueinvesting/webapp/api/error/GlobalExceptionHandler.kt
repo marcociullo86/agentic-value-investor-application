@@ -4,6 +4,8 @@ import com.valueinvesting.webapp.fmp.FmpTickerNotFoundException
 import com.valueinvesting.webapp.fmp.FmpUnavailableException
 import com.valueinvesting.webapp.service.EmailAlreadyRegisteredException
 import com.valueinvesting.webapp.service.InvalidRefreshTokenException
+import com.valueinvesting.webapp.service.LlmUnavailableException
+import com.valueinvesting.webapp.service.NoSecFilingsException
 import com.valueinvesting.webapp.service.TickerNotInWatchlistException
 import com.valueinvesting.webapp.service.exception.DcfMethodUnfeasibleException
 import com.valueinvesting.webapp.service.exception.DcfOverrideNotFoundException
@@ -332,6 +334,40 @@ class GlobalExceptionHandler(
             request = req,
         )
         return ResponseEntity.status(HttpStatus.CONFLICT).body(problem)
+    }
+
+    @ExceptionHandler(NoSecFilingsException::class)
+    fun handleNoSecFilings(
+        ex: NoSecFilingsException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        log.warn("No SEC filings for ticker={} on {} {}", ex.ticker, req.method, req.requestURI)
+        val problem = mapper.build(
+            status = HttpStatus.UNPROCESSABLE_ENTITY,
+            type = "https://api/errors/no-sec-filings",
+            title = "No SEC filings available",
+            detail = "No SEC filings available for ticker '${ex.ticker}'",
+            request = req,
+            extensions = mapOf("ticker" to ex.ticker, "reason" to "no_sec_filings"),
+        )
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(problem)
+    }
+
+    @ExceptionHandler(LlmUnavailableException::class)
+    fun handleLlmUnavailable(
+        ex: LlmUnavailableException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        log.error("LLM unavailable for ticker={} on {} {}: {}", ex.ticker, req.method, req.requestURI, ex.message)
+        val problem = mapper.build(
+            status = HttpStatus.SERVICE_UNAVAILABLE,
+            type = "https://api/errors/llm-unavailable",
+            title = "LLM Service Unavailable",
+            detail = "LLM service unavailable during deep analysis for ticker '${ex.ticker}'",
+            request = req,
+            extensions = mapOf("ticker" to ex.ticker, "reason" to "llm_unavailable"),
+        )
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(problem)
     }
 
     @ExceptionHandler(Exception::class)
