@@ -2,8 +2,10 @@ package com.valueinvesting.webapp.service
 
 import com.ninjasquad.springmockk.MockkBean
 import com.valueinvesting.webapp.persistence.entity.FilingBlobEntity
+import com.valueinvesting.webapp.persistence.entity.Stock
 import com.valueinvesting.webapp.persistence.repository.FilingBlobRepository
 import com.valueinvesting.webapp.persistence.repository.FilingChunkRepository
+import com.valueinvesting.webapp.persistence.repository.StockRepository
 import io.mockk.every
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -61,12 +63,23 @@ class FilingRagServiceIntegrationTest {
     private lateinit var filingChunkRepository: FilingChunkRepository
 
     @Autowired
+    private lateinit var stockRepository: StockRepository
+
+    @Autowired
     private lateinit var chunkingService: FilingChunkingService
+
+    private val testTickers = listOf("AAPL", "MSFT", "GOOG", "KO")
 
     @BeforeEach
     fun setup() {
         filingChunkRepository.deleteAll()
         filingBlobRepository.deleteAll()
+
+        for (t in testTickers) {
+            if (!stockRepository.existsById(t)) {
+                stockRepository.save(Stock(ticker = t, companyName = "$t Inc"))
+            }
+        }
 
         every { embeddingService.embed(any()) } answers {
             val texts = firstArg<List<String>>()

@@ -181,7 +181,7 @@ class Filing10KQDownloaderServiceTest {
     @Test
     fun `limit 50MB - filing exceeding limit is not persisted`() {
         every { fmpAdapter.getSecFilings(TICKER, any(), any()) } returns listOf(fmpFiling())
-        val oversizedHtml = "a".repeat(52_000_000)
+        val oversizedHtml = "a".repeat(52_500_000)
         every { secEdgarAdapter.downloadFilingHtml(any()) } returns oversizedHtml
 
         val result = service.fetchAndCache(TICKER)
