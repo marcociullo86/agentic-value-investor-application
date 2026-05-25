@@ -6,6 +6,22 @@ spring:
     name: value-investing-webapp
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
+  autoconfigure:
+    exclude:
+      - io.github.resilience4j.springboot3.circuitbreaker.autoconfigure.CircuitBreakerAutoConfiguration
+      - io.github.resilience4j.springboot3.circuitbreaker.autoconfigure.CircuitBreakerStreamEventsAutoConfiguration
+      - io.github.resilience4j.springboot3.circuitbreaker.autoconfigure.CircuitBreakerMetricsAutoConfiguration
+      - io.github.resilience4j.springboot3.circuitbreaker.autoconfigure.CircuitBreakersHealthIndicatorAutoConfiguration
+      - io.github.resilience4j.springboot3.retry.autoconfigure.RetryAutoConfiguration
+      - io.github.resilience4j.springboot3.retry.autoconfigure.RetryMetricsAutoConfiguration
+      - io.github.resilience4j.springboot3.ratelimiter.autoconfigure.RateLimiterAutoConfiguration
+      - io.github.resilience4j.springboot3.ratelimiter.autoconfigure.RateLimiterMetricsAutoConfiguration
+      - io.github.resilience4j.springboot3.ratelimiter.autoconfigure.RateLimitersHealthIndicatorAutoConfiguration
+      - io.github.resilience4j.springboot3.bulkhead.autoconfigure.BulkheadAutoConfiguration
+      - io.github.resilience4j.springboot3.bulkhead.autoconfigure.BulkheadMetricsAutoConfiguration
+      - io.github.resilience4j.springboot3.bulkhead.autoconfigure.ThreadPoolBulkheadMetricsAutoConfiguration
+      - io.github.resilience4j.springboot3.timelimiter.autoconfigure.TimeLimiterAutoConfiguration
+      - io.github.resilience4j.springboot3.timelimiter.autoconfigure.TimeLimiterMetricsAutoConfiguration
   jpa:
     hibernate:
       ddl-auto: validate

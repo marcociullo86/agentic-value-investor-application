@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useDeepAnalysis } from '@/lib/hooks/useDeepAnalysis';
 import { Button } from '@/components/ui/Button';
 import { analysisUrl } from '@/lib/utils/analysis-url';
@@ -16,6 +16,8 @@ import {
 /**
  * Client-side Deep Analysis page — TSK-122 + TSK-123 (US-046, EP-011).
  *
+ * Ticker from query param (?ticker=AAPL), aligned with ADR-013.
+ *
  * Renders 5 real components (TSK-123):
  *   1. DeepVerdictBadge — verdict class + position size
  *   2. MungerReportCollapsible — rischi / punti di forza / segnali
@@ -25,13 +27,13 @@ import {
  */
 
 export function DeepAnalysisPageClient(): React.ReactElement {
-  const params = useParams<{ ticker: string }>();
-  const ticker = (params?.ticker ?? '').trim().toUpperCase();
+  const searchParams = useSearchParams();
+  const ticker = (searchParams?.get('ticker') ?? '').trim().toUpperCase();
 
   if (!ticker) {
     return (
       <main className="mx-auto max-w-3xl px-6 py-12 text-center text-sm text-slate-500">
-        Specifica un ticker (es. <code>/analysis/AAPL/deep</code>).
+        Specifica un ticker (es. <code>/analysis/deep?ticker=AAPL</code>).
       </main>
     );
   }

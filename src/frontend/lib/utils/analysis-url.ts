@@ -9,9 +9,9 @@ export function analysisUrl(ticker: string): string {
 
 /**
  * Deep analysis page URL (TSK-122 / US-046).
- * Dynamic segment — not static-exported.
+ * Query param — aligned with ADR-013 static export constraint.
  */
 export function deepAnalysisUrl(ticker: string): string {
   const normalized = ticker.trim().toUpperCase();
-  return `/analysis/${encodeURIComponent(normalized)}/deep`;
+  return `/analysis/deep?ticker=${encodeURIComponent(normalized)}`;
 }

@@ -72,7 +72,7 @@ test.describe('Deep Analysis page', () => {
   test('happy path AAPL — verdict badge visible and all 5 sections populated', async ({ page }) => {
     await mockDeepEndpoint(page, 'AAPL', deepAaplFixture);
 
-    await page.goto('/analysis/AAPL/deep');
+    await page.goto('/analysis/deep?ticker=AAPL');
 
     await expect(page.getByTestId('deep-analysis-loading')).toBeVisible();
 
@@ -93,7 +93,7 @@ test.describe('Deep Analysis page', () => {
   test('verdict badge has aria-label for accessibility', async ({ page }) => {
     await mockDeepEndpoint(page, 'AAPL', deepAaplFixture);
 
-    await page.goto('/analysis/AAPL/deep');
+    await page.goto('/analysis/deep?ticker=AAPL');
 
     const verdictBadge = page.getByTestId('verdict-badge');
     await expect(verdictBadge).toBeVisible({ timeout: 15_000 });
@@ -110,7 +110,7 @@ test.describe('Deep Analysis page', () => {
   test('value-trap scenario — badge shows BOCCIATO VALUE TRAP', async ({ page }) => {
     await mockDeepEndpoint(page, 'TRAP', deepValueTrapFixture);
 
-    await page.goto('/analysis/TRAP/deep');
+    await page.goto('/analysis/deep?ticker=TRAP');
 
     const verdictBadge = page.getByTestId('verdict-badge');
     await expect(verdictBadge).toBeVisible({ timeout: 15_000 });
@@ -129,7 +129,7 @@ test.describe('Deep Analysis page', () => {
       detail: 'Ticker not found',
     });
 
-    await page.goto('/analysis/XYZINVALID/deep');
+    await page.goto('/analysis/deep?ticker=XYZINVALID');
 
     const errorPanel = page.getByTestId('deep-analysis-error');
     await expect(errorPanel).toBeVisible({ timeout: 15_000 });
@@ -149,7 +149,7 @@ test.describe('Deep Analysis page', () => {
       detail: 'No 10-K or 10-Q filings found',
     });
 
-    await page.goto('/analysis/NOSEC/deep');
+    await page.goto('/analysis/deep?ticker=NOSEC');
 
     const errorPanel = page.getByTestId('deep-analysis-error');
     await expect(errorPanel).toBeVisible({ timeout: 15_000 });
@@ -167,7 +167,7 @@ test.describe('Deep Analysis page', () => {
       return route.fulfill({ json: deepAaplFixture });
     });
 
-    await page.goto('/analysis/AAPL/deep');
+    await page.goto('/analysis/deep?ticker=AAPL');
 
     const verdictBadge = page.getByTestId('verdict-badge');
     await expect(verdictBadge).toBeVisible({ timeout: 15_000 });
@@ -193,7 +193,7 @@ test.describe('Deep Analysis page', () => {
   test('page title displays the ticker', async ({ page }) => {
     await mockDeepEndpoint(page, 'AAPL', deepAaplFixture);
 
-    await page.goto('/analysis/AAPL/deep');
+    await page.goto('/analysis/deep?ticker=AAPL');
 
     const title = page.getByTestId('deep-analysis-title');
     await expect(title).toBeVisible({ timeout: 15_000 });

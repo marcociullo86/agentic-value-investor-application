@@ -87,7 +87,7 @@ export function AnalysisPageClient(
             Analisi Base
           </span>
           <Link
-            href={`/analysis/${encodeURIComponent(normalized)}/deep`}
+            href={`/analysis/deep?ticker=${encodeURIComponent(normalized)}`}
             className="border-b-2 border-transparent px-4 py-2 text-sm font-medium text-slate-600 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
             data-testid="tab-deep-analysis"
           >
