@@ -109,11 +109,11 @@ La migrazione v3 -> stable **non richiede cambiamenti architetturali**. Cambiame
 | `ProfileDto` | Verificare `mktCap` vs `marketCap` spelling |
 
 Invarianti (non cambiano):
-- `FmpAdapter` interface e firme metodi
+- `FmpAdapter` interface (estesa a 12 metodi post EP-010/EP-011: +`getDividendHistory`, +`getSecFilings`, +`getStockNews`, +`getHistoricalEodPrices`)
 - `FmpCacheService` logica cache-aside + TTL 24h/1h
-- `ResilientFmpAdapter` (Resilience4j CB/Retry/RateLimiter/Bulkhead)
+- `ResilientFmpAdapter` (Resilience4j CB/Retry/RateLimiter/Bulkhead — wrappa tutti i 12 metodi)
 - `FmpEventLogger` e `fmp_api_event_log` schema DB
-- `RuleEngineService`, tutte le 7 rule, GrahamNumberCalculator, DcfCalculator
+- `RuleEngineService`, tutte le 13 rule (7 Buffett + 6 Graham), GrahamNumberCalculator, DcfCalculator
 
 Vedi [[webapp-architecture-vi]] per dettagli implementativi.
 
@@ -147,7 +147,7 @@ Vedi [[webapp-architecture-vi]] per dettagli implementativi.
 
 ## Endpoint FMP Aggiuntivi da agent.py
 
-**Fonte**: `raw/09_agent_py_method_analysis.md §3` + `raw/agent.py`. Questi endpoint sono usati da agent.py v2.6.1 e non sono ancora wrappati nel Rule Engine Kotlin MVP. Sono necessari per EP-011 (Deep Analysis) e EP-012 (Batch Universe Screener).
+**Fonte**: `raw/09_agent_py_method_analysis.md §3` + `raw/agent.py`. Questi endpoint erano originariamente usati solo da agent.py v2.6.1. Al 2026-05-25, tre di essi sono stati implementati nel backend Kotlin come metodi `FmpAdapter`: `getSecFilings` (TSK-094), `getStockNews` (TSK-108) e `getHistoricalEodPrices` (TSK-112). I restanti (`news/stock-latest`, `quote`) non sono ancora wrappati.
 
 | Endpoint | Nodo agent.py | Uso | EP target |
 |---|---|---|---|

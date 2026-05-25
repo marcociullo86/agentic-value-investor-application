@@ -9,6 +9,7 @@ import com.valueinvesting.webapp.fmp.dto.KeyMetricsDto
 import com.valueinvesting.webapp.fmp.dto.ProfileDto
 import com.valueinvesting.webapp.fmp.dto.ScreenedStockDto
 import com.valueinvesting.webapp.fmp.dto.SearchHitDto
+import com.valueinvesting.webapp.fmp.dto.SecFilingFmpDto
 import com.valueinvesting.webapp.fmp.dto.StockNewsItem
 import io.github.resilience4j.bulkhead.Bulkhead
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException
@@ -103,6 +104,13 @@ class ResilientFmpAdapter(
 
     override fun getHistoricalEodPrices(ticker: String, days: Int): List<EodPriceRecord> =
         execute("historical-price-eod", ticker) { delegate.getHistoricalEodPrices(ticker, days) }
+
+    override fun getSecFilings(
+        ticker: String,
+        formTypes: List<String>,
+        limit: Int,
+    ): List<SecFilingFmpDto> =
+        execute("sec-filings", ticker) { delegate.getSecFilings(ticker, formTypes, limit) }
 
     /**
      * Apply chain decorators in order Bulkhead -> CB -> Retry, then gate the

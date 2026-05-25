@@ -1,20 +1,37 @@
 ---
 type: runbook
-sources: ["raw/05_Analisi_10K_10Q_e_Regole_Buffett.md"]
+sources: ["raw/05_Analisi_10K_10Q_e_Regole_Buffett.md", "raw/fmp_docs.md"]
 status: draft
 created: 2026-05-20
-updated: 2026-05-20
-tags: [runbook, value-investing, sec, 10-k, 10-q, buffett, analysis]
+updated: 2026-05-26
+tags: [runbook, value-investing, sec, 10-k, 10-q, buffett, analysis, sec-edgar, filing-cache]
 ---
 # Playbook: Analisi 10-K/10-Q con Metodo Buffett
 
-> Procedura operativa step-by-step per sezionare un report SEC annuale o trimestrale applicando i filtri qualitativi e quantitativi di Warren Buffett, con recupero dati via FMP API.
+> Procedura operativa step-by-step per sezionare un report SEC annuale o trimestrale applicando i filtri qualitativi e quantitativi di Warren Buffett, con recupero dati via FMP API e accesso diretto a SEC EDGAR.
 
 ## Prerequisiti
 
 - Simbolo azionario del titolo da analizzare (es. `AAPL`).
 - API key FMP configurata (vedi [[fmp-api]]).
 - Accesso a EDGAR (https://www.sec.gov/cgi-bin/browse-edgar) per il testo narrativo 10-K/10-Q.
+- **Per accesso programmatico** (US-038/039, implementato 2026-05-25/26): env var `SEC_EDGAR_USER_AGENT_EMAIL` configurata in `.env` (SEC fair-access policy richiede User-Agent identificativo con email valida).
+
+## Step 0 — Download programmatico del filing (opzionale, automated pipeline)
+
+Quando la pipeline EP-011 Deep Analysis è attiva, lo Step 1-5 manuale può essere preceduto da un download automatizzato del filing HTML:
+
+1. **Discovery** via `FmpAdapter.getSecFilings(ticker, ["10-K", "10-Q"], limit=10)`: ritorna metadata `List<SecFilingFmpDto>` con CIK pre-risolto + `finalLink` canonical URL al primary document. Endpoint canonico `GET /stable/sec-filings-search/symbol?symbol={ticker}` (raw/fmp_docs.md:10815).
+
+2. **Resolve CIK** via `SecEdgarAdapter.resolveCikFromTicker(ticker)` se serve cross-validation autoritativa (cache Caffeine TTL 30gg, populate da `https://www.sec.gov/files/company_tickers.json`).
+
+3. **Download HTML** via `SecEdgarAdapter.downloadFilingHtml(finalLink)` (rate-limit 10 req/s SEC hard-cap), poi `Filing10KQDownloaderService` (TSK-096) esegue HTML strip → testo plain → persist in tabella `filing_blob` (V013, TTL 90gg, size hard-cap 50 MB).
+
+4. **Lookup successivo**: il testo plain estratto in `filing_blob.extracted_text` viene usato come input per:
+   - Embedding pgvector → ricerca semantica ([[pgvector-vector-store]], US-040)
+   - LLM Munger inversion ([[value-investor-bot-architecture]], US-041)
+
+Se il filing non è ancora in cache → fallback a EDGAR browser manuale (Step 1-5 sotto). [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-039-download-cache-filings/TSK-094.md]
 
 ## Step 1 — Comprendi il Business (Item 1)
 

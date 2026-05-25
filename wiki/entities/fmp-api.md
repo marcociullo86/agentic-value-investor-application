@@ -82,6 +82,10 @@ Il rule engine value investing usa questi endpoint:
 | `/stable/balance-sheet-statement` | Current ratio, debt (10 anni) | Financial Statements |
 | `/stable/cash-flow-statement` | CapEx, OCF, Owner Earnings (10 anni) | Financial Statements |
 | `/stable/key-metrics` | ROIC, BVPS, Graham Number inputs | Key Metrics & Ratios |
+| `/stable/dividends` | Storico dividendi per continuità Graham (20y) | Earnings, Dividends, Splits |
+| `/stable/sec-filings-search/symbol` | Discovery filing SEC (10-K, 10-Q) per ticker | Sec Filings |
+| `/stable/news/stock` | News per ticker, sentiment classifier (90gg) | News & Media |
+| `/stable/historical-price-eod/full` | Storico EOD per price action analyzer (52w) | Quotes |
 
 ---
 
@@ -126,3 +130,5 @@ Default throttling e path MVP in configurazione applicativa: ADR-016 (non citazi
 - EP-002 (R1.0 done): US-004, US-005, US-006
 - EP-002 (R1.1): US-031 (TSK-072 — migrazione adapter v3 → /stable)
 - EP-009 (R1.1): US-029, US-030
+- EP-010 (done): US-037 (TSK-083 — getDividendHistory adapter + DividendContinuityRule)
+- EP-011 (in progress): US-039 (TSK-094 — getSecFilings adapter), US-042 (TSK-108 — getStockNews adapter), US-043 (TSK-112 — getHistoricalEodPrices adapter)

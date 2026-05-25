@@ -36,9 +36,9 @@ Sintesi cross-source dell'API Financial Modeling Prep versione stable. La v3 e' 
 | 3 | **Financial Statements** | income-statement, balance-sheet, cash-flow, TTM | CRITICA (7 rules + DCF) |
 | 4 | **Key Metrics & Ratios** | key-metrics, ratios, financial-growth, DCF | CRITICA (ROE, ROIC, BVPS) |
 | 5 | **Stock Lists** | stock-list, etf-list, available-traded | MEDIA (DB seed) |
-| 6 | **Quotes** | quote, batch-quote, historical-price-full | MEDIA (HistoricalChart) |
+| 6 | **Quotes** | quote, batch-quote, historical-price-full, historical-price-eod/full | ALTA (HistoricalChart + EP-011 price action) |
 | 7 | **Executives & Insiders** | key-executives, insider-trading | BASSA (analisi qualitativa) |
-| 8 | **News & Media** | stock-news, fmp-articles, press-releases | BASSA (UI futura) |
+| 8 | **News & Media** | stock-news, fmp-articles, press-releases | ALTA (EP-011: sentiment classifier via getStockNews) |
 | 9 | **Market Performance** | sector-performance, biggest-gainers | BASSA (dashboard) |
 | 10 | **Commodities** | quote commodity, historical | OUT OF SCOPE MVP |
 | 11 | **Cryptocurrency** | crypto-list, crypto-quote | OUT OF SCOPE MVP |
@@ -68,18 +68,22 @@ Oppure inline: `...?symbol=AAPL&period=annual&limit=10&apikey=YOUR_API_KEY`
 
 ---
 
-## Endpoint critici per MVP (8 endpoint rule engine)
+## Endpoint critici (12 endpoint integrati)
 
-| Priority | Endpoint | Path stable | Sezione |
-|----------|----------|-------------|---------|
-| P0 | Search symbol | `/stable/search-symbol` | Company Search |
-| P0 | Company profile | `/stable/profile` | Company Information |
-| P0 | Income statement | `/stable/income-statement` | Financial Statements |
-| P0 | Balance sheet | `/stable/balance-sheet-statement` | Financial Statements |
-| P0 | Cash flow | `/stable/cash-flow-statement` | Financial Statements |
-| P0 | Key metrics | `/stable/key-metrics` | Key Metrics & Ratios |
-| P1 | Company screener | `/stable/company-screener` | Company Information |
-| P1 | Historical prices | `/stable/historical-price-full` | Quotes |
+| Priority | Endpoint | Path stable | Sezione | Stato |
+|----------|----------|-------------|---------|-------|
+| P0 | Search symbol | `/stable/search-symbol` | Company Search | Implementato (R1.0) |
+| P0 | Company profile | `/stable/profile` | Company Information | Implementato (R1.0) |
+| P0 | Income statement | `/stable/income-statement` | Financial Statements | Implementato (R1.0) |
+| P0 | Balance sheet | `/stable/balance-sheet-statement` | Financial Statements | Implementato (R1.0) |
+| P0 | Cash flow | `/stable/cash-flow-statement` | Financial Statements | Implementato (R1.0) |
+| P0 | Key metrics | `/stable/key-metrics` | Key Metrics & Ratios | Implementato (R1.0) |
+| P1 | Company screener | `/stable/company-screener` | Company Information | Implementato (EP-001) |
+| P1 | Historical prices | `/stable/historical-price-full` | Quotes | Implementato (R1.0) |
+| P1 | Dividends | `/stable/dividends` | Earnings, Dividends | Implementato (EP-010, TSK-083) |
+| P1 | SEC filings search | `/stable/sec-filings-search/symbol` | Sec Filings | Implementato (EP-011, TSK-094) |
+| P1 | Stock news | `/stable/news/stock` | News & Media | Implementato (EP-011, TSK-108) |
+| P1 | EOD prices | `/stable/historical-price-eod/full` | Quotes | Implementato (EP-011, TSK-112) |
 
 ---
 

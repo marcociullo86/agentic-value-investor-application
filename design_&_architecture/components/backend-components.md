@@ -51,7 +51,7 @@ deciders: [lead-architect, marco.ciullo]
 |  + RuleEngine      |  | + FmpAdapter |  | + JPA Repos:     |
 |    Service         |  | + FmpCache   |  |   UserRepo,      |
 |  + ValuationRule[] |  |   Service    |  |   StockRepo,     |
-|    (7 strategies)  |  | + Resilience |  |   FmpSnapRepo,   |
+|    (13 strategies) |  | + Resilience |  |   FmpSnapRepo,   |
 |  + GrahamCalc      |  |   Config     |  |   ProfileSnap,   |
 |  + DcfCalculator   |  | + FmpDtos    |  |   RuleResultRepo,|
 |  + GreenwaldMaint  |  | + FmpEvent   |  |   WatchlistRepo, |
@@ -61,6 +61,24 @@ deciders: [lead-architect, marco.ciullo]
 +--------+-----------+         |                   |
          |                     v                   |
          |              [FMP REST API]             |
+         |                                         |
+         |        +------------------+             |
+         |        | SEC EDGAR MODULE |             |
+         |        | com.../secedgar  |             |
+         |        |                  |             |
+         |        | + SecEdgarAdapter|             |
+         |        | + SecEdgarRest   |             |
+         |        |   Client         |             |
+         |        | + ResilientSec   |             |
+         |        |   EdgarAdapter   |             |
+         |        | + CacheConfig    |             |
+         |        | + ResilienceConf |             |
+         |        | + dto/SecFiling  |             |
+         |        |   Metadata       |             |
+         |        +--------+---------+             |
+         |                 |                       |
+         |                 v                       |
+         |          [SEC EDGAR API]                |
          |                                         |
          +----------------+------------------------+
                           |
@@ -110,7 +128,13 @@ com.valueinvesting.webapp
  │    │    ├── NetMarginRule.kt
  │    │    ├── CurrentRatioRule.kt
  │    │    ├── DebtToIncomeRule.kt
- │    │    └── CapexIntensityRule.kt
+ │    │    ├── CapexIntensityRule.kt
+ │    │    ├── SizeRule.kt                  # Graham 1 (EP-010)
+ │    │    ├── EarningsStabilityRule.kt     # Graham 3 (EP-010)
+ │    │    ├── EpsGrowthRule.kt             # Graham 5 (EP-010)
+ │    │    ├── Pe3yAvgRule.kt               # Graham 6 (EP-010)
+ │    │    ├── PbLatestRule.kt              # Graham 7 (EP-010)
+ │    │    └── DividendContinuityRule.kt    # Graham 4 (EP-010)
  │    ├── valuation
  │    │    ├── GrahamNumberCalculator.kt
  │    │    └── dcf
@@ -134,7 +158,21 @@ com.valueinvesting.webapp
  │         ├── KeyMetricsDto.kt
  │         ├── ProfileDto.kt
  │         ├── SearchDto.kt
- │         └── ScreenerDto.kt
+ │         ├── ScreenerDto.kt
+ │         ├── DividendRecord.kt
+ │         ├── SecFilingFmpDto.kt
+ │         ├── StockNewsItem.kt
+ │         └── EodPriceRecord.kt
+ ├── secedgar
+ │    ├── SecEdgarAdapter.kt              # interface (resolveCik, listFilings, downloadHtml)
+ │    ├── SecEdgarRestClient.kt           # impl (2 RestClient: data.sec.gov + www.sec.gov)
+ │    ├── ResilientSecEdgarAdapter.kt     # @Primary decorator (CB/Retry/RateLimiter)
+ │    ├── SecEdgarProperties.kt           # @ConfigurationProperties(prefix="sec.edgar")
+ │    ├── SecEdgarCacheConfig.kt          # Caffeine ticker→CIK (TTL 30d)
+ │    ├── SecEdgarResilienceConfig.kt     # RateLimiter 10 req/s (SEC fair-access)
+ │    ├── SecEdgarExceptions.kt           # Service/RateLimit/AccessDenied
+ │    └── dto
+ │         └── SecFilingMetadata.kt
  ├── persistence
  │    ├── entity
  │    │    ├── User.kt

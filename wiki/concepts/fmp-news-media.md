@@ -51,7 +51,12 @@ La vecchia sezione "News & Estimates" v3 includeva anche stime degli analisti (c
 
 ## Uso nel progetto
 
-Non integrata nel rule engine MVP R1.0. Potenzialmente utile per future feature di news feed nella UI (EP futura).
+**Integrata in EP-011 (Deep Analysis, 2026-05-25):**
+- `FmpAdapter.getStockNews(ticker, days=90)` wrappa `GET /stable/news/stock?tickers={ticker}&from={date}` con filtro temporale 90 giorni post-hoc. DTO: `StockNewsItem`. [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-042-news-sentiment-classifier/TSK-108.md]
+- `NewsSentimentService` classifica le news in TEMPORARY_PANIC / STRUCTURAL_DAMAGE / NEUTRAL tramite LLM (max 50 call/ticker). Cache su `news_classification` (V015).
+- `ResilientFmpAdapter` applica la chain Resilience4j identica agli altri endpoint FMP.
+
+L'endpoint `stock-news-latest` (news generali senza ticker) non è ancora integrato; previsto per EP-012 (Batch Universe Screener — segnale "news scout").
 
 ---
 
@@ -59,3 +64,4 @@ Non integrata nel rule engine MVP R1.0. Potenzialmente utile per future feature 
 
 - Entity: [[fmp-api]]
 - Synthesis: [[fmp-api-overview]]
+- Pipeline deep: [[analysis-api-pipeline]]

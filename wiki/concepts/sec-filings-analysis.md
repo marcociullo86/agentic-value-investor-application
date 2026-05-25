@@ -1,10 +1,10 @@
 ---
 type: concept
-sources: ["raw/05_Analisi_10K_10Q_e_Regole_Buffett.md"]
+sources: ["raw/05_Analisi_10K_10Q_e_Regole_Buffett.md", "raw/fmp_docs.md"]
 status: draft
 created: 2026-05-20
-updated: 2026-05-20
-tags: [value-investing, sec, 10-k, 10-q, financial-analysis, management-quality, off-balance-sheet]
+updated: 2026-05-26
+tags: [value-investing, sec, 10-k, 10-q, financial-analysis, management-quality, off-balance-sheet, sec-edgar, filing-cache]
 ---
 # Analisi dei Report SEC (10-K e 10-Q)
 
@@ -43,11 +43,42 @@ L'analisi segue una sequenza precisa che va dall'operativo al finanziario: [^src
 
 I tre rendiconti del 10-K/10-Q sono accessibili programmaticamente tramite [[fmp-financial-statements-stable]] (Income Statement, Balance Sheet, Cash Flow Statement). Le metriche calcolate (ROE, ROIC, margini, ratios) sono disponibili via [[fmp-key-metrics-ratios]].
 
+### Accesso programmatico ai filing (implementazione 2026-05-25/26)
+
+L'implementazione EP-011 Deep Analysis fornisce due fonti complementari per il recupero programmatico dei filing 10-K/10-Q:
+
+**1. SecEdgarAdapter (US-038, TSK-091/092/093 — fonte autoritativa)**
+
+Adapter Kotlin nel package `com.valueinvesting.webapp.secedgar` che chiama direttamente l'API SEC EDGAR raw:
+
+- `resolveCikFromTicker(ticker)` → `CIK` 10-digit padded, via `https://www.sec.gov/files/company_tickers.json` (cache Caffeine TTL 30 giorni, ~10k entries ~3 MB in-memory).
+- `listFilings(cik, formTypes, limit)` → metadata `List<SecFilingMetadata>` (accessionNumber, formType, filedAt, primaryDocumentUrl) via `https://data.sec.gov/submissions/CIK{padded10}.json`.
+- `downloadFilingHtml(url)` → body HTML del primary document (10-K typical 0.5-3 MB).
+
+Resilience4j: RateLimiter 10 req/s (hard-cap SEC fair-access policy) + CircuitBreaker 50% + Retry 3 attempts. User-Agent obbligatorio `ValueInvesting-App/1.0 {sec.edgar.user-agent.email}` (env var `SEC_EDGAR_USER_AGENT_EMAIL`).
+
+**2. FmpAdapter.getSecFilings (US-039, TSK-094 — discovery rapida)**
+
+Estensione di FmpAdapter ([[fmp-api]]) che chiama `GET /stable/sec-filings-search/symbol?symbol={ticker}&limit={N}` (endpoint canonico verificato in `raw/fmp_docs.md:10815`, SEC Filings By Symbol API). Ritorna `List<SecFilingFmpDto>` con metadata arricchiti (CIK pre-risolto, `link`/`finalLink` canonical URL, `filingDate` ISO). NON ritorna il body HTML — quello viene scaricato via `SecEdgarAdapter.downloadFilingHtml`.
+
+**Cache HTML body (TSK-095)**
+
+Tabella PostgreSQL `filing_blob` (migration V013, rinumerata da V011 per collisione con EP-010): cache per `(accession_number UNIQUE, ticker, cik, form_type, filing_date)` + `html_body TEXT` + `extracted_text TEXT` (plain text estratto per pgvector embedding US-040 e LLM Munger US-041). TTL 90 giorni, hard-cap size 50 MB. Indici su `(ticker, filing_date DESC)`, `(expires_at)`, `(form_type, filing_date DESC)` per lookup principale + cleanup TTL + analytics.
+
+Whitelist `'sec-filings'` aggiunta al CHECK constraint `fmp_fin_snap_endpoint_chk` (migration V012) per cache-aside metadata response FmpAdapter via `FmpCacheService.getOrFetch`.
+
+**Orchestrator (TSK-096, in corso)**
+
+`Filing10KQDownloaderService` orchestra la pipeline: discovery via FmpAdapter.getSecFilings → fetch HTML via SecEdgarAdapter.downloadFilingHtml → HTML strip → persist su `filing_blob` con TTL 90gg. Cross-validation FMP↔SEC su `accession_number`.
+
 ## Concetti correlati
 [[intrinsic-value]]
 [[economic-moat]]
 [[fmp-financial-statements-stable]]
 [[fmp-key-metrics-ratios]]
+[[fmp-api]]
+[[pgvector-vector-store]]
+[[analysis-api-pipeline]]
 
 ## Pagine collegate
 [[vi-05-analisi-10k-10q-buffett]]

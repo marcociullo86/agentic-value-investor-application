@@ -183,7 +183,9 @@ Mapping tra i `ruleId` Kotlin del Rule Engine MVP e i check equivalenti in agent
 
 **Segnali implementati in Kotlin ma non in agent.py**: `ROIC_10Y_AVG`, `GrahamNumber` — aggiunte Kotlin che rafforzano l'analisi rispetto al prototipo Python.
 
-**Segnali in agent.py non ancora in Kotlin**: Current Ratio come gate (non solo calcolato), EPS CAGR con soglia, P/E, P/B, dividendi 20y — tutti da colmare con EP-010.
+**Segnali in agent.py ora coperti in Kotlin (EP-010 done)**: Current Ratio come segnale (`CURRENT_RATIO_LATEST`), EPS CAGR (`EPS_GROWTH_10Y`), P/E (`PE_3Y_AVG`), P/B (`PB_LATEST`), dividendi 20y (`DIVIDEND_CONTINUITY_20Y`), size (`SIZE_LATEST`), stabilità utili (`EARNINGS_STABILITY_10Y`).
+
+**Segnali EP-011 (Deep Analysis, implementati 2026-05-25)**: `FmpAdapter` esteso con `getStockNews` (TSK-108, news sentiment), `getHistoricalEodPrices` (TSK-112, price action), `getSecFilings` (TSK-094, SEC filing discovery). `SecEdgarAdapter` (US-038) aggiunto come modulo separato per download diretto HTML da SEC EDGAR. Il nodo `munger_decision` di agent.py e il RAG 10-K sono in fase di porting nel backend Kotlin tramite EP-011.
 
 [^src: raw/09_agent_py_method_analysis.md §2.3] [^src: raw/agent.py:1029-1116] [^src: raw/agent.py:1901-1936]
 
