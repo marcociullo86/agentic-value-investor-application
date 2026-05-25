@@ -79,7 +79,7 @@ export function DeepVerdictBadge({
 
   const costEstimate = data.llmCostEstimateUsd;
   const costLabel =
-    costEstimate !== null ? ` \u2248 $${costEstimate.toFixed(2)}` : '';
+    costEstimate != null ? ` \u2248 $${costEstimate.toFixed(2)}` : '';
 
   return (
     <Card data-testid="deep-verdict-section">

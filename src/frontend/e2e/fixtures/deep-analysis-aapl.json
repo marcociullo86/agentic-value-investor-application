@@ -91,5 +91,6 @@
   },
   "llmStatus": "INVOKED",
   "llmCalls": 3,
-  "totalDurationMs": 45200
+  "totalDurationMs": 45200,
+  "llmCostEstimateUsd": null
 }
