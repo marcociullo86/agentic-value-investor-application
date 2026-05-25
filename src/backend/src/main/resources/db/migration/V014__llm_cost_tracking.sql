@@ -2,7 +2,7 @@
 -- [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-055-llm-budget-admin-config/TSK-155.md]
 
 CREATE TABLE llm_cost_counter (
-    year_month       CHAR(7)        PRIMARY KEY,
+    year_month       VARCHAR(7)     PRIMARY KEY,
     total_cost_usd   NUMERIC(10,4)  NOT NULL DEFAULT 0,
     total_calls      BIGINT         NOT NULL DEFAULT 0,
     total_tokens_in  BIGINT         NOT NULL DEFAULT 0,
