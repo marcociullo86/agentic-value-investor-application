@@ -1,4 +1,4 @@
--- V016: price_action_snapshot cache table (US-043)
+-- V017: price_action_snapshot cache table (US-043)
 -- [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-043-price-action-analyzer/TSK-114.md]
 
 CREATE TABLE price_action_snapshot (

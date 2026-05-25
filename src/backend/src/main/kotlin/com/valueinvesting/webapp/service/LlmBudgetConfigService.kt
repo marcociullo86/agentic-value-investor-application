@@ -26,8 +26,8 @@ class LlmBudgetConfigService(
     private var cachedCap: BigDecimal? = null
 
     @Volatile
-    var frozen: Boolean = false
-        internal set
+    private var _frozen: Boolean = false
+    val frozen: Boolean get() = _frozen
 
     fun getMonthlyCapUsd(): BigDecimal {
         cachedCap?.let { return it }
@@ -75,12 +75,12 @@ class LlmBudgetConfigService(
     }
 
     fun freeze() {
-        frozen = true
+        _frozen = true
         log.warn("LLM budget FROZEN by admin")
     }
 
     fun unfreeze() {
-        frozen = false
+        _frozen = false
         log.info("LLM budget UNFROZEN by admin")
     }
 

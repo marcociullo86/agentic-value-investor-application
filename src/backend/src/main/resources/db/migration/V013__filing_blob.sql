@@ -26,7 +26,7 @@
 -- =============================================================================
 
 CREATE TABLE filing_blob (
-    id                    UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+    id                    BIGSERIAL    PRIMARY KEY,
     ticker                VARCHAR(10)  NOT NULL REFERENCES stocks(ticker),
     cik                   VARCHAR(10)  NOT NULL,
     form_type             VARCHAR(10)  NOT NULL,

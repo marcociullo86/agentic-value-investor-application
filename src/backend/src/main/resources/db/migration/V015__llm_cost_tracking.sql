@@ -1,4 +1,4 @@
--- V014: LLM cost telemetry tables (ADR-019)
+-- V015: LLM cost telemetry tables (ADR-019)
 -- [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-055-llm-budget-admin-config/TSK-155.md]
 
 CREATE TABLE llm_cost_counter (

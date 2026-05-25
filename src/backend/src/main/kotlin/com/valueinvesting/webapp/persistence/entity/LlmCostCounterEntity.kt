@@ -11,7 +11,7 @@ import java.time.Instant
 @Table(name = "llm_cost_counter")
 class LlmCostCounterEntity(
     @Id
-    @Column(name = "year_month", length = 7, nullable = false)
+    @Column(name = "year_month", columnDefinition = "VARCHAR(7)", nullable = false)
     var yearMonth: String = "",
 
     @Column(name = "total_cost_usd", precision = 10, scale = 4, nullable = false)

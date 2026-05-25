@@ -1,4 +1,4 @@
--- V015: news_classification table for sentiment analysis (US-042)
+-- V016: news_classification table for sentiment analysis (US-042)
 -- [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-042-news-sentiment-classifier/TSK-110.md]
 
 CREATE TABLE news_classification (

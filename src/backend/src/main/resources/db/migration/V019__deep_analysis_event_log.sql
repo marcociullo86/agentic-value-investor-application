@@ -1,4 +1,4 @@
--- V018: audit trail for deep analysis pipeline executions (US-045, TSK-119).
+-- V019: audit trail for deep analysis pipeline executions (US-045, TSK-119).
 -- Each GET /api/analysis/{ticker}/deep invocation inserts one row.
 -- [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-045-endpoint-deep-analysis/TSK-119.md]
 

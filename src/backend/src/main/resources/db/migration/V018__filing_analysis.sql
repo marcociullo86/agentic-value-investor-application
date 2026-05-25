@@ -1,4 +1,4 @@
--- V017: deep_analysis_report cache table (US-041, EP-011)
+-- V018: deep_analysis_report cache table (US-041, EP-011)
 -- Caching dei risultati analisi Munger-inversione su 10-K + 10-Q.
 -- [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-041-munger-inversion-llm/TSK-106.md]
 

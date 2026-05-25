@@ -366,3 +366,10 @@ Pagine create: 2 | Figure: 0 | Aggiornamenti: 4 (index, gaps, value-investing-ru
 - Design docs: backend-components.md aggiornato con tutti i nuovi moduli
 - Sprint plan: sprint.md aggiornato (Sprint 6/7/8 COMPLETATI)
 **Gap aperti:** `fe-deep-analysis-static-export-conflict` (Next.js `output: 'export'` vs dynamic routes — decisione arch pendente)
+
+[2026-05-25 19:30] fix(ci) — risolti 3 bug CI post-merge trackA+trackB:
+1. `LlmBudgetConfigService.kt:30` — "Private setters for open properties are prohibited" (allopen plugin + `internal set`): sostituito con backing property `_frozen` + public getter `frozen`.
+2. Migration Flyway duplicate V012×2 / V013×2 (merge trackA+trackB): eliminata `V012__create_filing_blob.sql` (trackB, superseded); `V013__filing_blob.sql` PK da UUID→BIGSERIAL (allineamento entity); rinumerata catena V013→V014…V018→V019. Mapping: V014\_\_llm\_cost\_tracking→V015, V015\_\_news\_sentiment→V016, V016\_\_price\_action→V017, V017\_\_filing\_analysis→V018, V018\_\_deep\_analysis\_event\_log→V019.
+3. `TrafficLightPanel.test.tsx` — test YELLOW count 4→3 (corretto: 13 signal mod 4 = 3 YELLOW) + snapshot rimosso (già fixato in working copy).
+Aggiornata wiki/concepts/pgvector-vector-store.md con nuovi numeri migration.
+— files touched: 11

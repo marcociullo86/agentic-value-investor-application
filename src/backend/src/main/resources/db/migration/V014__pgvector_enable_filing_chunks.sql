@@ -1,4 +1,4 @@
--- V013: enable pgvector extension + filing_chunks schema + HNSW index
+-- V014: enable pgvector extension + filing_chunks schema + HNSW index
 -- [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-040-vector-store-pgvector/TSK-098.md]
 -- Embedding dimension: 1024 (Qwen3-Embedding-0.6B, fallback Arctic Embed L v2.0)
 -- HNSW params: m=16, ef_construction=64 (pgvector recommended general-purpose)
