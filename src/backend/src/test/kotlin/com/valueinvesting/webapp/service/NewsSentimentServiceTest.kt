@@ -28,7 +28,7 @@ class NewsSentimentServiceTest {
     companion object {
         @Container
         @JvmStatic
-        val postgres: PostgreSQLContainer<*> = PostgreSQLContainer("postgres:17-alpine")
+        val postgres: PostgreSQLContainer<*> = PostgreSQLContainer("pgvector/pgvector:pg17")
             .withDatabaseName("vi_news_test")
             .withUsername("test")
             .withPassword("test")

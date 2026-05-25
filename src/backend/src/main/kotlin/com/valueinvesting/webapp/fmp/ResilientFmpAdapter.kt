@@ -3,11 +3,13 @@ package com.valueinvesting.webapp.fmp
 import com.valueinvesting.webapp.fmp.dto.BalanceSheetDto
 import com.valueinvesting.webapp.fmp.dto.CashFlowDto
 import com.valueinvesting.webapp.fmp.dto.DividendRecord
+import com.valueinvesting.webapp.fmp.dto.EodPriceRecord
 import com.valueinvesting.webapp.fmp.dto.IncomeStatementDto
 import com.valueinvesting.webapp.fmp.dto.KeyMetricsDto
 import com.valueinvesting.webapp.fmp.dto.ProfileDto
 import com.valueinvesting.webapp.fmp.dto.ScreenedStockDto
 import com.valueinvesting.webapp.fmp.dto.SearchHitDto
+import com.valueinvesting.webapp.fmp.dto.StockNewsItem
 import io.github.resilience4j.bulkhead.Bulkhead
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException
 import io.github.resilience4j.circuitbreaker.CircuitBreaker
@@ -95,6 +97,12 @@ class ResilientFmpAdapter(
 
     override fun getDividendHistory(ticker: String): List<DividendRecord> =
         execute("dividends", ticker) { delegate.getDividendHistory(ticker) }
+
+    override fun getStockNews(ticker: String, days: Int): List<StockNewsItem> =
+        execute("news/stock", ticker) { delegate.getStockNews(ticker, days) }
+
+    override fun getHistoricalEodPrices(ticker: String, days: Int): List<EodPriceRecord> =
+        execute("historical-price-eod", ticker) { delegate.getHistoricalEodPrices(ticker, days) }
 
     /**
      * Apply chain decorators in order Bulkhead -> CB -> Retry, then gate the

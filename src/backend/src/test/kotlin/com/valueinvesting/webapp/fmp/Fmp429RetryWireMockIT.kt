@@ -44,7 +44,7 @@ class Fmp429RetryWireMockIT {
 
         @Container
         @JvmStatic
-        val postgres: PostgreSQLContainer<*> = PostgreSQLContainer("postgres:16-alpine")
+        val postgres: PostgreSQLContainer<*> = PostgreSQLContainer("pgvector/pgvector:pg17")
             .withDatabaseName("value_investing_test")
             .withUsername("test")
             .withPassword("test")
