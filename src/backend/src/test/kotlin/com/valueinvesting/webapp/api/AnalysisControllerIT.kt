@@ -80,7 +80,7 @@ class AnalysisControllerIT {
             header { exists("X-Data-Snapshot-At") }
             header { string("X-Data-Stale", "false") }
             jsonPath("$.ticker") { value("AAPL") }
-            jsonPath("$.signals.length()") { value(7) }
+            jsonPath("$.signals.length()") { value(13) }
             jsonPath("$.grahamNumber") { exists() }
             jsonPath("$.dcfMethod") { exists() }
             jsonPath("$.mosSignal") { exists() }

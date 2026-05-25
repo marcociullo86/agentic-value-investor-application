@@ -81,8 +81,8 @@ class GrahamRulesIntegrationTest {
             "GROSS_MARGIN_10Y_AVG",
             "NET_MARGIN_10Y_AVG",
             "CURRENT_RATIO_LATEST",
-            "DEBT_TO_INCOME_10Y_AVG",
-            "CAPEX_INTENSITY_LATEST",
+            "DEBT_TO_INCOME_LATEST",
+            "CAPEX_INTENSITY_10Y_AVG",
         )
 
         private val JSON: ObjectMapper = jacksonObjectMapper()
