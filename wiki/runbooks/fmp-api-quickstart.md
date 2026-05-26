@@ -141,12 +141,11 @@ GET {base}/stock-screener?sector=Technology&marketCapMoreThan=1000000000&priceLo
 
 ## Pagine collegate
 
-[[fmp-auth]]
-[[fmp-api-overview]]
 [[fmp-api]]
-[[fmp-search]]
-[[fmp-quotes]]
-[[fmp-financial-statements]]
+[[fmp-api-overview]]
+[[fmp-company-search]]
+[[fmp-quotes-stable]]
+[[fmp-financial-statements-stable]]
 [[gaps]]
 
 ## Storie collegate

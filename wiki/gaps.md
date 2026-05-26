@@ -423,3 +423,22 @@ ADR-007 §Error format dichiara RFC 9457 §3.2 (extensions al top-level). Quattr
 **Gap:** REQ-05 §5.4 richiede una dichiarazione esplicita dello scope PCI-DSS: se l'applicazione tratta dati di carta di pagamento, si applicano vincoli stringenti (tokenization, iframe provider, flusso dati carta documentato); se non applicabile, deve essere dichiarato esplicitamente nell'ADR di sicurezza. L'applicazione Value Investing WebApp e un tool di screening azionario e non tratta pagamenti — ma la dichiarazione formale "non applicabile" non esiste in nessun ADR.
 **Sospetta fonte:** lead-architect — ADR di sicurezza con dichiarazione scope PCI-DSS.
 **Impatto:** Documentale. Nessun impatto tecnico se il scope e effettivamente non applicabile. Richiesto da REQ-05 come acceptance criterion ("ADR esplicito che documenta scope PCI-DSS"). Bloccante: no.
+
+---
+
+### 2026-05-27 — auth-cascade-revocation-missing
+
+**Origine:** qa-dev @ TSK-212 (test storage credenziali US-075)
+**Gap:** `AuthService.refresh()` esegue rotation del refresh token (genera nuovo token, invalida il precedente) ma non implementa cascade revocation: al riuso di un refresh token già ruotato (potenziale token theft), il sistema invalida solo quel token e non revoca tutti i refresh token dell'utente. US-075 AC §6 richiede esplicitamente: "Il riuso di un refresh token già ruotato causa revoca di tutti i refresh token dell'utente". Serve un TSK be-dev aggiuntivo per implementare la cascade revocation in `AuthService`.
+**Sospetta fonte:** be-dev — implementazione in `AuthService.refresh()` con detection riuso token ruotato + revoca bulk per userId.
+**Impatto:** Rischio sicurezza: un attaccante che ruba un refresh token prima della rotation può usarlo dopo la rotation senza che il sistema revochi la sessione legittima dell'utente. Non bloccante per il funzionamento corrente (la rotation singola funziona). Bloccante per compliance US-075 AC §6.
+
+---
+
+### 2026-05-27 — fe-middleware-static-export-conflict
+
+**Origine:** fe-dev @ TSK-206 implementazione
+**Gap:** `next.config.js` impone `output: 'export'` (ADR-009, static SPA servita dal backend Spring Boot). Next.js middleware (`middleware.ts`) richiede un server runtime (Edge o Node) e viene ignorato durante `next build` con `output: 'export'`. Il middleware AuthGuard creato in TSK-206 funziona correttamente in `next dev` ma non sarà attivo in produzione con l'attuale configurazione. Questo si aggiunge al gap `fe-deep-analysis-static-export-conflict` (TSK-122) che segnala lo stesso vincolo per route dinamiche. Serve una decisione architetturale: (a) rimuovere `output: 'export'` per abilitare middleware + route dinamiche (cambia modello deployment ADR-009), (b) implementare l'AuthGuard come client-side route guard React (HOC/hook) in alternativa al middleware, (c) accettare che il middleware sia attivo solo in dev e il backend copra la protezione in produzione.
+**Sospetta fonte:** lead-architect — decisione su `output` mode e modello deployment (ADR-009 vs server runtime).
+**Impatto:** Il middleware è UX-only (defense-in-depth), il backend protegge gli endpoint indipendentemente. Non bloccante per sicurezza. Bloccante per UX completa delle redirezioni auth in produzione. In `next dev` il middleware è pienamente funzionante.
+**TSK correlati:** TSK-206 (middleware AuthGuard), TSK-122 (deep analysis route), US-073 (AuthGuard centralizzato).

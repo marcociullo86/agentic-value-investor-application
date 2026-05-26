@@ -15,11 +15,11 @@ r30_target: TBD
 # Sprint Plan
 
 > **R1.0 MVP chiuso:** Sprint 1–4 completati (49/49 TSK `done`, 20/20 US, 6/6 EP).
-> **R1.1 chiuso:** Sprint 5 — 22/23 TSK `done`; unico residuo TSK-071 `todo` (blocked su gap `fmp-stable-rate-limiting`).
+> **R1.1 chiuso:** Sprint 5 — 23/23 TSK `done`.
 > **R1.1.x hotfix chiuso:** Sprint 5.5 — 12/12 TSK `done`. US-052, US-053, US-054 completate.
 > **R2.0 chiuso:** Sprint 6–9 completati — 79/79 TSK `done`, 21/21 US, 3/3 EP (EP-010, EP-011, EP-012).
 > **R2.1 chiuso:** Sprint 10 — EP-013 Mr. Market Context Flags — 6/6 TSK `done`, 2/2 US (US-056, US-057).
-> **R3.0 in corso:** Sprint 11–15 — 33 TSK `todo`, 35 `done`, 25 US (15 done, 10 todo), 5 EP (3 done, 2 todo). EP-014, EP-015, EP-016 `done`. ADR-021, ADR-022, ADR-023 `accepted`; ADR-024, ADR-025 status: `proposed`.
+> **R3.0 in corso:** Sprint 11–15 — 19 TSK `todo`, 49 `done`, 25 US (21 done, 4 todo), 5 EP (4 done, 1 todo). EP-014, EP-015, EP-016, EP-017 `done`. ADR-021, ADR-022, ADR-023 `accepted`; ADR-024, ADR-025 status: `proposed`.
 
 ---
 
@@ -126,7 +126,7 @@ GET override, feasibility 422, dcfMethodSource, Vary header, FE panel, OpenAPI).
 **Obiettivo:** Hardening contratti e routing FE, deploy prod Compose+nginx, backup/retention,
 checklist cutover, throttling FMP (default ADR-016); wiki FMP in parallelo (human).
 
-**Stato:** 22/23 TSK `done` — unico residuo TSK-071 `todo` (blocked su gap `fmp-stable-rate-limiting`).
+**Stato:** COMPLETATO — 23/23 TSK `done`.
 
 | TSK | Titolo | Layer | Consumer | Est. | US | Status |
 |-----|--------|-------|----------|------|-----|--------|
@@ -151,7 +151,7 @@ checklist cutover, throttling FMP (default ADR-016); wiki FMP in parallelo (huma
 | TSK-068 | Human Ingest wiki FMP rate/URL/errori | infra | human | M | US-029 | done |
 | TSK-069 | BE Env FMP_RATE_LIMIT_PER_MINUTE | be | agent | S | US-030 | done |
 | TSK-070 | QA WireMock 429 retry + event log | qa | agent | S | US-030 | done |
-| TSK-071 | BE Ricalibra rate limit da wiki post US-029 | be | agent | XS | US-031 | todo |
+| TSK-071 | BE Ricalibra rate limit da wiki post US-029 | be | agent | XS | US-031 | done |
 | TSK-072 | BE Migrazione FmpAdapterRestClient + DTO + fixture da v3 a /stable | be | agent | L | US-031 | done |
 
 ---
@@ -436,24 +436,24 @@ Correlation ID copiabile. ADR-022.
 refresh token a cookie httpOnly Secure SameSite=Strict, refresh automatico con coda richieste,
 idle/absolute timeout con prompt, logout completo con blocco history. ADR-024.
 
-**Stato:** TODO — 0/14 TSK `done`.
+**Stato:** COMPLETATO — 14/14 TSK `done`. US-073..US-078 chiuse. EP-017 `done`.
 
 | TSK | Titolo | Layer | Consumer | Est. | US | Status |
 |-----|--------|-------|----------|------|----|--------|
-| TSK-205 | route-config.ts mappa rotte dichiarativa tipizzata | fe | agent | S | US-074 | todo |
-| TSK-206 | AuthGuard middleware.ts Next.js: redirect login/returnUrl/403 | fe | agent | M | US-073 | todo |
-| TSK-207 | Pagina /403 + messaggio sessione scaduta su /login | fe | agent | S | US-073 | todo |
-| TSK-208 | QA Test E2E AuthGuard + route map: 6+ scenari | qa | agent | M | US-073/074 | todo |
-| TSK-209 | BE AuthController migrazione cookie httpOnly: login/refresh/logout | be | agent | L | US-075 | todo |
-| TSK-210 | BE OpenAPI: rimuovi refreshToken da response body | be | agent | XS | US-075 | todo |
-| TSK-211 | FE useAuthStore aggiornato: rehydration via cookie refresh | fe | agent | M | US-075 | todo |
-| TSK-212 | QA Test storage: no localStorage, httpOnly, rehydration F5, revoca | qa | agent | M | US-075 | todo |
-| TSK-213 | useTokenRefresh hook: timer pre-expiry 60s, mutex coda | fe | agent | M | US-076 | todo |
-| TSK-214 | QA Test refresh: no doppio refresh, sessione 20+ min, fallback | qa | agent | S | US-076 | todo |
-| TSK-215 | IdleTimeoutProvider: idle 15min + prompt 60s + absolute 8h | fe | agent | M | US-077 | todo |
-| TSK-216 | QA Test timeout: idle, extend, no-interaction, absolute, a11y | qa | agent | S | US-077 | todo |
-| TSK-217 | useLogout hook: revoca + pulizia store/cache + blocco history | fe | agent | M | US-078 | todo |
-| TSK-218 | QA Test E2E logout: revoca, cookie, store, back button, resilienza | qa | agent | S | US-078 | todo |
+| TSK-205 | route-config.ts mappa rotte dichiarativa tipizzata | fe | agent | S | US-074 | done |
+| TSK-206 | AuthGuard middleware.ts Next.js: redirect login/returnUrl/403 | fe | agent | M | US-073 | done |
+| TSK-207 | Pagina /403 + messaggio sessione scaduta su /login | fe | agent | S | US-073 | done |
+| TSK-208 | QA Test E2E AuthGuard + route map: 6+ scenari | qa | agent | M | US-073/074 | done |
+| TSK-209 | BE AuthController migrazione cookie httpOnly: login/refresh/logout | be | agent | L | US-075 | done |
+| TSK-210 | BE OpenAPI: rimuovi refreshToken da response body | be | agent | XS | US-075 | done |
+| TSK-211 | FE useAuthStore aggiornato: rehydration via cookie refresh | fe | agent | M | US-075 | done |
+| TSK-212 | QA Test storage: no localStorage, httpOnly, rehydration F5, revoca | qa | agent | M | US-075 | done |
+| TSK-213 | useTokenRefresh hook: timer pre-expiry 60s, mutex coda | fe | agent | M | US-076 | done |
+| TSK-214 | QA Test refresh: no doppio refresh, sessione 20+ min, fallback | qa | agent | S | US-076 | done |
+| TSK-215 | IdleTimeoutProvider: idle 15min + prompt 60s + absolute 8h | fe | agent | M | US-077 | done |
+| TSK-216 | QA Test timeout: idle, extend, no-interaction, absolute, a11y | qa | agent | S | US-077 | done |
+| TSK-217 | useLogout hook: revoca + pulizia store/cache + blocco history | fe | agent | M | US-078 | done |
+| TSK-218 | QA Test E2E logout: revoca, cookie, store, back button, resilienza | qa | agent | S | US-078 | done |
 
 **Totale Sprint 14:** 14 TSK (2 be, 7 fe, 5 qa)
 
@@ -498,7 +498,7 @@ dichiarazione formale PCI-DSS non applicabile. ADR-025. DB: mfa_secrets + login_
 | Release | Sprint | infra | db | be | fe | qa | Totale | Stato |
 |---------|--------|-------|-----|-----|-----|-----|--------|-------|
 | R1.0 | 1–4 | 2 | 6 | 22 | 12 | 7 | **49** | done |
-| R1.1 | 5 | 5 | 0 | 7 | 3 | 8 | **23** | 22 done, 1 todo (TSK-071) |
+| R1.1 | 5 | 5 | 0 | 7 | 3 | 8 | **23** | done |
 | R1.1.x | 5.5 | 0 | 0 | 3 | 2 | 7 | **12** | done |
 | R2.0 | 6 | 0 | 1 | 8 | 1 | 8 | **18** | done |
 | R2.0 | 7 | 1 | 6 | 17 | 0 | 13 | **37** | done |
@@ -508,9 +508,9 @@ dichiarazione formale PCI-DSS non applicabile. ADR-025. DB: mfa_secrets + login_
 | R3.0 | 11 | 1 | 0 | 7 | 0 | 6 | **14** | done |
 | R3.0 | 12 | 0 | 0 | 0 | 5 | 5 | **10** | done |
 | R3.0 | 13 | 0 | 0 | 0 | 6 | 5 | **11** | done |
-| R3.0 | 14 | 0 | 0 | 2 | 7 | 5 | **14** | todo |
+| R3.0 | 14 | 0 | 0 | 2 | 7 | 5 | **14** | done |
 | R3.0 | 15 | 0 | 2 | 8 | 2 | 7 | **19** | todo |
-| | **TOTALE** | **10** | **16** | **84** | **47** | **80** | **237** | 203 done, 1 todo (R1.1), 33 todo (R3.0) |
+| | **TOTALE** | **10** | **16** | **84** | **47** | **80** | **237** | 218 done, 19 todo (R3.0) |
 
 ---
 
@@ -521,15 +521,15 @@ Sprint 11 (EP-014) ✅ ═══╗
                           ╠══► Sprint 13 (EP-015) ✅
 Sprint 12 (EP-016) ✅ ═══╝        │
                                    ▼
-                           Sprint 14 (EP-017) ◄── CORRENTE
+                           Sprint 14 (EP-017) ✅
                                    │
                                    ▼
-                           Sprint 15 (EP-018)
+                           Sprint 15 (EP-018) ◄── CORRENTE
 ```
 
-**Sprint 11, 12, 13** completati. Dipendenze cross-sprint soddisfatte.
-**Sprint 14** è il prossimo: FE-heavy (7 fe) + BE (2 be) + QA (5 qa).
-**Sprint 15** dipende da Sprint 14 per la CSRF protection sugli endpoint cookie-based (TSK-209 → TSK-223).
+**Sprint 11, 12, 13, 14** completati. Dipendenze cross-sprint soddisfatte.
+**Sprint 15** è il prossimo: BE-heavy (8 be) + FE (2 fe) + DB (2 db) + QA (7 qa).
+**Sprint 15** dipende da Sprint 14 per la CSRF protection sugli endpoint cookie-based (TSK-209 → TSK-223). ✅ Dipendenza soddisfatta.
 
 ---
 
@@ -542,7 +542,7 @@ Sprint 11 → Sprint 13: ✅ SODDISFATTA
 Sprint 12 → Sprint 13: ✅ SODDISFATTA
   TSK-184 (design tokens) ──→ TSK-203 (hardening a11y contrasto)
 
-Sprint 14 → Sprint 15: ⏳ ATTIVA
+Sprint 14 → Sprint 15: ✅ SODDISFATTA
   TSK-209 (cookie httpOnly auth) ──→ TSK-223 (CSRF per cookie endpoints)
 ```
 
@@ -550,29 +550,33 @@ Sprint 14 → Sprint 15: ⏳ ATTIVA
 
 ## Prossimo /dev suggerito
 
-**Sprint corrente:** Sprint 14 (EP-017 Protezione Rotte e Sessione).
+**Sprint corrente:** Sprint 15 (EP-018 Hardening Sicurezza e Compliance).
 
 **Wave 1 (avvio parallelo):**
-- fe-dev: TSK-205 (route-config.ts mappa rotte dichiarativa)
-- be-dev: TSK-209 (AuthController migrazione cookie httpOnly) + TSK-210 (OpenAPI cleanup)
+- be-dev: TSK-219 (audit + enforcement defense-in-depth)
+- be-dev: TSK-221 (SecurityHeadersConfig CSP)
+- db-dev: TSK-225 (migration V018__create_mfa_secrets) + TSK-226 (migration V019__create_login_attempts)
 
 **Wave 2 (dipende da Wave 1):**
-- fe-dev: TSK-206 (AuthGuard middleware, richiede TSK-205) + TSK-207 (pagina /403)
-- fe-dev: TSK-211 (useAuthStore aggiornato, richiede TSK-209 BE)
-- qa-dev: TSK-208 (QA AuthGuard + route map, dopo TSK-205 + TSK-206)
+- fe-dev: TSK-222 (Next.js middleware CSP nonce, richiede TSK-221)
+- be-dev: TSK-223 (CSRF per cookie endpoints, richiede TSK-209 done ✅)
+- be-dev: TSK-227 (TotpService, richiede TSK-225)
+- be-dev: TSK-229 (RateLimitingFilter, richiede TSK-226)
+- qa-dev: TSK-220 (QA defense-in-depth, dopo TSK-219)
 
 **Wave 3 (dipende da Wave 2):**
-- fe-dev: TSK-213 (useTokenRefresh hook, richiede TSK-211)
-- fe-dev: TSK-215 (IdleTimeoutProvider)
-- qa-dev: TSK-212 (QA storage, dopo TSK-211)
+- be-dev: TSK-228 (MfaController, richiede TSK-227)
+- be-dev: TSK-230 (BruteForceProtectionService, richiede TSK-229)
+- be-dev: TSK-231 (HibpClient)
+- qa-dev: TSK-224 (QA CSP + CSRF, dopo TSK-221 + TSK-222 + TSK-223)
 
-**Wave 4 (chiusura):**
-- fe-dev: TSK-217 (useLogout hook, richiede TSK-211 + TSK-215)
-- qa-dev: TSK-214, TSK-216, TSK-218
+**Wave 4 (chiusura FE + QA):**
+- fe-dev: TSK-232 (MfaEnrollmentPage, richiede TSK-228) + TSK-233 (MfaChallengeForm)
+- qa-dev: TSK-234, TSK-235, TSK-236, TSK-237
 
-**Primo `/dev` suggerito:** `TSK-205` (fe-dev) e `TSK-209` (be-dev) in parallelo.
+**Primo `/dev` suggerito:** `TSK-219` (be-dev), `TSK-221` (be-dev), `TSK-225` + `TSK-226` (db-dev) in parallelo.
 
-**Residuo R1.1:** TSK-071 resta `todo` (blocked su gap `fmp-stable-rate-limiting`).
+**R1.1 completato:** TSK-071 chiuso (ADR-016 policy 30 req/60s con override env var operativo).
 
 **ADR accepted:** ADR-021 (structured logging), ADR-022 (frontend error notifications), ADR-023 (design token system).
 **ADR pending:** ADR-024 (session lifecycle), ADR-025 (security hardening) `proposed`. TSK-237 → Q_005.

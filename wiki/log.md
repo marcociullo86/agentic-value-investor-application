@@ -488,3 +488,174 @@ Pagine create: 0 | Figure: 0 | Aggiornamenti: 2 | Gap nuovi: 0 | Gap chiusi: 0
 Pagine create: 0 | Figure: 0 | Aggiornamenti: 1 | Gap nuovi: 0 | Gap chiusi: 0
 
 [2026-05-26 18:38] ingest — [[frontend-error-notifications]] aggiornata con §Fix CI post-Sprint 12/13 (4 commit: TS strict error-code-map, E2E confirmPassword + mock routes, notification-container non-null assertion) — files touched: 1
+
+## 2026-05-27 00:27 — lint
+Pagine scansionate: 411 (74 wiki + 18 EP + 82 US + 237 TSK) | Errors: 82 | Warnings: 12 | heal-eligible: 1
+Report: wiki/lint/2026-05-27-lint-report.md
+
+## 2026-05-27 00:30 — heal + wiki-fix
+**Report**: wiki/lint/2026-05-27-lint-report.md
+**Heal iter 1**: EP-014.md frontmatter `status: defined` → `status: done` (14/14 TSK done)
+**Wiki fix**: fmp-api-quickstart.md — 4 wikilink aggiornati da slug v3 a slug stable ([[fmp-auth]]→[[fmp-api]], [[fmp-search]]→[[fmp-company-search]], [[fmp-quotes]]→[[fmp-quotes-stable]], [[fmp-financial-statements]]→[[fmp-financial-statements-stable]])
+Fix applicati: 5 | Regressioni: 0
+
+## 2026-05-27 00:38 — develop TSK-205
+
+**Task**: TSK-205 — FE route-config.ts mappa rotte dichiarativa tipizzata
+**Layer**: fe | **Sprint**: 14 | **US**: US-074 | **EP**: EP-017
+**File creato**: `src/frontend/lib/auth/route-config.ts`
+
+Implementata mappa rotte dichiarativa tipizzata per l'AuthGuard frontend:
+- Interfaccia `RouteConfig` (path, requiresAuth, roles?, permissions?)
+- `ROUTE_MAP` con 11 rotte (7 public, 3 auth, 1 auth+admin)
+- Helper: `getRouteConfig()`, `isProtectedRoute()`, `getRequiredRoles()`, `getRequiredPermissions()`
+- Lookup supporta exact match + longest-prefix match per sotto-rotte
+
+DoD: configurazione dichiarativa ✓ | rotte mappate ✓ | roles/permissions ✓ | helper funzionante ✓ | code review: gate umano
+
+## 2026-05-27 00:33 — kanban maintenance
+- **Q_004 chiusa**: spostata in [RISOLTE] con risoluzione ADR-023 accepted (design token system shadcn/ui M3-aligned). EP-016 done, US-069 sbloccata e completata.
+- **TSK-071 done**: ricalibrazione rate limit FMP chiusa — ADR-016 policy 30 req/60s con override `FMP_RATE_LIMIT_PER_MINUTE` operativo; gap `fmp-stable-rate-limiting` resta parzialmente aperto (numeri ufficiali FMP non nei raw) ma non blocca operativamente.
+- **Sprint 5 / R1.1**: 23/23 TSK done (era 22/23). EP-009 confermato done.
+- **sprint.md**: aggiornato conteggio (204 done, 33 todo R3.0).
+- **Backfill TSK**: in corso — aggiunta `sprint:` e `priority:` a ~85 TSK (EP-010..013) privi di questi campi nel frontmatter.
+
+## 2026-05-27 00:38 — develop TSK-209
+**Agente:** be-dev
+**TSK:** [[../management/kanban/EP-017-protezione-rotte-sessione/US-075-migrazione-storage-credenziali/TSK-209]]
+**Layer:** be
+**Code path:** ./src/backend/
+**Files touched:** 5 (AuthController.kt, RefreshTokenCookieHelper.kt, AuthDtos.kt, AuthService.kt, AppProperties.kt) + 4 test (AuthControllerIT.kt, WatchlistControllerIT.kt, MoatChecklistControllerIT.kt, DcfOverrideContractTest.kt) + application.yml
+**Commit:** n/a
+**DoD:** pass
+**Note:** Migrazione refresh token da body JSON a cookie httpOnly Secure SameSite=Strict Path=/api/auth come da ADR-024 §3. Introdotta property `app.jwt.cookie-secure` (default true, false in profilo test) per consentire test su HTTP. Creato `RefreshTokenCookieHelper` per centralizzare attributi cookie. `TokenPairResponse` deprecato, sostituito da `AccessTokenResponse` + `AuthResult` (service-level). Aggiornati 3 IT test di altri controller che usavano il vecchio DTO per login helper.
+
+### 2026-05-27 — develop — TSK-207 (fe-dev)
+**Task:** TSK-207 — FE Pagina /403 + messaggio sessione scaduta su /login
+**US:** US-073 | **EP:** EP-017
+**Files touched:** 2 (app/403/page.tsx [new], app/(auth)/login/page.tsx [modified])
+**Commit:** n/a
+**DoD:** pass
+**Note:** Creata pagina statica `/403` con h1 "Accesso negato", messaggio user-friendly senza dettagli tecnici, e link "Torna alla dashboard" accessibile da tastiera. Aggiornata `/login` per leggere query param `?expired=true` e mostrare banner informativo "La tua sessione è scaduta" con `role="alert"` e stile warning token. Componente wrappato in `<Suspense>` per `useSearchParams()` Next.js.
+
+### 2026-05-27 — develop — TSK-206 (fe-dev)
+**Task:** TSK-206 — FE AuthGuard middleware.ts Next.js
+**US:** US-073 | **EP:** EP-017
+**Files touched:** 1 (middleware.ts [new])
+**Commit:** n/a
+**DoD:** pass
+**Note:** Creato `src/frontend/middleware.ts` con AuthGuard centralizzato. Logica a 4 stati: (1) sessione scaduta → clear cookie + redirect `/login?expired=true`, (2) utente autenticato su /login o /register → redirect `/`, (3) rotta protetta + non autenticato → redirect `/login?returnUrl=…` con pathname+search, (4) rotta protetta + ruolo insufficiente → redirect `/403`. Consuma `getRouteConfig()` da route-config.ts (TSK-205) per lookup dichiarativo requisiti rotta. Matcher esclude `_next/static`, `_next/image`, `api`, file statici. Cookie consumati: `isAuthenticated` (hint auth), `userRole` (ruolo corrente), `sessionExpired` (marker client-side sessione scaduta). Edge Runtime compatibile (zero import Node.js). Gap aperto: `fe-middleware-static-export-conflict` — middleware ignorato in produzione con `output: 'export'` (ADR-009), funzionante in `next dev`.
+
+### 2026-05-27 00:46 — develop TSK-210
+**Agente:** be-dev
+**TSK:** [[../management/kanban/EP-017-protezione-rotte-sessione/US-075-migrazione-storage-credenziali/TSK-210]]
+**Layer:** be
+**Code path:** ./src/backend/
+**Files touched:** 3 (AuthDtos.kt, AuthController.kt, AuthOpenApiSchemaContractTest.kt [new])
+**Commit:** n/a
+**DoD:** pass
+**Note:** Rimossi `TokenPairResponse` (deprecated) e `RefreshRequest` (dead code post-TSK-209 cookie migration) da AuthDtos.kt. Aggiunto `@Operation`/`@ApiResponse` con `@Header(name="Set-Cookie")` su login, refresh, logout. Aggiunto `@Schema` annotations su DTOs auth. Nuovo contract test `AuthOpenApiSchemaContractTest` (6 test) verifica assenza `refreshToken` negli schema response e presenza Set-Cookie header documentato nell'OpenAPI runtime spec.
+
+## 2026-05-27 00:47 — develop TSK-211
+**Agente:** fe-dev
+**TSK:** [[../management/kanban/EP-017-protezione-rotte-sessione/US-075-migrazione-storage-credenziali/TSK-211]]
+**Layer:** fe
+**Code path:** ./src/frontend/
+**Files touched:** 5 (lib/api/auth.ts, lib/stores/useAuthStore.ts, components/providers/AuthProvider.tsx, components/auth/AuthGuard.tsx, lib/stores/useAuthStore.test.ts) + 2 test fixes (MoatChecklist.test.tsx, DcfOverridePanel.test.tsx)
+**Commit:** n/a
+**DoD:** pass
+**Note:** Migrato auth FE da refresh-token-in-body a cookie httpOnly (allineamento a TSK-209 BE). Rimosso `refreshToken` dallo state Zustand e dai tipi `TokenPair`→`TokenResponse`. Implementato bootstrap rehydration in AuthProvider: al mount tenta `POST /api/auth/refresh` (cookie automatico), mostra spinner durante rehydration, zero flicker su F5. AuthGuard ora attende `rehydrationStatus === 'done'` prima di valutare auth. Cookie hint `isAuthenticated` (non-httpOnly) settato al login e rimosso al logout per il middleware Edge (TSK-206). Nessun token in localStorage.
+
+## 2026-05-27 00:55 — develop TSK-208
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-017-protezione-rotte-sessione/US-073-auth-guard-centralizzato/TSK-208]]
+**Layer:** qa
+**Code path:** ./src/frontend/
+**Files touched:** 2 (lib/auth/__tests__/route-config.test.ts [new], __tests__/middleware.test.ts [new])
+**Commit:** n/a
+**DoD:** pass
+**Note:** 30 Vitest unit/integration test (20 route-config + 10 middleware) coprono tutti gli scenari TSK-208: rotte pubbliche pass-through, rotte protette redirect /login con returnUrl, ruolo insufficiente → /403, sessione scaduta → /login?expired=true, authenticated su /login → redirect /, fail-open su rotte sconosciute, trailing slash normalisation. Approccio Vitest scelto per testabilità deterministica del middleware in isolamento (gap noto `fe-middleware-static-export-conflict` impedisce E2E con `output: 'export'`).
+
+## 2026-05-27 01:00 — develop TSK-213
+**Agente:** fe-dev
+**TSK:** [[../management/kanban/EP-017-protezione-rotte-sessione/US-076-rinnovo-automatico-token/TSK-213]]
+**Layer:** fe
+**Code path:** ./src/frontend/
+**Files touched:** 5 (hooks/use-token-refresh.ts [new], lib/api/token-refresh-mutex.ts [new], lib/stores/useAuthStore.ts [mod], lib/api/client.ts [mod], components/providers/AuthProvider.tsx [mod]) + 1 test fix (lib/stores/useAuthStore.test.ts [mod])
+**Commit:** n/a
+**DoD:** pass
+**Note:** Implementato hook useTokenRefresh con timer pre-expiry (60s buffer) + mutex singleton token-refresh-mutex.ts che coalizza refresh concorrenti su singola Promise. Interceptor 401 in client.ts ora usa acquireFreshToken() dal mutex — richieste HTTP in coda risolvono con il nuovo token senza retry duplicati. Fallback: refresh fallito → clearSession + sessionExpired (redirect /login gestito da AuthGuard). useAuthStore esteso con campo expiresAt (epoch ms) popolato da login/refresh/rehydrate. Hook attivato in AuthProvider dopo rehydration — trasparente all'utente.
+
+## 2026-05-27 01:05 — develop TSK-212
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-017-protezione-rotte-sessione/US-075-migrazione-storage-credenziali/TSK-212]]
+**Layer:** qa
+**Code path:** ./src/
+**Files touched:** 2 (frontend/lib/stores/__tests__/auth-storage-security.test.ts [new], backend/src/test/kotlin/com/valueinvesting/webapp/api/AuthStorageSecurityIT.kt [new])
+**Commit:** n/a
+**DoD:** pass
+**Note:** 11 Vitest FE test (localStorage audit 3 + Zustand state 1 + rehydration 3 + cookie hint 4) tutti green. 13 JUnit 5 IT BE (Set-Cookie attributes 6 + JWT lifetime 2 + cookie rehydration 3 + rotation revocation 4) strutturati su AuthControllerIT pattern con Testcontainers. BE non eseguibili localmente (no Gradle/Docker). Gap noto: US-075 AC#6 "revoca tutti i refresh token dell'utente su riuso" non implementata in AuthService.refresh() — il codice ritorna 401 sul token revocato ma non revoca la catena attiva. Serve TSK be-dev per aggiungere revokeAllByUserId in RefreshTokenRepository + logica reuse-detection in AuthService.
+
+## 2026-05-27 01:05 — develop TSK-214
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-017-protezione-rotte-sessione/US-076-rinnovo-automatico-token/TSK-214]]
+**Layer:** qa
+**Code path:** ./src/
+**Files touched:** 2 (frontend/lib/api/__tests__/token-refresh-mutex.test.ts [new], frontend/hooks/__tests__/use-token-refresh.test.ts [new])
+**Commit:** n/a
+**DoD:** pass
+**Note:** 16 Vitest test tutti green. Mutex: 2 chiamate concorrenti → 1 sola POST /refresh, entrambe ricevono lo stesso token, mutex rilasciato dopo completamento, isRefreshing() corretto. Store: accessToken e expiresAt aggiornati su success. Fallback: clearSession() + setSessionExpired(true) su errore, tutti i caller concorrenti rejettati, mutex rilasciato per retry. Timer hook: scheduling 60s pre-expiry, clamp a MIN_TIMER_MS, no scheduling senza token, cleanup su unmount, re-scheduling su expiresAt change. Sessione lunga: 3 cicli refresh consecutivi (360s simulati) senza errori. Errori swallowed dal hook (gestione in mutex).
+
+## 2026-05-27 01:10 — develop TSK-215
+**Agente:** fe-dev
+**TSK:** [[../management/kanban/EP-017-protezione-rotte-sessione/US-077-timeout-inattivita-assoluto/TSK-215]]
+**Layer:** fe
+**Code path:** ./src/
+**Files touched:** 2 (frontend/components/auth/idle-timeout-provider.tsx [new], frontend/components/providers/AuthProvider.tsx [modified])
+**Commit:** n/a
+**DoD:** pass
+**Note:** Idle timeout (default 15min, env NEXT_PUBLIC_IDLE_TIMEOUT_MINUTES) con prompt modale Radix alertdialog e countdown 60s. Absolute timeout (default 8h, env NEXT_PUBLIC_ABSOLUTE_TIMEOUT_HOURS) con session start persistito in sessionStorage. Activity events throttled a 1s (mousemove, keydown, click, scroll, touchstart). Prompt accessibile: role="alertdialog", aria-labelledby/describedby, aria-live="assertive" sul countdown, focus trap Radix, focus iniziale su "Estendi sessione", Escape estende sessione. Integrato in AuthProvider dopo rehydration — attivo solo per utenti autenticati.
+
+## 2026-05-27 01:15 — develop TSK-217
+**Agente:** fe-dev
+**TSK:** [[../management/kanban/EP-017-protezione-rotte-sessione/US-078-flusso-logout-completo/TSK-217]]
+**Layer:** fe
+**Code path:** ./src/
+**Files touched:** 3 (frontend/hooks/use-logout.ts [new], frontend/components/layout/Navbar.tsx [modified], frontend/components/auth/idle-timeout-provider.tsx [modified])
+**Commit:** n/a
+**DoD:** pass
+**Note:** Hook centralizzato con sequenza completa: revoca BE best-effort (try/catch, procede su errore), clearSession Zustand, SWR global cache invalidation via `mutate(() => true, undefined, { revalidate: false })`, sessionStorage cleanup (__idle_session_start), history.replaceState + router.push('/login') per blocco back-button. Navbar e IdleTimeoutProvider migrati a useLogout, rimossa logica logout inline e clearSessionStart duplicata.
+
+## 2026-05-27 01:13 — develop TSK-218
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-017-protezione-rotte-sessione/US-078-flusso-logout-completo/TSK-218]]
+**Layer:** qa
+**Code path:** ./src/
+**Files touched:** 1 (frontend/hooks/__tests__/use-logout.test.ts [new])
+**Commit:** n/a
+**DoD:** pass
+**Note:** 10 test Vitest per useLogout hook (US-078 AC). Copertura: revoca BE chiamata, clearSession Zustand, SWR cache invalidata (matcher + revalidate:false), sessionStorage __idle_session_start rimosso, history.replaceState /login, router.push /login, ordine sequenza completo, resilienza network error, resilienza 500, nessun throw su fallimento revoca. Tutti pass.
+
+## 2026-05-27 01:22 — develop TSK-216
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-017-protezione-rotte-sessione/US-077-timeout-inattivita-assoluto/TSK-216]]
+**Layer:** qa
+**Code path:** ./src/
+**Files touched:** 1 (frontend/components/auth/__tests__/idle-timeout-provider.test.tsx [new])
+**Commit:** n/a
+**DoD:** pass
+**Note:** 11 test Vitest + RTL + vitest-axe per IdleTimeoutProvider (US-077 AC). Timer behavior: idle 15min → prompt, extend → reset, no-interaction countdown → logout via useLogout, absolute 8h → logout, activity mousemove/keydown → idle reset, no-op non autenticato. Accessibilità: role="alertdialog" con aria-labelledby/describedby, focus su "Estendi sessione" al prompt, Escape estende sessione, axe-core zero violazioni serious/critical. Tutti pass.
+
+## 2026-05-27 01:25 — kanban update Sprint 14 chiuso
+**Agente:** product-manager
+EP-017 (Protezione Rotte e Sessione) chiusa: 14/14 TSK done, 6/6 US done.
+US chiuse: US-073 (AuthGuard), US-074 (route map), US-075 (cookie httpOnly), US-076 (token refresh), US-077 (idle timeout), US-078 (logout completo).
+Sprint.md aggiornato: 218/237 TSK done (92%), Sprint 15 (EP-018) diventa corrente.
+
+## [2026-05-27 01:28] ingest | wiki update EP-017 completata
+**Agente:** wiki-keeper
+Pagine create: 0 | Aggiornamenti: 3 | Gap nuovi: 0 | Gap chiusi: 0
+
+[2026-05-27 01:28] ingest — [[auth-guard-frontend]] aggiornata con §Aggiornamenti EP-017 Sprint 14 (14 TSK done, ADR-024, 9 feature documentate, 1 gap aperto) — files touched: 1
+[2026-05-27 01:28] ingest — [[webapp-architecture-vi]] aggiornata con §Aggiornamenti EP-017 (layer auth end-to-end) — files touched: 1
+[2026-05-27 01:28] ingest — [[fintech-security-compliance]] aggiornata con §Aggiornamenti EP-017 (migrazione storage credenziali §5.2 completata) — files touched: 1

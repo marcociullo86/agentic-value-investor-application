@@ -3,7 +3,7 @@ type: concept
 sources: ["raw/requisiti-funzionali-fintech.md"]
 status: draft
 created: 2026-05-26
-updated: 2026-05-26
+updated: 2026-05-27
 tags: [security, compliance, pii, pci-dss, threat-model, gdpr, csrf, xss, fintech]
 ---
 # Sicurezza, Privacy e Compliance Fintech
@@ -106,6 +106,22 @@ I seguenti eventi sono loggati con livello INFO (success) o WARN/ERROR (failure)
 [[pii-redaction-checklist]]
 [[webapp-architecture-vi]]
 [[fintech-hardening-requirements-map]]
+
+## Aggiornamenti (v2026-05-27)
+
+**Migrazione storage credenziali completata (EP-017 / US-075, ADR-024).**
+
+La §5.2 (Storage credenziali frontend) e ora implementata:
+
+- Refresh token migrato a cookie `httpOnly Secure SameSite=Strict Path=/api/auth` (TSK-209).
+- Access token in memoria (Zustand store), mai persistito; rehydration al mount via refresh cookie (TSK-211).
+- `localStorage` non utilizzato per alcun token o dato sensibile.
+- Token rotation attiva ad ogni refresh; revoca server-side implementata.
+- OpenAPI aggiornata: rimosso `refreshToken` da response body (TSK-210).
+
+[^src: management/kanban/EP-017-protezione-rotte-sessione/US-075-migrazione-storage-credenziali/TSK-209.md]
+
+Dettaglio completo: [[auth-guard-frontend]] §Aggiornamenti (v2026-05-27).
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->

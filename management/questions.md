@@ -13,20 +13,6 @@ indipendentemente dal `blocking_level`. Diventa `resolved` quando `[APERTE]` è 
 
 ## [APERTE]
 
-### Q_004 — Strategia design system React: M3 token system vs componenti attuali
-**Origine:** [[material-design-3-accessibility]]
-**Tipo:** Conflitto business
-**Impatto:** MEDIO
-**Bloccante:** soft
-**Domanda:** REQ-03 prescrive l'adozione del design token system Material Design 3 (colori, tipografia, shape, componenti M3). Il frontend attuale usa componenti basati su libreria diversa (Radix-based). Come conciliare? Tre opzioni: (a) adottare una libreria che implementa M3 nativamente per React, (b) estendere i componenti attuali con un token system M3-aligned mantenendo la libreria corrente, (c) approccio ibrido. La scelta impatta tutti i componenti UI esistenti e determina la fattibilità delle storie di EP-016 relative ai componenti M3.
-**Epiche bloccate:** EP-016 (parziale — solo storie relative ai componenti M3)
-**Storie bloccate:** US-069
-[^src: wiki/concepts/material-design-3-accessibility.md §Design Token System M3]
-[^src: wiki/syntheses/fintech-hardening-requirements-map.md §Gap identificati]
-[^src: wiki/gaps.md §fintech-design-system-react]
-
----
-
 ### Q_005 — Dichiarazione formale scope PCI-DSS
 **Origine:** [[fintech-security-compliance]]
 **Tipo:** Requisito incompleto
@@ -39,6 +25,24 @@ indipendentemente dal `blocking_level`. Diventa `resolved` quando `[APERTE]` è 
 [^src: wiki/gaps.md §fintech-pci-dss-scope]
 
 ## [RISOLTE]
+
+### Q_004 — Strategia design system React: M3 token system vs componenti attuali
+**Origine:** [[material-design-3-accessibility]]
+**Tipo:** Conflitto business
+**Impatto:** MEDIO
+**Bloccante:** soft
+**Domanda:** REQ-03 prescrive l'adozione del design token system Material Design 3 (colori, tipografia, shape, componenti M3). Il frontend attuale usa componenti basati su libreria diversa (Radix-based). Come conciliare? Tre opzioni: (a) adottare una libreria che implementa M3 nativamente per React, (b) estendere i componenti attuali con un token system M3-aligned mantenendo la libreria corrente, (c) approccio ibrido. La scelta impatta tutti i componenti UI esistenti e determina la fattibilità delle storie di EP-016 relative ai componenti M3.
+**Epiche bloccate:** EP-016 (parziale — solo storie relative ai componenti M3)
+**Storie bloccate:** US-069
+[^src: wiki/concepts/material-design-3-accessibility.md §Design Token System M3]
+[^src: wiki/syntheses/fintech-hardening-requirements-map.md §Gap identificati]
+[^src: wiki/gaps.md §fintech-design-system-react]
+
+**Risoluzione (2026-05-27):** ADR-023 accettato (deciders: lead-architect + marco.ciullo) — Opzione (b): design token system shadcn/ui con semantic token M3-aligned (colori OKLCH, tipografia, shape, motion). Componenti shadcn/ui estesi con layer di design token, non sostituiti con MUI. EP-016 completata (10/10 TSK done, 4/4 US done). US-069 sbloccata e completata.
+[^src: design_&_architecture/decisions/ADR-023-design-token-system-m3-shadcn.md]
+[^src: wiki/gaps.md §fintech-design-system-react]
+
+---
 
 ### Q_001 — Formula puntuale degli Owner Earnings per il DCF
 **Origine:** [[value-investing-rule-engine]]

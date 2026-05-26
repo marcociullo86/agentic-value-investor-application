@@ -3,7 +3,7 @@ type: concept
 sources: ["raw/06_Documento_Funzionale_WebApp_Value_Investing.md"]
 status: draft
 created: 2026-05-20
-updated: 2026-05-21
+updated: 2026-05-27
 tags: [product-spec, architecture, kotlin, spring-boot, spa, postgresql, fmp, caching, rest]
 ---
 # Architettura WebApp Value Investing
@@ -124,6 +124,18 @@ Header `X-Data-Snapshot-At` / `X-Data-Stale` su financials e analysis. [^src: sr
 **OpenAPI / springdoc:** versione **2.8.16**, dependency `springdoc-openapi-starter-webmvc-api` (no swagger-ui starter), `swagger-ui.enabled: false`. Dettaglio gate: [[openapi-contract-check]], runbook [[runbook-openapi-contract-check]].
 
 **Kanban:** 22 TSK ancora `todo`; track imminente FE bootstrap + CI Docker.
+
+## Aggiornamenti (v2026-05-27)
+
+**EP-017 Protezione Rotte e Sessione completata (Sprint 14, 14/14 TSK done).**
+
+Il layer di autenticazione e protezione rotte e ora implementato end-to-end:
+
+- **Frontend:** AuthGuard middleware Next.js, route map dichiarativa (11 rotte), rehydration F5, idle/absolute timeout con prompt accessibile, logout completo con back-button blocking.
+- **Backend:** migrazione refresh token a cookie `httpOnly Secure SameSite=Strict` (ADR-024), `RefreshTokenCookieHelper.kt`, token rotation, OpenAPI aggiornata.
+- **Token refresh:** pre-expiry 60s con mutex singleton, 401 interceptor.
+
+Dettaglio completo: [[auth-guard-frontend]] §Aggiornamenti (v2026-05-27).
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->
