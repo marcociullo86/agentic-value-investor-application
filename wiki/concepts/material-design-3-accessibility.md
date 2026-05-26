@@ -3,7 +3,7 @@ type: concept
 sources: ["raw/requisiti-funzionali-fintech.md"]
 status: draft
 created: 2026-05-26
-updated: 2026-05-26
+updated: 2026-05-26 (v2026-05-26 US-072 audit WCAG completata)
 tags: [ui, material-design-3, accessibility, wcag, design-tokens, theme, frontend, fintech]
 ---
 # Refinement UI: Material Design 3 e Accessibilita
@@ -121,9 +121,17 @@ Dark mode gestito interamente dal CSS variable system: i token OKLCH si aggiorna
 
 Classe utility `.state-layer` in `globals.css` con pseudo-elemento `::after` overlay a `currentColor` + opacity tokenizzata per hover/focus-visible/active. `Button.tsx` migrato a state layer (rimossi `hover:bg-*` Tailwind hardcoded). Focus-visible ring (WCAG 2.4.7) invariato.
 
-### Stato accessibilità
+### Audit accessibilità WCAG 2.2 AA (US-072, Sprint 12 residuo — completata)
 
-US-072 (Audit WCAG 2.2 AA con Lighthouse + axe-core) non in scope Sprint 12 — i 3 TSK (TSK-191/192/193) restano `todo`. Le basi per la conformità sono state poste: contrasto OKLCH verificabile, focus-visible globale, prefers-reduced-motion, aria-label su toggle tema e badge.
+US-072 completata con 3 TSK (TSK-191, TSK-192, TSK-193) che coprono audit manuale, CI automatizzato e test E2E.
+
+**TSK-191 — Audit manuale WCAG 2.2 AA su 10 viste** (20 file toccati): heading hierarchy (singolo `h1` per vista, nessun salto di livello), focus rings (`focus-visible` globale verificato), form labels (`<label>` esplicite + `aria-describedby` per errori), table a11y (`<caption>` + header su WatchlistTable e TopPicksTable), skip-to-content link, navbar `aria-label`. Componenti corretti: Button, Card, Input, Navbar, TopPicksTable, WatchlistTable, ValuationSummary, DcfOverridePanel, DeepVerdictBadge, DrawdownChart, EdgarFilingLinks, MungerReportCollapsible, NewsSentimentChip, AnalysisPageClient, DeepAnalysisPageClient, layout, login, register, watchlist, moat.
+
+**TSK-192 — Lighthouse CI + axe-core test suite**: 21 test (7 viste × 3 suite: axe-core zero serious/critical, single h1 lint, full audit). Configurazione Lighthouse CI (`.lighthouserc.js`) con target accessibility ≥ 95 su 7 URL. vitest-axe come devDependency.
+
+**TSK-193 — E2E tastiera + zoom 200% + checklist screen reader** (Playwright): 4 flussi tastiera (login, search, top-picks, watchlist) + Escape/Shift+Tab. Zoom 200% via viewport 640×360 con `assertNoHorizontalOverflow` su 5 viste. Checklist screen reader manuale documentata (heading, form labels, aria-live toast, tabelle, focus management).
+
+Le basi per la conformità WCAG 2.2 AA sono ora verificate: contrasto OKLCH, focus-visible globale, prefers-reduced-motion, aria-label, heading hierarchy, form labels, table a11y, skip-to-content, Lighthouse ≥ 95, axe-core zero serious/critical, tastiera navigabile, zoom 200% supportato.
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->

@@ -1,9 +1,10 @@
 ---
 id: ADR-022
 title: Frontend Error Notification System (EP-015)
-status: proposed
+status: accepted
 created: 2026-05-26
-deciders: [lead-architect]
+accepted: 2026-05-26
+deciders: [lead-architect, simone.olivieri]
 ---
 # ADR-022 — Frontend Error Notification System
 

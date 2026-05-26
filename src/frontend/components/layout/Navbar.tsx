@@ -31,7 +31,7 @@ export function Navbar(): React.ReactElement {
 
   return (
     <header className="border-b border-outline-variant bg-surface">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-3">
+      <nav aria-label="Navigazione principale" className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-3">
         <Link href="/" className="text-sm font-semibold tracking-tight">
           Value Investing
         </Link>

@@ -99,7 +99,7 @@ export function NewsSentimentChip({
   return (
     <Card data-testid="news-sentiment-section">
       <CardHeader>
-        <CardTitle>Sentiment News</CardTitle>
+        <CardTitle as="h2">Sentiment News</CardTitle>
       </CardHeader>
       <CardContent>
         {hasSentiment ? (

@@ -20,8 +20,9 @@ export default function MoatPage(): React.ReactElement {
   return (
     <AuthGuard
       fallback={
-        <main className="mx-auto max-w-3xl px-6 py-12 text-center text-sm text-slate-500">
-          Reindirizzamento al login…
+        <main className="mx-auto max-w-3xl px-6 py-12 text-center">
+          <h1 className="sr-only">Moat</h1>
+          <p className="text-sm text-slate-500">Reindirizzamento al login…</p>
         </main>
       }
     >
@@ -38,8 +39,11 @@ function MoatPageInner(): React.ReactElement {
 
   if (!ticker) {
     return (
-      <main className="mx-auto max-w-3xl px-6 py-12 text-center text-sm text-slate-500">
-        Specifica un ticker (es. <code>/moat?ticker=AAPL</code>).
+      <main className="mx-auto max-w-3xl px-6 py-12 text-center">
+        <h1 className="sr-only">Moat</h1>
+        <p className="text-sm text-slate-500">
+          Specifica un ticker (es. <code>/moat?ticker=AAPL</code>).
+        </p>
       </main>
     );
   }
@@ -54,8 +58,9 @@ function MoatPageInner(): React.ReactElement {
 
 function MoatPlaceholder(): React.ReactElement {
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12 text-center text-sm text-slate-500">
-      Caricamento…
+    <main className="mx-auto max-w-3xl px-6 py-12 text-center">
+      <h1 className="sr-only">Moat</h1>
+      <p className="text-sm text-slate-500">Caricamento…</p>
     </main>
   );
 }

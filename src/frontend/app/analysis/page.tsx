@@ -29,8 +29,11 @@ function AnalysisPageInner(): React.ReactElement {
 
   if (!ticker) {
     return (
-      <main className="mx-auto max-w-3xl px-6 py-12 text-center text-sm text-slate-500">
-        Specifica un ticker (es. <code>/analysis?ticker=AAPL</code>).
+      <main className="mx-auto max-w-3xl px-6 py-12 text-center">
+        <h1 className="sr-only">Analisi</h1>
+        <p className="text-sm text-slate-500">
+          Specifica un ticker (es. <code>/analysis?ticker=AAPL</code>).
+        </p>
       </main>
     );
   }
@@ -40,8 +43,9 @@ function AnalysisPageInner(): React.ReactElement {
 
 function AnalysisPlaceholder(): React.ReactElement {
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12 text-center text-sm text-slate-500">
-      Caricamento…
+    <main className="mx-auto max-w-3xl px-6 py-12 text-center">
+      <h1 className="sr-only">Analisi</h1>
+      <p className="text-sm text-slate-500">Caricamento…</p>
     </main>
   );
 }

@@ -109,7 +109,7 @@ export function DcfOverridePanel(props: DcfOverridePanelProps): React.ReactEleme
   return (
     <Card data-testid="dcf-override-panel" className="w-full">
       <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
-        <CardTitle>Override metodo DCF</CardTitle>
+        <CardTitle as="h2">Override metodo DCF</CardTitle>
         <span
           data-testid="dcf-method-source-badge"
           className={cn(

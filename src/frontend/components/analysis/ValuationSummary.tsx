@@ -111,7 +111,7 @@ export function ValuationSummary(
   return (
     <Card data-testid="valuation-summary" className="w-full">
       <CardHeader>
-        <CardTitle>Sintesi valutativa</CardTitle>
+        <CardTitle as="h2">Sintesi valutativa</CardTitle>
       </CardHeader>
       <CardContent>
         <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">

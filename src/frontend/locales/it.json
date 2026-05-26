@@ -1,0 +1,62 @@
+{
+  "errors": {
+    "offline": {
+      "title": "Offline",
+      "message": "Verifica la connessione internet e riprova.",
+      "cta": "Riprova"
+    },
+    "timeout": {
+      "title": "Timeout",
+      "message": "La richiesta ha impiegato troppo tempo.",
+      "cta": "Riprova"
+    },
+    "validationFailed": {
+      "title": "Errore di validazione",
+      "message": "Alcuni campi non sono validi. Controlla i dati inseriti.",
+      "cta": "Correzione campo"
+    },
+    "invalidCredentials": {
+      "title": "Credenziali non valide",
+      "message": "Email o password non corretti.",
+      "cta": "Riprova"
+    },
+    "unauthorized": {
+      "title": "Accesso negato",
+      "message": "Accesso non autorizzato. Effettua il login.",
+      "cta": "Vai al login"
+    },
+    "forbidden": {
+      "title": "Permessi insufficienti",
+      "message": "Non hai i permessi per questa operazione."
+    },
+    "notFound": {
+      "title": "Non trovato",
+      "message": "La risorsa richiesta non è stata trovata."
+    },
+    "emailAlreadyRegistered": {
+      "title": "Email già in uso",
+      "message": "Questa email è già registrata.",
+      "cta": "Vai al login"
+    },
+    "serverError": {
+      "title": "Errore del server",
+      "message": "Si è verificato un problema. Riprova tra qualche istante.",
+      "cta": "Riprova"
+    },
+    "fmpUnavailable": {
+      "title": "Servizio non disponibile",
+      "message": "Il servizio dati è temporaneamente non disponibile.",
+      "cta": "Riprova più tardi"
+    },
+    "generic": {
+      "title": "Errore",
+      "message": "Si è verificato un errore imprevisto.",
+      "cta": "Contatta il supporto"
+    },
+    "genericWithCorrelation": {
+      "title": "Errore",
+      "message": "Si è verificato un errore imprevisto. Riferimento: {{correlationId}}",
+      "cta": "Contatta il supporto"
+    }
+  }
+}

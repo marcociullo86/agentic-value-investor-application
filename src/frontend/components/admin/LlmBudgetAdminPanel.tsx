@@ -96,40 +96,41 @@ export function LlmBudgetAdminPanel() {
       <h2 className="text-lg font-semibold mb-4">LLM Budget Administration</h2>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded mb-4 text-sm">
+        <div role="alert" className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded mb-4 text-sm">
           {error}
         </div>
       )}
 
       {status && (
-        <div className="space-y-3 mb-6">
+        <dl className="space-y-3 mb-6">
           <div className="flex justify-between">
-            <span className="text-slate-600">Monthly Cap</span>
-            <span className="font-medium">${status.monthlyCapUsd.toFixed(2)}</span>
+            <dt className="text-slate-600">Monthly Cap</dt>
+            <dd className="font-medium">${status.monthlyCapUsd.toFixed(2)}</dd>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-600">Current Cost</span>
-            <span className="font-medium">${status.totalCostUsd.toFixed(2)}</span>
+            <dt className="text-slate-600">Current Cost</dt>
+            <dd className="font-medium">${status.totalCostUsd.toFixed(2)}</dd>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-600">Utilization</span>
-            <span className={`font-bold ${utilizationColor}`}>
+            <dt className="text-slate-600">Utilization</dt>
+            <dd className={`font-bold ${utilizationColor}`}>
               {status.utilization.toFixed(1)}%
-            </span>
+            </dd>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-600">Status</span>
-            <span className={status.frozen ? 'text-red-600 font-bold' : 'text-green-600'}>
+            <dt className="text-slate-600">Status</dt>
+            <dd className={status.frozen ? 'text-red-600 font-bold' : 'text-green-600'}>
               {status.frozen ? 'FROZEN' : 'Active'}
-            </span>
+            </dd>
           </div>
-        </div>
+        </dl>
       )}
 
       <div className="space-y-3">
         <div>
-          <label className="block text-sm text-slate-600 mb-1">New Monthly Cap ($)</label>
+          <label htmlFor="llm-budget-cap" className="block text-sm text-slate-600 mb-1">New Monthly Cap ($)</label>
           <Input
+            id="llm-budget-cap"
             type="number"
             min="0.01"
             max="10000"
@@ -139,8 +140,9 @@ export function LlmBudgetAdminPanel() {
           />
         </div>
         <div>
-          <label className="block text-sm text-slate-600 mb-1">Reason (optional)</label>
+          <label htmlFor="llm-budget-reason" className="block text-sm text-slate-600 mb-1">Reason (optional)</label>
           <Input
+            id="llm-budget-reason"
             type="text"
             value={reason}
             onChange={(e) => setReason(e.target.value)}

@@ -19,7 +19,7 @@ r30_target: TBD
 > **R1.1.x hotfix chiuso:** Sprint 5.5 — 12/12 TSK `done`. US-052, US-053, US-054 completate.
 > **R2.0 chiuso:** Sprint 6–9 completati — 79/79 TSK `done`, 21/21 US, 3/3 EP (EP-010, EP-011, EP-012).
 > **R2.1 chiuso:** Sprint 10 — EP-013 Mr. Market Context Flags — 6/6 TSK `done`, 2/2 US (US-056, US-057).
-> **R3.0 pianificato:** Sprint 11–15 — 47 TSK `todo`, 21 `done`, 25 US, 5 EP (EP-014..018). ADR-021 e ADR-023 `accepted`; ADR-022, ADR-024, ADR-025 status: `proposed`.
+> **R3.0 in corso:** Sprint 11–15 — 33 TSK `todo`, 35 `done`, 25 US (15 done, 10 todo), 5 EP (3 done, 2 todo). EP-014, EP-015, EP-016 `done`. ADR-021, ADR-022, ADR-023 `accepted`; ADR-024, ADR-025 status: `proposed`.
 
 ---
 
@@ -377,7 +377,7 @@ sicurezza e retention GDPR differenziata. ADR-021.
 motion) sopra shadcn/ui + Tailwind, switch light/dark persistente, audit e fix WCAG 2.2 AA
 su tutte le viste. ADR-023.
 
-**Stato:** PARZIALE — 7/10 TSK `done` (US-072 non ancora avviata).
+**Stato:** COMPLETATO — 10/10 TSK `done`. US-069, US-070, US-071, US-072 chiuse. EP-016 `done`.
 
 | TSK | Titolo | Layer | Consumer | Est. | US | Status |
 |-----|--------|-------|----------|------|----|--------|
@@ -388,9 +388,9 @@ su tutte le viste. ADR-023.
 | TSK-188 | QA Test ThemeProvider: prefers-color-scheme, persistenza, FOUC, contrasto | qa | agent | S | US-070 | done |
 | TSK-189 | Token motion.css + state layer opacità + prefers-reduced-motion | fe | agent | S | US-071 | done |
 | TSK-190 | QA Test motion: reduced-motion, state layers, focus visibile | qa | agent | S | US-071 | done |
-| TSK-191 | Audit fix WCAG 2.2 AA: h1, focus, label, alt, zoom 200% su tutte le viste | fe | agent | L | US-072 | todo |
-| TSK-192 | QA Lighthouse CI + axe-core: target >= 95, zero serious/critical | qa | agent | M | US-072 | todo |
-| TSK-193 | QA Test E2E a11y tastiera: flussi critici senza mouse + screen reader | qa | agent | M | US-072 | todo |
+| TSK-191 | Audit fix WCAG 2.2 AA: h1, focus, label, alt, zoom 200% su tutte le viste | fe | agent | L | US-072 | done |
+| TSK-192 | QA Lighthouse CI + axe-core: target >= 95, zero serious/critical | qa | agent | M | US-072 | done |
+| TSK-193 | QA Test E2E a11y tastiera: flussi critici senza mouse + screen reader | qa | agent | M | US-072 | done |
 
 **Totale Sprint 12:** 10 TSK (5 fe, 5 qa)
 
@@ -406,21 +406,21 @@ richiede output di entrambi.
 codici errore i18n, gestione categorizzata errori di rete, validazione form inline accessibile,
 Correlation ID copiabile. ADR-022.
 
-**Stato:** TODO — 0/11 TSK `done`.
+**Stato:** COMPLETATO — 11/11 TSK `done`. US-064, US-065, US-066, US-067, US-068 chiuse. EP-015 `done`.
 
 | TSK | Titolo | Layer | Consumer | Est. | US | Status |
 |-----|--------|-------|----------|------|----|--------|
-| TSK-194 | NotificationProvider React Context + useNotification hook API 4 livelli | fe | agent | M | US-064 | todo |
-| TSK-195 | NotificationToast wrapper shadcn/ui: WCAG roles, auto-dismiss, Esc, correlationId | fe | agent | M | US-064 | todo |
-| TSK-196 | QA Test NotificationProvider + Toast: 4 livelli, correlationId, a11y | qa | agent | S | US-064 | todo |
-| TSK-197 | errorCodeMap + locales/it.json: mapping 8+ type URI ProblemDetail + fallback | fe | agent | S | US-065 | todo |
-| TSK-198 | QA Test errorCodeMap: mapping + fallback + nessun HTTP raw | qa | agent | S | US-065 | todo |
-| TSK-199 | networkErrorInterceptor: offline/timeout/5xx/4xx + X-Correlation-Id | fe | agent | M | US-066 | todo |
-| TSK-200 | QA Test networkErrorInterceptor: 4 scenari rete | qa | agent | S | US-066 | todo |
-| TSK-201 | FormErrorSummary + aggiornamento form login/register/watchlist | fe | agent | M | US-067 | todo |
-| TSK-202 | QA Test FormErrorSummary: inline, summary, aria-describedby | qa | agent | S | US-067 | todo |
-| TSK-203 | Hardening a11y NotificationToast: contrasto, icone, multi-canale | fe | agent | S | US-068 | todo |
-| TSK-204 | QA axe-core audit notifiche: zero serious/critical, screen reader | qa | agent | S | US-068 | todo |
+| TSK-194 | NotificationProvider React Context + useNotification hook API 4 livelli | fe | agent | M | US-064 | done |
+| TSK-195 | NotificationToast wrapper shadcn/ui: WCAG roles, auto-dismiss, Esc, correlationId | fe | agent | M | US-064 | done |
+| TSK-196 | QA Test NotificationProvider + Toast: 4 livelli, correlationId, a11y | qa | agent | S | US-064 | done |
+| TSK-197 | errorCodeMap + locales/it.json: mapping 8+ type URI ProblemDetail + fallback | fe | agent | S | US-065 | done |
+| TSK-198 | QA Test errorCodeMap: mapping + fallback + nessun HTTP raw | qa | agent | S | US-065 | done |
+| TSK-199 | networkErrorInterceptor: offline/timeout/5xx/4xx + X-Correlation-Id | fe | agent | M | US-066 | done |
+| TSK-200 | QA Test networkErrorInterceptor: 4 scenari rete | qa | agent | S | US-066 | done |
+| TSK-201 | FormErrorSummary + aggiornamento form login/register/watchlist | fe | agent | M | US-067 | done |
+| TSK-202 | QA Test FormErrorSummary: inline, summary, aria-describedby | qa | agent | S | US-067 | done |
+| TSK-203 | Hardening a11y NotificationToast: contrasto, icone, multi-canale | fe | agent | S | US-068 | done |
+| TSK-204 | QA axe-core audit notifiche: zero serious/critical, screen reader | qa | agent | S | US-068 | done |
 
 **Totale Sprint 13:** 11 TSK (6 fe, 5 qa)
 
@@ -506,11 +506,11 @@ dichiarazione formale PCI-DSS non applicabile. ADR-025. DB: mfa_secrets + login_
 | R2.0 | 9 | 1 | 1 | 7 | 2 | 6 | **17** | done |
 | R2.1 | 10 | 0 | 0 | 3 | 2 | 1 | **6** | done |
 | R3.0 | 11 | 1 | 0 | 7 | 0 | 6 | **14** | done |
-| R3.0 | 12 | 0 | 0 | 0 | 5 | 5 | **10** | 7 done, 3 todo (US-072) |
-| R3.0 | 13 | 0 | 0 | 0 | 6 | 5 | **11** | todo |
+| R3.0 | 12 | 0 | 0 | 0 | 5 | 5 | **10** | done |
+| R3.0 | 13 | 0 | 0 | 0 | 6 | 5 | **11** | done |
 | R3.0 | 14 | 0 | 0 | 2 | 7 | 5 | **14** | todo |
 | R3.0 | 15 | 0 | 2 | 8 | 2 | 7 | **19** | todo |
-| | **TOTALE** | **10** | **17** | **85** | **48** | **80** | **237** | 189 done, 1 todo (R1.1), 47 todo (R3.0) |
+| | **TOTALE** | **10** | **17** | **85** | **48** | **80** | **237** | 214 done, 1 todo (R1.1), 22 todo (R3.0) |
 
 ---
 
@@ -551,13 +551,14 @@ Sprint 14 → Sprint 15:
 
 ## Prossimo /dev suggerito
 
-**Sprint corrente:** Sprint 12 (completamento US-072) + Sprint 13 (EP-015 Notifiche Errori Frontend).
+**Sprint corrente:** Sprint 14 (EP-017 Protezione Rotte e Sessione).
 
 **Parallelismo possibile:**
-- fe-dev: TSK-191 (audit WCAG AA, Sprint 12 US-072) + TSK-194 (NotificationProvider, Sprint 13 US-064)
-- qa-dev: TSK-192, TSK-193 (Sprint 12 US-072) dopo TSK-191
+- fe-dev: TSK-205 (route-config) + TSK-206 (AuthGuard middleware) in parallelo
+- be-dev: TSK-209 (cookie httpOnly auth) indipendente da FE
+- qa-dev: TSK-208, TSK-212 dopo i rispettivi FE/BE
 
 **Residuo R1.1:** TSK-071 resta `todo` (blocked su gap `fmp-stable-rate-limiting`).
 
-**ADR accepted:** ADR-021 (structured logging), ADR-023 (design token system).
-**ADR pending:** ADR-022, ADR-024, ADR-025 `proposed`. TSK-237 → Q_005.
+**ADR accepted:** ADR-021 (structured logging), ADR-022 (frontend error notifications), ADR-023 (design token system).
+**ADR pending:** ADR-024 (session lifecycle), ADR-025 (security hardening) `proposed`. TSK-237 → Q_005.

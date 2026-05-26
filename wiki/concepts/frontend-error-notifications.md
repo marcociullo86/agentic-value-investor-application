@@ -3,7 +3,7 @@ type: concept
 sources: ["raw/requisiti-funzionali-fintech.md"]
 status: draft
 created: 2026-05-26
-updated: 2026-05-26
+updated: 2026-05-26 (v2026-05-26 EP-015 completata Sprint 13)
 tags: [frontend, error-handling, accessibility, wcag, toast, notifications, fintech]
 ---
 # Sistema di Notifiche Errori Frontend
@@ -71,6 +71,61 @@ Gli errori di validazione sono mostrati inline accanto al campo invalido + sinte
 [[structured-logging-backend]]
 [[auth-guard-frontend]]
 [[webapp-architecture-vi]]
+
+## Aggiornamenti (v2026-05-26)
+
+### EP-015 completata — Sprint 13 (11 TSK done, ADR-022 accettato)
+
+L'epica EP-015 (Notifiche Errori Frontend) è stata implementata integralmente. ADR-022 ha formalizzato l'architettura: NotificationProvider React Context, error code mapping i18n, network error interceptor SWR-compatibile, FormErrorSummary con React Hook Form + Zod. [^src: design_&_architecture/decisions/ADR-022-frontend-error-notifications.md §Decisione]
+
+### NotificationProvider + NotificationToast (US-064, TSK-194/195/196)
+
+`NotificationProvider` React Context (`src/frontend/components/notifications/notification-provider.tsx`) gestisce la coda notifiche con API tipizzata `useNotification` hook. Il componente `NotificationToast` wrappa il Toast shadcn/ui (Radix) con garanzie WCAG 2.2 AA complete: [^src: design_&_architecture/decisions/ADR-022-frontend-error-notifications.md §2. NotificationToast]
+
+- **4 livelli**: `success`, `info`, `warning`, `error` — ciascuno con icona distinta (CheckCircle2, Info, AlertTriangle, XCircle) tutte `aria-hidden="true"`.
+- **Ruoli WCAG**: success/info → `role="status"` + `aria-live="polite"`; warning/error → `role="alert"` + `aria-live="assertive"`.
+- **Auto-dismiss**: 6s default, 8s per testi > 80 caratteri, pausa al focus/hover; notifiche con azioni non si chiudono automaticamente.
+- **Tastiera**: `Esc` chiude la notifica più recente.
+- **Correlation ID copiabile**: badge click-to-copy quando presente.
+- **Multi-canale**: informazione veicolata tramite icona + colore + testo (mai solo colore).
+
+Copertura QA: 23 test (TSK-196) — 4 livelli, correlationId, anti-raw HTTP, axe-core, WCAG roles.
+
+### Error code mapping + i18n (US-065, TSK-197/198)
+
+Modulo `errorCodeMap` (`src/frontend/lib/errors/error-code-map.ts`) mappa 8 URI ProblemDetail RFC 9457 a messaggi user-friendly localizzati in `locales/it.json`, con fallback generico e CTA azionabili. [^src: design_&_architecture/decisions/ADR-022-frontend-error-notifications.md §3. Error code mapping]
+
+| Backend `type` URI | Messaggio utente (it) | CTA |
+|---|---|---|
+| `*/validation-failed` | "Alcuni campi non sono validi…" | Correzione campo |
+| `*/invalid-credentials` | "Email o password non corretti." | Riprova |
+| `*/unauthorized` | "Accesso non autorizzato…" | Vai al login |
+| `*/forbidden` | "Non hai i permessi…" | — |
+| `*/not-found` | "La risorsa richiesta non è stata trovata." | — |
+| `*/email-already-registered` | "Questa email è già registrata." | Vai al login |
+| `*/server-error` (fallback 5xx) | "Si è verificato un problema…" | Riprova + Contatta supporto |
+| `*/fmp-unavailable` | "Il servizio dati è temporaneamente non disponibile." | Riprova |
+| (unmapped) | "Si è verificato un errore…" | Contatta supporto |
+
+Copertura QA: 42 test (TSK-198).
+
+### Network error interceptor (US-066, TSK-199/200)
+
+`networkErrorInterceptor` (`src/frontend/lib/api/network-error-interceptor.ts`) categorizza 4 classi di errori di rete prima che raggiungano i componenti: offline (`!navigator.onLine`), timeout (`AbortError`), server 5xx (con Correlation ID da `X-Correlation-Id`), validazione 4xx. Il modulo espone `createFetcher` compatibile SWR. [^src: design_&_architecture/decisions/ADR-022-frontend-error-notifications.md §4. Network error interceptor]
+
+Copertura QA: 20 test (TSK-200) — offline, timeout, server-500 con correlationId, validazione-422, createFetcher, NetworkError class.
+
+### FormErrorSummary + migrazione form (US-067, TSK-201/202)
+
+Componente `FormErrorSummary` (`src/frontend/components/forms/form-error-summary.tsx`) + `FormField` integrati con React Hook Form + Zod: errori inline via `aria-describedby`, summary accessibile in cima al form (`aria-live="assertive"` con focus programmato), link error → focus campo. 3 form migrati da `useState` a React Hook Form + Zod: login, registrazione, watchlist add-ticker. [^src: design_&_architecture/decisions/ADR-022-frontend-error-notifications.md §5. FormErrorSummary]
+
+Copertura QA: 12 test (TSK-202) — inline error, aria-describedby, summary render, aria-live assertive, link→focus, axe-core.
+
+### Hardening a11y notifiche (US-068, TSK-203/204)
+
+Warning color light-mode corretto da `oklch(0.70)` a `oklch(0.62)` per raggiungere contrasto ≥ 3:1 contro surface-container. Aggiunto `data-auto-dismiss-duration` per testabilità. Contrasto verificato strumentalmente: testo 16.9:1 / 13.2:1, icone/bordi ≥ 3.1:1 entrambi i temi.
+
+Copertura QA: 24 test (TSK-204) — axe-core audit 4 livelli, screen reader roles, contrasto token OKLCH, auto-dismiss timing, Esc dismiss, distinguibilità senza colore.
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->

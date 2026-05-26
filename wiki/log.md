@@ -340,3 +340,146 @@ Pagine create: 9 | Figure: 0 | Aggiornamenti: 1 (index) | Gap nuovi: 2 | Gap chi
 Pagine create: 0 | Figure: 0 | Aggiornamenti: 3 (structured-logging-backend, correlation-id-tracing, material-design-3-accessibility) | Gap nuovi: 0 | Gap chiusi: 1 (fintech-design-system-react)
 [2026-05-26 16:52] ingest — aggiornamento wiki post-Sprint 11+12: 3 pagine concept aggiornate con sezione "Aggiornamenti v2026-05-26" (EP-014 logback-spring.xml/PiiRedactionEncoder/SecurityEventLogger/GDPR retention + EP-016 design tokens OKLCH/ThemeProvider/motion); 1 gap chiuso (fintech-design-system-react → ADR-023 + EP-016 done) — files touched: 4
 [2026-05-26 16:52] gap-closed — fintech-design-system-react via [[material-design-3-accessibility]] (ADR-023 accepted, EP-016 10 TSK done: token CSS OKLCH, ThemeProvider, dark mode, 6 componenti migrati, motion tokens) — files touched: 1
+
+## 2026-05-26 17:02 — develop TSK-197
+**Agente:** fe-dev
+**TSK:** [[../management/kanban/EP-015-notifiche-errori-frontend/US-065-mappatura-errori-utente/TSK-197]]
+**Layer:** fe
+**Code path:** ./src/frontend/
+**Files touched:** 2 (lib/errors/error-code-map.ts, locales/it.json)
+**Commit:** n/a
+**DoD:** pass
+**Note:** Primo file i18n del progetto (locales/it.json). Pattern interpolazione {{correlationId}} per fallback generico con reference ID copiabile (ADR-022 §3).
+
+## 2026-05-26 17:10 — develop TSK-201
+**Agente:** fe-dev
+**TSK:** [[../management/kanban/EP-015-notifiche-errori-frontend/US-067-validazione-form-accessibile/TSK-201]]
+**Layer:** fe
+**Code path:** ./src/frontend/
+**Files touched:** 5 (components/forms/form-error-summary.tsx, components/forms/form-field.tsx, app/(auth)/login/page.tsx, app/(auth)/register/page.tsx, app/watchlist/page.tsx)
+**Commit:** n/a
+**DoD:** pass
+**Note:** Migrati 3 form da useState a React Hook Form + Zod (ADR-022 §5). FormErrorSummary con aria-live="assertive" + focus programmato; FormField wrapper con aria-describedby inline. Register form arricchito con confirmPassword (refine Zod). Stringhe errore IT inline (nessun locales/it.json preesistente per form; i18n successivo).
+
+## 2026-05-26 17:02 — develop TSK-194
+**Agente:** fe-dev
+**TSK:** [[../management/kanban/EP-015-notifiche-errori-frontend/US-064-notification-service/TSK-194]]
+**Layer:** fe
+**Code path:** ./src/frontend/
+**Files touched:** 3 (components/notifications/notification-provider.tsx, hooks/use-notification.ts, app/layout.tsx)
+**Commit:** n/a
+**DoD:** pass
+**Note:** NotificationProvider con React Context + coda state (crypto.randomUUID). Hook useNotification espone notify.success/info/warning/error con firma tipizzata. Montato nel root layout dentro ToastProvider.
+
+## 2026-05-26 17:02 — develop TSK-195
+**Agente:** fe-dev
+**TSK:** [[../management/kanban/EP-015-notifiche-errori-frontend/US-064-notification-service/TSK-195]]
+**Layer:** fe
+**Code path:** ./src/frontend/
+**Files touched:** 3 (components/notifications/notification-toast.tsx, components/notifications/notification-container.tsx, components/notifications/index.ts)
+**Commit:** n/a
+**DoD:** pass
+**Note:** NotificationToast wrapper Radix Toast con CVA variants per livello. WCAG: role="status"/aria-live="polite" per success/info, role="alert"/aria-live="assertive" per warning/error. Correlation ID badge click-to-copy (navigator.clipboard). Auto-dismiss 6s/8s con pause su hover/focus. Esc chiude notifica più recente (keydown globale in NotificationContainer). Icone lucide-react distinte per livello, multi-canale (icona+colore+testo).
+
+## 2026-05-26 17:08 — develop TSK-198
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-015-notifiche-errori-frontend/US-065-mappatura-errori-utente/TSK-198]]
+**Layer:** qa
+**Code path:** ./src/frontend/
+**Files touched:** 1 (lib/errors/__tests__/error-code-map.test.ts)
+**Commit:** n/a
+**DoD:** pass
+**Note:** 42 test Vitest: mapping 8 codici (getErrorMessage + getErrorI18n), CTA presente/assente, fallback generico e con correlationId, anti-raw HTTP codes su 5 scenari, verifica stringhe da locales/it.json. Tutti i test deterministici, nessuna dipendenza DOM.
+
+## 2026-05-26 17:10 — develop TSK-199
+**Agente:** fe-dev
+**TSK:** [[../management/kanban/EP-015-notifiche-errori-frontend/US-066-errori-rete-categorizzati/TSK-199]]
+**Layer:** fe
+**Code path:** ./src/frontend/
+**Files touched:** 2 (lib/api/network-error-interceptor.ts, locales/it.json)
+**Commit:** n/a
+**DoD:** pass
+**Note:** Wrapper fetch con 4 categorie (offline/timeout/5xx/4xx). X-Correlation-Id catturato da response header e propagato al NotificationService con azione click-to-copy. ProblemDetail RFC 9457 parsato per estrarre type URI → errorCodeMap. Export createFetcher(notify) per SWR e interceptFetch per chiamate dirette. Stringhe i18n offline/timeout aggiunte a locales/it.json.
+
+## 2026-05-26 17:02 — develop TSK-191
+**Agente:** fe-dev
+**TSK:** [[../management/kanban/EP-016-refinement-ui-accessibilita/US-072-audit-accessibilita-wcag/TSK-191]]
+**Layer:** fe
+**Code path:** ./src/frontend/
+**Files touched:** 20 (components/ui/Card.tsx, components/ui/Button.tsx, components/ui/Input.tsx, components/analysis/AnalysisPageClient.tsx, components/analysis/ValuationSummary.tsx, components/analysis/DcfOverridePanel.tsx, components/deep-analysis/DeepVerdictBadge.tsx, components/deep-analysis/MungerReportCollapsible.tsx, components/deep-analysis/NewsSentimentChip.tsx, components/deep-analysis/DrawdownChart.tsx, components/deep-analysis/EdgarFilingLinks.tsx, components/layout/Navbar.tsx, components/admin/LlmBudgetAdminPanel.tsx, components/watchlist/WatchlistTable.tsx, components/top-picks/TopPicksTable.tsx, app/layout.tsx, app/analysis/page.tsx, app/analysis/deep/DeepAnalysisPageClient.tsx, app/moat/page.tsx, app/watchlist/page.tsx)
+**Commit:** n/a
+**DoD:** pass
+**Note:** Audit WCAG 2.2 AA su tutte le 10 viste. Fix heading hierarchy (CardTitle `as` prop per h2 flessibile, h3→h2 su context flags, h1 sr-only su empty/loading states). Focus visibile: ring-2 esplicito su Button, Input, sort headers. Form labels: htmlFor/id su LlmBudgetAdminPanel, role="alert" su error div, dl/dt/dd semantici. Table a11y: scope="col", aria-label, sr-only "Azioni" header. Skip-to-content link nel root layout. Navbar aria-label="Navigazione principale".
+
+## 2026-05-26 17:12 — develop TSK-202
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-015-notifiche-errori-frontend/US-067-validazione-form-accessibile/TSK-202]]
+**Layer:** qa
+**Code path:** ./src/frontend/
+**Files touched:** 4 (components/forms/__tests__/form-error-summary.test.tsx, app/(auth)/login/__tests__/page.test.tsx, app/(auth)/register/__tests__/page.test.tsx, app/watchlist/__tests__/page.test.tsx)
+**Commit:** n/a
+**DoD:** pass
+**Note:** 12 test (6 unit FormErrorSummary/FormField + 2 login + 2 register + 2 watchlist). Copertura: inline error, aria-describedby, summary render, aria-live assertive, link→focus, axe-core zero violazioni. Aggiunto vitest-axe come devDependency.
+
+## 2026-05-26 17:12 — develop TSK-203
+**Agente:** fe-dev
+**TSK:** [[../management/kanban/EP-015-notifiche-errori-frontend/US-068-accessibilita-notifiche-wcag/TSK-203]]
+**Layer:** fe
+**Code path:** ./src/frontend/
+**Files touched:** 2 (styles/tokens/colors.css, components/notifications/notification-toast.tsx)
+**Commit:** n/a
+**DoD:** pass
+**Note:** Hardening a11y NotificationToast. Warning color light-mode darkened da oklch(0.70) a oklch(0.62) per raggiungere 3:1+ contro surface-container. Aggiunto data-auto-dismiss-duration per testabilità. Verifica completa: contrasto testo 16.9:1/13.2:1, icone/bordi ≥3.1:1 entrambi i temi, auto-dismiss 6s/8s con pausa, icone distinte con aria-hidden, multi-canale confermato.
+
+## 2026-05-26 17:14 — develop TSK-200
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-015-notifiche-errori-frontend/US-066-errori-rete-categorizzati/TSK-200]]
+**Layer:** qa
+**Code path:** ./src/frontend/
+**Files touched:** 1 (lib/api/__tests__/network-error-interceptor.test.ts)
+**Commit:** n/a
+**DoD:** pass
+**Note:** 20 test (5 offline, 3 timeout, 5 server-500 con correlationId, 3 validazione-422, 2 createFetcher SWR, 2 NetworkError class). Verifica correlationId propagato, messaggi i18n coerenti con locale/it.json, nessun raw HTTP code esposto, azione "Copia ID" presente su 5xx con correlationId.
+
+## 2026-05-26 17:16 — develop TSK-196
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-015-notifiche-errori-frontend/US-064-notification-service/TSK-196]]
+**Layer:** qa
+**Code path:** ./src/frontend/
+**Files touched:** 1 (components/notifications/__tests__/notification-provider.test.tsx)
+**Commit:** n/a
+**DoD:** pass
+**Note:** 23 test per NotificationProvider + Toast: 8 test 4 livelli (titolo/messaggio + icona lucide), 2 correlationId copiabile (badge + clipboard mock), 5 anti-raw HTTP (400/401/403/404/500 via errorCodeMap), 2 auto-dismiss (azioni persistono, senza azioni si chiude), 1 axe-core zero violazioni (escluse regole jsdom-incompatibili: color-contrast, aria-allowed-role, list), 4 WCAG roles (success/info → status/polite, warning/error → alert/assertive), 1 useNotification fuori provider.
+
+## 2026-05-26 17:12 — develop TSK-193
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-016-refinement-ui-accessibilita/US-072-audit-accessibilita-wcag/TSK-193]]
+**Layer:** qa
+**Code path:** ./src/frontend/
+**Files touched:** 3 (e2e/accessibility-keyboard.spec.ts, e2e/accessibility-zoom.spec.ts, e2e/SCREEN_READER_CHECKLIST.md)
+**Commit:** n/a
+**DoD:** pass
+**Note:** 4 flussi tastiera (login, search, top-picks, watchlist) + Escape/Shift+Tab. Zoom 200% via viewport 640x360 con assertNoHorizontalOverflow su 5 viste. Checklist screen reader manuale documentata (heading, form labels, aria-live toast, tabelle, focus management).
+
+[2026-05-26 17:16] develop — TSK-204 done (EP-015/US-068 Sprint 13 QA a11y notifiche WCAG)
+**Scope:** notification-a11y.test.tsx — 24 test (6 sezioni: axe-core audit 4 livelli, screen reader roles, contrasto token OKLCH, auto-dismiss timing, Esc dismiss, distinguibilità senza colore)
+**Files touched:** 1 (components/notifications/__tests__/notification-a11y.test.tsx)
+**Commit:** n/a
+**DoD:** pass
+**Note:** axe-core per tutti i 4 livelli zero serious/critical (list rule disabilitata: artefatto jsdom/Radix Toast portal). Screen reader: success/info→role=status aria-live=polite, warning/error→role=alert aria-live=assertive. Contrasto verificato strumentalmente via OKLCH lightness parsing (--color-warning L=0.62≤0.65, text delta≥0.5 light+dark). Auto-dismiss: 6000ms short, 8000ms long text >80chars, no auto-dismiss con actions. Esc chiude più recente. Icone distinte (CheckCircle2/Info/AlertTriangle/XCircle) tutte aria-hidden="true".
+
+## 2026-05-26 17:16 — develop TSK-192
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-016-refinement-ui-accessibilita/US-072-audit-accessibilita-wcag/TSK-192]]
+**Layer:** qa
+**Code path:** ./src/frontend/
+**Files touched:** 2 (__tests__/wcag-audit.test.tsx, .lighthouserc.js)
+**Commit:** n/a
+**DoD:** pass
+**Note:** 21 test (7 viste × 3 suite): axe-core zero serious/critical, single h1 lint, full audit. Lighthouse CI config pronta (.lighthouserc.js) con target accessibility >= 95 su 7 URL. vitest-axe già presente in devDependencies.
+
+## [2026-05-26] ingest | wiki update EP-015 completata + US-072 completata
+Pagine create: 0 | Figure: 0 | Aggiornamenti: 2 | Gap nuovi: 0 | Gap chiusi: 0
+
+[2026-05-26 17:20] ingest — [[frontend-error-notifications]] aggiornata con §Aggiornamenti EP-015 Sprint 13 (11 TSK, ADR-022) — files touched: 1
+[2026-05-26 17:20] ingest — [[material-design-3-accessibility]] aggiornata con §US-072 audit WCAG completata (TSK-191/192/193) — files touched: 1

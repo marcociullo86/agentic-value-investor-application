@@ -126,7 +126,7 @@ export function DrawdownChart({
   return (
     <Card data-testid="drawdown-chart-section">
       <CardHeader>
-        <CardTitle>Price Action 52w</CardTitle>
+        <CardTitle as="h2">Price Action 52w</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <div className="flex flex-wrap gap-4 text-sm text-slate-700 dark:text-slate-300">

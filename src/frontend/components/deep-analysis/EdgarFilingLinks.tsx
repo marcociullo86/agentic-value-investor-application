@@ -19,7 +19,7 @@ export function EdgarFilingLinks({
   return (
     <Card data-testid="edgar-filing-section">
       <CardHeader>
-        <CardTitle>Filing SEC analizzati</CardTitle>
+        <CardTitle as="h2">Filing SEC analizzati</CardTitle>
       </CardHeader>
       <CardContent>
         {filings.length > 0 ? (

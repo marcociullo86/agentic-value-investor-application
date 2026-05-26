@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import { ToastProvider } from '@/components/providers/ToastProvider';
+import { NotificationProvider } from '@/components/notifications/notification-provider';
+import { NotificationContainer } from '@/components/notifications/notification-container';
 import { ThemeProvider } from '@/components/theme/theme-provider';
 import { Navbar } from '@/components/layout/Navbar';
 import { SessionExpiredBanner } from '@/components/auth/SessionExpiredBanner';
@@ -48,9 +50,20 @@ export default function RootLayout({
         <ThemeProvider>
           <AuthProvider>
             <ToastProvider>
-              <SessionExpiredBanner />
-              <Navbar />
-              {children}
+              <NotificationProvider>
+                <a
+                  href="#main-content"
+                  className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-on-primary focus:shadow-lg"
+                >
+                  Vai al contenuto principale
+                </a>
+                <NotificationContainer />
+                <SessionExpiredBanner />
+                <Navbar />
+                <div id="main-content">
+                  {children}
+                </div>
+              </NotificationProvider>
             </ToastProvider>
           </AuthProvider>
         </ThemeProvider>

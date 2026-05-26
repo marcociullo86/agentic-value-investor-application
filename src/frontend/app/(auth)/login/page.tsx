@@ -1,38 +1,65 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
+import { FormErrorSummary } from '@/components/forms/form-error-summary';
+import { FormField } from '@/components/forms/form-field';
 import { useAuthStore } from '@/lib/stores/useAuthStore';
 
+const loginSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'L\'email è obbligatoria')
+    .email('Inserisci un indirizzo email valido'),
+  password: z
+    .string()
+    .min(1, 'La password è obbligatoria')
+    .min(12, 'La password deve essere di almeno 12 caratteri'),
+});
+
+type LoginFormValues = z.infer<typeof loginSchema>;
+
+const FIELD_LABELS: Record<string, string> = {
+  email: 'Email',
+  password: 'Password',
+};
+
 /**
- * Login page (TSK-034). Posts to `POST /api/auth/login` via useAuthStore.
+ * Login page (TSK-034, TSK-201). Posts to `POST /api/auth/login` via useAuthStore.
  * Reference: design_&_architecture/components/frontend-components.md §app/(auth)/login.
  */
 export default function LoginPage(): React.ReactElement {
   const router = useRouter();
   const login = useAuthStore((s) => s.login);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
-    event.preventDefault();
-    setError(null);
-    setSubmitting(true);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    mode: 'onSubmit',
+  });
+
+  async function onSubmit(data: LoginFormValues): Promise<void> {
+    setServerError(null);
     try {
-      await login(email, password);
+      await login(data.email, data.password);
       router.push('/');
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Login failed, please try again';
-      setError(message.includes('401') ? 'Invalid email or password' : message);
-    } finally {
-      setSubmitting(false);
+      setServerError(
+        message.includes('401') ? 'Email o password non validi' : message,
+      );
     }
   }
 
@@ -40,43 +67,60 @@ export default function LoginPage(): React.ReactElement {
     <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-6">
       <Card className="w-full p-6">
         <h1 className="mb-4 text-2xl font-bold">Accedi</h1>
-        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-          <label className="flex flex-col gap-1 text-sm">
-            <span>Email</span>
-            <Input
-              type="email"
-              required
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              data-testid="login-email"
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            <span>Password</span>
-            <Input
-              type="password"
-              required
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              data-testid="login-password"
-            />
-          </label>
-          {error && (
+        <form
+          className="flex flex-col gap-4"
+          onSubmit={handleSubmit(onSubmit)}
+          noValidate
+        >
+          <FormErrorSummary errors={errors} fieldLabels={FIELD_LABELS} />
+
+          {serverError && (
             <div
               role="alert"
-              className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+              className="rounded-md border border-error/30 bg-error/5 px-3 py-2 text-sm text-error"
             >
-              {error}
+              {serverError}
             </div>
           )}
+
+          <FormField
+            name="email"
+            label="Email"
+            error={errors.email?.message}
+          >
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              error={!!errors.email}
+              aria-describedby={errors.email ? 'email-error' : undefined}
+              data-testid="login-email"
+              {...register('email')}
+            />
+          </FormField>
+
+          <FormField
+            name="password"
+            label="Password"
+            error={errors.password?.message}
+          >
+            <Input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              error={!!errors.password}
+              aria-describedby={errors.password ? 'password-error' : undefined}
+              data-testid="login-password"
+              {...register('password')}
+            />
+          </FormField>
+
           <Button
             type="submit"
-            disabled={submitting}
+            disabled={isSubmitting}
             data-testid="login-submit"
           >
-            {submitting ? 'Accesso in corso…' : 'Accedi'}
+            {isSubmitting ? 'Accesso in corso…' : 'Accedi'}
           </Button>
         </form>
         <p className="mt-4 text-center text-sm text-slate-600">

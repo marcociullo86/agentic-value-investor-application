@@ -167,12 +167,12 @@ export function AnalysisPageClient(
               aria-labelledby="context-flags-heading"
               className="rounded-lg border border-slate-200 bg-slate-50/50 p-4 dark:border-slate-800 dark:bg-slate-900/40"
             >
-              <h3
+              <h2
                 id="context-flags-heading"
                 className="text-sm font-semibold text-slate-900 dark:text-slate-100"
               >
                 Mr. Market & Trend (Advisory)
-              </h3>
+              </h2>
               <p className="mb-3 mt-1 text-xs text-slate-600 dark:text-slate-400">
                 Indicatori tecnici complementari — NON rule signals fondamentali
               </p>

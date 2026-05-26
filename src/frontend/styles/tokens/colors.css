@@ -22,6 +22,6 @@
   --color-on-error: oklch(1.0 0 0);
 
   --color-success: oklch(0.55 0.15 145);
-  --color-warning: oklch(0.70 0.15 85);
+  --color-warning: oklch(0.62 0.15 85);
   --color-info: oklch(0.55 0.12 240);
 }

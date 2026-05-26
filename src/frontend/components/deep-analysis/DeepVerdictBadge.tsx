@@ -84,7 +84,7 @@ export function DeepVerdictBadge({
   return (
     <Card data-testid="deep-verdict-section">
       <CardHeader>
-        <CardTitle>Verdetto</CardTitle>
+        <CardTitle as="h2">Verdetto</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <div className="flex items-center gap-3">

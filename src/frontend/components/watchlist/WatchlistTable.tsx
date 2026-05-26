@@ -35,14 +35,15 @@ export function WatchlistTable({ items, onRemove, removingTicker }: Props): Reac
     <table
       className="w-full border-collapse text-sm"
       data-testid="watchlist-table"
+      aria-label="Titoli nella tua watchlist"
     >
       <thead>
         <tr className="border-b border-slate-200 text-left text-xs uppercase text-slate-500">
-          <th className="px-3 py-2">Ticker</th>
-          <th className="px-3 py-2">Nome</th>
-          <th className="px-3 py-2">Settore</th>
-          <th className="px-3 py-2 text-right">Market Cap</th>
-          <th className="px-3 py-2"></th>
+          <th scope="col" className="px-3 py-2">Ticker</th>
+          <th scope="col" className="px-3 py-2">Nome</th>
+          <th scope="col" className="px-3 py-2">Settore</th>
+          <th scope="col" className="px-3 py-2 text-right">Market Cap</th>
+          <th scope="col" className="px-3 py-2"><span className="sr-only">Azioni</span></th>
         </tr>
       </thead>
       <tbody>

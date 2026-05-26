@@ -32,8 +32,11 @@ export function DeepAnalysisPageClient(): React.ReactElement {
 
   if (!ticker) {
     return (
-      <main className="mx-auto max-w-3xl px-6 py-12 text-center text-sm text-slate-500">
-        Specifica un ticker (es. <code>/analysis/deep?ticker=AAPL</code>).
+      <main className="mx-auto max-w-3xl px-6 py-12 text-center">
+        <h1 className="sr-only">Deep Analysis</h1>
+        <p className="text-sm text-slate-500">
+          Specifica un ticker (es. <code>/analysis/deep?ticker=AAPL</code>).
+        </p>
       </main>
     );
   }

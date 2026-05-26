@@ -95,7 +95,7 @@ export function MungerReportCollapsible({
   return (
     <Card data-testid="munger-report-section">
       <CardHeader>
-        <CardTitle>Rapporto Munger Inversion</CardTitle>
+        <CardTitle as="h2">Rapporto Munger Inversion</CardTitle>
       </CardHeader>
       <CardContent>
         {hasReport ? (
@@ -138,9 +138,9 @@ export function MungerReportCollapsible({
                 data-testid="munger-report-details"
               >
                 <section>
-                  <h4 className="mb-2 text-sm font-semibold text-slate-800 dark:text-slate-200">
+                  <h3 className="mb-2 text-sm font-semibold text-slate-800 dark:text-slate-200">
                     Top Rischi
-                  </h4>
+                  </h3>
                   <InversionItemList
                     items={report.rischiPrincipali}
                     icon={
@@ -152,9 +152,9 @@ export function MungerReportCollapsible({
                 </section>
 
                 <section>
-                  <h4 className="mb-2 text-sm font-semibold text-slate-800 dark:text-slate-200">
+                  <h3 className="mb-2 text-sm font-semibold text-slate-800 dark:text-slate-200">
                     Punti di Forza
-                  </h4>
+                  </h3>
                   <InversionItemList
                     items={report.puntiDiForza}
                     icon={<Shield className="h-4 w-4 text-green-500" />}
@@ -164,9 +164,9 @@ export function MungerReportCollapsible({
                 </section>
 
                 <section>
-                  <h4 className="mb-2 text-sm font-semibold text-slate-800 dark:text-slate-200">
+                  <h3 className="mb-2 text-sm font-semibold text-slate-800 dark:text-slate-200">
                     Segnali Recenti 10-Q
-                  </h4>
+                  </h3>
                   <InversionItemList
                     items={report.segnaliRecenti10Q}
                     icon={<Radio className="h-4 w-4 text-blue-500" />}
