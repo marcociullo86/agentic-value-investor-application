@@ -12,7 +12,7 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@/lib/stores/useAuthStore', () => ({
   useAuthStore: (selector: (s: Record<string, unknown>) => unknown) =>
-    selector({ accessToken: 'fake-token' }),
+    selector({ accessToken: 'fake-token', rehydrationStatus: 'done' }),
 }));
 
 vi.mock('@/lib/stores/useWatchlistStore', () => ({

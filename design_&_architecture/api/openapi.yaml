@@ -425,6 +425,10 @@ paths:
     post:
       tags: [auth]
       summary: Login con email/password
+      description: |
+        Returns an access token in the body. The refresh token is set as an
+        httpOnly Secure SameSite=Strict cookie (Path=/api/auth) — it is never
+        exposed in the response body (ADR-024 §3).
       requestBody:
         required: true
         content:
@@ -433,40 +437,67 @@ paths:
               $ref: '#/components/schemas/LoginRequest'
       responses:
         '200':
-          description: Token emessi
+          description: Login successful
+          headers:
+            Set-Cookie:
+              description: "refresh_token={value}; HttpOnly; Secure; SameSite=Strict; Path=/api/auth; Max-Age=604800"
+              schema: { type: string }
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TokenPair'
+                $ref: '#/components/schemas/AccessTokenResponse'
         '401': { $ref: '#/components/responses/Unauthorized' }
 
   /api/auth/refresh:
     post:
       tags: [auth]
-      summary: Rinnova access token dal refresh
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RefreshRequest'
+      summary: Rinnova access token dal cookie httpOnly
+      description: |
+        Reads the refresh token from the httpOnly cookie (not the request body).
+        Returns a new access token and rotates the refresh cookie (ADR-024 §3).
+      parameters:
+        - name: refresh_token
+          in: cookie
+          required: true
+          schema: { type: string }
       responses:
         '200':
-          description: Nuovo access token
+          description: Token refreshed
+          headers:
+            Set-Cookie:
+              description: "Rotated refresh_token cookie; HttpOnly; Secure; SameSite=Strict; Path=/api/auth"
+              schema: { type: string }
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TokenPair'
+                $ref: '#/components/schemas/AccessTokenResponse'
+        '400':
+          description: Missing refresh_token cookie
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
         '401': { $ref: '#/components/responses/Unauthorized' }
 
   /api/auth/logout:
     post:
       tags: [auth]
       summary: Revoca il refresh token corrente
+      description: |
+        Revokes the refresh token in DB and clears the cookie via Max-Age=0 (ADR-024 §3).
       security:
         - bearerAuth: []
+      parameters:
+        - name: refresh_token
+          in: cookie
+          required: false
+          schema: { type: string }
       responses:
-        '204': { description: Sessione chiusa }
+        '204':
+          description: Logged out
+          headers:
+            Set-Cookie:
+              description: "refresh_token=; Max-Age=0 (cookie deleted)"
+              schema: { type: string }
 
   /api/watchlist:
     get:
@@ -961,19 +992,15 @@ components:
         email:    { type: string, format: email }
         password: { type: string }
 
-    RefreshRequest:
+    AccessTokenResponse:
       type: object
-      required: [refreshToken]
+      description: |
+        Short-lived access token. The refresh token is transported via
+        httpOnly cookie (ADR-024 §3) — never in the response body.
+      required: [accessToken, expiresInSeconds]
       properties:
-        refreshToken: { type: string }
-
-    TokenPair:
-      type: object
-      required: [accessToken, refreshToken, expiresInSeconds]
-      properties:
-        accessToken:      { type: string }
-        refreshToken:     { type: string }
-        expiresInSeconds: { type: integer }
+        accessToken:      { type: string, description: "JWT access token (Bearer)" }
+        expiresInSeconds: { type: integer, description: "Token lifetime in seconds", example: 900 }
 
     UserProfile:
       type: object

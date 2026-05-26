@@ -19,7 +19,9 @@ import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.AuthenticationException
 import org.springframework.web.bind.MethodArgumentNotValidException
+import org.springframework.web.bind.MissingRequestCookieException
 import org.springframework.web.bind.MissingServletRequestParameterException
+import org.springframework.web.bind.ServletRequestBindingException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
@@ -201,6 +203,24 @@ class GlobalExceptionHandler(
                 "parameter" to ex.parameterName,
                 "requiredType" to ex.parameterType,
             ),
+        )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem)
+    }
+
+    // @CookieValue(required=true) on /api/auth/refresh throws
+    // MissingRequestCookieException when the cookie is absent.
+    // Without this handler the generic Exception catch-all returns 500.
+    @ExceptionHandler(MissingRequestCookieException::class)
+    fun handleMissingCookie(
+        ex: MissingRequestCookieException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        val problem = mapper.build(
+            status = HttpStatus.BAD_REQUEST,
+            type = "https://api/errors/missing-cookie",
+            title = "Bad Request",
+            detail = "Required cookie '${ex.cookieName}' is missing",
+            request = req,
         )
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem)
     }
