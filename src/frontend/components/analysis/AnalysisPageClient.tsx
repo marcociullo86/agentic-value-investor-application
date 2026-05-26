@@ -9,6 +9,8 @@ import { TrafficLightPanel } from '@/components/analysis/TrafficLightPanel';
 import { DcfOverridePanel } from '@/components/analysis/DcfOverridePanel';
 import { ValuationSummary } from '@/components/analysis/ValuationSummary';
 import { StaleDataBadge } from '@/components/analysis/StaleDataBadge';
+import { MrMarketSentimentBadge } from '@/components/analysis/MrMarketSentimentBadge';
+import { LongTermTrendBadge } from '@/components/analysis/LongTermTrendBadge';
 import { HistoricalChart } from '@/components/charts/HistoricalChart';
 
 /**
@@ -154,6 +156,36 @@ export function AnalysisPageClient(
             dcfMethodSource={analysis.dcfMethodSource}
             onAnalysisRefresh={() => void fetchAnalysis(normalized, { force: true })}
           />
+          {/*
+            EP-013 — Context Flags (advisory) sopra il TrafficLight.
+            Render condizionale: solo se il BE ha popolato `contextFlags`
+            (backward-compat per response cache pre-EP-013).
+          */}
+          {analysis.contextFlags ? (
+            <section
+              data-testid="context-flags-section"
+              aria-labelledby="context-flags-heading"
+              className="rounded-lg border border-slate-200 bg-slate-50/50 p-4 dark:border-slate-800 dark:bg-slate-900/40"
+            >
+              <h3
+                id="context-flags-heading"
+                className="text-sm font-semibold text-slate-900 dark:text-slate-100"
+              >
+                Mr. Market & Trend (Advisory)
+              </h3>
+              <p className="mb-3 mt-1 text-xs text-slate-600 dark:text-slate-400">
+                Indicatori tecnici complementari — NON rule signals fondamentali
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <MrMarketSentimentBadge
+                  flag={analysis.contextFlags.mrMarketRsi}
+                />
+                <LongTermTrendBadge
+                  flag={analysis.contextFlags.longTermTrend}
+                />
+              </div>
+            </section>
+          ) : null}
           <TrafficLightPanel signals={analysis.signals} />
         </>
       ) : null}

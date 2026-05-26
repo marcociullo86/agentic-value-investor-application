@@ -11,6 +11,7 @@ import com.valueinvesting.webapp.fmp.dto.ScreenedStockDto
 import com.valueinvesting.webapp.fmp.dto.SearchHitDto
 import com.valueinvesting.webapp.fmp.dto.SecFilingFmpDto
 import com.valueinvesting.webapp.fmp.dto.StockNewsItem
+import com.valueinvesting.webapp.fmp.dto.TechnicalIndicatorRecord
 import io.github.resilience4j.bulkhead.Bulkhead
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException
 import io.github.resilience4j.circuitbreaker.CircuitBreaker
@@ -118,6 +119,19 @@ class ResilientFmpAdapter(
         // Il logger ticker e' "-" (search-cusip non e' per-ticker, e' per-CUSIP).
         // Il CUSIP stesso non viene loggato come ticker per evitare ambiguita'.
         execute("search-cusip", "-") { delegate.searchCusip(cusip) }
+
+    // EP-013 Mr. Market Context Flags — endpoint generico riusato da
+    // RsiContextEvaluator (US-056) e LongTermTrendEvaluator (US-057).
+    // Endpoint label include l'indicator name per metriche/log granulari.
+    override fun getTechnicalIndicator(
+        ticker: String,
+        indicator: String,
+        periodLength: Int,
+        timeframe: String,
+    ): List<TechnicalIndicatorRecord> =
+        execute("technical-indicators-$indicator", ticker) {
+            delegate.getTechnicalIndicator(ticker, indicator, periodLength, timeframe)
+        }
 
     /**
      * Apply chain decorators in order Bulkhead -> CB -> Retry, then gate the

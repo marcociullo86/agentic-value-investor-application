@@ -4,6 +4,9 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.valueinvesting.webapp.api.model.DcfMethodSource
 import com.valueinvesting.webapp.api.model.RuleEngineResultResponse
+import com.valueinvesting.webapp.contextflags.ContextFlags
+import com.valueinvesting.webapp.contextflags.LongTermTrendEvaluator
+import com.valueinvesting.webapp.contextflags.RsiContextEvaluator
 import com.valueinvesting.webapp.security.UserPrincipal
 import com.valueinvesting.webapp.fmp.FmpAdapter
 import com.valueinvesting.webapp.fmp.FmpCacheService
@@ -36,6 +39,8 @@ class AnalyzeTickerService(
     private val ruleEngineResultRepository: RuleEngineResultRepository,
     private val dcfMethodOverrideRepository: DcfMethodOverrideRepository,
     private val objectMapper: ObjectMapper,
+    private val rsiContextEvaluator: RsiContextEvaluator,
+    private val longTermTrendEvaluator: LongTermTrendEvaluator,
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -93,6 +98,14 @@ class AnalyzeTickerService(
         val mos = marginOfSafetyEvaluator.evaluate(profile.value.price, dcf)
 
         val evaluatedAt = Instant.now()
+        // EP-013 Mr. Market Context Flags (US-056 RSI + US-057 SMA200 trend).
+        // Sezione advisory DISTINTA dai 13 rule signal — gli evaluator sono
+        // failure-tolerant (qualsiasi errore FMP degrada a INDETERMINATE) per
+        // non far fallire l'analisi principale.
+        val contextFlags = ContextFlags(
+            mrMarketRsi = rsiContextEvaluator.evaluate(t),
+            longTermTrend = longTermTrendEvaluator.evaluate(t, profile.value.price),
+        )
         val response = RuleEngineResultResponse(
             ticker = t,
             evaluatedAt = evaluatedAt,
@@ -105,6 +118,7 @@ class AnalyzeTickerService(
             currentPriceAtEval = profile.value.price,
             dataSnapshotAt = dataset.dataSnapshotAt,
             isStale = dataset.isStale,
+            contextFlags = contextFlags,
         )
 
         persistResult(response, dataset.dataSnapshotAt)

@@ -59,6 +59,65 @@ export interface RuleSignal {
   readonly rationale?: string;
 }
 
+/**
+ * EP-013 — Mr. Market Context Flags (US-056 RSI 14-day + US-057 SMA200).
+ *
+ * `ContextFlags` raggruppa 2 advisory flag tecnici complementari ai 13
+ * `ruleSignals` fondamentali del Rule Engine. NON contribuiscono a
+ * `mosSignal` né al verdetto — sono pure UI hint per timing/sentiment.
+ *
+ * Sorgenti contratto: OpenAPI §schemas/ContextFlags, MrMarketRsiFlag,
+ * LongTermTrendFlag, MrMarketRsiSignal, LongTermTrendSignal.
+ */
+export type MrMarketRsiSignal =
+  | 'OVERSOLD'
+  | 'NEUTRAL'
+  | 'OVERBOUGHT'
+  | 'INDETERMINATE';
+
+export type LongTermTrendSignal =
+  | 'BELOW_TREND'
+  | 'NEAR_TREND'
+  | 'ABOVE_TREND'
+  | 'INDETERMINATE';
+
+export interface MrMarketRsiFlag {
+  readonly flag: MrMarketRsiSignal;
+  /** RSI latest record value (Wilder 14-day); `null` se serie vuota. */
+  readonly rsiLatest: number | null;
+  /** ISO-8601 — timestamp record FMP latest; `null` se INDETERMINATE. */
+  readonly rsiTimestamp: string | null;
+  /** Period length default 14 (FMP `periodLength` query param). */
+  readonly periodLength: number;
+  /** Timeframe default "1day". */
+  readonly timeframe: string;
+}
+
+export interface LongTermTrendFlag {
+  readonly flag: LongTermTrendSignal;
+  /** SMA200 latest value; `null` se serie vuota o IPO < 200gg. */
+  readonly sma200Latest: number | null;
+  /** Prezzo corrente al momento valutazione; `null` se profile mancante. */
+  readonly currentPrice: number | null;
+  /**
+   * Pct vs SMA200 calcolato BE come `(price - sma) / sma`. Es. `-0.20`
+   * = prezzo 20% sotto la media; `+0.50` = 50% sopra. `null` se
+   * INDETERMINATE. La UI moltiplica per 100 per la label utente.
+   */
+  readonly priceVsSmaPct: number | null;
+  /** ISO-8601 — timestamp record FMP latest; `null` se INDETERMINATE. */
+  readonly smaTimestamp: string | null;
+  /** Period length default 200. */
+  readonly periodLength: number;
+  /** Timeframe default "1day". */
+  readonly timeframe: string;
+}
+
+export interface ContextFlags {
+  readonly mrMarketRsi: MrMarketRsiFlag | null;
+  readonly longTermTrend: LongTermTrendFlag | null;
+}
+
 export interface RuleEngineResult {
   readonly ticker: string;
   /** ISO-8601 — momento valutazione Rule Engine. */
@@ -80,6 +139,12 @@ export interface RuleEngineResult {
   readonly dataSnapshotAt: string;
   /** `true` se i dati sono oltre la soglia di freschezza (US-005/006). */
   readonly isStale?: boolean;
+  /**
+   * EP-013 — Advisory flag opzionali (RSI Mr. Market + SMA200 trend).
+   * Backward-compat: `undefined`/`null` quando il BE non ha popolato
+   * (es. response cache pre-EP-013 o evaluator failure-tolerant).
+   */
+  readonly contextFlags?: ContextFlags | null;
 }
 
 /**

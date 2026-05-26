@@ -11,6 +11,7 @@ import com.valueinvesting.webapp.fmp.dto.ScreenedStockDto
 import com.valueinvesting.webapp.fmp.dto.SearchHitDto
 import com.valueinvesting.webapp.fmp.dto.SecFilingFmpDto
 import com.valueinvesting.webapp.fmp.dto.StockNewsItem
+import com.valueinvesting.webapp.fmp.dto.TechnicalIndicatorRecord
 
 // Interface to the Financial Modeling Prep external service.
 // Tipizzata e nullable-aware: ogni metodo restituisce una List<DTO> ordinata dalla più
@@ -157,4 +158,35 @@ interface FmpAdapter {
     // [^src: raw/fmp_docs.md §CUSIPAPI]
     // [^src: management/kanban/EP-012-batch-top-value-picks/US-047-universe-screener-service/TSK-127.md]
     fun searchCusip(cusip: String): String?
+
+    // `/stable/technical-indicators/{indicator}?symbol={ticker}&periodLength={n}&timeframe={tf}`
+    // — endpoint generico per indicatori tecnici (EP-013 Mr. Market Context Flags).
+    //
+    // Whitelist `indicator` enforced in implementazione: per EP-013 ammessi solo
+    // `"rsi"` (US-056) e `"sma"` (US-057). Altri valori (ema, wma, dema, tema,
+    // standarddeviation, williams, adx — vedi raw/fmp_docs.md:10385+) sono fuori
+    // scope e sollevano IllegalArgumentException. Estendere la whitelist quando
+    // nuovi indicator entrano in scope (no breaking change al contract).
+    //
+    // Semantica advisory (NON rule signal):
+    //   - I context flag NON contribuiscono alla MoS o ai 13 signal del Rule
+    //     Engine. Sono input "Mr. Market" per UI badge (US-056/057).
+    //   - Lista vuota = ticker IPO recente (< periodLength giorni di storico)
+    //     o nessun dato disponibile → evaluator degrada a INDETERMINATE.
+    //
+    // Error policy (idem altri endpoint):
+    //   - 429 → FmpUnavailableException(429) (rate-limited, route resilienza).
+    //   - 5xx → FmpUnavailableException(status).
+    //   - 4xx (non 429) → emptyList() (ticker IPO recente o indicator non
+    //     calcolabile, semantica "no data" coerente con /dividends).
+    //   - Lista vuota / null body → emptyList().
+    //
+    // [^src: raw/fmp_docs.md §Technical Indicators]
+    // [^src: management/kanban/EP-013-mr-market-context-flags/US-056-rsi-mr-market-context-flag/TSK-164.md]
+    fun getTechnicalIndicator(
+        ticker: String,
+        indicator: String,
+        periodLength: Int,
+        timeframe: String = "1day",
+    ): List<TechnicalIndicatorRecord>
 }

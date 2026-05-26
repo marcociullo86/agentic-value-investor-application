@@ -1,0 +1,145 @@
+# Production stack — nginx TLS + vi-app + vi-postgres
+# [^src: design_&_architecture/decisions/ADR-015-deployment-target-r11.md §Decisione]
+# [^src: management/kanban/EP-008-deploy-operativita-produzione/US-026-baseline-target-deploy/TSK-061.md]
+#
+# Sizing target: VM 2 vCPU / 4 GiB / 40 GiB SSD (ADR-015 §Sizing)
+# NO adminer (debug UI: dev-only)
+# NO direct host port exposure for vi-app (8080) or vi-postgres (5432)
+#
+# Usage:
+#   cp src/docker/.env.prod.example src/docker/.env.prod
+#   chmod 600 src/docker/.env.prod
+#   edit src/docker/.env.prod  # fill in all secrets
+#   docker compose -f src/docker/docker-compose.prod.yml --env-file src/docker/.env.prod up -d
+
+services:
+
+  # ─── nginx — TLS termination + reverse proxy ────────────────────────────────
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: vi-nginx
+    restart: unless-stopped
+    depends_on:
+      vi-app:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # Let's Encrypt certificates — provision with certbot before first start:
+      #   certbot certonly --standalone -d ${APP_DOMAIN}
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      # nginx log rotation handled by logging driver below
+    networks:
+      - vi-net
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+
+  # ─── vi-app — Spring Boot monolite (Kotlin + embedded Next.js static) ───────
+  vi-app:
+    image: vi-app:prod
+    build:
+      context: ../..
+      dockerfile: src/docker/Dockerfile
+    container_name: vi-app
+    restart: unless-stopped
+    depends_on:
+      vi-postgres:
+        condition: service_healthy
+    # Port 8080 NOT exposed on host — internal only via vi-net
+    expose:
+      - "8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      DB_URL: jdbc:postgresql://vi-postgres:5432/${POSTGRES_DB:-value_investing_prod}
+      DB_USERNAME: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      FMP_API_KEY: ${FMP_API_KEY}
+      FMP_BASE_URL: ${FMP_BASE_URL:-https://financialmodelingprep.com/stable}
+      JWT_SIGNING_SECRET: ${JWT_SIGNING_SECRET}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+      SEC_EDGAR_USER_AGENT_EMAIL: ${SEC_EDGAR_USER_AGENT_EMAIL}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      TOP_PICKS_ENABLED: ${TOP_PICKS_ENABLED:-true}
+      TOP_PICKS_CRON: ${TOP_PICKS_CRON:-0 0 2 * * *}
+      TOP_PICKS_ZONE: ${TOP_PICKS_ZONE:-UTC}
+      LLM_BUDGET_MONTHLY_USD: ${LLM_BUDGET_MONTHLY_USD:-50}
+      TZ: ${TZ:-UTC}
+      LANG: ${LANG:-en_US.UTF-8}
+      # JSON structured logs for production log aggregation (Logback prod profile)
+      LOGGING_STRUCTURED_FORMAT: json
+    # Resource limits — ADR-015 §Sizing: 2 vCPU / 4 GiB host; reserve headroom for nginx+postgres
+    mem_limit: 2g
+    mem_reservation: 1g
+    cpus: "1.5"
+    networks:
+      - vi-net
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "10"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+
+  # ─── vi-postgres — PostgreSQL 17 (pgvector) ─────────────────────────────────
+  vi-postgres:
+    image: pgvector/pgvector:pg17
+    container_name: vi-postgres
+    restart: unless-stopped
+    # Port 5432 NOT exposed on host — internal only via vi-net
+    expose:
+      - "5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-value_investing_prod}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      TZ: ${TZ:-UTC}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      # Backup destination mounted from host — written by backup-postgres.sh
+      - ${BACKUP_DIR:-/var/backups/postgres}:/backups
+    # Resource limits — ADR-015 §Sizing
+    mem_limit: 1g
+    mem_reservation: 512m
+    cpus: "0.5"
+    networks:
+      - vi-net
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+    healthcheck:
+      test:
+        - "CMD-SHELL"
+        - "pg_isready -U ${POSTGRES_USER:-vi_prod_user} -d ${POSTGRES_DB:-value_investing_prod} && psql -U ${POSTGRES_USER:-vi_prod_user} -d ${POSTGRES_DB:-value_investing_prod} -c 'SELECT 1' > /dev/null 2>&1"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+# ─── Networks ────────────────────────────────────────────────────────────────
+networks:
+  vi-net:
+    driver: bridge
+    name: vi-net
+
+# ─── Volumes ─────────────────────────────────────────────────────────────────
+volumes:
+  postgres-data:
+    driver: local

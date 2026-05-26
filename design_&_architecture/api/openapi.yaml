@@ -783,6 +783,66 @@ components:
         currentPriceAtEval:      { type: number, nullable: true }
         dataSnapshotAt:          { type: string, format: date-time }
         isStale:                 { type: boolean }
+        contextFlags:
+          # EP-013 Mr. Market Context Flags (US-056 + US-057). Sezione advisory
+          # additiva, DISTINTA dai 13 `signals` del Rule Engine. Non breaking.
+          allOf:
+            - $ref: '#/components/schemas/ContextFlags'
+          nullable: true
+
+    MrMarketRsiSignal:
+      type: string
+      enum: [OVERSOLD, NEUTRAL, OVERBOUGHT, INDETERMINATE]
+      description: |
+        Advisory signal RSI 14-day (EP-013 / US-056). NON contribuisce alla MoS
+        né ai 13 rule signal. Soglie standard di settore (Wilder): <30 OVERSOLD,
+        >70 OVERBOUGHT, in-between NEUTRAL. INDETERMINATE per dato mancante.
+
+    MrMarketRsiFlag:
+      type: object
+      required: [flag, periodLength, timeframe]
+      properties:
+        flag:           { $ref: '#/components/schemas/MrMarketRsiSignal' }
+        rsiLatest:      { type: number, nullable: true, description: "Valore RSI 0..100" }
+        rsiTimestamp:   { type: string, nullable: true, description: "ISO yyyy-MM-dd HH:mm:ss da FMP" }
+        periodLength:   { type: integer, default: 14 }
+        timeframe:      { type: string, default: "1day" }
+
+    LongTermTrendSignal:
+      type: string
+      enum: [BELOW_TREND, NEAR_TREND, ABOVE_TREND, INDETERMINATE]
+      description: |
+        Advisory signal long-term trend (EP-013 / US-057) basato su SMA200.
+        Soglie asimmetriche: pct < -5% BELOW_TREND, pct > +20% ABOVE_TREND,
+        else NEAR_TREND. INDETERMINATE per dato mancante.
+
+    LongTermTrendFlag:
+      type: object
+      required: [flag, periodLength, timeframe]
+      properties:
+        flag:           { $ref: '#/components/schemas/LongTermTrendSignal' }
+        sma200Latest:   { type: number, nullable: true, description: "SMA200 in $" }
+        currentPrice:   { type: number, nullable: true }
+        priceVsSmaPct:  { type: number, nullable: true, description: "(price - sma) / sma, es. -0.20 = -20%" }
+        smaTimestamp:   { type: string, nullable: true }
+        periodLength:   { type: integer, default: 200 }
+        timeframe:      { type: string, default: "1day" }
+
+    ContextFlags:
+      type: object
+      description: |
+        Container advisory Mr. Market signals (EP-013). DISTINTO dai 13 rule signal:
+        questi flag NON contribuiscono alla MoS, sono solo input per la UI badge.
+        Tutti i field nullable per backfill incrementale e additività non-breaking.
+      properties:
+        mrMarketRsi:
+          allOf:
+            - $ref: '#/components/schemas/MrMarketRsiFlag'
+          nullable: true
+        longTermTrend:
+          allOf:
+            - $ref: '#/components/schemas/LongTermTrendFlag'
+          nullable: true
 
     DcfOverrideRequest:
       type: object

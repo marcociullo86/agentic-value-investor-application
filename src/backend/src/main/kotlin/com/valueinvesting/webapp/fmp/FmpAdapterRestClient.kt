@@ -12,6 +12,7 @@ import com.valueinvesting.webapp.fmp.dto.ScreenedStockDto
 import com.valueinvesting.webapp.fmp.dto.SearchHitDto
 import com.valueinvesting.webapp.fmp.dto.SecFilingFmpDto
 import com.valueinvesting.webapp.fmp.dto.StockNewsItem
+import com.valueinvesting.webapp.fmp.dto.TechnicalIndicatorRecord
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import org.slf4j.LoggerFactory
@@ -566,6 +567,108 @@ class FmpAdapterRestClient(
     // Sentinel locale per /search-cusip 4xx (non 429) → null senza errore.
     // Mai propagata fuori dall'adapter.
     private class EmptyCusipSentinelException : RuntimeException()
+
+    // `/stable/technical-indicators/{indicator}?symbol={ticker}&periodLength={n}&timeframe={tf}`
+    // — endpoint generico per indicatori tecnici (EP-013, TSK-164).
+    //
+    // Whitelist enforced: solo `rsi` (US-056) e `sma` (US-057) ammessi in scope
+    // EP-013. Estendere ALLOWED_INDICATORS per nuovi indicator (no breaking).
+    //
+    // Pattern di error-handling identico a getDividendHistory / getSecFilings:
+    //   - 429 → FmpUnavailableException(429).
+    //   - 5xx → FmpUnavailableException(status).
+    //   - 4xx (non 429) → emptyList() (ticker IPO recente, semantica "no data").
+    //
+    // Ordinamento conservato dall'API FMP (DESC by date tipicamente); il consumer
+    // (RsiContextEvaluator, LongTermTrendEvaluator) usa maxByOrNull { date } per
+    // estrarre il record più recente, robusto a ordinamenti incerti.
+    //
+    // [^src: raw/fmp_docs.md §Technical Indicators]
+    // [^src: management/kanban/EP-013-mr-market-context-flags/US-056-rsi-mr-market-context-flag/TSK-164.md]
+    override fun getTechnicalIndicator(
+        ticker: String,
+        indicator: String,
+        periodLength: Int,
+        timeframe: String,
+    ): List<TechnicalIndicatorRecord> {
+        require(ticker.isNotBlank()) { "ticker must not be blank" }
+        require(periodLength > 0) { "periodLength must be > 0" }
+        require(timeframe.isNotBlank()) { "timeframe must not be blank" }
+        require(indicator in ALLOWED_INDICATORS) {
+            "indicator must be one of $ALLOWED_INDICATORS, was: $indicator"
+        }
+        val upperTicker = ticker.uppercase()
+        val typeRef = object : ParameterizedTypeReference<List<TechnicalIndicatorRecord>>() {}
+
+        val result: List<TechnicalIndicatorRecord>? = try {
+            client.get()
+                .uri { builder ->
+                    builder
+                        .path("/technical-indicators/{indicator}")
+                        .queryParam("apikey", appProperties.fmp.apiKey)
+                        .queryParam("symbol", upperTicker)
+                        .queryParam("periodLength", periodLength)
+                        .queryParam("timeframe", timeframe)
+                        .build(indicator)
+                }
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError) { _, response ->
+                    val status = response.statusCode
+                    if (status.value() == 429) {
+                        log.warn(
+                            "FMP 429 (rate limited) on /technical-indicators/{} ticker={}",
+                            indicator, upperTicker,
+                        )
+                        throw FmpUnavailableException(
+                            "FMP rate limited for technical-indicators/$indicator/$upperTicker",
+                            httpStatus = 429,
+                        )
+                    }
+                    // 4xx non-429 = ticker IPO recente (< periodLength giorni)
+                    // o indicator non calcolabile → emptyList sentinel.
+                    log.warn(
+                        "FMP 4xx on /technical-indicators/{} ticker={} status={} — treating as empty",
+                        indicator, upperTicker, status,
+                    )
+                    throw EmptyTechnicalIndicatorSentinelException()
+                }
+                .onStatus(HttpStatusCode::is5xxServerError) { _, response ->
+                    val status = response.statusCode
+                    log.warn(
+                        "FMP 5xx on /technical-indicators/{} ticker={} status={}",
+                        indicator, upperTicker, status,
+                    )
+                    throw FmpUnavailableException(
+                        "FMP returned $status for technical-indicators/$indicator/$upperTicker",
+                        httpStatus = status.value(),
+                    )
+                }
+                .body(typeRef)
+        } catch (ex: EmptyTechnicalIndicatorSentinelException) {
+            return emptyList()
+        } catch (ex: FmpUnavailableException) {
+            throw ex
+        } catch (ex: RestClientResponseException) {
+            throw FmpUnavailableException(
+                "FMP call failed: ${ex.statusCode} for technical-indicators/$indicator/$upperTicker",
+                cause = ex,
+                httpStatus = ex.statusCode.value(),
+            )
+        }
+
+        return result ?: emptyList()
+    }
+
+    // Sentinel locale per /technical-indicators 4xx (non 429) → emptyList.
+    // Mai propagata fuori dall'adapter.
+    private class EmptyTechnicalIndicatorSentinelException : RuntimeException()
+
+    private companion object {
+        // EP-013 scope: rsi (US-056) + sma (US-057). Estendere quando entrano
+        // in scope nuovi indicator (ema, wma, dema, tema, standarddeviation,
+        // williams, adx — vedi raw/fmp_docs.md:10385+).
+        val ALLOWED_INDICATORS = setOf("rsi", "sma")
+    }
 
     // Generic GET on /{endpoint}?symbol={ticker}&apikey=...&limit=...
     // Stable API (TSK-050): il ticker passa da path-variable a query parameter
