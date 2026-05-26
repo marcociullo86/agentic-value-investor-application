@@ -413,6 +413,8 @@ ADR-007 §Error format dichiara RFC 9457 §3.2 (extensions al top-level). Quattr
 **Sospetta fonte:** lead-architect — decisione architetturale su design system frontend (ADR dedicato).
 **Impatto:** REQ-03 non e implementabile senza questa decisione. Tutti i componenti UI esistenti (TrafficLightPanel, TopPicksTable, DeepVerdictBadge, MrMarketSentimentBadge, LongTermTrendBadge) usano classi Tailwind/shadcn e dovrebbero essere adattati. Non bloccante per il funzionamento attuale dell'app. Bloccante: no (per MVP); si per implementazione REQ-03.
 
+**Risolto:** 2026-05-26 — ADR-023 accettato: design token system shadcn/ui con M3-aligned semantic tokens (non sostituzione con MUI). EP-016 completata (US-069 + US-070 + US-071, 10 TSK done): token CSS OKLCH (19 colori, 5 typography, 5 shape, motion easing/durations/state-layers), ThemeProvider + useTheme hook + dark mode con anti-FOUC, 6 componenti shadcn/ui migrati a token semantici (Button, Card, Input, Modal, Toast, Navbar), prefers-reduced-motion supportato. I componenti shadcn/ui sono stati estesi con un layer di design token M3-aligned — non sostituiti con MUI. [[material-design-3-accessibility]] aggiornata con dettaglio implementativo. [^src: design_&_architecture/decisions/ADR-023-design-token-system-m3-shadcn.md]
+
 ---
 
 ## 2026-05-26 12:42 — fintech-pci-dss-scope

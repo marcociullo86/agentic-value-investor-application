@@ -19,7 +19,7 @@ r30_target: TBD
 > **R1.1.x hotfix chiuso:** Sprint 5.5 — 12/12 TSK `done`. US-052, US-053, US-054 completate.
 > **R2.0 chiuso:** Sprint 6–9 completati — 79/79 TSK `done`, 21/21 US, 3/3 EP (EP-010, EP-011, EP-012).
 > **R2.1 chiuso:** Sprint 10 — EP-013 Mr. Market Context Flags — 6/6 TSK `done`, 2/2 US (US-056, US-057).
-> **R3.0 pianificato:** Sprint 11–15 — 68 TSK `todo`, 25 US, 5 EP (EP-014..018). ADR-021..025 status: `proposed`.
+> **R3.0 pianificato:** Sprint 11–15 — 47 TSK `todo`, 21 `done`, 25 US, 5 EP (EP-014..018). ADR-021 e ADR-023 `accepted`; ADR-022, ADR-024, ADR-025 status: `proposed`.
 
 ---
 
@@ -348,24 +348,24 @@ lungo periodo). Esposti su `/api/analysis/{ticker}` in sezione dedicata `context
 Correlation ID end-to-end, redazione automatica PII, leak detection CI, logging eventi di
 sicurezza e retention GDPR differenziata. ADR-021.
 
-**Stato:** TODO — 0/14 TSK `done`.
+**Stato:** COMPLETATO — 14/14 TSK `done`.
 
 | TSK | Titolo | Layer | Consumer | Est. | US | Status |
 |-----|--------|-------|----------|------|----|--------|
-| TSK-170 | Logback profili prod/dev + logstash-logback-encoder + AsyncAppender | be | agent | M | US-058 | todo |
-| TSK-171 | QA Test formato log JSON/pretty + switch env var + benchmark p99 | qa | agent | S | US-058 | todo |
-| TSK-172 | CorrelationIdFilter servlet filter: UUID v4, MDC, header response | be | agent | S | US-059 | todo |
-| TSK-173 | Estendi GlobalExceptionHandler: correlationId in ProblemDetail | be | agent | XS | US-059 | todo |
-| TSK-174 | QA Test CorrelationIdFilter: propagazione, concorrenza, ProblemDetail | qa | agent | S | US-059 | todo |
-| TSK-175 | PiiRedactionEncoder wrapper + config esternalizzata + ricorsività | be | agent | L | US-060 | todo |
-| TSK-176 | QA Test PiiRedactionEncoder: 6 categorie PII + nested + benchmark | qa | agent | M | US-060 | todo |
-| TSK-177 | Gradle task piiLeakDetection post-test CI: regex 6+ categorie | infra | agent | M | US-061 | todo |
-| TSK-178 | QA Test scenari leak detection: PAN non redatto → fail; redazione → pass | qa | agent | S | US-061 | todo |
-| TSK-179 | SecurityEventLogger @Component: 6+ categorie + marker SECURITY_EVENT | be | agent | M | US-062 | todo |
-| TSK-180 | QA Test SecurityEventLogger: login/password/403 + formato + correlationId | qa | agent | S | US-062 | todo |
-| TSK-181 | Logback retention operativi 30d + SiftingAppender security 365d | be | agent | S | US-063 | todo |
-| TSK-182 | Script pseudonimizzazione log per userId (diritto all'oblio) | be | agent | S | US-063 | todo |
-| TSK-183 | QA Test retention rotazione + pseudonimizzazione | qa | agent | S | US-063 | todo |
+| TSK-170 | Logback profili prod/dev + logstash-logback-encoder + AsyncAppender | be | agent | M | US-058 | done |
+| TSK-171 | QA Test formato log JSON/pretty + switch env var + benchmark p99 | qa | agent | S | US-058 | done |
+| TSK-172 | CorrelationIdFilter servlet filter: UUID v4, MDC, header response | be | agent | S | US-059 | done |
+| TSK-173 | Estendi GlobalExceptionHandler: correlationId in ProblemDetail | be | agent | XS | US-059 | done |
+| TSK-174 | QA Test CorrelationIdFilter: propagazione, concorrenza, ProblemDetail | qa | agent | S | US-059 | done |
+| TSK-175 | PiiRedactionEncoder wrapper + config esternalizzata + ricorsività | be | agent | L | US-060 | done |
+| TSK-176 | QA Test PiiRedactionEncoder: 6 categorie PII + nested + benchmark | qa | agent | M | US-060 | done |
+| TSK-177 | Gradle task piiLeakDetection post-test CI: regex 6+ categorie | infra | agent | M | US-061 | done |
+| TSK-178 | QA Test scenari leak detection: PAN non redatto → fail; redazione → pass | qa | agent | S | US-061 | done |
+| TSK-179 | SecurityEventLogger @Component: 6+ categorie + marker SECURITY_EVENT | be | agent | M | US-062 | done |
+| TSK-180 | QA Test SecurityEventLogger: login/password/403 + formato + correlationId | qa | agent | S | US-062 | done |
+| TSK-181 | Logback retention operativi 30d + SiftingAppender security 365d | be | agent | S | US-063 | done |
+| TSK-182 | Script pseudonimizzazione log per userId (diritto all'oblio) | be | agent | S | US-063 | done |
+| TSK-183 | QA Test retention rotazione + pseudonimizzazione | qa | agent | S | US-063 | done |
 
 **Totale Sprint 11:** 14 TSK (7 be, 1 infra, 6 qa)
 
@@ -377,17 +377,17 @@ sicurezza e retention GDPR differenziata. ADR-021.
 motion) sopra shadcn/ui + Tailwind, switch light/dark persistente, audit e fix WCAG 2.2 AA
 su tutte le viste. ADR-023.
 
-**Stato:** TODO — 0/10 TSK `done`. `pending_clarification: [Q_004]` su TSK-184 (ADR-023 proposed).
+**Stato:** PARZIALE — 7/10 TSK `done` (US-072 non ancora avviata).
 
 | TSK | Titolo | Layer | Consumer | Est. | US | Status |
 |-----|--------|-------|----------|------|----|--------|
-| TSK-184 | Token CSS semantici: colors OKLCH + typography + shape + tailwind.config.ts | fe | agent | M | US-069 | todo |
-| TSK-185 | Migrazione 5 componenti principali da classi hardcoded a token semantici | fe | agent | M | US-069 | todo |
-| TSK-186 | QA Vitest test token system: seed change, tipografia, shape | qa | agent | S | US-069 | todo |
-| TSK-187 | ThemeProvider + useTheme + colors-dark.css + anti-FOUC script | fe | agent | M | US-070 | todo |
-| TSK-188 | QA Test ThemeProvider: prefers-color-scheme, persistenza, FOUC, contrasto | qa | agent | S | US-070 | todo |
-| TSK-189 | Token motion.css + state layer opacità + prefers-reduced-motion | fe | agent | S | US-071 | todo |
-| TSK-190 | QA Test motion: reduced-motion, state layers, focus visibile | qa | agent | S | US-071 | todo |
+| TSK-184 | Token CSS semantici: colors OKLCH + typography + shape + tailwind.config.ts | fe | agent | M | US-069 | done |
+| TSK-185 | Migrazione 5 componenti principali da classi hardcoded a token semantici | fe | agent | M | US-069 | done |
+| TSK-186 | QA Vitest test token system: seed change, tipografia, shape | qa | agent | S | US-069 | done |
+| TSK-187 | ThemeProvider + useTheme + colors-dark.css + anti-FOUC script | fe | agent | M | US-070 | done |
+| TSK-188 | QA Test ThemeProvider: prefers-color-scheme, persistenza, FOUC, contrasto | qa | agent | S | US-070 | done |
+| TSK-189 | Token motion.css + state layer opacità + prefers-reduced-motion | fe | agent | S | US-071 | done |
+| TSK-190 | QA Test motion: reduced-motion, state layers, focus visibile | qa | agent | S | US-071 | done |
 | TSK-191 | Audit fix WCAG 2.2 AA: h1, focus, label, alt, zoom 200% su tutte le viste | fe | agent | L | US-072 | todo |
 | TSK-192 | QA Lighthouse CI + axe-core: target >= 95, zero serious/critical | qa | agent | M | US-072 | todo |
 | TSK-193 | QA Test E2E a11y tastiera: flussi critici senza mouse + screen reader | qa | agent | M | US-072 | todo |
@@ -505,12 +505,12 @@ dichiarazione formale PCI-DSS non applicabile. ADR-025. DB: mfa_secrets + login_
 | R2.0 | 8 | 0 | 0 | 0 | 5 | 2 | **7** | done |
 | R2.0 | 9 | 1 | 1 | 7 | 2 | 6 | **17** | done |
 | R2.1 | 10 | 0 | 0 | 3 | 2 | 1 | **6** | done |
-| R3.0 | 11 | 1 | 0 | 7 | 0 | 6 | **14** | todo |
-| R3.0 | 12 | 0 | 0 | 0 | 5 | 5 | **10** | todo |
+| R3.0 | 11 | 1 | 0 | 7 | 0 | 6 | **14** | done |
+| R3.0 | 12 | 0 | 0 | 0 | 5 | 5 | **10** | 7 done, 3 todo (US-072) |
 | R3.0 | 13 | 0 | 0 | 0 | 6 | 5 | **11** | todo |
 | R3.0 | 14 | 0 | 0 | 2 | 7 | 5 | **14** | todo |
 | R3.0 | 15 | 0 | 2 | 8 | 2 | 7 | **19** | todo |
-| | **TOTALE** | **10** | **17** | **85** | **48** | **80** | **237** | 168 done, 1 todo (R1.1), 68 todo (R3.0) |
+| | **TOTALE** | **10** | **17** | **85** | **48** | **80** | **237** | 189 done, 1 todo (R1.1), 47 todo (R3.0) |
 
 ---
 
@@ -551,13 +551,13 @@ Sprint 14 → Sprint 15:
 
 ## Prossimo /dev suggerito
 
-**Sprint corrente:** Sprint 11 (EP-014 Logging). Start raccomandato: **TSK-170** (fondazione logging).
+**Sprint corrente:** Sprint 12 (completamento US-072) + Sprint 13 (EP-015 Notifiche Errori Frontend).
 
 **Parallelismo possibile:**
-- be-dev: TSK-170 → TSK-172 → TSK-175 → TSK-179 (Sprint 11 catena BE)
-- fe-dev: TSK-184 → TSK-185 → TSK-187 (Sprint 12 catena FE, in parallelo)
+- fe-dev: TSK-191 (audit WCAG AA, Sprint 12 US-072) + TSK-194 (NotificationProvider, Sprint 13 US-064)
+- qa-dev: TSK-192, TSK-193 (Sprint 12 US-072) dopo TSK-191
 
 **Residuo R1.1:** TSK-071 resta `todo` (blocked su gap `fmp-stable-rate-limiting`).
 
-**ADR pending:** ADR-021..025 tutti `proposed`. Per policy, i TSK procedono con `pending_clarification`
-annotato dove impattati direttamente (TSK-184 → Q_004, TSK-237 → Q_005).
+**ADR accepted:** ADR-021 (structured logging), ADR-023 (design token system).
+**ADR pending:** ADR-022, ADR-024, ADR-025 `proposed`. TSK-237 → Q_005.

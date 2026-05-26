@@ -67,6 +67,64 @@ Gli stati hover, focus, pressed, dragged sono implementati tramite state layers 
 [[webapp-architecture-vi]]
 [[fintech-hardening-requirements-map]]
 
+## Aggiornamenti (v2026-05-26)
+
+### EP-016 completata — Sprint 12 (10 TSK done, ADR-023 accettato)
+
+L'epica EP-016 (Refinement UI e Accessibilità) è stata implementata e pushata su master. ADR-023 ha formalizzato l'approccio: estendere i componenti shadcn/ui esistenti con un sistema di design token M3-aligned (non sostituire con MUI). Di seguito il dettaglio implementativo per US.
+
+### Design token system OKLCH (US-069)
+
+Tre file di token CSS creati in `src/frontend/styles/tokens/`: [^src: src/frontend/styles/tokens/colors.css]
+
+- **`colors.css`**: 19 variabili custom property OKLCH M3-aligned (`--color-primary`, `--color-on-primary`, `--color-primary-container`, `--color-secondary`, `--color-tertiary`, `--color-surface`, `--color-surface-container`, `--color-surface-container-high`, `--color-outline`, `--color-outline-variant`, `--color-error`, `--color-on-error`, `--color-success`, `--color-warning`, `--color-info`, etc.).
+- **`typography.css`**: 5 livelli type scale M3 (`--type-display`, `--type-headline`, `--type-title`, `--type-body`, `--type-label`) in font shorthand con dimensioni monotonicamente decrescenti.
+- **`shape.css`**: 5 border-radius token (`--shape-none` 0, `--shape-small` 4px, `--shape-medium` 8px, `--shape-large` 16px, `--shape-full` 9999px).
+
+`tailwind.config.ts` esteso con mapping semantico: 19 colori via `var(--color-*)`, 4 `borderRadius` via `var(--shape-*)`. Signal colors (`bg-signal-*` per TrafficLightPanel) preservati come namespace separato.
+
+### Migrazione 6 componenti a token (US-069, TSK-185)
+
+6 componenti shadcn/ui migrati da classi Tailwind hardcoded (`bg-blue-600`, `bg-slate-200`, `bg-white`, `text-slate-600`) a classi semantiche CSS custom properties: [^src: src/frontend/components/ui/Button.tsx]
+
+| Componente | Prima | Dopo |
+|---|---|---|
+| **Button** | `bg-blue-600`/`text-white` + 8 `dark:` override | `bg-primary`/`text-on-primary` (4 varianti) |
+| **Card** | `bg-white`/`border-slate-200` + `dark:` | `bg-surface-container`/`border-outline-variant` |
+| **Input** | `bg-white`/`border-slate-300` + `dark:` | `bg-surface`/`border-outline` |
+| **Modal** | `bg-black/50`/`bg-white` + `dark:` | `bg-on-surface/50`/`bg-surface` |
+| **Toast** | `bg-slate-100` + `dark:` | `bg-surface-container` |
+| **Navbar** | `bg-white`/`border-slate-200` + `dark:` | `bg-surface`/`border-outline-variant` |
+
+Dark mode gestito interamente dal CSS variable system: i token OKLCH si aggiornano via `:root`/`.dark` selector senza bisogno di `dark:` prefix Tailwind (eliminati tutti i `dark:` override ridondanti).
+
+### ThemeProvider e dark mode (US-070)
+
+`ThemeProvider` React Context (`src/frontend/components/theme/theme-provider.tsx`) con supporto `system`/`light`/`dark`: [^src: src/frontend/components/theme/theme-provider.tsx]
+
+- `useTheme` hook espone `{ theme, setTheme, toggleTheme }`.
+- Persistenza via `localStorage` con key `theme`.
+- Listener `prefers-color-scheme` attivo solo in modalità `system`.
+- **Anti-FOUC**: script inline blocking in `<head>` (in `app/layout.tsx`) che legge `localStorage` + `matchMedia` prima del primo render React, applicando la classe `.dark` immediatamente.
+- **`colors-dark.css`**: 20 variabili OKLCH per `.dark` selector, M3-aligned.
+- **Toggle accessibile** in Navbar: icone Sun/Moon (lucide-react), `aria-label`, `focus-visible`, keyboard navigable.
+- `tailwind.config.ts` con `darkMode: 'class'` già configurato.
+
+### Motion tokens e state layers (US-071)
+
+`styles/tokens/motion.css` creato con token M3: [^src: src/frontend/styles/tokens/motion.css]
+
+- 2 easing token: `--motion-easing-emphasized` e `--motion-easing-standard` (entrambi `cubic-bezier(0.2, 0, 0, 1)`).
+- 3 durate: `--motion-duration-short` (150ms), `--motion-duration-medium` (300ms), `--motion-duration-long` (500ms).
+- 3 state layer opacity: hover 0.08, focus 0.12, pressed 0.16.
+- **`prefers-reduced-motion: reduce`**: media query che azzera tutte le durate a 0ms.
+
+Classe utility `.state-layer` in `globals.css` con pseudo-elemento `::after` overlay a `currentColor` + opacity tokenizzata per hover/focus-visible/active. `Button.tsx` migrato a state layer (rimossi `hover:bg-*` Tailwind hardcoded). Focus-visible ring (WCAG 2.4.7) invariato.
+
+### Stato accessibilità
+
+US-072 (Audit WCAG 2.2 AA con Lighthouse + axe-core) non in scope Sprint 12 — i 3 TSK (TSK-191/192/193) restano `todo`. Le basi per la conformità sono state poste: contrasto OKLCH verificabile, focus-visible globale, prefers-reduced-motion, aria-label su toggle tema e badge.
+
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->
 - EP-016 / [US-069](../../management/kanban/EP-016-refinement-ui-accessibilita/US-069-design-token-system/US-069.md) — Sistema design token colori, tipografia e shape

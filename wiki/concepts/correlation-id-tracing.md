@@ -49,6 +49,24 @@ Quando una notifica di errore viene mostrata all'utente, include il Correlation 
 [[webapp-architecture-vi]]
 [[analysis-api-pipeline]]
 
+## Aggiornamenti (v2026-05-26)
+
+### CorrelationIdFilter implementato (US-059, Sprint 11)
+
+Il pattern implementativo descritto sopra è ora concretamente implementato come `CorrelationIdFilter` in `com.valueinvesting.webapp.api.filter`: [^src: src/backend/src/main/kotlin/com/valueinvesting/webapp/api/filter/CorrelationIdFilter.kt]
+
+- **Tipo**: `OncePerRequestFilter` (Spring) con `@Order(HIGHEST_PRECEDENCE + 10)`, posizionato dopo `RequestIdFilter` e prima di `JwtAuthenticationFilter`.
+- **Logica**: legge l'header `X-Correlation-Id` dalla request; se assente o blank, genera `UUID.randomUUID()`. Inserisce il valore in `MDC.put("correlationId")`, imposta l'header di risposta `X-Correlation-Id`, e rimuove dal MDC nel blocco `finally`.
+- **Coesistenza**: il `correlationId` MDC coesiste con `requestId` (generato da `RequestIdFilter`) e con `traceId`/`spanId` (Micrometer distributed tracing). Tutti e tre sono inclusi nel JSON strutturato di produzione via `LogstashEncoder` (vedi [[structured-logging-backend]]).
+
+### correlationId in ProblemDetail (US-059, TSK-173)
+
+`ProblemDetailsMapper.build()` è stato esteso per includere `correlationId` come extension member RFC 9457 (pattern identico a `requestId` già presente): `MDC.get("correlationId")` → `setProperty("correlationId", value)`. Tutte le risposte ProblemDetail (400/401/403/404/409/422/500) transitano per questo mapper, quindi il campo è aggiunto uniformemente a ogni risposta di errore. [^src: src/backend/src/main/kotlin/com/valueinvesting/webapp/api/filter/CorrelationIdFilter.kt]
+
+### Header propagato in risposta
+
+L'header `X-Correlation-Id` viene impostato sulla response HTTP dal filter (`response.setHeader(HEADER, correlationId)`), rendendo il valore disponibile al client per le notifiche di errore (vedi [[frontend-error-notifications]]).
+
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->
 - EP-014 / [US-059](../../management/kanban/EP-014-logging-strutturato-observability/US-059-correlation-id-middleware/US-059.md) — Middleware Correlation ID end-to-end
