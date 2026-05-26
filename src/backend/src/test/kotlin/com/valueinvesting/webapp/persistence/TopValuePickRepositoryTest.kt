@@ -1,7 +1,9 @@
 package com.valueinvesting.webapp.persistence
 
+import com.valueinvesting.webapp.persistence.entity.Stock
 import com.valueinvesting.webapp.persistence.entity.TopValuePickEntity
 import com.valueinvesting.webapp.persistence.entity.TopValuePickId
+import com.valueinvesting.webapp.persistence.repository.StockRepository
 import com.valueinvesting.webapp.persistence.repository.TopValuePickRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -69,12 +71,24 @@ class TopValuePickRepositoryTest {
     @Autowired
     private lateinit var repository: TopValuePickRepository
 
+    @Autowired
+    private lateinit var stockRepository: StockRepository
+
     private val TODAY: LocalDate = LocalDate.of(2026, 5, 26)
     private val YESTERDAY: LocalDate = TODAY.minusDays(1)
 
     @BeforeEach
     fun cleanSlate() {
         repository.deleteAll()
+        stockRepository.deleteAll()
+    }
+
+    // FK top_value_picks.ticker → stocks(ticker): parent rows must exist before
+    // inserting child picks. saveAllAndFlush forces the INSERT into stocks to
+    // hit the DB now — without it, Hibernate may reorder the queued inserts
+    // and trigger the FK check before the parent rows are visible.
+    private fun seedStocks(vararg tickers: String) {
+        stockRepository.saveAllAndFlush(tickers.distinct().map { Stock(ticker = it) })
     }
 
     // -------------------------------------------------------------------------
@@ -82,6 +96,7 @@ class TopValuePickRepositoryTest {
     // -------------------------------------------------------------------------
     @Test
     fun `PK composta - saving entity with same run_date+ticker performs merge not duplicate insert`() {
+        seedStocks("AAPL")
         val entity = buildEntity(TODAY, "AAPL", rank = 1, mos = 35.0)
         repository.save(entity)
 
@@ -101,6 +116,7 @@ class TopValuePickRepositoryTest {
     fun `findByRunDateOrderByRankPositionAsc - returns all 30 entities ordered by rankPosition`() {
         // Insert 30 entities with shuffled order
         val shuffled = (1..30).shuffled()
+        seedStocks(*(1..30).map { "TICK$it" }.toTypedArray())
         shuffled.forEach { rank ->
             repository.save(buildEntity(TODAY, "TICK$rank", rank = rank, mos = (100.0 - rank)))
         }
@@ -119,6 +135,7 @@ class TopValuePickRepositoryTest {
     // -------------------------------------------------------------------------
     @Test
     fun `findByRunDateAndVerdettoClasseInOrderByRankPositionAsc - returns only matching verdicts`() {
+        seedStocks("A1", "A2", "W1", "W2")
         repository.save(buildEntity(TODAY, "A1", rank = 1, mos = 50.0, verdict = "APPROVATO"))
         repository.save(buildEntity(TODAY, "A2", rank = 2, mos = 45.0, verdict = "APPROVATO_PANIC_BUY"))
         repository.save(buildEntity(TODAY, "W1", rank = 3, mos = 20.0, verdict = "WATCHLIST"))
@@ -150,6 +167,7 @@ class TopValuePickRepositoryTest {
         val date2 = TODAY.minusDays(1)
         val date3 = TODAY
 
+        seedStocks("X1", "X2", "X3")
         repository.save(buildEntity(date1, "X1", rank = 1, mos = 10.0))
         repository.save(buildEntity(date2, "X2", rank = 1, mos = 20.0))
         repository.save(buildEntity(date3, "X3", rank = 1, mos = 30.0))
@@ -175,6 +193,7 @@ class TopValuePickRepositoryTest {
         val boundary = TODAY.minusDays(90) // on the boundary (not deleted)
         val recent = TODAY.minusDays(10) // recent
 
+        seedStocks("OLD1", "OLD2", "BOUND1", "NEW1")
         repository.save(buildEntity(old, "OLD1", rank = 1, mos = 10.0))
         repository.save(buildEntity(old, "OLD2", rank = 2, mos = 9.0))
         repository.save(buildEntity(boundary, "BOUND1", rank = 1, mos = 15.0))

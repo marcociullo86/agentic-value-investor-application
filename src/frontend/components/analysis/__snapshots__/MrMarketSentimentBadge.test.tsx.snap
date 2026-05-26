@@ -1,0 +1,137 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`MrMarketSentimentBadge > Snapshot — INDETERMINATE rendering 1`] = `
+<span
+  aria-label="Sentiment non disponibile. Indicatore tecnico RSI 14-day. Advisory — non sostituisce il giudizio fondamentale dei 13 ruleSignals."
+  class="inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium bg-slate-50 text-slate-400 border-slate-200"
+  data-signal="INDETERMINATE"
+  data-testid="mr-market-sentiment-badge"
+  role="img"
+  title="Indicatore tecnico RSI 14-day. Advisory — non sostituisce il giudizio fondamentale dei 13 ruleSignals."
+>
+  <svg
+    aria-hidden="true"
+    class="lucide lucide-activity h-4 w-4"
+    fill="none"
+    height="24"
+    stroke="currentColor"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="2"
+    viewBox="0 0 24 24"
+    width="24"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"
+    />
+  </svg>
+  <span
+    data-testid="mr-market-sentiment-badge-text"
+  >
+    Sentiment non disponibile
+  </span>
+</span>
+`;
+
+exports[`MrMarketSentimentBadge > Snapshot — NEUTRAL rendering 1`] = `
+<span
+  aria-label="Mr. Market: neutro (RSI 50.0). Indicatore tecnico RSI 14-day. Advisory — non sostituisce il giudizio fondamentale dei 13 ruleSignals."
+  class="inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium bg-slate-100 text-slate-700 border-slate-300"
+  data-signal="NEUTRAL"
+  data-testid="mr-market-sentiment-badge"
+  role="img"
+  title="Indicatore tecnico RSI 14-day. Advisory — non sostituisce il giudizio fondamentale dei 13 ruleSignals."
+>
+  <svg
+    aria-hidden="true"
+    class="lucide lucide-activity h-4 w-4"
+    fill="none"
+    height="24"
+    stroke="currentColor"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="2"
+    viewBox="0 0 24 24"
+    width="24"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"
+    />
+  </svg>
+  <span
+    data-testid="mr-market-sentiment-badge-text"
+  >
+    Mr. Market: neutro (RSI 50.0)
+  </span>
+</span>
+`;
+
+exports[`MrMarketSentimentBadge > Snapshot — OVERBOUGHT rendering 1`] = `
+<span
+  aria-label="Mr. Market: overbought (RSI 75.5). Indicatore tecnico RSI 14-day. Advisory — non sostituisce il giudizio fondamentale dei 13 ruleSignals."
+  class="inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium bg-amber-100 text-amber-900 border-amber-300"
+  data-signal="OVERBOUGHT"
+  data-testid="mr-market-sentiment-badge"
+  role="img"
+  title="Indicatore tecnico RSI 14-day. Advisory — non sostituisce il giudizio fondamentale dei 13 ruleSignals."
+>
+  <svg
+    aria-hidden="true"
+    class="lucide lucide-activity h-4 w-4"
+    fill="none"
+    height="24"
+    stroke="currentColor"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="2"
+    viewBox="0 0 24 24"
+    width="24"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"
+    />
+  </svg>
+  <span
+    data-testid="mr-market-sentiment-badge-text"
+  >
+    Mr. Market: overbought (RSI 75.5)
+  </span>
+</span>
+`;
+
+exports[`MrMarketSentimentBadge > Snapshot — OVERSOLD rendering 1`] = `
+<span
+  aria-label="Mr. Market: oversold (RSI 25.0). Indicatore tecnico RSI 14-day. Advisory — non sostituisce il giudizio fondamentale dei 13 ruleSignals."
+  class="inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium bg-blue-100 text-blue-900 border-blue-300"
+  data-signal="OVERSOLD"
+  data-testid="mr-market-sentiment-badge"
+  role="img"
+  title="Indicatore tecnico RSI 14-day. Advisory — non sostituisce il giudizio fondamentale dei 13 ruleSignals."
+>
+  <svg
+    aria-hidden="true"
+    class="lucide lucide-activity h-4 w-4"
+    fill="none"
+    height="24"
+    stroke="currentColor"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="2"
+    viewBox="0 0 24 24"
+    width="24"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"
+    />
+  </svg>
+  <span
+    data-testid="mr-market-sentiment-badge-text"
+  >
+    Mr. Market: oversold (RSI 25.0)
+  </span>
+</span>
+`;

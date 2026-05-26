@@ -3,8 +3,8 @@
  * TSK-142 · layer: qa · consumer: agent
  *
  * Mocking strategy:
- *  - All scenarios use `page.route()` to intercept API calls to
- *    `**/api/top-picks**` and return deterministic JSON fixtures.
+ *  - All scenarios use page.route() to intercept API calls matching the
+ *    glob "**\/api/top-picks**" and return deterministic JSON fixtures.
  *    The BE is NOT started in CI — fully consistent with the pattern
  *    established in deep-analysis.spec.ts (TSK-125) and
  *    search-to-analysis.spec.ts (TSK-022).

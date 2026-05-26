@@ -1,6 +1,8 @@
 package com.valueinvesting.webapp.api
 
+import com.valueinvesting.webapp.persistence.entity.Stock
 import com.valueinvesting.webapp.persistence.entity.TopValuePickEntity
+import com.valueinvesting.webapp.persistence.repository.StockRepository
 import com.valueinvesting.webapp.persistence.repository.TopValuePickRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -79,9 +81,13 @@ class TopPicksControllerIntegrationTest {
     @Autowired
     private lateinit var topValuePickRepository: TopValuePickRepository
 
+    @Autowired
+    private lateinit var stockRepository: StockRepository
+
     @BeforeEach
     fun setUp() {
         topValuePickRepository.deleteAll()
+        stockRepository.deleteAll()
         seedFixtures()
     }
 
@@ -310,7 +316,12 @@ class TopPicksControllerIntegrationTest {
         val yesterdayEntities = (1..5).map { i ->
             buildEntity(RUN_DATE_YESTERDAY, "YTICK$i", i, "APPROVATO", "Technology", (i * 10.0))
         }
-        topValuePickRepository.saveAll(todayEntities + yesterdayEntities)
+        val allEntities = todayEntities + yesterdayEntities
+        // FK top_value_picks.ticker → stocks(ticker): seed parent catalog rows first.
+        stockRepository.saveAll(
+            allEntities.map { it.ticker }.distinct().map { Stock(ticker = it) },
+        )
+        topValuePickRepository.saveAll(allEntities)
     }
 
     private fun buildEntity(
