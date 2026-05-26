@@ -14,34 +14,41 @@ const mockedLogin = authApi.login as ReturnType<typeof vi.fn>;
 const mockedLogout = authApi.logout as ReturnType<typeof vi.fn>;
 const mockedRefresh = authApi.refreshTokens as ReturnType<typeof vi.fn>;
 
+function mockDocumentCookie(): void {
+  Object.defineProperty(document, 'cookie', {
+    writable: true,
+    value: '',
+  });
+}
+
 describe('useAuthStore', () => {
   beforeEach(() => {
     useAuthStore.setState({
       accessToken: null,
-      refreshToken: null,
+      expiresAt: null,
       user: null,
+      rehydrationStatus: 'pending',
       sessionExpired: false,
     });
     mockedLogin.mockReset();
     mockedLogout.mockReset();
     mockedRefresh.mockReset();
+    mockDocumentCookie();
   });
 
   afterEach(() => {
     vi.resetAllMocks();
   });
 
-  it('starts with null tokens and user', () => {
+  it('starts with null token and user', () => {
     const state = useAuthStore.getState();
     expect(state.accessToken).toBeNull();
-    expect(state.refreshToken).toBeNull();
     expect(state.user).toBeNull();
   });
 
-  it('login stores both access and refresh tokens', async () => {
+  it('login stores access token (no refreshToken in state)', async () => {
     mockedLogin.mockResolvedValueOnce({
       accessToken: 'access-1',
-      refreshToken: 'refresh-1',
       expiresInSeconds: 900,
     });
 
@@ -49,14 +56,35 @@ describe('useAuthStore', () => {
 
     const state = useAuthStore.getState();
     expect(state.accessToken).toBe('access-1');
-    expect(state.refreshToken).toBe('refresh-1');
     expect(state.user?.email).toBe('alice@example.com');
+    expect('refreshToken' in state).toBe(false);
+  });
+
+  it('login sets isAuthenticated cookie hint', async () => {
+    mockedLogin.mockResolvedValueOnce({
+      accessToken: 'access-1',
+      expiresInSeconds: 900,
+    });
+
+    await useAuthStore.getState().login('alice@example.com', 'pw');
+
+    expect(document.cookie).toContain('isAuthenticated=true');
+  });
+
+  it('login sets rehydrationStatus to done', async () => {
+    mockedLogin.mockResolvedValueOnce({
+      accessToken: 'access-1',
+      expiresInSeconds: 900,
+    });
+
+    await useAuthStore.getState().login('alice@example.com', 'pw');
+
+    expect(useAuthStore.getState().rehydrationStatus).toBe('done');
   });
 
   it('logout clears all session state', async () => {
     useAuthStore.setState({
       accessToken: 'access-1',
-      refreshToken: 'refresh-1',
       user: { id: '1', email: 'a@b.c', displayName: null, createdAt: '' },
     });
     mockedLogout.mockResolvedValueOnce(undefined);
@@ -65,15 +93,23 @@ describe('useAuthStore', () => {
 
     const state = useAuthStore.getState();
     expect(state.accessToken).toBeNull();
-    expect(state.refreshToken).toBeNull();
     expect(state.user).toBeNull();
-    expect(mockedLogout).toHaveBeenCalledWith('refresh-1');
+    expect(mockedLogout).toHaveBeenCalledWith();
+  });
+
+  it('logout clears isAuthenticated cookie hint', async () => {
+    document.cookie = 'isAuthenticated=true; path=/; SameSite=Strict';
+    useAuthStore.setState({ accessToken: 'a', user: null });
+    mockedLogout.mockResolvedValueOnce(undefined);
+
+    await useAuthStore.getState().logout();
+
+    expect(document.cookie).toContain('max-age=0');
   });
 
   it('logout still clears state when backend logout call fails', async () => {
     useAuthStore.setState({
       accessToken: 'a',
-      refreshToken: 'r',
       user: null,
     });
     mockedLogout.mockRejectedValueOnce(new Error('network'));
@@ -81,34 +117,24 @@ describe('useAuthStore', () => {
     await useAuthStore.getState().logout();
 
     expect(useAuthStore.getState().accessToken).toBeNull();
-    expect(useAuthStore.getState().refreshToken).toBeNull();
   });
 
-  it('refresh swaps the token pair', async () => {
+  it('refresh updates access token (cookie-based, no body)', async () => {
     useAuthStore.setState({
       accessToken: 'old',
-      refreshToken: 'r-old',
       user: null,
     });
     mockedRefresh.mockResolvedValueOnce({
       accessToken: 'access-new',
-      refreshToken: 'refresh-new',
       expiresInSeconds: 900,
     });
 
     await useAuthStore.getState().refresh();
 
     expect(useAuthStore.getState().accessToken).toBe('access-new');
-    expect(useAuthStore.getState().refreshToken).toBe('refresh-new');
+    expect(mockedRefresh).toHaveBeenCalledWith();
   });
 
-  it('refresh throws when no refresh token is held', async () => {
-    await expect(useAuthStore.getState().refresh()).rejects.toThrow(
-      'No refresh token available',
-    );
-  });
-
-  // TSK-043 — session-expired flag (ADR-010 §3).
   it('starts with sessionExpired=false', () => {
     expect(useAuthStore.getState().sessionExpired).toBe(false);
   });
@@ -120,10 +146,9 @@ describe('useAuthStore', () => {
     expect(useAuthStore.getState().sessionExpired).toBe(false);
   });
 
-  it('clearSession wipes tokens and user but keeps sessionExpired untouched', () => {
+  it('clearSession wipes token and user but keeps sessionExpired untouched', () => {
     useAuthStore.setState({
       accessToken: 'a',
-      refreshToken: 'r',
       user: { id: '1', email: 'a@b.c', displayName: null, createdAt: '' },
       sessionExpired: true,
     });
@@ -132,23 +157,79 @@ describe('useAuthStore', () => {
 
     const state = useAuthStore.getState();
     expect(state.accessToken).toBeNull();
-    expect(state.refreshToken).toBeNull();
     expect(state.user).toBeNull();
-    // The 401 interceptor sets sessionExpired BEFORE calling clearSession,
-    // so clearSession must not race-reset the banner.
     expect(state.sessionExpired).toBe(true);
+  });
+
+  it('clearSession clears isAuthenticated cookie hint', () => {
+    document.cookie = 'isAuthenticated=true; path=/; SameSite=Strict';
+
+    useAuthStore.getState().clearSession();
+
+    expect(document.cookie).toContain('max-age=0');
   });
 
   it('login resets sessionExpired to false', async () => {
     useAuthStore.setState({ sessionExpired: true });
     mockedLogin.mockResolvedValueOnce({
       accessToken: 'access-2',
-      refreshToken: 'refresh-2',
       expiresInSeconds: 900,
     });
 
     await useAuthStore.getState().login('bob@example.com', 'pw');
 
     expect(useAuthStore.getState().sessionExpired).toBe(false);
+  });
+
+  describe('rehydrate', () => {
+    it('skips refresh if accessToken already present', async () => {
+      useAuthStore.setState({ accessToken: 'existing', rehydrationStatus: 'pending' });
+
+      await useAuthStore.getState().rehydrate();
+
+      expect(mockedRefresh).not.toHaveBeenCalled();
+      expect(useAuthStore.getState().rehydrationStatus).toBe('done');
+    });
+
+    it('calls refresh and restores accessToken on success', async () => {
+      mockedRefresh.mockResolvedValueOnce({
+        accessToken: 'rehydrated-token',
+        expiresInSeconds: 900,
+      });
+
+      await useAuthStore.getState().rehydrate();
+
+      expect(useAuthStore.getState().accessToken).toBe('rehydrated-token');
+      expect(useAuthStore.getState().rehydrationStatus).toBe('done');
+      expect(document.cookie).toContain('isAuthenticated=true');
+    });
+
+    it('clears state on refresh failure', async () => {
+      mockedRefresh.mockRejectedValueOnce(new Error('401'));
+
+      await useAuthStore.getState().rehydrate();
+
+      expect(useAuthStore.getState().accessToken).toBeNull();
+      expect(useAuthStore.getState().user).toBeNull();
+      expect(useAuthStore.getState().rehydrationStatus).toBe('done');
+    });
+
+    it('transitions through rehydrating status', async () => {
+      let resolveRefresh: (value: unknown) => void;
+      mockedRefresh.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveRefresh = resolve;
+        }),
+      );
+
+      const rehydratePromise = useAuthStore.getState().rehydrate();
+
+      expect(useAuthStore.getState().rehydrationStatus).toBe('rehydrating');
+
+      resolveRefresh!({ accessToken: 'tok', expiresInSeconds: 900 });
+      await rehydratePromise;
+
+      expect(useAuthStore.getState().rehydrationStatus).toBe('done');
+    });
   });
 });

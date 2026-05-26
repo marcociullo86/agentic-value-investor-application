@@ -20,6 +20,7 @@ data class AppProperties(
     data class Jwt(
         val signingSecret: String = "",
         val accessTtlMinutes: Long = 15,
+        val cookieSecure: Boolean = true,
         // Sliding TTL del refresh: l'expires_at del nuovo refresh emesso a
         // ogni /refresh riuscito viene riportato a now() + questo valore.
         val refreshSlidingTtlDays: Long = 7,

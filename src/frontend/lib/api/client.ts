@@ -7,6 +7,7 @@ import axios, {
   type InternalAxiosRequestConfig,
 } from 'axios';
 import { useAuthStore } from '@/lib/stores/useAuthStore';
+import { acquireFreshToken } from '@/lib/api/token-refresh-mutex';
 
 /**
  * Frontend HTTP client (TSK-030).
@@ -79,10 +80,6 @@ apiClient.interceptors.response.use(
       originalRequest &&
       !originalRequest._retry
     ) {
-      // If the failing call is itself /auth/refresh, the refresh chain is
-      // dead (cap reached, revoked, or sliding TTL expired — ADR-010 §3).
-      // Skip the silent-refresh attempt and surface "Sessione scaduta"
-      // immediately (TSK-043).
       const url: string = originalRequest.url ?? '';
       if (url.includes('/api/auth/refresh')) {
         const store = useAuthStore.getState();
@@ -92,15 +89,15 @@ apiClient.interceptors.response.use(
       }
       originalRequest._retry = true;
       try {
-        await useAuthStore.getState().refresh();
+        const newToken = await acquireFreshToken();
+        const headers: AxiosHeaders =
+          originalRequest.headers instanceof AxiosHeaders
+            ? originalRequest.headers
+            : new AxiosHeaders(originalRequest.headers as Record<string, string>);
+        headers.set('Authorization', `Bearer ${newToken}`);
+        originalRequest.headers = headers;
         return apiClient.request(originalRequest);
       } catch (refreshError) {
-        // Silent refresh failed: chain is unrecoverable. Clear local state
-        // and raise the banner — do NOT call logout() (no server round-trip
-        // when the server just rejected our refresh).
-        const store = useAuthStore.getState();
-        store.clearSession();
-        store.setSessionExpired(true);
         return Promise.reject(refreshError);
       }
     }

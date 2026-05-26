@@ -322,6 +322,7 @@ app:
   jwt:
     signing-secret: ${JWT_SIGNING_SECRET:}
     access-ttl-minutes: 15
+    cookie-secure: ${AUTH_COOKIE_SECURE:true}
     # ADR-010 §3 — sliding refresh con cap assoluto.
     # refresh-sliding-ttl-days: rinnovato ad ogni /refresh riuscito.
     # refresh-absolute-cap-days: cap dal `first_issued_at` (login originale).
@@ -383,6 +384,7 @@ app:
     base-url: http://localhost:0/fmp-mock
   jwt:
     signing-secret: "test-only-signing-secret-must-be-at-least-256-bits-long-xxx"
+    cookie-secure: false
 
 logging:
   level:

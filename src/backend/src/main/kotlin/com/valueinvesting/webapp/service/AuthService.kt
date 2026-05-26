@@ -2,7 +2,6 @@ package com.valueinvesting.webapp.service
 
 import com.valueinvesting.webapp.api.model.LoginRequest
 import com.valueinvesting.webapp.api.model.RegisterRequest
-import com.valueinvesting.webapp.api.model.TokenPairResponse
 import com.valueinvesting.webapp.api.model.UserProfileResponse
 import com.valueinvesting.webapp.config.AppProperties
 import com.valueinvesting.webapp.persistence.entity.RefreshToken
@@ -54,7 +53,7 @@ class AuthService(
     }
 
     @Transactional
-    fun login(request: LoginRequest): TokenPairResponse {
+    fun login(request: LoginRequest): AuthResult {
         val user = userRepository.findByEmailIgnoreCase(request.email.trim())
             ?: throw BadCredentialsException("Invalid email or password")
         if (!passwordEncoder.matches(request.password, user.passwordHash)) {
@@ -66,7 +65,7 @@ class AuthService(
     }
 
     @Transactional
-    fun refresh(refreshTokenValue: String): TokenPairResponse {
+    fun refresh(refreshTokenValue: String): AuthResult {
         val token = refreshTokenRepository.findByTokenValue(refreshTokenValue)
             ?: throw InvalidRefreshTokenException("Invalid refresh token")
         val now = Instant.now(clock)
@@ -106,7 +105,7 @@ class AuthService(
 
     // [firstIssuedAt] = null su login (catena nuova → now); valorizzato dal
     // refresh per preservare la testa della catena (ADR-010 §3).
-    private fun issueTokenPair(user: User, firstIssuedAt: Instant? = null): TokenPairResponse {
+    private fun issueTokenPair(user: User, firstIssuedAt: Instant? = null): AuthResult {
         val issued = jwtService.issueAccessToken(user.id, user.email)
         val now = Instant.now(clock)
         val slidingSeconds = appProperties.jwt.refreshSlidingTtlDays * SECONDS_PER_DAY
@@ -117,9 +116,9 @@ class AuthService(
             firstIssuedAt = firstIssuedAt ?: now,
         )
         val savedRefresh = refreshTokenRepository.save(refresh)
-        return TokenPairResponse(
+        return AuthResult(
             accessToken = issued.token,
-            refreshToken = savedRefresh.tokenValue,
+            refreshTokenValue = savedRefresh.tokenValue,
             expiresInSeconds = issued.expiresInSeconds,
         )
     }
@@ -131,6 +130,12 @@ class AuthService(
         createdAt = createdAt,
     )
 }
+
+data class AuthResult(
+    val accessToken: String,
+    val refreshTokenValue: String,
+    val expiresInSeconds: Long,
+)
 
 class EmailAlreadyRegisteredException(val email: String) :
     RuntimeException("Email already registered: $email")

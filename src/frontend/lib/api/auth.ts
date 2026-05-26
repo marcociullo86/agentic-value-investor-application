@@ -1,11 +1,14 @@
 import { apiPost } from '@/lib/api/client';
 
 /**
- * Auth API wrapper (TSK-034). Owned by Track B; thin typed surface over
- * `apiPost` so components and the store don't hardcode endpoint paths.
+ * Auth API wrapper (TSK-034, TSK-211).
+ *
+ * TSK-211: refresh token migrated to httpOnly cookie (TSK-209 BE).
+ * The FE no longer sends or receives refreshToken in JSON bodies.
+ * The browser attaches the httpOnly cookie automatically on
+ * requests to /api/auth/* (credentials: 'include' via withCredentials).
  *
  * Schema reference: design_&_architecture/api/openapi.yaml §components.schemas
- * (RegisterRequest, LoginRequest, RefreshRequest, TokenPair, UserProfile).
  */
 
 export interface RegisterRequest {
@@ -19,13 +22,8 @@ export interface LoginRequest {
   readonly password: string;
 }
 
-export interface RefreshRequest {
-  readonly refreshToken: string;
-}
-
-export interface TokenPair {
+export interface TokenResponse {
   readonly accessToken: string;
-  readonly refreshToken: string;
   readonly expiresInSeconds: number;
 }
 
@@ -47,22 +45,28 @@ export async function register(body: RegisterRequest): Promise<UserProfile> {
   return result.data;
 }
 
-export async function login(body: LoginRequest): Promise<TokenPair> {
-  const result = await apiPost<TokenPair, LoginRequest>('/api/auth/login', body);
-  return result.data;
-}
-
-export async function refreshTokens(refreshToken: string): Promise<TokenPair> {
-  const result = await apiPost<TokenPair, RefreshRequest>(
-    '/api/auth/refresh',
-    { refreshToken },
+export async function login(body: LoginRequest): Promise<TokenResponse> {
+  const result = await apiPost<TokenResponse, LoginRequest>(
+    '/api/auth/login',
+    body,
   );
   return result.data;
 }
 
-export async function logout(refreshToken: string | null): Promise<void> {
-  await apiPost<void, RefreshRequest | undefined>(
-    '/api/auth/logout',
-    refreshToken ? { refreshToken } : undefined,
-  );
+/**
+ * Refresh the access token. The httpOnly cookie carries the refresh token
+ * automatically — no body needed.
+ */
+export async function refreshTokens(): Promise<TokenResponse> {
+  const result = await apiPost<TokenResponse>('/api/auth/refresh');
+  return result.data;
+}
+
+/**
+ * Logout. The server reads the refresh token from the httpOnly cookie,
+ * revokes it, and clears the cookie via Set-Cookie max-age=0.
+ * Returns 204 No Content.
+ */
+export async function logout(): Promise<void> {
+  await apiPost<void>('/api/auth/logout');
 }

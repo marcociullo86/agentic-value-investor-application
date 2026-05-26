@@ -23,7 +23,6 @@ describe('MoatChecklist', () => {
   beforeEach(() => {
     useAuthStore.setState({
       accessToken: 'token-123',
-      refreshToken: 'r',
       user: { id: '1', email: 'a@b.c', displayName: null, createdAt: '' },
     });
     mockedFetch.mockReset();
@@ -35,7 +34,7 @@ describe('MoatChecklist', () => {
   });
 
   it('renders nothing when not authenticated', () => {
-    useAuthStore.setState({ accessToken: null, refreshToken: null, user: null });
+    useAuthStore.setState({ accessToken: null, user: null });
     const { container } = render(<MoatChecklist ticker="AAPL" />);
     expect(container.firstChild).toBeNull();
   });

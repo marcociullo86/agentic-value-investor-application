@@ -1,21 +1,20 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/lib/stores/useAuthStore';
 import { useTheme } from '@/hooks/use-theme';
+import { useLogout } from '@/hooks/use-logout';
 
 /**
- * Navbar (TSK-034 + TSK-187). Shows email + logout when authenticated,
- * otherwise links to login/register. Includes theme toggle.
+ * Navbar (TSK-034 + TSK-187 + TSK-217). Shows email + logout when
+ * authenticated, otherwise links to login/register. Includes theme toggle.
  */
 export function Navbar(): React.ReactElement {
-  const router = useRouter();
   const accessToken = useAuthStore((s) => s.accessToken);
   const user = useAuthStore((s) => s.user);
-  const logout = useAuthStore((s) => s.logout);
+  const { logout } = useLogout();
   const { theme, toggleTheme } = useTheme();
 
   const resolvedDark =
@@ -26,7 +25,6 @@ export function Navbar(): React.ReactElement {
 
   async function handleLogout(): Promise<void> {
     await logout();
-    router.push('/');
   }
 
   return (

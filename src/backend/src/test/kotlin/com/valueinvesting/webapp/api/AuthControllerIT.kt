@@ -2,12 +2,12 @@ package com.valueinvesting.webapp.api
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.valueinvesting.webapp.api.model.AccessTokenResponse
 import com.valueinvesting.webapp.api.model.LoginRequest
-import com.valueinvesting.webapp.api.model.RefreshRequest
 import com.valueinvesting.webapp.api.model.RegisterRequest
-import com.valueinvesting.webapp.api.model.TokenPairResponse
 import com.valueinvesting.webapp.persistence.repository.RefreshTokenRepository
 import com.valueinvesting.webapp.persistence.repository.UserRepository
+import jakarta.servlet.http.Cookie
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -19,15 +19,19 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.post
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 
 /**
- * Integration tests for AuthController (TSK-033). Verifies the full JWT-based
- * registration/login/refresh/logout lifecycle on a real PostgreSQL via
- * Testcontainers — no mocks.
+ * Integration tests for AuthController (TSK-033, TSK-209). Verifies the full
+ * JWT-based registration/login/refresh/logout lifecycle on a real PostgreSQL
+ * via Testcontainers — no mocks.
+ *
+ * TSK-209 (ADR-024 §3): refresh token migrated from body JSON to httpOnly
+ * cookie. Tests verify Set-Cookie headers and cookie-based refresh/logout.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -105,10 +109,10 @@ class AuthControllerIT {
     }
 
     @Test
-    fun `login with valid credentials returns access plus refresh token`() {
+    fun `login returns accessToken in body and refresh token in httpOnly cookie`() {
         register(RegisterRequest("carol@example.com", "yet-another-strong-pass-12345", null))
 
-        mockMvc.post("/api/auth/login") {
+        val result = mockMvc.post("/api/auth/login") {
             contentType = MediaType.APPLICATION_JSON
             content = objectMapper.writeValueAsString(
                 LoginRequest("carol@example.com", "yet-another-strong-pass-12345"),
@@ -116,9 +120,17 @@ class AuthControllerIT {
         }.andExpect {
             status { isOk() }
             jsonPath("$.accessToken") { exists() }
-            jsonPath("$.refreshToken") { exists() }
             jsonPath("$.expiresInSeconds") { value(15 * 60) }
-        }
+            jsonPath("$.refreshToken") { doesNotExist() }
+        }.andReturn()
+
+        val setCookie = result.response.getHeader("Set-Cookie")
+        assertThat(setCookie).isNotNull()
+        assertThat(setCookie).contains("refresh_token=")
+        assertThat(setCookie).containsIgnoringCase("HttpOnly")
+        assertThat(setCookie).containsIgnoringCase("SameSite=Strict")
+        assertThat(setCookie).contains("Path=/api/auth")
+        assertThat(setCookie).contains("Max-Age=604800")
     }
 
     @Test
@@ -137,32 +149,58 @@ class AuthControllerIT {
     }
 
     @Test
-    fun `refresh exchanges valid refresh token for new pair`() {
+    fun `refresh reads cookie and returns new access token plus rotated cookie`() {
         register(RegisterRequest("eve@example.com", "eves-strong-password-12345", null))
-        val tokenPair = login("eve@example.com", "eves-strong-password-12345")
+        val loginResult = loginReturningResult("eve@example.com", "eves-strong-password-12345")
+        val refreshCookie = extractRefreshCookie(loginResult)
 
-        mockMvc.post("/api/auth/refresh") {
-            contentType = MediaType.APPLICATION_JSON
-            content = objectMapper.writeValueAsString(RefreshRequest(tokenPair.refreshToken))
+        val refreshResult = mockMvc.post("/api/auth/refresh") {
+            cookie(Cookie(RefreshTokenCookieHelper.COOKIE_NAME, refreshCookie))
         }.andExpect {
             status { isOk() }
             jsonPath("$.accessToken") { exists() }
-            jsonPath("$.refreshToken") { exists() }
-        }
+            jsonPath("$.expiresInSeconds") { exists() }
+            jsonPath("$.refreshToken") { doesNotExist() }
+        }.andReturn()
 
-        // Old refresh token should now be revoked (rotation).
-        val rotated = refreshTokenRepository.findByTokenValue(tokenPair.refreshToken)
-        assertThat(rotated?.revokedAt).isNotNull()
+        val newSetCookie = refreshResult.response.getHeader("Set-Cookie")
+        assertThat(newSetCookie).isNotNull()
+        assertThat(newSetCookie).contains("refresh_token=")
+        assertThat(newSetCookie).containsIgnoringCase("HttpOnly")
+
+        val oldToken = refreshTokenRepository.findByTokenValue(refreshCookie)
+        assertThat(oldToken?.revokedAt).isNotNull()
     }
 
     @Test
-    fun `refresh with invalid token returns 401`() {
+    fun `refresh without cookie returns 400`() {
         mockMvc.post("/api/auth/refresh") {
             contentType = MediaType.APPLICATION_JSON
-            content = objectMapper.writeValueAsString(RefreshRequest("not-a-real-token"))
         }.andExpect {
-            status { isUnauthorized() }
+            status { isBadRequest() }
         }
+    }
+
+    @Test
+    fun `logout revokes token and clears cookie with 204`() {
+        register(RegisterRequest("frank@example.com", "franks-strong-password-12345", null))
+        val loginResult = loginReturningResult("frank@example.com", "franks-strong-password-12345")
+        val refreshCookie = extractRefreshCookie(loginResult)
+        val accessToken = extractAccessToken(loginResult)
+
+        val logoutResult = mockMvc.post("/api/auth/logout") {
+            header("Authorization", "Bearer $accessToken")
+            cookie(Cookie(RefreshTokenCookieHelper.COOKIE_NAME, refreshCookie))
+        }.andExpect {
+            status { isNoContent() }
+        }.andReturn()
+
+        val deleteCookie = logoutResult.response.getHeader("Set-Cookie")
+        assertThat(deleteCookie).isNotNull()
+        assertThat(deleteCookie).contains("Max-Age=0")
+
+        val revoked = refreshTokenRepository.findByTokenValue(refreshCookie)
+        assertThat(revoked?.revokedAt).isNotNull()
     }
 
     private fun register(request: RegisterRequest) {
@@ -172,12 +210,24 @@ class AuthControllerIT {
         }.andExpect { status { isCreated() } }
     }
 
-    private fun login(email: String, password: String): TokenPairResponse {
-        val response = mockMvc.post("/api/auth/login") {
+    private fun loginReturningResult(email: String, password: String): MvcResult {
+        val result = mockMvc.post("/api/auth/login") {
             contentType = MediaType.APPLICATION_JSON
             content = objectMapper.writeValueAsString(LoginRequest(email, password))
-        }.andReturn().response
-        check(response.status == 200) { "login failed: ${response.contentAsString}" }
-        return objectMapper.readValue(response.contentAsString, TokenPairResponse::class.java)
+        }.andReturn()
+        check(result.response.status == 200) {
+            "login failed: ${result.response.contentAsString}"
+        }
+        return result
+    }
+
+    private fun extractRefreshCookie(result: MvcResult): String {
+        val setCookie = result.response.getHeader("Set-Cookie")!!
+        return setCookie.substringAfter("refresh_token=").substringBefore(";")
+    }
+
+    private fun extractAccessToken(result: MvcResult): String {
+        val body = objectMapper.readValue(result.response.contentAsString, AccessTokenResponse::class.java)
+        return body.accessToken
     }
 }

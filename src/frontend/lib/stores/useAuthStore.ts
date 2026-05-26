@@ -7,104 +7,137 @@ import {
 } from '@/lib/api/auth';
 
 /**
- * Auth store (TSK-034 — full impl on top of the TSK-030 skeleton).
+ * Auth store (TSK-034, TSK-211 — cookie-based refresh).
  *
- * ADR-006 prefers `httpOnly` cookie for the refresh token; the current backend
- * however returns it inside the `TokenPair` JSON body (OpenAPI contract). We
- * therefore keep both `accessToken` and `refreshToken` in Zustand memory only.
- * Reloading the tab drops both — the user must re-login. The DoD explicitly
- * accepts "reload = re-login or silent refresh" (TSK-034).
+ * TSK-211: refresh token migrated to httpOnly cookie (TSK-209 BE).
+ * The FE only holds `accessToken` in Zustand memory (never persisted).
+ * On reload (F5) the in-memory token is lost; the AuthProvider bootstrap
+ * attempts `POST /api/auth/refresh` (browser sends httpOnly cookie
+ * automatically) to silently rehydrate.
+ *
+ * A non-httpOnly `isAuthenticated` cookie is set on login and cleared
+ * on logout — it serves as a hint for the Next.js Edge middleware
+ * (TSK-206) to gate protected routes without accessing the httpOnly
+ * refresh token.
  *
  * Reference: design_&_architecture/components/frontend-components.md §useAuthStore.
  */
 
 export interface AuthState {
   readonly accessToken: string | null;
-  readonly refreshToken: string | null;
+  /** Epoch ms when the current access token expires (null if unauthenticated). */
+  readonly expiresAt: number | null;
   readonly user: UserProfile | null;
   /**
-   * Set to true when the silent refresh fails with 401 (cap assoluto raggiunto
-   * o refresh token revocato/scaduto, ADR-010 §3). Toggled back to false on
-   * a successful login or when the user dismisses the banner via "Accedi".
-   * Drives the `SessionExpiredBanner` mounted in the root layout (TSK-043).
+   * Rehydration state for the bootstrap flow (AuthProvider).
+   * - 'pending': initial mount, rehydration not attempted yet
+   * - 'rehydrating': refresh call in flight
+   * - 'done': rehydration complete (success or failure)
+   */
+  readonly rehydrationStatus: 'pending' | 'rehydrating' | 'done';
+  /**
+   * Set to true when the silent refresh fails with 401 (cap assoluto
+   * raggiunto o refresh token revocato/scaduto, ADR-010 §3). Toggled
+   * back to false on a successful login or when the user dismisses
+   * the banner via "Accedi".
    */
   readonly sessionExpired: boolean;
   readonly login: (email: string, password: string) => Promise<void>;
   readonly logout: () => Promise<void>;
   readonly refresh: () => Promise<void>;
-  readonly setSession: (
-    tokens: { accessToken: string; refreshToken: string },
-    user?: UserProfile | null,
-  ) => void;
+  readonly rehydrate: () => Promise<void>;
   readonly setUser: (user: UserProfile | null) => void;
   readonly setSessionExpired: (value: boolean) => void;
-  /**
-   * Clears all session state without trying to call the backend `/logout` —
-   * used by the 401 interceptor when the refresh chain is no longer
-   * recoverable. Kept distinct from `logout()` (best-effort backend call) to
-   * avoid blocking the UX behind an HTTP round-trip on a server that just
-   * returned 401.
-   */
   readonly clearSession: () => void;
 }
 
 export type { UserProfile };
 
+function setAuthHintCookie(): void {
+  if (typeof document !== 'undefined') {
+    document.cookie = 'isAuthenticated=true; path=/; SameSite=Strict';
+  }
+}
+
+function clearAuthHintCookie(): void {
+  if (typeof document !== 'undefined') {
+    document.cookie = 'isAuthenticated=; path=/; max-age=0';
+  }
+}
+
 export const useAuthStore = create<AuthState>((set, get) => ({
   accessToken: null,
-  refreshToken: null,
+  expiresAt: null,
   user: null,
+  rehydrationStatus: 'pending',
   sessionExpired: false,
-
-  setSession: ({ accessToken, refreshToken }, user = undefined): void => {
-    set((prev) => ({
-      accessToken,
-      refreshToken,
-      user: user !== undefined ? user : prev.user,
-    }));
-  },
 
   setUser: (user: UserProfile | null): void => set({ user }),
 
   setSessionExpired: (value: boolean): void => set({ sessionExpired: value }),
 
-  clearSession: (): void =>
+  clearSession: (): void => {
+    clearAuthHintCookie();
     set({
       accessToken: null,
-      refreshToken: null,
+      expiresAt: null,
       user: null,
-    }),
+    });
+  },
 
   login: async (email: string, password: string): Promise<void> => {
-    const tokens = await apiLogin({ email, password });
+    const response = await apiLogin({ email, password });
+    setAuthHintCookie();
     set({
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
+      accessToken: response.accessToken,
+      expiresAt: Date.now() + response.expiresInSeconds * 1000,
       user: { id: '', email, displayName: null, createdAt: '' },
-      // New login always clears the "session expired" banner.
       sessionExpired: false,
+      rehydrationStatus: 'done',
     });
   },
 
   logout: async (): Promise<void> => {
-    const refreshToken = get().refreshToken;
     try {
-      await apiLogout(refreshToken);
+      await apiLogout();
     } catch {
       // Best-effort: clear local state even if the backend rejects the call.
     }
-    set({ accessToken: null, refreshToken: null, user: null });
+    clearAuthHintCookie();
+    set({ accessToken: null, user: null });
   },
 
   refresh: async (): Promise<void> => {
-    const refreshToken = get().refreshToken;
-    if (!refreshToken) {
-      throw new Error('No refresh token available');
-    }
-    const tokens = await apiRefresh(refreshToken);
+    const response = await apiRefresh();
     set({
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
+      accessToken: response.accessToken,
+      expiresAt: Date.now() + response.expiresInSeconds * 1000,
     });
+  },
+
+  rehydrate: async (): Promise<void> => {
+    if (get().accessToken) {
+      set({ rehydrationStatus: 'done' });
+      return;
+    }
+
+    set({ rehydrationStatus: 'rehydrating' });
+    try {
+      const response = await apiRefresh();
+      setAuthHintCookie();
+      set({
+        accessToken: response.accessToken,
+        expiresAt: Date.now() + response.expiresInSeconds * 1000,
+        rehydrationStatus: 'done',
+      });
+    } catch {
+      clearAuthHintCookie();
+      set({
+        accessToken: null,
+        expiresAt: null,
+        user: null,
+        rehydrationStatus: 'done',
+      });
+    }
   },
 }));

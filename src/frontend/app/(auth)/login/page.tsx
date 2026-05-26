@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -32,13 +32,26 @@ const FIELD_LABELS: Record<string, string> = {
 };
 
 /**
- * Login page (TSK-034, TSK-201). Posts to `POST /api/auth/login` via useAuthStore.
+ * Login page (TSK-034, TSK-201, TSK-207).
+ * Posts to `POST /api/auth/login` via useAuthStore.
+ * Shows a "session expired" banner when redirected with `?expired=true`.
  * Reference: design_&_architecture/components/frontend-components.md §app/(auth)/login.
  */
 export default function LoginPage(): React.ReactElement {
+  return (
+    <Suspense>
+      <LoginContent />
+    </Suspense>
+  );
+}
+
+function LoginContent(): React.ReactElement {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const login = useAuthStore((s) => s.login);
   const [serverError, setServerError] = useState<string | null>(null);
+
+  const expired = searchParams.get('expired') === 'true';
 
   const {
     register,
@@ -67,6 +80,17 @@ export default function LoginPage(): React.ReactElement {
     <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-6">
       <Card className="w-full p-6">
         <h1 className="mb-4 text-2xl font-bold">Accedi</h1>
+
+        {expired && (
+          <div
+            role="alert"
+            data-testid="session-expired-alert"
+            className="mb-4 rounded-md border border-warning/30 bg-warning/10 px-3 py-2 text-sm text-warning"
+          >
+            La tua sessione è scaduta. Effettua nuovamente l&apos;accesso.
+          </div>
+        )}
+
         <form
           className="flex flex-col gap-4"
           onSubmit={handleSubmit(onSubmit)}

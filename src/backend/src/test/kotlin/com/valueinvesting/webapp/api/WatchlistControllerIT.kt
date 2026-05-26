@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.valueinvesting.webapp.api.model.LoginRequest
 import com.valueinvesting.webapp.api.model.RegisterRequest
-import com.valueinvesting.webapp.api.model.TokenPairResponse
+import com.valueinvesting.webapp.api.model.AccessTokenResponse
 import com.valueinvesting.webapp.api.model.WatchlistItemRequest
 import com.valueinvesting.webapp.persistence.repository.RefreshTokenRepository
 import com.valueinvesting.webapp.persistence.repository.StockRepository
@@ -165,7 +165,7 @@ class WatchlistControllerIT {
             content = objectMapper.writeValueAsString(LoginRequest(email, password))
         }.andReturn().response
         check(response.status == 200) { "login failed: ${response.contentAsString}" }
-        return objectMapper.readValue(response.contentAsString, TokenPairResponse::class.java).accessToken
+        return objectMapper.readValue(response.contentAsString, AccessTokenResponse::class.java).accessToken
     }
 
     private fun addItem(token: String, ticker: String) {

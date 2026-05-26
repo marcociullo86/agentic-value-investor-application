@@ -16,7 +16,7 @@ describe('DcfOverridePanel', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    useAuthStore.setState({ accessToken: 'token', refreshToken: 'r', user: null });
+    useAuthStore.setState({ accessToken: 'token', user: null });
     vi.mocked(dcfApi.getDcfOverride).mockResolvedValue(null);
   });
 
@@ -103,7 +103,7 @@ describe('DcfOverridePanel', () => {
   });
 
   it('is hidden when user is not authenticated', () => {
-    useAuthStore.setState({ accessToken: null, refreshToken: null, user: null });
+    useAuthStore.setState({ accessToken: null, user: null });
     const { container } = render(
       <DcfOverridePanel
         ticker="AAPL"
