@@ -2,18 +2,27 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/lib/stores/useAuthStore';
+import { useTheme } from '@/hooks/use-theme';
 
 /**
- * Navbar (TSK-034). Shows email + logout when authenticated, otherwise links
- * to login/register. Mounted in the root layout.
+ * Navbar (TSK-034 + TSK-187). Shows email + logout when authenticated,
+ * otherwise links to login/register. Includes theme toggle.
  */
 export function Navbar(): React.ReactElement {
   const router = useRouter();
   const accessToken = useAuthStore((s) => s.accessToken);
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
+  const { theme, toggleTheme } = useTheme();
+
+  const resolvedDark =
+    theme === 'dark' ||
+    (theme === 'system' &&
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches);
 
   async function handleLogout(): Promise<void> {
     await logout();
@@ -21,7 +30,7 @@ export function Navbar(): React.ReactElement {
   }
 
   return (
-    <header className="border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+    <header className="border-b border-outline-variant bg-surface">
       <nav className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-3">
         <Link href="/" className="text-sm font-semibold tracking-tight">
           Value Investing
@@ -29,13 +38,13 @@ export function Navbar(): React.ReactElement {
         <div className="flex items-center gap-3 text-sm">
           <Link
             href="/screener"
-            className="text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+            className="text-on-surface/70 hover:text-on-surface"
           >
             Screener
           </Link>
           <Link
             href="/top-picks"
-            className="text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+            className="text-on-surface/70 hover:text-on-surface"
             data-testid="nav-top-picks"
           >
             Top Picks
@@ -44,13 +53,13 @@ export function Navbar(): React.ReactElement {
             <>
               <Link
                 href="/watchlist"
-                className="text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+                className="text-on-surface/70 hover:text-on-surface"
                 data-testid="nav-watchlist"
               >
                 Watchlist
               </Link>
               <span
-                className="text-slate-500"
+                className="text-on-surface/60"
                 data-testid="nav-user-email"
                 aria-label="utente autenticato"
               >
@@ -69,7 +78,7 @@ export function Navbar(): React.ReactElement {
             <>
               <Link
                 href="/login"
-                className="text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+                className="text-on-surface/70 hover:text-on-surface"
                 data-testid="nav-login"
               >
                 Accedi
@@ -79,6 +88,19 @@ export function Navbar(): React.ReactElement {
               </Button>
             </>
           )}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="ml-1 rounded-md p-2 text-on-surface/70 hover:bg-surface-container hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+            aria-label={resolvedDark ? 'Attiva tema chiaro' : 'Attiva tema scuro'}
+            data-testid="theme-toggle"
+          >
+            {resolvedDark ? (
+              <Sun className="h-4 w-4" aria-hidden="true" />
+            ) : (
+              <Moon className="h-4 w-4" aria-hidden="true" />
+            )}
+          </button>
         </div>
       </nav>
     </header>

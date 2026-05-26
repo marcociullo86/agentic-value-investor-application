@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import { ToastProvider } from '@/components/providers/ToastProvider';
+import { ThemeProvider } from '@/components/theme/theme-provider';
 import { Navbar } from '@/components/layout/Navbar';
 import { SessionExpiredBanner } from '@/components/auth/SessionExpiredBanner';
 import './globals.css';
@@ -11,6 +12,17 @@ export const metadata: Metadata = {
   description:
     'Analisi quantitative Graham/Buffett su titoli quotati USA + watchlist personale.',
 };
+
+const ANTI_FOUC_SCRIPT = `
+(function(){
+  try {
+    var t = localStorage.getItem('theme');
+    var d = (t === 'dark') ||
+            (!t && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    if (d) document.documentElement.classList.add('dark');
+  } catch(e) {}
+})();
+`;
 
 /**
  * Root layout (Next.js 16 App Router).
@@ -27,14 +39,21 @@ export default function RootLayout({
 }) {
   return (
     <html lang="it" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{ __html: ANTI_FOUC_SCRIPT }}
+        />
+      </head>
       <body>
-        <AuthProvider>
-          <ToastProvider>
-            <SessionExpiredBanner />
-            <Navbar />
-            {children}
-          </ToastProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <ToastProvider>
+              <SessionExpiredBanner />
+              <Navbar />
+              {children}
+            </ToastProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

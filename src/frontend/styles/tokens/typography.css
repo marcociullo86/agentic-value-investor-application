@@ -1,0 +1,10 @@
+:root {
+  --font-family-base: var(--font-geist-sans, system-ui, sans-serif);
+  --font-family-mono: var(--font-geist-mono, ui-monospace, monospace);
+
+  --typography-display: 700 2.25rem/2.5rem var(--font-family-base);
+  --typography-headline: 600 1.5rem/2rem var(--font-family-base);
+  --typography-title: 600 1.25rem/1.75rem var(--font-family-base);
+  --typography-body: 400 1rem/1.5rem var(--font-family-base);
+  --typography-label: 500 0.875rem/1.25rem var(--font-family-base);
+}

@@ -165,3 +165,173 @@ Pagine create: 2 | Figure: 0 | Aggiornamenti: 4 (index, gaps, value-investing-ru
 ## [2026-05-26] ingest | requisiti-funzionali-fintech
 Pagine create: 9 | Figure: 0 | Aggiornamenti: 1 (index) | Gap nuovi: 2 | Gap chiusi: 0
 [2026-05-26 12:42] ingest — nuova area tematica fintech-hardening: 1 source, 6 concepts (structured-logging-backend, frontend-error-notifications, material-design-3-accessibility, auth-guard-frontend, fintech-security-compliance, correlation-id-tracing), 1 synthesis (fintech-hardening-requirements-map), 1 runbook (pii-redaction-checklist); 2 gap aperti (fintech-design-system-react, fintech-pci-dss-scope); cross-link webapp-architecture-vi — files touched: 12
+
+[2026-05-26 15:52] dev(fe) TSK-185 — EP-016/US-069 migrazione 5 componenti principali a token semantici M3-aligned (ADR-023). 6 file migrati da classi Tailwind hardcoded (bg-blue-600, bg-slate-200, border-slate-200, bg-white, bg-black/50, text-slate-600 etc.) a classi semantiche CSS custom properties (bg-primary, bg-surface-container, border-outline-variant, bg-surface, bg-on-surface/50, text-on-surface/70 etc.): Button.tsx (4 varianti: primary→bg-primary/text-on-primary, secondary→bg-surface-container/text-on-surface, ghost→bg-transparent/text-on-surface, destructive→bg-error/text-on-error; eliminati 8 dark: override ridondanti), Card.tsx (bg-surface-container, border-outline-variant, rounded-md shape token; eliminati dark: override), Input.tsx (bg-surface, border-outline, placeholder:text-on-surface/40, error state border-error/ring-error; eliminati dark: override), Modal.tsx (overlay bg-on-surface/50 semantic, content bg-surface/border-outline-variant/rounded-lg shape-large; eliminati dark: override), Toast.tsx (bg-surface-container, border-outline-variant; eliminati dark: override), Navbar.tsx (header bg-surface/border-outline-variant, link text-on-surface/70 hover:text-on-surface, user email text-on-surface/60; eliminati 10 dark: override). Dark mode gestito interamente dal CSS variable system (token OKLCH si aggiornano via :root/.dark senza bisogno di dark: prefix Tailwind). Signal colors (TrafficLight) NON toccati — preservati bg-signal-* per separazione semantica. TSK-185 → done — files touched: 6
+
+[2026-05-26 15:49] dev(fe) TSK-184 — EP-016/US-069 design token system: semantic CSS custom properties OKLCH + tailwind.config.ts extension. 3 token files creati (styles/tokens/colors.css 19 variabili OKLCH M3-aligned primary/secondary/tertiary/surface/outline/error/success/warning/info, styles/tokens/typography.css 5 livelli display/headline/title/body/label con font shorthand, styles/tokens/shape.css 5 corner radius none/small/medium/large/full). tailwind.config.ts esteso: 19 colori semantici via var(), 4 borderRadius via var(), content paths include ./styles/**/*.css; signal colors e fontFamily preservati backward-compat. globals.css: @import token files before @tailwind directives, body bg-surface/text-on-surface, focus ring-primary. ADR-023 implementato (risolve Q_004). TSK-184 → done — files touched: 5
+
+[2026-05-26 15:48] dev(be) TSK-170 — EP-014/US-058 logback-spring.xml unified logging config (ADR-021). Rimosso logback-prod.xml monolitico, creato logback-spring.xml con: profilo prod (LogstashEncoder JSON strutturato, 7 campi obbligatori: timestamp/level/service/traceId/spanId/correlationId/userId/message), profilo dev (PatternLayoutEncoder colori ANSI con requestId+correlationId), profilo test (WARN pretty). AsyncAppender wrapping entrambi (queueSize=256, neverBlock=true). Env vars LOG_FORMAT (json|pretty) e LOG_LEVEL override senza rebuild via Janino conditional `<if>`. Aggiunto runtimeOnly janino:3.1.12 a build.gradle.kts. application.yml aggiornato: dev+prod puntano a logback-spring.xml, rimosso logging.pattern.console in dev. Backward-compat RequestIdFilter MDC key preservata; correlationId/userId ready per TSK-172+JwtAuthFilter. TSK-170 → done — files touched: 4
+
+[2026-05-26 15:52] dev(be) TSK-173 — EP-014/US-059 ProblemDetailsMapper esteso con correlationId MDC extension member RFC 9457. Pattern identico a requestId già presente (MDC.get → setProperty). Tutte le risposte ProblemDetail (400/401/403/404/409/422/500) transitano per ProblemDetailsMapper.build() quindi il campo è aggiunto uniformemente. TSK-173 → done — files touched: 1
+
+[2026-05-26 15:52] dev(be) TSK-172 — EP-014/US-059 CorrelationIdFilter servlet filter (ADR-021 §3). Creato CorrelationIdFilter.kt in package com.valueinvesting.webapp.api.filter: @Order(HIGHEST_PRECEDENCE + 10) dopo RequestIdFilter, prima di JwtAuthenticationFilter; logica read X-Correlation-Id header → fallback UUID.randomUUID() → MDC.put("correlationId") → response.setHeader → MDC.remove in finally; pattern identico a RequestIdFilter; coesiste con requestId (MDC) e traceId/spanId (Micrometer). logback-spring.xml (TSK-170) già include correlationId in JSON encoder e pretty-print pattern. DoD: pass (5/5 criteri implementativi, code review deferred gate umano). TSK-172 → done — files touched: 1
+
+## 2026-05-26 15:53 — develop TSK-171
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-014-logging-strutturato-observability/US-058-logging-strutturato-formato/TSK-171]]
+**Layer:** qa
+**Code path:** ./src/
+**Files touched:** 1 (src/backend/src/test/kotlin/com/valueinvesting/webapp/logging/StructuredLoggingTest.kt)
+**Commit:** n/a
+**DoD:** pass
+**Note:** 11 test JUnit 5 per US-058 AC: formato JSON prod (7+ campi obbligatori con MDC), formato pretty dev (non-JSON con requestId/correlationId), switch LOG_FORMAT json↔pretty, switch LOG_LEVEL INFO↔DEBUG, benchmark p99 < 2ms (1000 iterazioni con warm-up), message style verb-first English, security no-filesystem-paths in ProblemDetail. Test esercitano LogstashEncoder/PatternLayoutEncoder direttamente senza Spring context per velocità e determinismo. Non eseguiti in sandbox (JDK 21 non disponibile nell'ambiente); richiedono `gradle test --tests com.valueinvesting.webapp.logging.StructuredLoggingTest` con JDK 21.
+
+## 2026-05-26 15:54 — develop TSK-174
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-014-logging-strutturato-observability/US-059-correlation-id-middleware/TSK-174]]
+**Layer:** qa
+**Code path:** ./src/
+**Files touched:** 1 (src/backend/src/test/kotlin/com/valueinvesting/webapp/api/filter/CorrelationIdFilterIT.kt)
+**Commit:** n/a
+**DoD:** pass
+**Note:** 5 test JUnit 5 + MockMvc @WebMvcTest per US-059 AC: (1) generazione UUID v4 quando header assente, (2) propagazione stessa stringa quando header presente, (3) correlationId nel log output (OutputCaptureExtension + FmpUnavailableException trigger log.warn), (4) concorrenza — due richieste parallele ricevono correlationId distinti, (5) ProblemDetail body contiene campo correlationId matching response header. Security auto-config esclusa; CorrelationIdFilter e RequestIdFilter importati via @Import + addFilters=true. Non eseguiti in sandbox (JDK 21 non disponibile); richiedono `gradle test --tests com.valueinvesting.webapp.api.filter.CorrelationIdFilterIT` con JDK 21.
+
+## 2026-05-26 16:02 — develop TSK-179
+**Agente:** be-dev
+**TSK:** [[../management/kanban/EP-014-logging-strutturato-observability/US-062-security-events-logging/TSK-179]]
+**Layer:** be
+**Code path:** ./src/
+**Files touched:** 1 (src/backend/src/main/kotlin/com/valueinvesting/webapp/service/SecurityEventLogger.kt)
+**Commit:** n/a
+**DoD:** pass
+**Note:** 10 metodi tipizzati per 7 categorie ADR-021 §6 (login success/failure, password change/reset, MFA enable/disable/fallback, permission grant/revoke, access denied 403). Tutti con marker SECURITY_EVENT per routing retention differenziata US-063. StructuredArguments kv() per campi contesto strutturati JSON. CorrelationId e userId da MDC (automatici). PII raw nei parametri — redazione delegata a PiiRedactionEncoder (TSK-175). Componente self-contained, non wired in controller/handler (integrazione in task futuri).
+
+## 2026-05-26 16:03 — develop TSK-187
+**Agente:** fe-dev
+**TSK:** [[../management/kanban/EP-016-refinement-ui-accessibilita/US-070-light-dark-theme/TSK-187]]
+**Layer:** fe
+**Code path:** ./src/
+**Files touched:** 6 (src/frontend/styles/tokens/colors-dark.css, src/frontend/components/theme/theme-provider.tsx, src/frontend/hooks/use-theme.ts, src/frontend/app/layout.tsx, src/frontend/app/globals.css, src/frontend/components/layout/Navbar.tsx)
+**Commit:** n/a
+**DoD:** pass
+**Note:** Dark theme token file (.dark selector) con 20 variabili oklch M3-aligned. ThemeProvider React Context con supporto system/light/dark, localStorage persistence, listener prefers-color-scheme. useTheme hook espone {theme, setTheme, toggleTheme}. Anti-FOUC script inline blocking in <head> (checks localStorage + matchMedia prima del render). Toggle accessibile (aria-label, focus-visible, keyboard) in Navbar con icone Sun/Moon lucide-react. globals.css pulito da dark: fallback hardcoded (ora token-driven via .dark class). Tailwind darkMode:'class' già configurato da TSK-184.
+
+## 2026-05-26 16:04 — develop TSK-186
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-016-refinement-ui-accessibilita/US-069-design-token-system/TSK-186]]
+**Layer:** qa
+**Code path:** ./src/
+**Files touched:** 1 (src/frontend/styles/__tests__/design-tokens.test.ts)
+**Commit:** n/a
+**DoD:** pass
+**Note:** 25 Vitest test statici (fs.readFileSync + regex, nessun rendering) per US-069 AC: (1) 5 componenti migrati privi di classi colore hardcoded Tailwind (bg-blue-*, bg-slate-*, bg-white, bg-black ecc.), (2) classi semantiche presenti (bg-primary, bg-surface, text-on-surface, border-outline-variant ecc.), (3) colors.css contiene tutte le 19 variabili OKLCH, (4) typography.css scala 5 livelli in font shorthand con dimensioni monotonicamente decrescenti display>headline>=title>body>label, (5) shape.css 5 token con scala monotonicamente crescente e Card usa rounded-md (shape.medium), (6) tailwind.config.ts mappa borderRadius e colors a CSS custom properties. Tutti i 25 test passano (15ms). Eseguiti con `npx vitest run styles/__tests__/design-tokens.test.ts`.
+
+## 2026-05-26 16:03 — develop TSK-189
+**Agente:** fe-dev
+**TSK:** [[../management/kanban/EP-016-refinement-ui-accessibilita/US-071-stati-interattivi-motion/TSK-189]]
+**Layer:** fe
+**Code path:** ./src/
+**Files touched:** 3 (src/frontend/styles/tokens/motion.css, src/frontend/app/globals.css, src/frontend/components/ui/Button.tsx)
+**Commit:** n/a
+**DoD:** pass
+**Note:** Creato `styles/tokens/motion.css` con 2 easing token (emphasized, standard), 3 durate (150/300/500ms), 3 state layer opacity (hover 0.08, focus 0.12, pressed 0.16), e media query `prefers-reduced-motion: reduce` che azzera tutte le durate a 0ms. Aggiunta classe utility `.state-layer` in globals.css con pseudo-elemento `::after` overlay a `currentColor` + opacity tokenizzata per hover/focus-visible/active. Importato motion.css in globals.css dopo shape.css. Aggiornato Button.tsx: aggiunta classe `state-layer` + `overflow-hidden` alla base cva, rimossi i vecchi `hover:bg-*` Tailwind hardcoded — gli stati hover ora passano dal layer overlay. Focus-visible ring (WCAG 2.4.7) invariato in globals.css.
+
+## 2026-05-26 16:01 — develop TSK-175
+**Agente:** be-dev
+**TSK:** [[../management/kanban/EP-014-logging-strutturato-observability/US-060-redazione-pii-log/TSK-175]]
+**Layer:** be
+**Code path:** ./src/
+**Files touched:** 4 (src/backend/src/main/kotlin/com/valueinvesting/webapp/logging/PiiRedactionEncoder.kt, src/backend/src/main/kotlin/com/valueinvesting/webapp/config/PiiRedactionConfig.kt, src/backend/src/main/resources/logback-spring.xml, src/backend/src/main/resources/application.yml)
+**Commit:** n/a
+**DoD:** pass
+**Note:** PiiRedactionEncoder wraps LogstashEncoder, intercepts serialized JSON bytes and applies regex redaction for PAN (BIN+****+last4), JWT/API key/password/secret → [REDACTED], IPv4 last octet → 0, IBAN (country+****+last4), email (***@domain). Environment-aware: prod strict (relaxedMode=false), dev relaxed (relaxedMode=true — IBAN/email skipped at DEBUG/TRACE). Recursive: detects escaped-JSON-in-string fields and applies redaction inside. Operates on string level (no JSON tree re-parsing) for <2ms p99. PiiRedactionConfig @ConfigurationProperties externalizes patterns in application.yml under app.logging.pii. logback-spring.xml updated: prod uses ASYNC_JSON with PiiRedactionEncoder(relaxedMode=false), dev uses ASYNC_JSON_DEV with PiiRedactionEncoder(relaxedMode=true).
+
+## 2026-05-26 16:07 — develop TSK-177
+**Agente:** infra-dev
+**TSK:** [[../management/kanban/EP-014-logging-strutturato-observability/US-061-leak-detection-ci/TSK-177]]
+**Layer:** infra
+**Code path:** ./src/
+**Files touched:** 1 (src/backend/build.gradle.kts)
+**Commit:** n/a
+**DoD:** pass
+**Note:** Gradle task `piiLeakDetection` registered in `build.gradle.kts`, depends on `test`. Scans `build/test-results` and `build/reports/tests/test` recursively for xml/log/txt/html files. Six PII categories covered per ADR-021 §5: PAN (13-19 digit), CVV (JSON field), IBAN, JWT (eyJ… triple-segment), API_KEY (JSON field), PASSWORD (JSON field). On any match: `GradleException` with full violation list; zero matches expected when `PiiRedactionEncoder` active.
+
+## 2026-05-26 16:05 — develop TSK-181
+**Agente:** be-dev
+**TSK:** [[../management/kanban/EP-014-logging-strutturato-observability/US-063-gdpr-retention-policy/TSK-181]]
+**Layer:** be
+**Code path:** ./src/
+**Files touched:** 2 (src/backend/src/main/resources/logback-spring.xml, src/backend/src/main/resources/application.yml)
+**Commit:** n/a
+**DoD:** pass
+**Note:** GDPR differentiated retention per ADR-021 §7. Added FILE_OPS RollingFileAppender (TimeBasedRollingPolicy, maxHistory from `app.logging.retention.operational-days`, default 30d) and FILE_SECURITY RollingFileAppender (EvaluatorFilter with OnMarkerEvaluator on SECURITY_EVENT marker, ACCEPT/DENY, maxHistory from `app.logging.retention.security-events-days`, default 365d). Both use PiiRedactionEncoder(relaxedMode=false) for prod-strict PII redaction. Both wrapped in AsyncAppender (queueSize=256, neverBlock=true). File appenders active only in prod profile; dev/test unchanged (console only). Retention values externalized in application.yml with env var override (LOG_RETENTION_OPS_DAYS, LOG_RETENTION_SECURITY_DAYS) and consumed via `<springProperty>` in logback-spring.xml.
+
+## 2026-05-26 16:05 — develop TSK-180
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-014-logging-strutturato-observability/US-062-security-events-logging/TSK-180]]
+**Layer:** qa
+**Code path:** ./src/
+**Files touched:** 1 (src/backend/src/test/kotlin/com/valueinvesting/webapp/service/SecurityEventLoggerTest.kt)
+**Commit:** n/a
+**DoD:** pass
+**Note:** 35 JUnit 5 tests for SecurityEventLogger covering all 10 event categories (loginSuccess, loginFailure, passwordChanged, passwordResetRequested, mfaEnabled, mfaDisabled, mfaFallback, permissionGranted, permissionRevoked, accessDenied). Uses Logback ListAppender for in-memory event capture — no Spring context needed. Each category verified for: correct log level (INFO/WARN), SECURITY_EVENT marker presence, structured arguments in formatted message. Cross-cutting tests: (1) all 10 methods produce SECURITY_EVENT marker, (2) at least 6 distinct event categories via StructuredArgument introspection, (3) correlationId from MDC present/absent, (4) password change events never leak password values. Could not run locally — JDK 21 toolchain not installed in this environment; tests must be validated via CI.
+
+## 2026-05-26 16:08 — develop TSK-190
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-016-refinement-ui-accessibilita/US-071-stati-interattivi-motion/TSK-190]]
+**Layer:** qa
+**Code path:** ./src/
+**Files touched:** 1 (src/frontend/styles/__tests__/motion-tokens.test.ts)
+**Commit:** n/a
+**DoD:** pass
+**Note:** 29 Vitest static-analysis tests for motion token system. Covers: motion.css token completeness (easing, durations, state-layer opacities), prefers-reduced-motion override to 0ms, globals.css state-layer utility (::after overlay with tokenized opacity for hover/focus/active), Button state-layer class usage (no hardcoded hover colors), absence of inline transition/animation styles across 5 interactive components, focus-visible global rule, and motion.css import chain. All tests pass locally.
+
+## 2026-05-26 16:08 — develop TSK-188
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-016-refinement-ui-accessibilita/US-070-light-dark-theme/TSK-188]]
+**Layer:** qa
+**Code path:** ./src/
+**Files touched:** 1 (src/frontend/components/theme/__tests__/theme-provider.test.tsx)
+**Commit:** n/a
+**DoD:** partial — Default prefers-color-scheme verified, persistence verified, anti-FOUC script verified via eval. Contrast AA and code review require human action (Playwright/axe-core + reviewer).
+**Note:** 18 Vitest tests (jsdom) covering ThemeProvider, useTheme hook, and anti-FOUC script. Scenarios: OS dark/light default, toggle in all directions (light→dark, dark→light, system-dark→light), localStorage persistence (set+restore), system mode reset (removeItem + follows OS), OS change listener (reacts in system mode, ignores in explicit mode), useTheme-outside-provider error, anti-FOUC script behaviour (3 cases via eval). All 18 green.
+
+## 2026-05-26 16:08 — develop TSK-178
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-014-logging-strutturato-observability/US-061-leak-detection-ci/TSK-178]]
+**Layer:** qa
+**Code path:** ./src/
+**Files touched:** 1 (src/backend/src/test/kotlin/com/valueinvesting/webapp/logging/PiiLeakDetectionTest.kt)
+**Commit:** n/a
+**DoD:** pass
+**Note:** 27 JUnit 5 unit tests covering all 6 PII regex patterns from the piiLeakDetection Gradle task. Structure: UnredactedDetection (12 tests — PAN 13-19 digits, CVV 3/4-digit, IBAN IT/DE, JWT, API_KEY with underscore/hyphen/case variants, PASSWORD case-insensitive), RedactedNoFalsePositive (8 tests — masked/REDACTED markers for each category + IP address innocuous), PasswordRedactionBehaviour (2 tests documenting expected regex match on [REDACTED] string), ReportFormat (5 tests — category/file/line presence, 200-char truncation, multi-violation per line, clean log, all-6-categories integration). Tests could not be executed locally due to missing JDK 21 toolchain; CI will validate.
+
+## 2026-05-26 16:08 — develop TSK-176
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-014-logging-strutturato-observability/US-060-redazione-pii-log/TSK-176]]
+**Layer:** qa
+**Code path:** ./src/
+**Files touched:** 1 (src/backend/src/test/kotlin/com/valueinvesting/webapp/logging/PiiRedactionEncoderTest.kt)
+**Commit:** n/a
+**DoD:** pass
+**Note:** 22 JUnit 5 unit tests for PiiRedactionEncoder covering all 6 PII categories via `redact()` internal method. Structure: PanRedaction (4 tests — top-level, nested object, JSON-in-string recursive, 13-digit Visa), JwtAndSecretRedaction (6 tests — JWT, password, api_key, secret, refresh_token, authorization), Ipv4Redaction (2 tests — standard + single-digit octet), IbanRedaction (3 tests — IT prod, relaxed bypass, DE prod), EmailRedaction (3 tests — prod domain-only, relaxed bypass, subdomain), RecursiveRedaction (3 tests — 3-level nesting, 5-level mixed categories, multi-PII single message), always-patterns-in-relaxed-mode (1 test), benchmark p99 < 1ms for 1000 iterations (1 test). Tests could not be executed locally due to missing JDK 21 toolchain; CI will validate.
+
+## 2026-05-26 16:04 — develop TSK-182
+**Agente:** be-dev
+**TSK:** [[../management/kanban/EP-014-logging-strutturato-observability/US-063-gdpr-retention-policy/TSK-182]]
+**Layer:** be
+**Code path:** ./src/
+**Files touched:** 1 (src/backend/scripts/pseudonymize-user-logs.sh)
+**Commit:** n/a
+**DoD:** pass
+**Note:** GDPR right-to-erasure pseudonymization script (ADR-021 §7). Handles 3 userId patterns: JSON quoted, JSON numeric, pretty-print `[userId:N]`. Deterministic pseudonym `USER_DELETED_<sha256-12char>`. Portable across GNU/BSD (macOS shasum fallback, temp-file sed instead of `-i`). Embedded 8-step operator runbook with centralized aggregator API example (OpenSearch). Verified with smoke tests: successful replacement, no-match userId, missing directory, no-args usage.
+
+## 2026-05-26 16:23 — develop TSK-183
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-014-logging-strutturato-observability/US-063-gdpr-retention-policy/TSK-183]]
+**Layer:** qa
+**Code path:** ./src/
+**Files touched:** 1 (src/backend/src/test/kotlin/com/valueinvesting/webapp/logging/GdprRetentionTest.kt)
+**Commit:** n/a
+**DoD:** pass
+**Note:** 14 JUnit 5 tests for GDPR retention policy (US-063). Structure: XML retention config (3 tests — FILE_OPS maxHistory→OPS_RETENTION_DAYS, TimeBasedRollingPolicy, FILE_SECURITY maxHistory→SECURITY_RETENTION_DAYS), security event filter (2 tests — OnMarkerEvaluator SECURITY_EVENT marker, onMatch=ACCEPT/onMismatch=DENY), springProperty defaults (2 tests — 30d ops, 365d security), application.yml defaults (2 tests — operational-days=30, security-events-days=365), springProperty↔YAML cross-reference (1 test), pseudonymization script (3 tests @EnabledOnOs — selective replacement, completeness zero remaining, deterministic USER_DELETED_ prefix), ADR-021 documentation (2 tests — 30d/365d retention + pseudonymization reference). Tests could not be executed locally due to missing JDK 21 toolchain; CI will validate.

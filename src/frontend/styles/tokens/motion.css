@@ -1,0 +1,19 @@
+:root {
+  --motion-easing-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  --motion-duration-short: 150ms;
+  --motion-duration-medium: 300ms;
+  --motion-duration-long: 500ms;
+
+  --state-hover-opacity: 0.08;
+  --state-focus-opacity: 0.12;
+  --state-pressed-opacity: 0.16;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-duration-short: 0ms;
+    --motion-duration-medium: 0ms;
+    --motion-duration-long: 0ms;
+  }
+}

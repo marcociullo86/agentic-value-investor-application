@@ -1,9 +1,10 @@
 ---
 id: ADR-021
 title: Structured Logging, PII Redaction & Security Events (EP-014)
-status: proposed
+status: accepted
 created: 2026-05-26
-deciders: [lead-architect]
+accepted: 2026-05-26
+deciders: [lead-architect, simone.olivieri]
 supersedes_scope: ADR-008 §Logging (extends with PII redaction, security events, GDPR retention, formal Correlation ID)
 ---
 # ADR-021 — Structured Logging, PII Redaction & Security Events

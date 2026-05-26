@@ -1,9 +1,10 @@
 ---
 id: ADR-023
 title: "Design Token System: shadcn/ui con semantic token M3-aligned (EP-016, risolve Q_004)"
-status: proposed
+status: accepted
 created: 2026-05-26
-deciders: [lead-architect]
+accepted: 2026-05-26
+deciders: [lead-architect, simone.olivieri]
 resolves: [Q_004]
 ---
 # ADR-023 — Design Token System: shadcn/ui + Semantic Token M3-Aligned

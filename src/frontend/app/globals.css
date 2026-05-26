@@ -1,3 +1,9 @@
+@import '../styles/tokens/colors.css';
+@import '../styles/tokens/colors-dark.css';
+@import '../styles/tokens/typography.css';
+@import '../styles/tokens/shape.css';
+@import '../styles/tokens/motion.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -12,10 +18,38 @@ body {
 }
 
 body {
-  @apply bg-white text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-50;
+  @apply bg-surface text-on-surface antialiased;
 }
 
 /* Focus ring accessibile (WCAG 2.4.7) sui controlli interattivi. */
 :focus-visible {
-  @apply outline-none ring-2 ring-offset-2 ring-blue-500 dark:ring-offset-slate-950;
+  @apply outline-none ring-2 ring-offset-2 ring-primary ring-offset-surface;
+}
+
+/* State layer — overlay a opacità tokenizzata per stati interattivi (ADR-023 §6). */
+.state-layer {
+  position: relative;
+}
+
+.state-layer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: currentColor;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--motion-duration-short) var(--motion-easing-standard);
+}
+
+.state-layer:hover::after {
+  opacity: var(--state-hover-opacity);
+}
+
+.state-layer:focus-visible::after {
+  opacity: var(--state-focus-opacity);
+}
+
+.state-layer:active::after {
+  opacity: var(--state-pressed-opacity);
 }

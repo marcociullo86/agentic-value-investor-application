@@ -29,6 +29,7 @@ class ProblemDetailsMapper {
         problem.instance = request?.requestURI?.let { URI.create(it) }
         problem.setProperty("timestamp", Instant.now().toString())
         MDC.get("requestId")?.let { problem.setProperty("requestId", it) }
+        MDC.get("correlationId")?.let { problem.setProperty("correlationId", it) }
         extensions.forEach { (key, value) ->
             if (value != null) problem.setProperty(key, value)
         }

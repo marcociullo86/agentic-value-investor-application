@@ -1,0 +1,7 @@
+:root {
+  --shape-none: 0;
+  --shape-small: 0.5rem;
+  --shape-medium: 0.75rem;
+  --shape-large: 1rem;
+  --shape-full: 9999px;
+}

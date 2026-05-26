@@ -31,7 +31,7 @@ export const Toast = React.forwardRef<
   <ToastPrimitive.Root
     ref={ref}
     className={cn(
-      'pointer-events-auto flex w-full items-center justify-between gap-3 rounded-md border border-slate-200 bg-white p-4 shadow-md dark:border-slate-800 dark:bg-slate-900',
+      'pointer-events-auto flex w-full items-center justify-between gap-3 rounded-md border border-outline-variant bg-surface-container p-4 shadow-md',
       className,
     )}
     {...props}

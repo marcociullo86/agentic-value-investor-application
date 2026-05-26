@@ -84,6 +84,7 @@ dependencies {
     // Observability (Micrometer + Prometheus) [^src: design_&_architecture/decisions/ADR-008-observability-logging.md]
     implementation("io.micrometer:micrometer-registry-prometheus")
     implementation("net.logstash.logback:logstash-logback-encoder:8.0")
+    runtimeOnly("org.codehaus.janino:janino:3.1.12")
 
     // Tests — JUnit5 + Testcontainers [^src: raw/tech_stack.md §QA / Testing]
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
@@ -139,6 +140,51 @@ tasks.register<Test>("contractCheck") {
     classpath = sourceSets["test"].runtimeClasspath
     useJUnitPlatform {
         includeTags("contract")
+    }
+}
+
+// PII leak detection — scans test output for un-redacted PII after test execution.
+// Regex coverage: PAN, CVV, IBAN, JWT, API key, password (ADR-021 §5).
+// [^src: design_&_architecture/decisions/ADR-021-structured-logging-pii-redaction.md §5]
+tasks.register("piiLeakDetection") {
+    group = "verification"
+    description = "Scans test log output for un-redacted PII patterns"
+    dependsOn("test")
+
+    doLast {
+        val logDir = layout.buildDirectory.dir("test-results").get().asFile
+        val reportDir = layout.buildDirectory.dir("reports/tests/test").get().asFile
+
+        val patterns = mapOf(
+            "PAN" to Regex("\\b\\d{13,19}\\b"),
+            "CVV" to Regex("\"cvv\"\\s*:\\s*\"\\d{3,4}\"", RegexOption.IGNORE_CASE),
+            "IBAN" to Regex("\\b[A-Z]{2}\\d{2}[A-Z0-9]{4}[A-Z0-9]{7,27}\\b"),
+            "JWT" to Regex("eyJ[A-Za-z0-9_-]{10,}\\.eyJ[A-Za-z0-9_-]{10,}\\.[A-Za-z0-9_-]+"),
+            "API_KEY" to Regex("\"(api[_-]?key|apikey)\"\\s*:\\s*\"[^\"]{8,}\"", RegexOption.IGNORE_CASE),
+            "PASSWORD" to Regex("\"password\"\\s*:\\s*\"[^\"]+\"", RegexOption.IGNORE_CASE),
+        )
+
+        val violations = mutableListOf<String>()
+        sequenceOf(logDir, reportDir)
+            .filter { it.exists() }
+            .flatMap { it.walkTopDown() }
+            .filter { it.isFile && it.extension in listOf("xml", "log", "txt", "html") }
+            .forEach { file ->
+                file.readLines().forEachIndexed { lineNum, line ->
+                    patterns.forEach { (category, pattern) ->
+                        if (pattern.containsMatchIn(line)) {
+                            violations.add("[$category] ${file.name}:${lineNum + 1}: ${line.take(200)}")
+                        }
+                    }
+                }
+            }
+
+        if (violations.isNotEmpty()) {
+            violations.forEach { logger.error(it) }
+            throw GradleException("PII leak detection found ${violations.size} violation(s). See above.")
+        } else {
+            logger.lifecycle("PII leak detection: PASS (0 violations)")
+        }
     }
 }
 

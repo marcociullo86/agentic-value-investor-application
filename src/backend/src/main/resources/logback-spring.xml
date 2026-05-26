@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Unified logging config — Spring profiles + env var override (ADR-021).
+     [^src: design_&_architecture/decisions/ADR-021-structured-logging-pii-redaction.md §1] -->
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <property name="LOG_LEVEL" value="${LOG_LEVEL:-INFO}"/>
+    <property name="LOG_FORMAT" value="${LOG_FORMAT:-pretty}"/>
+    <property name="LOG_DIR" value="${LOG_DIR:-logs}"/>
+
+    <!-- Retention externalized from application.yml (ADR-021 §7, TSK-181) -->
+    <springProperty scope="context" name="OPS_RETENTION_DAYS"
+                    source="app.logging.retention.operational-days" defaultValue="30"/>
+    <springProperty scope="context" name="SECURITY_RETENTION_DAYS"
+                    source="app.logging.retention.security-events-days" defaultValue="365"/>
+
+    <!-- ===== JSON appender (prod / LOG_FORMAT=json) ===== -->
+    <!-- PiiRedactionEncoder wraps LogstashEncoder to redact PII on serialized
+         JSON before writing. relaxedMode=false (prod strict); dev override below.
+         [^src: design_&_architecture/decisions/ADR-021-structured-logging-pii-redaction.md §4] -->
+    <appender name="JSON_STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="com.valueinvesting.webapp.logging.PiiRedactionEncoder">
+            <innerEncoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeMdcKeyName>requestId</includeMdcKeyName>
+                <includeMdcKeyName>correlationId</includeMdcKeyName>
+                <includeMdcKeyName>userId</includeMdcKeyName>
+                <includeMdcKeyName>traceId</includeMdcKeyName>
+                <includeMdcKeyName>spanId</includeMdcKeyName>
+                <customFields>{"service":"value-investing-webapp"}</customFields>
+            </innerEncoder>
+            <enabled>true</enabled>
+            <relaxedMode>false</relaxedMode>
+        </encoder>
+    </appender>
+
+    <appender name="ASYNC_JSON" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>256</queueSize>
+        <neverBlock>true</neverBlock>
+        <appender-ref ref="JSON_STDOUT"/>
+    </appender>
+
+    <!-- ===== JSON appender (dev — relaxedMode for IBAN/email at DEBUG) ===== -->
+    <appender name="JSON_STDOUT_DEV" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="com.valueinvesting.webapp.logging.PiiRedactionEncoder">
+            <innerEncoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeMdcKeyName>requestId</includeMdcKeyName>
+                <includeMdcKeyName>correlationId</includeMdcKeyName>
+                <includeMdcKeyName>userId</includeMdcKeyName>
+                <includeMdcKeyName>traceId</includeMdcKeyName>
+                <includeMdcKeyName>spanId</includeMdcKeyName>
+                <customFields>{"service":"value-investing-webapp"}</customFields>
+            </innerEncoder>
+            <enabled>true</enabled>
+            <relaxedMode>true</relaxedMode>
+        </encoder>
+    </appender>
+
+    <appender name="ASYNC_JSON_DEV" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>256</queueSize>
+        <neverBlock>true</neverBlock>
+        <appender-ref ref="JSON_STDOUT_DEV"/>
+    </appender>
+
+    <!-- ===== Pretty-print appender (dev / LOG_FORMAT=pretty) ===== -->
+    <appender name="PRETTY_STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%clr(%d{HH:mm:ss.SSS}){faint} %clr(%-5level) %clr([%X{requestId:-}]){magenta} %clr([%X{correlationId:-}]){blue} %clr(%logger{36}){cyan} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="ASYNC_PRETTY" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>256</queueSize>
+        <neverBlock>true</neverBlock>
+        <appender-ref ref="PRETTY_STDOUT"/>
+    </appender>
+
+    <!-- ===== Operational file appender (prod, 30d retention — ADR-021 §7, TSK-181) ===== -->
+    <appender name="FILE_OPS" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/app.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/app.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>${OPS_RETENTION_DAYS}</maxHistory>
+        </rollingPolicy>
+        <encoder class="com.valueinvesting.webapp.logging.PiiRedactionEncoder">
+            <innerEncoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeMdcKeyName>requestId</includeMdcKeyName>
+                <includeMdcKeyName>correlationId</includeMdcKeyName>
+                <includeMdcKeyName>userId</includeMdcKeyName>
+                <includeMdcKeyName>traceId</includeMdcKeyName>
+                <includeMdcKeyName>spanId</includeMdcKeyName>
+                <customFields>{"service":"value-investing-webapp"}</customFields>
+            </innerEncoder>
+            <enabled>true</enabled>
+            <relaxedMode>false</relaxedMode>
+        </encoder>
+    </appender>
+
+    <appender name="ASYNC_FILE_OPS" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>256</queueSize>
+        <neverBlock>true</neverBlock>
+        <appender-ref ref="FILE_OPS"/>
+    </appender>
+
+    <!-- ===== Security-events file appender (prod, 365d retention — ADR-021 §7, TSK-181) ===== -->
+    <appender name="FILE_SECURITY" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+            <evaluator class="ch.qos.logback.classic.boolex.OnMarkerEvaluator">
+                <marker>SECURITY_EVENT</marker>
+            </evaluator>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <file>${LOG_DIR}/security.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/security.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>${SECURITY_RETENTION_DAYS}</maxHistory>
+        </rollingPolicy>
+        <encoder class="com.valueinvesting.webapp.logging.PiiRedactionEncoder">
+            <innerEncoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeMdcKeyName>requestId</includeMdcKeyName>
+                <includeMdcKeyName>correlationId</includeMdcKeyName>
+                <includeMdcKeyName>userId</includeMdcKeyName>
+                <includeMdcKeyName>traceId</includeMdcKeyName>
+                <includeMdcKeyName>spanId</includeMdcKeyName>
+                <customFields>{"service":"value-investing-webapp"}</customFields>
+            </innerEncoder>
+            <enabled>true</enabled>
+            <relaxedMode>false</relaxedMode>
+        </encoder>
+    </appender>
+
+    <appender name="ASYNC_FILE_SECURITY" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>256</queueSize>
+        <neverBlock>true</neverBlock>
+        <appender-ref ref="FILE_SECURITY"/>
+    </appender>
+
+    <!-- ===== Profile-based activation with LOG_FORMAT env override ===== -->
+
+    <!-- prod profile: JSON unless LOG_FORMAT=pretty; file appenders always active (TSK-181) -->
+    <springProfile name="prod">
+        <if condition='property("LOG_FORMAT").equals("pretty")'>
+            <then>
+                <root level="${LOG_LEVEL}">
+                    <appender-ref ref="ASYNC_PRETTY"/>
+                    <appender-ref ref="ASYNC_FILE_OPS"/>
+                    <appender-ref ref="ASYNC_FILE_SECURITY"/>
+                </root>
+            </then>
+            <else>
+                <root level="${LOG_LEVEL}">
+                    <appender-ref ref="ASYNC_JSON"/>
+                    <appender-ref ref="ASYNC_FILE_OPS"/>
+                    <appender-ref ref="ASYNC_FILE_SECURITY"/>
+                </root>
+            </else>
+        </if>
+        <logger name="com.valueinvesting" level="${LOG_LEVEL}"/>
+    </springProfile>
+
+    <!-- dev profile (default): pretty unless LOG_FORMAT=json -->
+    <springProfile name="dev | default">
+        <if condition='property("LOG_FORMAT").equals("json")'>
+            <then>
+                <root level="${LOG_LEVEL}">
+                    <appender-ref ref="ASYNC_JSON_DEV"/>
+                </root>
+            </then>
+            <else>
+                <root level="${LOG_LEVEL}">
+                    <appender-ref ref="ASYNC_PRETTY"/>
+                </root>
+            </else>
+        </if>
+        <logger name="com.valueinvesting" level="DEBUG"/>
+    </springProfile>
+
+    <!-- test profile: pretty, WARN root -->
+    <springProfile name="test">
+        <root level="WARN">
+            <appender-ref ref="ASYNC_PRETTY"/>
+        </root>
+        <logger name="com.valueinvesting" level="INFO"/>
+    </springProfile>
+
+</configuration>
