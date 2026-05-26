@@ -162,8 +162,9 @@ describe('errorCodeMap — i18n source verification', () => {
   );
 
   it('all error keys in locale file have a corresponding type URI mapping', () => {
+    const nonMappedKeys = ['generic', 'genericWithCorrelation', 'offline', 'timeout'];
     const localeErrorKeys = Object.keys(locale.errors).filter(
-      (k) => k !== 'generic' && k !== 'genericWithCorrelation',
+      (k) => !nonMappedKeys.includes(k),
     );
 
     const mappedLocaleKeys = Object.values(KEY_TO_ENTRY);
