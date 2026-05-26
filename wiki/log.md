@@ -483,3 +483,8 @@ Pagine create: 0 | Figure: 0 | Aggiornamenti: 2 | Gap nuovi: 0 | Gap chiusi: 0
 
 [2026-05-26 17:20] ingest — [[frontend-error-notifications]] aggiornata con §Aggiornamenti EP-015 Sprint 13 (11 TSK, ADR-022) — files touched: 1
 [2026-05-26 17:20] ingest — [[material-design-3-accessibility]] aggiornata con §US-072 audit WCAG completata (TSK-191/192/193) — files touched: 1
+
+## [2026-05-26 18:38] ingest | wiki update fix CI post-Sprint 12/13
+Pagine create: 0 | Figure: 0 | Aggiornamenti: 1 | Gap nuovi: 0 | Gap chiusi: 0
+
+[2026-05-26 18:38] ingest — [[frontend-error-notifications]] aggiornata con §Fix CI post-Sprint 12/13 (4 commit: TS strict error-code-map, E2E confirmPassword + mock routes, notification-container non-null assertion) — files touched: 1

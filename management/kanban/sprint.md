@@ -497,7 +497,7 @@ dichiarazione formale PCI-DSS non applicabile. ADR-025. DB: mfa_secrets + login_
 
 | Release | Sprint | infra | db | be | fe | qa | Totale | Stato |
 |---------|--------|-------|-----|-----|-----|-----|--------|-------|
-| R1.0 | 1–4 | 2 | 7 | 23 | 13 | 7 | **49** | done |
+| R1.0 | 1–4 | 2 | 6 | 22 | 12 | 7 | **49** | done |
 | R1.1 | 5 | 5 | 0 | 7 | 3 | 8 | **23** | 22 done, 1 todo (TSK-071) |
 | R1.1.x | 5.5 | 0 | 0 | 3 | 2 | 7 | **12** | done |
 | R2.0 | 6 | 0 | 1 | 8 | 1 | 8 | **18** | done |
@@ -510,40 +510,39 @@ dichiarazione formale PCI-DSS non applicabile. ADR-025. DB: mfa_secrets + login_
 | R3.0 | 13 | 0 | 0 | 0 | 6 | 5 | **11** | done |
 | R3.0 | 14 | 0 | 0 | 2 | 7 | 5 | **14** | todo |
 | R3.0 | 15 | 0 | 2 | 8 | 2 | 7 | **19** | todo |
-| | **TOTALE** | **10** | **17** | **85** | **48** | **80** | **237** | 214 done, 1 todo (R1.1), 22 todo (R3.0) |
+| | **TOTALE** | **10** | **16** | **84** | **47** | **80** | **237** | 203 done, 1 todo (R1.1), 33 todo (R3.0) |
 
 ---
 
 ## Ordinamento raccomandato e parallelismo
 
 ```
-Sprint 11 (EP-014 Logging, BE-heavy)  ═══╗
-                                          ╠══► Sprint 13 (EP-015 Notifications, FE)
-Sprint 12 (EP-016 Design Tokens, FE-heavy)╝        │
-                                                    ▼
-                                            Sprint 14 (EP-017 Session/Routes, FE+BE)
-                                                    │
-                                                    ▼
-                                            Sprint 15 (EP-018 Security, BE+FE+DB)
+Sprint 11 (EP-014) ✅ ═══╗
+                          ╠══► Sprint 13 (EP-015) ✅
+Sprint 12 (EP-016) ✅ ═══╝        │
+                                   ▼
+                           Sprint 14 (EP-017) ◄── CORRENTE
+                                   │
+                                   ▼
+                           Sprint 15 (EP-018)
 ```
 
-**Sprint 11 e 12** possono essere sviluppati **in parallelo** (layer diversi: BE vs FE).
-**Sprint 13** richiede output di entrambi (Correlation ID + design tokens).
-**Sprint 14** è indipendente ma logicamente segue il consolidamento auth.
-**Sprint 15** dipende da Sprint 14 per la CSRF protection sugli endpoint cookie-based.
+**Sprint 11, 12, 13** completati. Dipendenze cross-sprint soddisfatte.
+**Sprint 14** è il prossimo: FE-heavy (7 fe) + BE (2 be) + QA (5 qa).
+**Sprint 15** dipende da Sprint 14 per la CSRF protection sugli endpoint cookie-based (TSK-209 → TSK-223).
 
 ---
 
 ## Dipendenze cross-sprint (R3.0)
 
 ```
-Sprint 11 → Sprint 13:
+Sprint 11 → Sprint 13: ✅ SODDISFATTA
   TSK-172 (CorrelationIdFilter) ──→ TSK-195 (NotificationToast correlationId)
 
-Sprint 12 → Sprint 13:
+Sprint 12 → Sprint 13: ✅ SODDISFATTA
   TSK-184 (design tokens) ──→ TSK-203 (hardening a11y contrasto)
 
-Sprint 14 → Sprint 15:
+Sprint 14 → Sprint 15: ⏳ ATTIVA
   TSK-209 (cookie httpOnly auth) ──→ TSK-223 (CSRF per cookie endpoints)
 ```
 
@@ -553,10 +552,25 @@ Sprint 14 → Sprint 15:
 
 **Sprint corrente:** Sprint 14 (EP-017 Protezione Rotte e Sessione).
 
-**Parallelismo possibile:**
-- fe-dev: TSK-205 (route-config) + TSK-206 (AuthGuard middleware) in parallelo
-- be-dev: TSK-209 (cookie httpOnly auth) indipendente da FE
-- qa-dev: TSK-208, TSK-212 dopo i rispettivi FE/BE
+**Wave 1 (avvio parallelo):**
+- fe-dev: TSK-205 (route-config.ts mappa rotte dichiarativa)
+- be-dev: TSK-209 (AuthController migrazione cookie httpOnly) + TSK-210 (OpenAPI cleanup)
+
+**Wave 2 (dipende da Wave 1):**
+- fe-dev: TSK-206 (AuthGuard middleware, richiede TSK-205) + TSK-207 (pagina /403)
+- fe-dev: TSK-211 (useAuthStore aggiornato, richiede TSK-209 BE)
+- qa-dev: TSK-208 (QA AuthGuard + route map, dopo TSK-205 + TSK-206)
+
+**Wave 3 (dipende da Wave 2):**
+- fe-dev: TSK-213 (useTokenRefresh hook, richiede TSK-211)
+- fe-dev: TSK-215 (IdleTimeoutProvider)
+- qa-dev: TSK-212 (QA storage, dopo TSK-211)
+
+**Wave 4 (chiusura):**
+- fe-dev: TSK-217 (useLogout hook, richiede TSK-211 + TSK-215)
+- qa-dev: TSK-214, TSK-216, TSK-218
+
+**Primo `/dev` suggerito:** `TSK-205` (fe-dev) e `TSK-209` (be-dev) in parallelo.
 
 **Residuo R1.1:** TSK-071 resta `todo` (blocked su gap `fmp-stable-rate-limiting`).
 

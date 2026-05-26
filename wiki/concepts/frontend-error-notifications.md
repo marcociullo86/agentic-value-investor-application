@@ -3,7 +3,7 @@ type: concept
 sources: ["raw/requisiti-funzionali-fintech.md"]
 status: draft
 created: 2026-05-26
-updated: 2026-05-26 (v2026-05-26 EP-015 completata Sprint 13)
+updated: 2026-05-26 (v2026-05-26 fix CI post-Sprint 12/13)
 tags: [frontend, error-handling, accessibility, wcag, toast, notifications, fintech]
 ---
 # Sistema di Notifiche Errori Frontend
@@ -126,6 +126,26 @@ Copertura QA: 12 test (TSK-202) — inline error, aria-describedby, summary rend
 Warning color light-mode corretto da `oklch(0.70)` a `oklch(0.62)` per raggiungere contrasto ≥ 3:1 contro surface-container. Aggiunto `data-auto-dismiss-duration` per testabilità. Contrasto verificato strumentalmente: testo 16.9:1 / 13.2:1, icone/bordi ≥ 3.1:1 entrambi i temi.
 
 Copertura QA: 24 test (TSK-204) — axe-core audit 4 livelli, screen reader roles, contrasto token OKLCH, auto-dismiss timing, Esc dismiss, distinguibilità senza colore.
+
+### Fix CI post-Sprint 12/13 — TypeScript strict + allineamento test E2E
+
+Dopo il completamento di Sprint 12 e Sprint 13, 4 commit di fix CI hanno risolto errori emersi dal build Docker con TypeScript strict e dall'aggiornamento dei mock E2E:
+
+**TypeScript strict (`error-code-map.ts` / `getErrorI18n`):**
+- `resolveI18nEntry`: `split('.')` restituisce `string[]` e la chiave di accesso poteva risultare `undefined` — risolto con guard espliciti. [^src: src/frontend/lib/errors/error-code-map.ts]
+- `getErrorI18n`: `errorCodeMap[type]` restituisce `string | undefined` — riscritto con nullish coalescing (`??`) per garantire tipo `string` in input a `resolveI18nEntry`. [^src: src/frontend/lib/errors/error-code-map.ts]
+
+**Test bidirezionale i18n (`error-code-map.test.ts`):**
+- TSK-199 ha aggiunto chiavi `offline` e `timeout` in `locales/it.json` come categorie di rete (non ProblemDetail `type` URI) — il test di copertura bidirezionale falliva aspettandosi un mapping corrispondente in `errorCodeMap`. Fix: filtro esplicito per escludere le chiavi di categoria network dalla verifica. [^src: src/frontend/lib/errors/__tests__/error-code-map.test.ts]
+
+**E2E Playwright:**
+- `auth-watchlist.spec.ts`: aggiunto fill del campo `confirmPassword` introdotto dalla migrazione form a React Hook Form + Zod (TSK-201). [^src: src/frontend/e2e/auth-watchlist.spec.ts]
+- `accessibility-keyboard.spec.ts`: allineate mock routes agli endpoint reali (`/api/watchlist/items` POST, `/api/watchlist/items/*` DELETE) con shape `WatchlistItem` completa. [^src: src/frontend/e2e/accessibility-keyboard.spec.ts]
+
+**Notification container (TypeScript strict):**
+- `notification-container.tsx`: aggiunto non-null assertion per `mostRecent` dopo length check — errore strict solo in ambiente Docker. [^src: src/frontend/components/notifications/notification-container.tsx]
+
+**Stato CI finale:** FE vitest pass, Playwright E2E (mocked + real BE) pass, BE gradle pass, contract-check pass.
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->
