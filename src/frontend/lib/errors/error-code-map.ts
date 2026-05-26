@@ -21,10 +21,14 @@ const FALLBACK_KEY = 'errors.generic';
 const FALLBACK_KEY_WITH_CORRELATION = 'errors.genericWithCorrelation';
 
 function resolveI18nEntry(key: string): ErrorEntry {
-  const [namespace, entryKey] = key.split('.');
-  const section = locale[namespace as keyof typeof locale] as
-    | Record<string, ErrorEntry>
-    | undefined;
+  const parts = key.split('.');
+  const namespace = parts[0] as keyof typeof locale | undefined;
+  const entryKey = parts[1];
+  if (!namespace || !entryKey) {
+    return { title: 'Errore', message: key };
+  }
+
+  const section = locale[namespace] as Record<string, ErrorEntry> | undefined;
 
   if (!section || !section[entryKey]) {
     return { title: 'Errore', message: key };
