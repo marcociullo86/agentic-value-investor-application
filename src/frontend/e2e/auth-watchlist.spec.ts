@@ -42,6 +42,7 @@ test.describe('auth + watchlist', () => {
     await page.goto('/register');
     await page.getByTestId('register-email').fill(email);
     await page.getByTestId('register-password').fill(STRONG_PASSWORD);
+    await page.getByTestId('register-confirm-password').fill(STRONG_PASSWORD);
     await page.getByTestId('register-displayname').fill('E2E User');
     await page.getByTestId('register-submit').click();
 

@@ -15,7 +15,7 @@ export function NotificationContainer() {
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape' && notifications.length > 0) {
-        const mostRecent = notifications[notifications.length - 1];
+        const mostRecent = notifications[notifications.length - 1]!;
         removeNotification(mostRecent.id);
       }
     }

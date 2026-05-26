@@ -73,21 +73,44 @@ async function mockWatchlistRoutes(page: Page): Promise<void> {
   let watchlist: string[] = [];
 
   await page.route('**/api/watchlist', (route) => {
-    const method = route.request().method();
-    if (method === 'GET') {
+    if (route.request().method() === 'GET') {
       return route.fulfill({
-        json: { items: watchlist.map((t) => ({ ticker: t, addedAt: new Date().toISOString() })) },
+        json: {
+          id: 'default',
+          name: 'Default',
+          isDefault: true,
+          items: watchlist.map((t) => ({
+            ticker: t,
+            companyName: null,
+            sector: null,
+            marketCapUsd: null,
+            addedAt: new Date().toISOString(),
+          })),
+        },
       });
-    }
-    if (method === 'POST') {
-      const body = route.request().postDataJSON() as { ticker: string } | null;
-      if (body?.ticker) watchlist.push(body.ticker);
-      return route.fulfill({ status: 201, json: { ticker: body?.ticker } });
     }
     return route.fulfill({ status: 200 });
   });
 
-  await page.route('**/api/watchlist/*', (route) => {
+  await page.route('**/api/watchlist/items', (route) => {
+    if (route.request().method() === 'POST') {
+      const body = route.request().postDataJSON() as { ticker: string } | null;
+      if (body?.ticker) watchlist.push(body.ticker);
+      return route.fulfill({
+        status: 201,
+        json: {
+          ticker: body?.ticker,
+          companyName: null,
+          sector: null,
+          marketCapUsd: null,
+          addedAt: new Date().toISOString(),
+        },
+      });
+    }
+    return route.fulfill({ status: 200 });
+  });
+
+  await page.route('**/api/watchlist/items/*', (route) => {
     if (route.request().method() === 'DELETE') {
       const url = route.request().url();
       const ticker = url.split('/').pop();
