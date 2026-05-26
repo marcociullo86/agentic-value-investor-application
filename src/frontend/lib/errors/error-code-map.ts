@@ -63,12 +63,10 @@ export function getErrorI18n(
   type: string,
   correlationId?: string,
 ): { title: string; message: string; cta?: string } {
-  const isMapped = type in errorCodeMap;
-  const key = isMapped
-    ? errorCodeMap[type]
-    : correlationId
-      ? FALLBACK_KEY_WITH_CORRELATION
-      : FALLBACK_KEY;
+  const mappedKey = errorCodeMap[type];
+  const key = mappedKey
+    ?? (correlationId ? FALLBACK_KEY_WITH_CORRELATION : FALLBACK_KEY);
+  const isMapped = mappedKey !== undefined;
 
   const entry = resolveI18nEntry(key);
 
