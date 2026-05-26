@@ -1,21 +1,25 @@
 <!-- generated, do not edit — rigenerato da tpm ad ogni run -->
 ---
 id: sprint
-title: Sprint Plan — R1.0 MVP + R1.1 + R1.1.x hotfix + R2.0
-generated: 2026-05-25
+title: Sprint Plan — R1.0 MVP + R1.1 + R1.1.x + R2.0 + R2.1 + R3.0 Fintech Hardening
+generated: 2026-05-26
 tpm: tpm
-release: R2.0 (R1.1.x hotfix in corso)
+release: R3.0 (EP-014..018 — fintech hardening, logging, notifications, design tokens, auth, security)
 r10_closed: 2026-05-22
-r11_closed: TBD
+r11_closed: 2026-05-23
+r11x_closed: 2026-05-26
+r20_closed: 2026-05-26
+r21_closed: 2026-05-26
+r30_target: TBD
 ---
 # Sprint Plan
 
 > **R1.0 MVP chiuso:** Sprint 1–4 completati (49/49 TSK `done`, 20/20 US, 6/6 EP).
-> **R1.1 attivo:** Sprint 5 — 22 TSK nuovi (TSK-050…072); Sprint 6 lookahead (ex) incluso.
-> **R1.1.x hotfix:** Sprint 5.5 — 12 TSK nuovi (TSK-143…154); EP-007 fase 2 riaperto; fix bug rule engine produzione (DCF per-share, ROE/ROIC mapping, FE date display).
-> **R2.0 pianificato:** Sprint 6–9 — 79 TSK nuovi (TSK-073…163); 21 US nuove (US-032…055), 3 EP (EP-010…012).
-> Ordine suggerito PM: **Sprint 5.5 (EP-007 fase 2 hotfix)** → **EP-010 (Sprint 6)** → **EP-011 BE (Sprint 7)** → **EP-011 FE (Sprint 8)** → **EP-012 (Sprint 9)**.
-> **Aggiornamento 2026-05-25:** aggiunti TSK-155…163 (ADR-019 LLM cost budget telemetry + ADR-020 ROE dual lookback). TSK-155/156/160/161/162/163 in Sprint 7; TSK-157/158/159 in Sprint 8.
+> **R1.1 chiuso:** Sprint 5 — 22/23 TSK `done`; unico residuo TSK-071 `todo` (blocked su gap `fmp-stable-rate-limiting`).
+> **R1.1.x hotfix chiuso:** Sprint 5.5 — 12/12 TSK `done`. US-052, US-053, US-054 completate.
+> **R2.0 chiuso:** Sprint 6–9 completati — 79/79 TSK `done`, 21/21 US, 3/3 EP (EP-010, EP-011, EP-012).
+> **R2.1 chiuso:** Sprint 10 — EP-013 Mr. Market Context Flags — 6/6 TSK `done`, 2/2 US (US-056, US-057).
+> **R3.0 pianificato:** Sprint 11–15 — 68 TSK `todo`, 25 US, 5 EP (EP-014..018). ADR-021..025 status: `proposed`.
 
 ---
 
@@ -91,8 +95,6 @@ moat checklist → watchlist + auth.
 | TSK-035 | FE WatchlistPage + WatchlistTable + AddToWatchlistButton | fe | agent | S | done |
 | TSK-036 | QA E2E Playwright: auth + watchlist | qa | agent | XS | done |
 
-**Nota riconciliazione Sprint 3:** TSK-033 implementa register/login/refresh/logout e il mapping 409 nella DoD. Tuttavia i gap ADR-010 (GlobalExceptionHandler RFC 9457, sliding refresh, property configurabili) non erano stati completamente coperti → delta in Sprint 4 (TSK-039, TSK-040, TSK-041, TSK-042). TSK-018 implementa DcfOverride con auth reale (stub X-User-Id rimosso da TSK-033/034/035) → stato `done`, confermato. I gap ADR-011 (GET endpoint, feasibility, dcfMethodSource, Vary) coperti da Sprint 4.
-
 ---
 
 ## Sprint 4 — Delta ADR-010 + ADR-011: auth consolidation + DCF override completo
@@ -101,21 +103,21 @@ moat checklist → watchlist + auth.
 contract-test generic error, banner FE sessione scaduta) e implementare US-020 (ADR-011:
 GET override, feasibility 422, dcfMethodSource, Vary header, FE panel, OpenAPI).
 
-**Stato:** COMPLETATO (merge `sprint4/dcf-overrides` PR #2 + `sprint4/auth-consolidation` PR #3).
+**Stato:** COMPLETATO.
 
-| TSK | Titolo | Layer | Consumer | Estimate | Depends on | Status |
-|-----|--------|-------|----------|----------|------------|--------|
-| TSK-040 | DB V009: add first_issued_at to refresh_tokens | db | agent | XS | TSK-033 | done |
-| TSK-039 | BE GlobalExceptionHandler: 409 email-already-registered | be | agent | S | TSK-033 | done |
-| TSK-041 | BE AuthService: sliding refresh TTL 7d + cap 30d | be | agent | M | TSK-033, TSK-040 | done |
-| TSK-044 | BE DcfOverrideController: GET /api/dcf-overrides/{ticker} | be | agent | S | TSK-018, TSK-033 | done |
-| TSK-045 | BE DcfFeasibilityCheck + DcfMethodUnfeasibleException + 422 | be | agent | M | TSK-018 | done |
-| TSK-046 | BE AnalyzeTickerService: auth-aware + dcfMethodSource + Vary | be | agent | M | TSK-018, TSK-033, TSK-044 | done |
-| TSK-042 | QA Contract-test: generic-error login + 409 register OpenAPI | qa | agent | S | TSK-039, TSK-041 | done |
-| TSK-047 | QA Contract-test: 4 path US-020 (USER_OVERRIDE, DEFAULT_POLICY x2, Vary, 422) | qa | agent | S | TSK-044, TSK-045, TSK-046 | done |
-| TSK-049 | BE OpenAPI: GET dcf-overrides, 422, dcfMethodSource, Vary | be | agent | XS | TSK-044, TSK-045, TSK-046 | done |
-| TSK-043 | FE useAuthStore: gestione 401 + banner sessione scaduta | fe | agent | S | TSK-034, TSK-041 | done |
-| TSK-048 | FE DcfOverridePanel: badge source + form override + 422 inline | fe | agent | M | TSK-044, TSK-046, TSK-034 | done |
+| TSK | Titolo | Layer | Consumer | Estimate | Status |
+|-----|--------|-------|----------|----------|--------|
+| TSK-040 | DB V009: add first_issued_at to refresh_tokens | db | agent | XS | done |
+| TSK-039 | BE GlobalExceptionHandler: 409 email-already-registered | be | agent | S | done |
+| TSK-041 | BE AuthService: sliding refresh TTL 7d + cap 30d | be | agent | M | done |
+| TSK-044 | BE DcfOverrideController: GET /api/dcf-overrides/{ticker} | be | agent | S | done |
+| TSK-045 | BE DcfFeasibilityCheck + DcfMethodUnfeasibleException + 422 | be | agent | M | done |
+| TSK-046 | BE AnalyzeTickerService: auth-aware + dcfMethodSource + Vary | be | agent | M | done |
+| TSK-042 | QA Contract-test: generic-error login + 409 register OpenAPI | qa | agent | S | done |
+| TSK-047 | QA Contract-test: 4 path US-020 (USER_OVERRIDE, DEFAULT_POLICY x2, Vary, 422) | qa | agent | S | done |
+| TSK-049 | BE OpenAPI: GET dcf-overrides, 422, dcfMethodSource, Vary | be | agent | XS | done |
+| TSK-043 | FE useAuthStore: gestione 401 + banner sessione scaduta | fe | agent | S | done |
+| TSK-048 | FE DcfOverridePanel: badge source + form override + 422 inline | fe | agent | M | done |
 
 ---
 
@@ -124,91 +126,69 @@ GET override, feasibility 422, dcfMethodSource, Vary header, FE panel, OpenAPI).
 **Obiettivo:** Hardening contratti e routing FE, deploy prod Compose+nginx, backup/retention,
 checklist cutover, throttling FMP (default ADR-016); wiki FMP in parallelo (human).
 
-**Stato:** IN CORSO — **Wave 1 COMPLETATA** (14/14 TSK `done`); **TSK-068 done** (US-029 wiki); **Wave 2** 6 TSK `todo` (TSK-061…067).
+**Stato:** 22/23 TSK `done` — unico residuo TSK-071 `todo` (blocked su gap `fmp-stable-rate-limiting`).
 
-**Wave 1 (parallelo, done):** TSK-050…060, TSK-064, TSK-069, TSK-070 — commit `1e15c20` + fix CI `7844c67`…`1882767`.
-
-**Wave 2 (deploy + wiki human):** TSK-061 → TSK-063 → TSK-065 → TSK-066 → TSK-067; TSK-068 ∥
-
-| TSK | Titolo | Layer | Consumer | Est. | Depends on | US | Status |
-|-----|--------|-------|----------|------|------------|-----|--------|
-| TSK-050 | BE FlatteningProblemDetailHttpMessageConverter | be | agent | S | — | US-021 | done |
-| TSK-051 | QA Assert ProblemDetail top-level (IT + contract) | qa | agent | S | TSK-050 | US-021 | done |
-| TSK-052 | BE OpenAPI ProblemDetail extension top-level | be | agent | XS | TSK-050 | US-021 | done |
-| TSK-053 | FE Bump swr peer-compatible React 19 | fe | agent | S | — | US-022 | done |
-| TSK-054 | Infra Rimuovi --legacy-peer-deps CI/Dockerfile | infra | agent | XS | TSK-053 | US-022 | done |
-| TSK-055 | FE Route /analysis?ticker= static export | fe | agent | S | — | US-023 | done |
-| TSK-056 | FE Link interni /analysis?ticker= | fe | agent | S | TSK-055 | US-023 | done |
-| TSK-057 | QA E2E ticker fuori whitelist demo | qa | agent | S | TSK-055, TSK-056 | US-023 | done |
-| TSK-058 | BE Property fmp.cache.profile-ttl-hours | be | agent | XS | — | US-024 | done |
-| TSK-059 | QA Test scadenza cache profilo TTL | qa | agent | S | TSK-058 | US-024 | done |
-| TSK-060 | QA Verifica ADR stack allineati (doc-only) | qa | agent | XS | — | US-025 | done |
-| TSK-061 | Infra docker-compose.prod.yml + nginx TLS | infra | agent | M | TSK-054 | US-026 | todo |
-| TSK-062 | Infra .env.prod.example variabili deploy | infra | agent | XS | TSK-061 | US-026 | todo |
-| TSK-063 | Infra Script backup pg_dump + retention 14d | infra | agent | S | TSK-061 | US-027 | todo |
-| TSK-064 | BE Scheduled purge fmp_api_event_log 90d | be | agent | S | — | US-027 | done |
-| TSK-065 | QA Drill restore PostgreSQL staging | qa | agent | S | TSK-063 | US-027 | todo |
-| TSK-066 | QA Playwright smoke cutover R1.1 staging | qa | agent | M | TSK-050, TSK-057, TSK-061 | US-028 | todo |
-| TSK-067 | QA Esecuzione checklist cutover registro | qa | agent | S | TSK-066, TSK-065, TSK-064 | US-028 | todo |
-| TSK-068 | Human Ingest wiki FMP rate/URL/errori | infra | human | M | — | US-029 | done |
-| TSK-069 | BE Env FMP_RATE_LIMIT_PER_MINUTE | be | agent | S | — | US-030 | done |
-| TSK-070 | QA WireMock 429 retry + event log | qa | agent | S | TSK-069 | US-030 | done |
-| TSK-071 | BE Ricalibra rate limit da wiki post US-029 | be | agent | XS | TSK-068, TSK-069 | US-031 | todo |
-| TSK-072 | BE Migrazione FmpAdapterRestClient + DTO + fixture da v3 a /stable | be | agent | L | TSK-009, TSK-068 | US-031 | done |
-
-**Nota US-025:** L4 già allineato (appendici ADR-001/002/003). TSK-060 = verifica formale, **nessun dev L5** salvo drift.
-
-**Nota US-029:** TSK-068 `consumer: human` — wiki-keeper; `pending_clarification` su tre gap FMP. Non blocca TSK-069 (default 30/min ADR-016).
+| TSK | Titolo | Layer | Consumer | Est. | US | Status |
+|-----|--------|-------|----------|------|-----|--------|
+| TSK-050 | BE FlatteningProblemDetailHttpMessageConverter | be | agent | S | US-021 | done |
+| TSK-051 | QA Assert ProblemDetail top-level (IT + contract) | qa | agent | S | US-021 | done |
+| TSK-052 | BE OpenAPI ProblemDetail extension top-level | be | agent | XS | US-021 | done |
+| TSK-053 | FE Bump swr peer-compatible React 19 | fe | agent | S | US-022 | done |
+| TSK-054 | Infra Rimuovi --legacy-peer-deps CI/Dockerfile | infra | agent | XS | US-022 | done |
+| TSK-055 | FE Route /analysis?ticker= static export | fe | agent | S | US-023 | done |
+| TSK-056 | FE Link interni /analysis?ticker= | fe | agent | S | US-023 | done |
+| TSK-057 | QA E2E ticker fuori whitelist demo | qa | agent | S | US-023 | done |
+| TSK-058 | BE Property fmp.cache.profile-ttl-hours | be | agent | XS | US-024 | done |
+| TSK-059 | QA Test scadenza cache profilo TTL | qa | agent | S | US-024 | done |
+| TSK-060 | QA Verifica ADR stack allineati (doc-only) | qa | agent | XS | US-025 | done |
+| TSK-061 | Infra docker-compose.prod.yml + nginx TLS | infra | agent | M | US-026 | done |
+| TSK-062 | Infra .env.prod.example variabili deploy | infra | agent | XS | US-026 | done |
+| TSK-063 | Infra Script backup pg_dump + retention 14d | infra | agent | S | US-027 | done |
+| TSK-064 | BE Scheduled purge fmp_api_event_log 90d | be | agent | S | US-027 | done |
+| TSK-065 | QA Drill restore PostgreSQL staging | qa | agent | S | US-027 | done |
+| TSK-066 | QA Playwright smoke cutover R1.1 staging | qa | agent | M | US-028 | done |
+| TSK-067 | QA Esecuzione checklist cutover registro | qa | agent | S | US-028 | done |
+| TSK-068 | Human Ingest wiki FMP rate/URL/errori | infra | human | M | US-029 | done |
+| TSK-069 | BE Env FMP_RATE_LIMIT_PER_MINUTE | be | agent | S | US-030 | done |
+| TSK-070 | QA WireMock 429 retry + event log | qa | agent | S | US-030 | done |
+| TSK-071 | BE Ricalibra rate limit da wiki post US-029 | be | agent | XS | US-031 | todo |
+| TSK-072 | BE Migrazione FmpAdapterRestClient + DTO + fixture da v3 a /stable | be | agent | L | US-031 | done |
 
 ---
 
 ## Sprint 5.5 — Hotfix R1.1.x bug rule engine (EP-007 fase 2)
 
-**Obiettivo:** Correggere tre bug produzione scoperti il 2026-05-23 nel rule engine e nel frontend: (1) DCF intrinsic value era il totale aziendale invece del valore per azione (falso GREEN su TTD); (2) ROE e ROIC sistematicamente NOT_CALCULABLE per mismatch @JsonProperty su KeyMetricsDto; (3) campo "Dati al" nel FE mostrasse epoch ms grezzo invece di data leggibile.
+**Obiettivo:** Correggere tre bug produzione: (1) DCF intrinsic value totale aziendale invece
+di per-share; (2) ROE/ROIC NOT_CALCULABLE per mismatch @JsonProperty; (3) "Dati al" epoch ms
+grezzo nel FE.
 
-**Scope:** TSK-143..154 — 12 task, stima ~1.5 settimane.
-
-**Dipendenze:** Sprint 5 Wave 1 completata (TSK-072 done — FMP stable migration). Sprint 5 Wave 2 (deploy infra) parallela e non bloccante per questo hotfix.
-
-**Ordering raccomandato:** TSK-148 (ROE/ROIC fix, XS, sblocca analisi su 2 segnali su 7 per tutti i ticker) → TSK-143 (DCF fix, S, corregge il bug più visibile in produzione) → TSK-151 (FE helper, XS) in parallelo con TSK-144/TSK-145. Poi test suites TSK-149/TSK-150/TSK-146/TSK-147/TSK-152/TSK-153/TSK-154 in cascata.
+**Stato:** COMPLETATO — 12/12 TSK `done`. US-052, US-053, US-054 chiuse.
 
 | TSK | Titolo | Layer | Consumer | Est. | US | Status |
 |-----|--------|-------|----------|------|-----|--------|
-| TSK-143 | BE DcfCalculator: divide per sharesOutstanding; AnalyzeTickerService wiring | be | agent | S | US-052 | todo |
-| TSK-144 | BE MarginOfSafetyEvaluator: rationale messaggi per-share | be | agent | XS | US-052 | todo |
-| TSK-145 | BE DcfResult: campo sharesUsed (audit) + OpenAPI description | be | agent | S | US-052 | todo |
-| TSK-146 | QA DcfCalculatorTest + MarginOfSafetyEvaluatorTest + AnalysisControllerIT (TTD/AAPL/MSFT + edge case shares null) | qa | agent | M | US-052 | todo |
-| TSK-147 | QA Contract test OpenAPI drift: dcfIntrinsicValue description per-share | qa | agent | XS | US-052 | todo |
-| TSK-148 | BE KeyMetricsDto: @JsonProperty("returnOnEquity") su roe + @JsonProperty("returnOnInvestedCapital") su roic | be | agent | XS | US-053 | todo |
-| TSK-149 | QA KeyMetricsDtoTest: deserializzazione fixture /stable con returnOnEquity/returnOnInvestedCapital | qa | agent | S | US-053 | todo |
-| TSK-150 | QA Integration test rule engine: ROE_10Y_AVG e ROIC_10Y_AVG non NOT_CALCULABLE su AAPL/MSFT/TTD | qa | agent | S | US-053 | todo |
-| TSK-151 | FE Crea lib/format-date.ts con formatSnapshotDate(value: number\|string): string | fe | agent | XS | US-054 | todo |
-| TSK-152 | FE Sostituire raw display dataSnapshotAt in analysis/[ticker]/page.tsx con formatSnapshotDate | fe | agent | S | US-054 | todo |
-| TSK-153 | QA Vitest unit test formatSnapshotDate (epoch ms, ISO string, edge cases null/NaN) | qa | agent | XS | US-054 | todo |
-| TSK-154 | QA Playwright E2E: /analysis/AAPL verifica "Dati al" mostra mese abbreviato, non numero epoch | qa | agent | XS | US-054 | todo |
+| TSK-143 | BE DcfCalculator: divide per sharesOutstanding; AnalyzeTickerService wiring | be | agent | S | US-052 | done |
+| TSK-144 | BE MarginOfSafetyEvaluator: rationale messaggi per-share | be | agent | XS | US-052 | done |
+| TSK-145 | BE DcfResult: campo sharesUsed (audit) + OpenAPI description | be | agent | S | US-052 | done |
+| TSK-146 | QA DcfCalculatorTest + MarginOfSafetyEvaluatorTest + AnalysisControllerIT | qa | agent | M | US-052 | done |
+| TSK-147 | QA Contract test OpenAPI drift: dcfIntrinsicValue description per-share | qa | agent | XS | US-052 | done |
+| TSK-148 | BE KeyMetricsDto: @JsonProperty("returnOnEquity") + @JsonProperty("returnOnInvestedCapital") | be | agent | XS | US-053 | done |
+| TSK-149 | QA KeyMetricsDtoTest: deserializzazione fixture /stable | qa | agent | S | US-053 | done |
+| TSK-150 | QA Integration test rule engine: ROE/ROIC non NOT_CALCULABLE su AAPL/MSFT/TTD | qa | agent | S | US-053 | done |
+| TSK-151 | FE Crea lib/format-date.ts con formatSnapshotDate | fe | agent | XS | US-054 | done |
+| TSK-152 | FE Sostituire raw display dataSnapshotAt con formatSnapshotDate | fe | agent | S | US-054 | done |
+| TSK-153 | QA Vitest unit test formatSnapshotDate | qa | agent | XS | US-054 | done |
+| TSK-154 | QA Playwright E2E: /analysis/AAPL verifica "Dati al" formato leggibile | qa | agent | XS | US-054 | done |
 
 **Totale Sprint 5.5:** 12 TSK (3 be, 2 fe, 7 qa)
-
-**Dipendenze interne Sprint 5.5:**
-```
-TSK-143 ──→ TSK-144
-TSK-143 ──→ TSK-145
-TSK-143 + TSK-144 + TSK-145 ──→ TSK-146 ──→ TSK-147
-TSK-148 ──→ TSK-149 ──→ TSK-150
-TSK-151 ──→ TSK-152
-TSK-151 ──→ TSK-153
-TSK-152 + TSK-153 ──→ TSK-154
-```
 
 ---
 
 ## Sprint 6 — Graham Defensive Completeness (EP-010)
 
-**Obiettivo:** Completare i 6 criteri Graham difensivi mancanti (SIZE_LATEST, EARNINGS_STABILITY_10Y, EPS_GROWTH_10Y, PE_3Y_AVG, PB_LATEST, DIVIDEND_CONTINUITY_20Y) nel Rule Engine, aggiornare TrafficLight FE a 13 ruleId, aggiornare contratto OpenAPI.
+**Obiettivo:** Completare i 6 criteri Graham difensivi mancanti nel Rule Engine, aggiornare
+TrafficLight FE a 13 ruleId, aggiornare contratto OpenAPI.
 
-**Dipendenze:** Sprint 5 Wave 2 completata (TSK-072 done — FMP stable migration).
-
-**Stato:** COMPLETATO (2026-05-24) — tutti i 18 TSK `done`. EP-010 chiusa.
+**Stato:** COMPLETATO — 18/18 TSK `done`. EP-010 chiusa.
 
 | TSK | Titolo | Layer | Consumer | Est. | US | Status |
 |-----|--------|-------|----------|------|----|--------|
@@ -237,11 +217,12 @@ TSK-152 + TSK-153 ──→ TSK-154
 
 ## Sprint 7 — Deep Analysis backend (EP-011 — BE/DB/Infra) + LLM telemetry + ROE dual lookback
 
-**Obiettivo:** Infrastruttura RAG completa (SEC EDGAR adapter + filing blob cache + pgvector + EmbeddingService sidecar), pipeline analisi qualitativa (MungerInversion LLM + NewsSentiment + PriceAction), cascade verdetto, endpoint `/api/analysis/{ticker}/deep`. Aggiunta (2026-05-25, ADR-019+ADR-020): telemetria LLM + budget config DB/BE + ROE_5Y_AVG + estensione payload /deep + prompt Munger dual lookback.
+**Obiettivo:** Infrastruttura RAG completa (SEC EDGAR adapter + filing blob cache + pgvector +
+EmbeddingService sidecar), pipeline analisi qualitativa (MungerInversion LLM + NewsSentiment +
+PriceAction), cascade verdetto, endpoint `/api/analysis/{ticker}/deep`. LLM telemetry + budget
+config (ADR-019/ADR-020). ROE_5Y_AVG + prompt Munger dual lookback.
 
-**Dipendenze:** Sprint 6 completato (i 13 ruleId Buffett+Graham necessari per la cascade US-044).
-
-**Stato:** COMPLETATO (2026-05-25) — tutti i 37 TSK `done`. US-038..US-045 + US-055 chiuse.
+**Stato:** COMPLETATO — 37/37 TSK `done`. US-038..US-045 + US-055 chiuse.
 
 | TSK | Titolo | Layer | Consumer | Est. | US | Status |
 |-----|--------|-------|----------|------|----|--------|
@@ -276,42 +257,23 @@ TSK-152 + TSK-153 ──→ TSK-154
 | TSK-119 | BE DTO DeepAnalysisResultDto + OpenAPI schema /deep + migration V016 | be | agent | S | US-045 | done |
 | TSK-120 | QA Integration test E2E /deep — tutti i mock provider | qa | agent | M | US-045 | done |
 | TSK-121 | QA Contract test OpenAPI /deep — drift guard | qa | agent | S | US-045 | done |
-| TSK-155 | DB Migration V0XX__llm_cost_tracking (llm_cost_counter + llm_call_log + llm_budget_config seed) | db | agent | S | US-055 | done |
-| TSK-156 | BE LlmCostCounterService + LlmCallLogger AOP + LlmBudgetGuard + endpoint admin GET/POST freeze/PUT budget | be | agent | L | US-055 | done |
+| TSK-155 | DB Migration V0XX__llm_cost_tracking | db | agent | S | US-055 | done |
+| TSK-156 | BE LlmCostCounterService + LlmCallLogger AOP + LlmBudgetGuard + endpoint admin | be | agent | L | US-055 | done |
 | TSK-160 | BE RoeCalculator.fiveYearAverage — porting ROE_5Y_AVG da agent.py | be | agent | S | US-045 | done |
-| TSK-161 | BE Estendi DeepAnalysisResponse con blocco roe (fiveYearAvg + tenYearAvg + dataPoints) + OpenAPI | be | agent | S | US-045 | done |
-| TSK-162 | BE Aggiorna prompt Munger LLM con entrambi i lookback ROE + nota interpretativa divergenza | be | agent | S | US-041 | done |
-| TSK-163 | QA Contract test + unit test ROE dual lookback — payload /deep + edge case + golden test divergenza | qa | agent | S | US-045 | done |
+| TSK-161 | BE Estendi DeepAnalysisResponse con blocco roe (fiveYearAvg + tenYearAvg) | be | agent | S | US-045 | done |
+| TSK-162 | BE Aggiorna prompt Munger LLM con dual lookback ROE + nota divergenza | be | agent | S | US-041 | done |
+| TSK-163 | QA Contract + unit test ROE dual lookback — payload /deep + edge case | qa | agent | S | US-045 | done |
 
-**Totale Sprint 7:** 37 TSK (17 be, 0 fe, 6 db, 1 infra, 13 qa) — +6 TSK da ADR-019/ADR-020
-
-**Dipendenze interne Sprint 7:**
-```
-TSK-091 ──→ TSK-092 ──→ TSK-093
-TSK-091 + TSK-094 + TSK-095 ──→ TSK-096 ──→ TSK-097
-TSK-095 ──→ TSK-098
-TSK-099 ──→ TSK-100
-TSK-098 + TSK-100 + TSK-101 ──→ TSK-102 ──→ TSK-103
-TSK-104 + TSK-102 ──→ TSK-105 + TSK-106 ──→ TSK-107
-TSK-108 + TSK-110 + TSK-104 ──→ TSK-109 ──→ TSK-111
-TSK-112 + TSK-113 ──→ TSK-114
-TSK-105 + TSK-109 + TSK-113 ──→ TSK-115 + TSK-116 ──→ TSK-117
-TSK-115 + TSK-119 ──→ TSK-118 ──→ TSK-120 + TSK-121
-TSK-155 ──→ TSK-156
-TSK-160 ──→ TSK-161 ──→ TSK-162
-TSK-160 + TSK-161 + TSK-162 ──→ TSK-163
-TSK-156 deve precedere TSK-104/TSK-105/TSK-109 (LlmBudgetGuard nella chain Resilience4j)
-```
+**Totale Sprint 7:** 37 TSK (17 be, 6 db, 1 infra, 13 qa)
 
 ---
 
 ## Sprint 8 — Deep Analysis frontend (EP-011 — FE) + LLM budget FE
 
-**Obiettivo:** Tab "Deep Analysis" sul frontend con tutti i componenti UI (verdict badge, Munger report collapsibile, news sentiment, drawdown chart, filing links), SWR hook, test E2E Playwright. Aggiunta (2026-05-25, ADR-019): budget bar scheda dettaglio + LlmBudgetAdminPanel + QA integration tests budget config.
+**Obiettivo:** Tab "Deep Analysis" sul frontend con tutti i componenti UI, SWR hook, test E2E.
+Budget bar scheda dettaglio + LlmBudgetAdminPanel (ADR-019).
 
-**Dipendenze:** Sprint 7 completato (endpoint `/api/analysis/{ticker}/deep` disponibile + LlmBudgetGuard/endpoint admin BE).
-
-**Stato:** COMPLETATO (2026-05-25) — tutti i 7 TSK `done`. US-046 + US-055 FE chiuse.
+**Stato:** COMPLETATO — 7/7 TSK `done`. US-046 + US-055 FE chiuse.
 
 | TSK | Titolo | Layer | Consumer | Est. | US | Status |
 |-----|--------|-------|----------|------|----|--------|
@@ -319,110 +281,283 @@ TSK-156 deve precedere TSK-104/TSK-105/TSK-109 (LlmBudgetGuard nella chain Resil
 | TSK-123 | FE Componenti UI Deep Analysis (5 componenti) | fe | agent | M | US-046 | done |
 | TSK-124 | FE API client estensione + SWR hook useDeepAnalysis | fe | agent | S | US-046 | done |
 | TSK-125 | QA Test E2E Playwright Deep Analysis — happy path + value-trap + invalido | qa | agent | M | US-046 | done |
-| TSK-157 | FE Budget bar + cache-hit signal sul pulsante Avvia analisi LLM (scheda dettaglio) | fe | agent | S | US-046 | done |
-| TSK-158 | FE LlmBudgetAdminPanel — campo cap + modal conferma + PUT /admin/llm-cost/budget | fe | agent | M | US-055 | done |
-| TSK-159 | QA Integration tests LLM budget config — PUT happy path + cache invalidation + audit + 400 + 403 | qa | agent | M | US-055 | done |
+| TSK-157 | FE Budget bar + cache-hit signal sul pulsante Avvia analisi LLM | fe | agent | S | US-046 | done |
+| TSK-158 | FE LlmBudgetAdminPanel — campo cap + modal conferma + PUT budget | fe | agent | M | US-055 | done |
+| TSK-159 | QA Integration tests LLM budget config — PUT + cache + audit + 400 + 403 | qa | agent | M | US-055 | done |
 
-**Totale Sprint 8:** 7 TSK (3 fe, 1 qa → originali; +2 fe, +1 qa da ADR-019) — totale: 3 fe, 1 db (nessuno), 3 qa
-
-**Dipendenze interne Sprint 8:**
-```
-TSK-119 + TSK-118 ──→ TSK-122 + TSK-124 ──→ TSK-123 ──→ TSK-125
-TSK-156 + TSK-122 + TSK-124 ──→ TSK-157
-TSK-156 ──→ TSK-158
-TSK-155 + TSK-156 + TSK-158 ──→ TSK-159
-```
+**Totale Sprint 8:** 7 TSK (5 fe, 2 qa)
 
 ---
 
 ## Sprint 9 — Top Value Picks batch (EP-012)
 
-**Obiettivo:** UniverseScreenerService (FMP screener + 13-F + news scout), job notturno cron 02:00 UTC, persistenza top_value_picks, endpoint GET /api/top-picks paginato, pagina FE /top-picks con filtri e deep-link.
+**Obiettivo:** UniverseScreenerService (FMP screener + 13-F + news scout), job notturno cron
+02:00 UTC, persistenza top_value_picks, endpoint GET /api/top-picks paginato, pagina FE
+/top-picks con filtri e deep-link.
 
-**Dipendenze:** Sprint 7 completato (MungerDecisionService, AnthropicClient, SecEdgarAdapter disponibili). Sprint 8 completato per il link alla pagina /deep.
+**Stato:** COMPLETATO — 17/17 TSK `done`. US-047..US-051 chiuse. EP-012 `done`.
 
 | TSK | Titolo | Layer | Consumer | Est. | US | Status |
 |-----|--------|-------|----------|------|----|--------|
-| TSK-126 | BE UniverseScreenerService — orchestratore FMP NASDAQ+NYSE | be | agent | M | US-047 | ready |
-| TSK-127 | BE InstitutionalHoldingsService — overlay 13-F SEC EDGAR | be | agent | M | US-047 | ready |
-| TSK-128 | BE NewsScoutService — Claude Opus scout top-200 | be | agent | S | US-047 | ready |
-| TSK-129 | BE SectorBlacklist + SETTORI_BUFFETT_OK + FmpAdapter.companyScreener | be | agent | S | US-047 | ready |
-| TSK-130 | QA Test UniverseScreenerService — mock FMP + SEC, dedup, cap 500 | qa | agent | S | US-047 | ready |
-| TSK-131 | BE TopValuePicksJob @Scheduled cron 02:00 UTC + pipeline batch | be | agent | M | US-048 | ready |
-| TSK-132 | BE BatchResilienceConfig — RateLimiter fmp-batch separato | be | agent | S | US-048 | ready |
-| TSK-133 | Infra Migration V017__top_picks_run_log + scheduler enable yaml | infra | agent | XS | US-048 | ready |
-| TSK-134 | QA Test rate-limit batch + idempotenza job | qa | agent | S | US-048 | ready |
-| TSK-135 | DB Migration V016__top_value_picks — PK composta + indice | db | agent | XS | US-049 | ready |
-| TSK-136 | BE TopValuePickEntity + TopValuePickRepository JPA | be | agent | S | US-049 | ready |
-| TSK-137 | QA Test persistenza top_value_picks — PK, retention, indice | qa | agent | S | US-049 | ready |
-| TSK-138 | BE TopPicksController GET /api/top-picks paginazione + filtri | be | agent | M | US-050 | ready |
-| TSK-139 | QA OpenAPI schema /top-picks + contract test + integration test | qa | agent | S | US-050 | ready |
-| TSK-140 | FE Route /top-picks page + tabella ordinabile Next.js | fe | agent | M | US-051 | ready |
-| TSK-141 | FE Filtri sidebar + useTopPicks SWR hook | fe | agent | S | US-051 | ready |
-| TSK-142 | QA Test E2E Playwright /top-picks — filtro, datepicker, navigazione /deep | qa | agent | S | US-051 | ready |
+| TSK-126 | BE UniverseScreenerService — orchestratore FMP NASDAQ+NYSE | be | agent | M | US-047 | done |
+| TSK-127 | BE InstitutionalHoldingsService — overlay 13-F SEC EDGAR | be | agent | M | US-047 | done |
+| TSK-128 | BE NewsScoutService — Claude Opus scout top-200 | be | agent | S | US-047 | done |
+| TSK-129 | BE SectorBlacklist + SETTORI_BUFFETT_OK + FmpAdapter.companyScreener | be | agent | S | US-047 | done |
+| TSK-130 | QA Test UniverseScreenerService — mock FMP + SEC, dedup, cap 500 | qa | agent | S | US-047 | done |
+| TSK-131 | BE TopValuePicksJob @Scheduled cron 02:00 UTC + pipeline batch | be | agent | M | US-048 | done |
+| TSK-132 | BE BatchResilienceConfig — RateLimiter fmp-batch separato | be | agent | S | US-048 | done |
+| TSK-133 | Infra Migration V017__top_picks_run_log + scheduler enable yaml | infra | agent | XS | US-048 | done |
+| TSK-134 | QA Test rate-limit batch + idempotenza job | qa | agent | S | US-048 | done |
+| TSK-135 | DB Migration V016__top_value_picks — PK composta + indice | db | agent | XS | US-049 | done |
+| TSK-136 | BE TopValuePickEntity + TopValuePickRepository JPA | be | agent | S | US-049 | done |
+| TSK-137 | QA Test persistenza top_value_picks — PK, retention, indice | qa | agent | S | US-049 | done |
+| TSK-138 | BE TopPicksController GET /api/top-picks paginazione + filtri | be | agent | M | US-050 | done |
+| TSK-139 | QA OpenAPI schema /top-picks + contract test + integration test | qa | agent | S | US-050 | done |
+| TSK-140 | FE Route /top-picks page + tabella ordinabile Next.js | fe | agent | M | US-051 | done |
+| TSK-141 | FE Filtri sidebar + useTopPicks SWR hook | fe | agent | S | US-051 | done |
+| TSK-142 | QA Test E2E Playwright /top-picks — filtro, datepicker, navigazione /deep | qa | agent | S | US-051 | done |
 
 **Totale Sprint 9:** 17 TSK (7 be, 2 fe, 1 db, 1 infra, 6 qa)
 
 ---
 
-## Riepilogo TSK per layer
+## Sprint 10 — Mr. Market Context Flags (EP-013)
 
-| Release | Sprint | infra | db | be | fe | qa | Totale |
-|---------|--------|-------|-----|-----|-----|-----|--------|
-| R1.0 | 1–4 done | 2 | 7 | 23 | 13 | 7 | **49** |
-| R1.1 | 5 in corso | 5 | 0 | 5 | 3 | 8 | **21** (14 done, 7 todo) |
-| R1.1 | lookahead | 0 | 0 | 2 | 0 | 0 | **2** (TSK-071 todo, TSK-072 done) |
-| R1.1.x | 5.5 hotfix | 0 | 0 | 3 | 2 | 7 | **12** (TSK-143…154) |
-| R2.0 | 6 done | 0 | 1 | 8 | 1 | 8 | **18** |
-| R2.0 | 7 done | 1 | 6 | 19 | 0 | 11 | **37** (+6 da ADR-019/020) |
-| R2.0 | 8 done | 0 | 0 | 0 | 5 | 2 | **7** (+3 da ADR-019) |
-| R2.0 | 9 | 1 | 1 | 7 | 2 | 6 | **17** |
-| | **Nuovi R2.0** | | | | | | **79** (TSK-073…163) |
-| | **TOTALE** | | | | | | **163** |
+**Obiettivo:** Integrare 2 indicatori tecnici FMP `/stable` come advisory context flags
+complementari al verdetto del Rule Engine: RSI 14-day (Mr. Market sentiment) e SMA200 (trend
+lungo periodo). Esposti su `/api/analysis/{ticker}` in sezione dedicata `contextFlags`.
+
+**Stato:** COMPLETATO — 6/6 TSK `done`. US-056, US-057 chiuse. EP-013 `done`.
+
+| TSK | Titolo | Layer | Consumer | Est. | US | Status |
+|-----|--------|-------|----------|------|----|--------|
+| TSK-164 | FmpAdapter.getTechnicalIndicator generico (riusato da US-056 + US-057) | be | agent | S | US-056 | done |
+| TSK-165 | RsiContextEvaluator + contextFlags nel RuleEngineResultResponse | be | agent | S | US-056 | done |
+| TSK-166 | LongTermTrendEvaluator (SMA200) + estensione contextFlags | be | agent | S | US-057 | done |
+| TSK-167 | QA FmpAdapter.getTechnicalIndicator + RsiContextEvaluator + LongTermTrendEvaluator | qa | agent | M | US-056 | done |
+| TSK-168 | FE badge "Mr. Market Sentiment" (RSI flag) | fe | agent | S | US-056 | done |
+| TSK-169 | FE badge "Long-Term Trend" (SMA200 flag) | fe | agent | S | US-057 | done |
+
+**Totale Sprint 10:** 6 TSK (3 be, 2 fe, 1 qa)
 
 ---
 
-## Dipendenze critiche Sprint 6–9
+## Sprint 11 — Logging Strutturato + PII Redaction + Security Events (EP-014)
+
+**Obiettivo:** Sistema di logging strutturato con formato per ambiente (JSON prod, pretty dev),
+Correlation ID end-to-end, redazione automatica PII, leak detection CI, logging eventi di
+sicurezza e retention GDPR differenziata. ADR-021.
+
+**Stato:** TODO — 0/14 TSK `done`.
+
+| TSK | Titolo | Layer | Consumer | Est. | US | Status |
+|-----|--------|-------|----------|------|----|--------|
+| TSK-170 | Logback profili prod/dev + logstash-logback-encoder + AsyncAppender | be | agent | M | US-058 | todo |
+| TSK-171 | QA Test formato log JSON/pretty + switch env var + benchmark p99 | qa | agent | S | US-058 | todo |
+| TSK-172 | CorrelationIdFilter servlet filter: UUID v4, MDC, header response | be | agent | S | US-059 | todo |
+| TSK-173 | Estendi GlobalExceptionHandler: correlationId in ProblemDetail | be | agent | XS | US-059 | todo |
+| TSK-174 | QA Test CorrelationIdFilter: propagazione, concorrenza, ProblemDetail | qa | agent | S | US-059 | todo |
+| TSK-175 | PiiRedactionEncoder wrapper + config esternalizzata + ricorsività | be | agent | L | US-060 | todo |
+| TSK-176 | QA Test PiiRedactionEncoder: 6 categorie PII + nested + benchmark | qa | agent | M | US-060 | todo |
+| TSK-177 | Gradle task piiLeakDetection post-test CI: regex 6+ categorie | infra | agent | M | US-061 | todo |
+| TSK-178 | QA Test scenari leak detection: PAN non redatto → fail; redazione → pass | qa | agent | S | US-061 | todo |
+| TSK-179 | SecurityEventLogger @Component: 6+ categorie + marker SECURITY_EVENT | be | agent | M | US-062 | todo |
+| TSK-180 | QA Test SecurityEventLogger: login/password/403 + formato + correlationId | qa | agent | S | US-062 | todo |
+| TSK-181 | Logback retention operativi 30d + SiftingAppender security 365d | be | agent | S | US-063 | todo |
+| TSK-182 | Script pseudonimizzazione log per userId (diritto all'oblio) | be | agent | S | US-063 | todo |
+| TSK-183 | QA Test retention rotazione + pseudonimizzazione | qa | agent | S | US-063 | todo |
+
+**Totale Sprint 11:** 14 TSK (7 be, 1 infra, 6 qa)
+
+---
+
+## Sprint 12 — Design Token System + UI Accessibility (EP-016)
+
+**Obiettivo:** Sistema di design token semantici M3-aligned (colori OKLCH, tipografia, shape,
+motion) sopra shadcn/ui + Tailwind, switch light/dark persistente, audit e fix WCAG 2.2 AA
+su tutte le viste. ADR-023.
+
+**Stato:** TODO — 0/10 TSK `done`. `pending_clarification: [Q_004]` su TSK-184 (ADR-023 proposed).
+
+| TSK | Titolo | Layer | Consumer | Est. | US | Status |
+|-----|--------|-------|----------|------|----|--------|
+| TSK-184 | Token CSS semantici: colors OKLCH + typography + shape + tailwind.config.ts | fe | agent | M | US-069 | todo |
+| TSK-185 | Migrazione 5 componenti principali da classi hardcoded a token semantici | fe | agent | M | US-069 | todo |
+| TSK-186 | QA Vitest test token system: seed change, tipografia, shape | qa | agent | S | US-069 | todo |
+| TSK-187 | ThemeProvider + useTheme + colors-dark.css + anti-FOUC script | fe | agent | M | US-070 | todo |
+| TSK-188 | QA Test ThemeProvider: prefers-color-scheme, persistenza, FOUC, contrasto | qa | agent | S | US-070 | todo |
+| TSK-189 | Token motion.css + state layer opacità + prefers-reduced-motion | fe | agent | S | US-071 | todo |
+| TSK-190 | QA Test motion: reduced-motion, state layers, focus visibile | qa | agent | S | US-071 | todo |
+| TSK-191 | Audit fix WCAG 2.2 AA: h1, focus, label, alt, zoom 200% su tutte le viste | fe | agent | L | US-072 | todo |
+| TSK-192 | QA Lighthouse CI + axe-core: target >= 95, zero serious/critical | qa | agent | M | US-072 | todo |
+| TSK-193 | QA Test E2E a11y tastiera: flussi critici senza mouse + screen reader | qa | agent | M | US-072 | todo |
+
+**Totale Sprint 12:** 10 TSK (5 fe, 5 qa)
+
+**Nota parallelismo:** Sprint 11 (BE-heavy) e Sprint 12 (FE-heavy) possono essere sviluppati
+in parallelo su layer diversi. La dipendenza cross-sprint è minima: solo EP-015 (Sprint 13)
+richiede output di entrambi.
+
+---
+
+## Sprint 13 — Notifiche Errori Frontend (EP-015)
+
+**Obiettivo:** NotificationService centralizzato con toast accessibili WCAG 2.2 AA, mappatura
+codici errore i18n, gestione categorizzata errori di rete, validazione form inline accessibile,
+Correlation ID copiabile. ADR-022.
+
+**Stato:** TODO — 0/11 TSK `done`.
+
+| TSK | Titolo | Layer | Consumer | Est. | US | Status |
+|-----|--------|-------|----------|------|----|--------|
+| TSK-194 | NotificationProvider React Context + useNotification hook API 4 livelli | fe | agent | M | US-064 | todo |
+| TSK-195 | NotificationToast wrapper shadcn/ui: WCAG roles, auto-dismiss, Esc, correlationId | fe | agent | M | US-064 | todo |
+| TSK-196 | QA Test NotificationProvider + Toast: 4 livelli, correlationId, a11y | qa | agent | S | US-064 | todo |
+| TSK-197 | errorCodeMap + locales/it.json: mapping 8+ type URI ProblemDetail + fallback | fe | agent | S | US-065 | todo |
+| TSK-198 | QA Test errorCodeMap: mapping + fallback + nessun HTTP raw | qa | agent | S | US-065 | todo |
+| TSK-199 | networkErrorInterceptor: offline/timeout/5xx/4xx + X-Correlation-Id | fe | agent | M | US-066 | todo |
+| TSK-200 | QA Test networkErrorInterceptor: 4 scenari rete | qa | agent | S | US-066 | todo |
+| TSK-201 | FormErrorSummary + aggiornamento form login/register/watchlist | fe | agent | M | US-067 | todo |
+| TSK-202 | QA Test FormErrorSummary: inline, summary, aria-describedby | qa | agent | S | US-067 | todo |
+| TSK-203 | Hardening a11y NotificationToast: contrasto, icone, multi-canale | fe | agent | S | US-068 | todo |
+| TSK-204 | QA axe-core audit notifiche: zero serious/critical, screen reader | qa | agent | S | US-068 | todo |
+
+**Totale Sprint 13:** 11 TSK (6 fe, 5 qa)
+
+**Dipendenze cross-sprint:**
+- TSK-195 dipende da Sprint 11 TSK-172 (Correlation ID header disponibile)
+- TSK-203 dipende da Sprint 12 TSK-184 (token colori per contrasto WCAG)
+
+---
+
+## Sprint 14 — Protezione Rotte e Sessione (EP-017)
+
+**Obiettivo:** AuthGuard centralizzato Next.js middleware, mappa rotte dichiarativa, migrazione
+refresh token a cookie httpOnly Secure SameSite=Strict, refresh automatico con coda richieste,
+idle/absolute timeout con prompt, logout completo con blocco history. ADR-024.
+
+**Stato:** TODO — 0/14 TSK `done`.
+
+| TSK | Titolo | Layer | Consumer | Est. | US | Status |
+|-----|--------|-------|----------|------|----|--------|
+| TSK-205 | route-config.ts mappa rotte dichiarativa tipizzata | fe | agent | S | US-074 | todo |
+| TSK-206 | AuthGuard middleware.ts Next.js: redirect login/returnUrl/403 | fe | agent | M | US-073 | todo |
+| TSK-207 | Pagina /403 + messaggio sessione scaduta su /login | fe | agent | S | US-073 | todo |
+| TSK-208 | QA Test E2E AuthGuard + route map: 6+ scenari | qa | agent | M | US-073/074 | todo |
+| TSK-209 | BE AuthController migrazione cookie httpOnly: login/refresh/logout | be | agent | L | US-075 | todo |
+| TSK-210 | BE OpenAPI: rimuovi refreshToken da response body | be | agent | XS | US-075 | todo |
+| TSK-211 | FE useAuthStore aggiornato: rehydration via cookie refresh | fe | agent | M | US-075 | todo |
+| TSK-212 | QA Test storage: no localStorage, httpOnly, rehydration F5, revoca | qa | agent | M | US-075 | todo |
+| TSK-213 | useTokenRefresh hook: timer pre-expiry 60s, mutex coda | fe | agent | M | US-076 | todo |
+| TSK-214 | QA Test refresh: no doppio refresh, sessione 20+ min, fallback | qa | agent | S | US-076 | todo |
+| TSK-215 | IdleTimeoutProvider: idle 15min + prompt 60s + absolute 8h | fe | agent | M | US-077 | todo |
+| TSK-216 | QA Test timeout: idle, extend, no-interaction, absolute, a11y | qa | agent | S | US-077 | todo |
+| TSK-217 | useLogout hook: revoca + pulizia store/cache + blocco history | fe | agent | M | US-078 | todo |
+| TSK-218 | QA Test E2E logout: revoca, cookie, store, back button, resilienza | qa | agent | S | US-078 | todo |
+
+**Totale Sprint 14:** 14 TSK (2 be, 7 fe, 5 qa)
+
+---
+
+## Sprint 15 — Hardening Sicurezza e Compliance (EP-018)
+
+**Obiettivo:** Defense-in-depth enforcement, CSP nonce + CSRF per cookie auth, MFA TOTP con
+recovery codes, rate limiting + progressive lockout + CAPTCHA threshold, HIBP password check,
+dichiarazione formale PCI-DSS non applicabile. ADR-025. DB: mfa_secrets + login_attempts.
+
+**Stato:** TODO — 0/19 TSK `done`. `pending_clarification: [Q_005]` su TSK-237 (ADR-025 proposed).
+
+| TSK | Titolo | Layer | Consumer | Est. | US | Status |
+|-----|--------|-------|----------|------|----|--------|
+| TSK-219 | BE Audit + enforcement defense-in-depth: @Valid, @PreAuthorize, filtro userId | be | agent | M | US-079 | todo |
+| TSK-220 | QA Test defense-in-depth: 401, 403, filtro userId, payload invalido | qa | agent | M | US-079 | todo |
+| TSK-221 | BE SecurityHeadersConfig CSP header: script-src no unsafe-inline | be | agent | S | US-080 | todo |
+| TSK-222 | FE Next.js middleware CSP nonce per inline script | fe | agent | S | US-080 | todo |
+| TSK-223 | BE CsrfTokenConfig: CSRF per /api/auth/refresh e /api/auth/logout | be | agent | S | US-080 | todo |
+| TSK-224 | QA Test CSP + CSRF: header, XSS bloccato, 403 no CSRF, SameSite, E2E | qa | agent | M | US-080 | todo |
+| TSK-225 | DB Migration V018__create_mfa_secrets | db | agent | XS | US-081 | todo |
+| TSK-226 | DB Migration V019__create_login_attempts + indici | db | agent | XS | US-081 | todo |
+| TSK-227 | BE TotpService: secret TOTP, verifica codice, recovery codes BCrypt | be | agent | M | US-081 | todo |
+| TSK-228 | BE MfaController: endpoint enroll, verify, challenge, recovery, delete | be | agent | M | US-081 | todo |
+| TSK-229 | BE RateLimitingFilter: limiti IP + account su login/register/password-reset | be | agent | M | US-081 | todo |
+| TSK-230 | BE BruteForceProtectionService: lockout progressivo + CAPTCHA + cleanup | be | agent | M | US-081 | todo |
+| TSK-231 | BE HibpClient: verifica password compromesse k-anonymity SHA-1 | be | agent | S | US-081 | todo |
+| TSK-232 | FE MfaEnrollmentPage: QR code + verifica TOTP + recovery codes | fe | agent | M | US-081 | todo |
+| TSK-233 | FE MfaChallengeForm: form TOTP durante login MFA | fe | agent | S | US-081 | todo |
+| TSK-234 | QA Test MFA: enrollment, login TOTP, recovery, disabilitazione | qa | agent | M | US-081 | todo |
+| TSK-235 | QA Test rate limiting + brute force: delay, CAPTCHA, lockout 30min | qa | agent | M | US-081 | todo |
+| TSK-236 | QA Test HIBP: password compromessa rifiutata, sicura accettata | qa | agent | S | US-081 | todo |
+| TSK-237 | QA Verifica codebase no dati carta + validazione ADR PCI-DSS | qa | agent | S | US-082 | todo |
+
+**Totale Sprint 15:** 19 TSK (8 be, 2 fe, 2 db, 7 qa)
+
+---
+
+## Riepilogo TSK per layer
+
+| Release | Sprint | infra | db | be | fe | qa | Totale | Stato |
+|---------|--------|-------|-----|-----|-----|-----|--------|-------|
+| R1.0 | 1–4 | 2 | 7 | 23 | 13 | 7 | **49** | done |
+| R1.1 | 5 | 5 | 0 | 7 | 3 | 8 | **23** | 22 done, 1 todo (TSK-071) |
+| R1.1.x | 5.5 | 0 | 0 | 3 | 2 | 7 | **12** | done |
+| R2.0 | 6 | 0 | 1 | 8 | 1 | 8 | **18** | done |
+| R2.0 | 7 | 1 | 6 | 17 | 0 | 13 | **37** | done |
+| R2.0 | 8 | 0 | 0 | 0 | 5 | 2 | **7** | done |
+| R2.0 | 9 | 1 | 1 | 7 | 2 | 6 | **17** | done |
+| R2.1 | 10 | 0 | 0 | 3 | 2 | 1 | **6** | done |
+| R3.0 | 11 | 1 | 0 | 7 | 0 | 6 | **14** | todo |
+| R3.0 | 12 | 0 | 0 | 0 | 5 | 5 | **10** | todo |
+| R3.0 | 13 | 0 | 0 | 0 | 6 | 5 | **11** | todo |
+| R3.0 | 14 | 0 | 0 | 2 | 7 | 5 | **14** | todo |
+| R3.0 | 15 | 0 | 2 | 8 | 2 | 7 | **19** | todo |
+| | **TOTALE** | **10** | **17** | **85** | **48** | **80** | **237** | 168 done, 1 todo (R1.1), 68 todo (R3.0) |
+
+---
+
+## Ordinamento raccomandato e parallelismo
 
 ```
-Sprint 6 (EP-010, parallelo per pair be+qa)
-  TSK-073 ──→ TSK-074
-  TSK-075 ──→ TSK-076
-  TSK-077 ──→ TSK-078
-  TSK-079 ──→ TSK-080
-  TSK-081 ──→ TSK-082
-  TSK-083 + TSK-084 ──→ TSK-085 ──→ TSK-086
-  TSK-073..086 ──→ TSK-087 ──→ TSK-088 ──→ TSK-089 ──→ TSK-090
-
-Sprint 7 (EP-011 BE + LLM telemetry + ROE dual lookback)
-  TSK-091 ──→ TSK-092 ──→ TSK-093
-  TSK-091 + TSK-094 + TSK-095 ──→ TSK-096 ──→ TSK-097
-  TSK-095 ──→ TSK-098
-  TSK-099 ──→ TSK-100
-  TSK-098 + TSK-100 + TSK-101 ──→ TSK-102 ──→ TSK-103
-  TSK-104 + TSK-102 ──→ TSK-105 + TSK-106 ──→ TSK-107
-  TSK-108 + TSK-110 + TSK-104 ──→ TSK-109 ──→ TSK-111
-  TSK-112 + TSK-113 ──→ TSK-114
-  TSK-105 + TSK-109 + TSK-113 ──→ TSK-115 + TSK-116 ──→ TSK-117
-  TSK-115 + TSK-119 ──→ TSK-118 ──→ TSK-120 + TSK-121
-  TSK-155 ──→ TSK-156 (precede TSK-104/105/109 — LlmBudgetGuard in Resilience4j chain)
-  TSK-160 ──→ TSK-161 ──→ TSK-162 ──→ TSK-163
-  TSK-160 + TSK-161 + TSK-162 ──→ TSK-163
-
-Sprint 8 (EP-011 FE + LLM budget FE + QA)
-  TSK-119 + TSK-118 ──→ TSK-122 + TSK-124 ──→ TSK-123 ──→ TSK-125
-  TSK-156 + TSK-122 + TSK-124 ──→ TSK-157
-  TSK-156 ──→ TSK-158
-  TSK-155 + TSK-156 + TSK-158 ──→ TSK-159
-
-Sprint 9 (EP-012)
-  TSK-091 ──→ TSK-127
-  TSK-104 + TSK-108 ──→ TSK-128
-  TSK-126 + TSK-127 + TSK-128 + TSK-129 ──→ TSK-130
-  TSK-132 + TSK-133 + TSK-135 + TSK-136 ──→ TSK-131 ──→ TSK-134
-  TSK-135 + TSK-136 ──→ TSK-137
-  TSK-135 + TSK-136 ──→ TSK-138 ──→ TSK-139
-  TSK-124 + TSK-138 ──→ TSK-140 + TSK-141 ──→ TSK-142
+Sprint 11 (EP-014 Logging, BE-heavy)  ═══╗
+                                          ╠══► Sprint 13 (EP-015 Notifications, FE)
+Sprint 12 (EP-016 Design Tokens, FE-heavy)╝        │
+                                                    ▼
+                                            Sprint 14 (EP-017 Session/Routes, FE+BE)
+                                                    │
+                                                    ▼
+                                            Sprint 15 (EP-018 Security, BE+FE+DB)
 ```
 
-**Prossimo `/dev` suggerito:** Sprint 9 (EP-012) — `TSK-126` (UniverseScreenerService) in parallelo con `TSK-129` (SectorBlacklist) + `TSK-132` (BatchResilienceConfig) + `TSK-133` (migration) + `TSK-135` (migration). Completare Sprint 5 Wave 2 (TSK-061..067, deploy infra) e Sprint 5.5 hotfix (TSK-143..154) quando prioritario.
+**Sprint 11 e 12** possono essere sviluppati **in parallelo** (layer diversi: BE vs FE).
+**Sprint 13** richiede output di entrambi (Correlation ID + design tokens).
+**Sprint 14** è indipendente ma logicamente segue il consolidamento auth.
+**Sprint 15** dipende da Sprint 14 per la CSRF protection sugli endpoint cookie-based.
+
+---
+
+## Dipendenze cross-sprint (R3.0)
+
+```
+Sprint 11 → Sprint 13:
+  TSK-172 (CorrelationIdFilter) ──→ TSK-195 (NotificationToast correlationId)
+
+Sprint 12 → Sprint 13:
+  TSK-184 (design tokens) ──→ TSK-203 (hardening a11y contrasto)
+
+Sprint 14 → Sprint 15:
+  TSK-209 (cookie httpOnly auth) ──→ TSK-223 (CSRF per cookie endpoints)
+```
+
+---
+
+## Prossimo /dev suggerito
+
+**Sprint corrente:** Sprint 11 (EP-014 Logging). Start raccomandato: **TSK-170** (fondazione logging).
+
+**Parallelismo possibile:**
+- be-dev: TSK-170 → TSK-172 → TSK-175 → TSK-179 (Sprint 11 catena BE)
+- fe-dev: TSK-184 → TSK-185 → TSK-187 (Sprint 12 catena FE, in parallelo)
+
+**Residuo R1.1:** TSK-071 resta `todo` (blocked su gap `fmp-stable-rate-limiting`).
+
+**ADR pending:** ADR-021..025 tutti `proposed`. Per policy, i TSK procedono con `pending_clarification`
+annotato dove impattati direttamente (TSK-184 → Q_004, TSK-237 → Q_005).

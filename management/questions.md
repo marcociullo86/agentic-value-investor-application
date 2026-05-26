@@ -1,7 +1,7 @@
 ---
 created: 2026-05-20
-updated: 2026-05-20
-status: resolved
+updated: 2026-05-26
+status: open
 ---
 # Questions — App Template Demo
 
@@ -13,7 +13,30 @@ indipendentemente dal `blocking_level`. Diventa `resolved` quando `[APERTE]` è 
 
 ## [APERTE]
 
-<!-- Nessuna question aperta al 2026-05-20. -->
+### Q_004 — Strategia design system React: M3 token system vs componenti attuali
+**Origine:** [[material-design-3-accessibility]]
+**Tipo:** Conflitto business
+**Impatto:** MEDIO
+**Bloccante:** soft
+**Domanda:** REQ-03 prescrive l'adozione del design token system Material Design 3 (colori, tipografia, shape, componenti M3). Il frontend attuale usa componenti basati su libreria diversa (Radix-based). Come conciliare? Tre opzioni: (a) adottare una libreria che implementa M3 nativamente per React, (b) estendere i componenti attuali con un token system M3-aligned mantenendo la libreria corrente, (c) approccio ibrido. La scelta impatta tutti i componenti UI esistenti e determina la fattibilità delle storie di EP-016 relative ai componenti M3.
+**Epiche bloccate:** EP-016 (parziale — solo storie relative ai componenti M3)
+**Storie bloccate:** US-069
+[^src: wiki/concepts/material-design-3-accessibility.md §Design Token System M3]
+[^src: wiki/syntheses/fintech-hardening-requirements-map.md §Gap identificati]
+[^src: wiki/gaps.md §fintech-design-system-react]
+
+---
+
+### Q_005 — Dichiarazione formale scope PCI-DSS
+**Origine:** [[fintech-security-compliance]]
+**Tipo:** Requisito incompleto
+**Impatto:** BASSO
+**Bloccante:** soft
+**Domanda:** REQ-05 §5.4 richiede una dichiarazione esplicita dello scope PCI-DSS: se l'applicazione tratta dati di carta di pagamento si applicano vincoli stringenti (tokenization, iframe provider certificato, flusso dati carta documentato); altrimenti, la non-applicabilità deve essere dichiarata esplicitamente in un ADR di sicurezza. L'applicazione è un tool di screening azionario value investing e non tratta pagamenti — serve un ADR formale che dichiari "PCI-DSS: non applicabile" con le motivazioni.
+**Epiche bloccate:** EP-018 (parziale)
+**Storie bloccate:** US-082
+[^src: wiki/concepts/fintech-security-compliance.md §5.4 — Scope PCI-DSS (condizionale)]
+[^src: wiki/gaps.md §fintech-pci-dss-scope]
 
 ## [RISOLTE]
 

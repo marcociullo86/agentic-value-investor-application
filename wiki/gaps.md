@@ -403,3 +403,21 @@ ADR-007 §Error format dichiara RFC 9457 §3.2 (extensions al top-level). Quattr
 **Sospetta fonte:** lead-architect — decisione su `next.config.js` `output` mode per supportare route dinamiche deep analysis.
 **Impatto:** Bloccante per build di produzione della route deep analysis. Non bloccante per dev locale. L'intera pagina è funzionale con `next dev` ma `next build` fallirà.
 **TSK correlati:** TSK-122 (implementazione route), US-046 (frontend tab deep analysis).
+
+---
+
+## 2026-05-26 12:42 — fintech-design-system-react
+
+**Origine:** wiki-keeper @ ingest raw/requisiti-funzionali-fintech.md
+**Gap:** REQ-03 prescrive l'adozione del design token system Material Design 3 (M3) con componenti M3 (bottoni filled/tonal/elevated, chips, navigation bar/rail, FAB, cards, dialogs). Il frontend attuale usa componenti shadcn/ui (Radix-based: Button, Input, Card, Modal, Toast). Non esiste una decisione architetturale su come conciliare M3 con shadcn/ui: adottare MUI v6 (implementa M3 nativamente per React), estendere shadcn con un token system M3-aligned, oppure un approccio ibrido.
+**Sospetta fonte:** lead-architect — decisione architetturale su design system frontend (ADR dedicato).
+**Impatto:** REQ-03 non e implementabile senza questa decisione. Tutti i componenti UI esistenti (TrafficLightPanel, TopPicksTable, DeepVerdictBadge, MrMarketSentimentBadge, LongTermTrendBadge) usano classi Tailwind/shadcn e dovrebbero essere adattati. Non bloccante per il funzionamento attuale dell'app. Bloccante: no (per MVP); si per implementazione REQ-03.
+
+---
+
+## 2026-05-26 12:42 — fintech-pci-dss-scope
+
+**Origine:** wiki-keeper @ ingest raw/requisiti-funzionali-fintech.md
+**Gap:** REQ-05 §5.4 richiede una dichiarazione esplicita dello scope PCI-DSS: se l'applicazione tratta dati di carta di pagamento, si applicano vincoli stringenti (tokenization, iframe provider, flusso dati carta documentato); se non applicabile, deve essere dichiarato esplicitamente nell'ADR di sicurezza. L'applicazione Value Investing WebApp e un tool di screening azionario e non tratta pagamenti — ma la dichiarazione formale "non applicabile" non esiste in nessun ADR.
+**Sospetta fonte:** lead-architect — ADR di sicurezza con dichiarazione scope PCI-DSS.
+**Impatto:** Documentale. Nessun impatto tecnico se il scope e effettivamente non applicabile. Richiesto da REQ-05 come acceptance criterion ("ADR esplicito che documenta scope PCI-DSS"). Bloccante: no.

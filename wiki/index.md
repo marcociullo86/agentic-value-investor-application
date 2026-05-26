@@ -8,6 +8,8 @@ updated: 2026-05-22 (v2026-05-22 FMP stable migration + ingest L'Investitore Int
 updated: 2026-05-22 (TSK-068 US-029 fmp-api-quickstart operativo)
 updated: 2026-05-25 (gap-close run: +2 concept EP-011, +1 extend analysis-api-pipeline, +1 note value-investor-bot-architecture)
 updated: 2026-05-25 (gap-close massivo 9 gap + ingest fmp_mcp-server.txt: +1 concept fmp-mcp-integration, +1 source fmp-mcp-server)
+updated: 2026-05-26 (indice riallineato: +6 concept agent.py, +1 synthesis, fix conteggi, dedup runbook)
+updated: 2026-05-26 (ingest requisiti-funzionali-fintech.md: +1 source, +6 concept, +1 synthesis, +1 runbook)
 tags: [navigation]
 ---
 # Wiki Index — App Template Demo
@@ -36,12 +38,13 @@ tags: [navigation]
 - **FMP API** — dominio tecnico: API stable (base URL `https://financialmodelingprep.com/stable/`), 263 endpoint, autenticazione, ricerca, dati finanziari, quotazioni, metriche. *(Migrazione da v3 completata 2026-05-22)*
 - **Value Investing** — dominio analitico: framework Graham/Buffett, valutazione fondamentale, analisi bilanci SEC.
 - **Product Spec** — specifica funzionale della WebApp di screening value investing: architettura, regole di business, calcolo valore intrinseco, UI.
+- **Fintech Hardening** — iterazione trasversale: logging strutturato, notifiche errori, accessibilita M3/WCAG, AuthGuard, sicurezza/compliance fintech.
 
 ---
 
 ## Pagine
 
-### Sources (10)
+### Sources (12)
 
 #### FMP API (2)
 
@@ -69,7 +72,13 @@ tags: [navigation]
 | [[vi-07-risoluzione-q002-q003]] | 07_Risoluzione_Q002_Q003.md | product-spec, frontend, spa, react, nextjs, screener, gics, q002, q003 |
 | [[vi-08-risoluzione-q001-owner-earnings]] | 08_Risoluzione_Q001_Owner_Earnings.md | product-spec, dcf, owner-earnings, buffett, capex, greenwald, q001 |
 
-### Concepts (25)
+#### Fintech Hardening (1)
+
+| Pagina | Documento sorgente | Tag |
+|--------|--------------------|-----|
+| [[requisiti-funzionali-fintech]] | requisiti-funzionali-fintech.md | fintech, hardening, logging, accessibility, security, auth-guard, material-design-3 |
+
+### Concepts (46)
 
 #### FMP API stable (14)
 
@@ -90,7 +99,7 @@ tags: [navigation]
 | [[fmp-etfs-funds]] | ETF e fondi comuni: info, holdings (stable) |
 | [[fmp-mcp-integration]] | FMP MCP Server: cos'è MCP, vantaggi vs REST adapter, casi d'uso LLM agent, considerazione architetturale |
 
-#### Value Investing (14)
+#### Value Investing (19)
 
 | Pagina | Descrizione |
 |--------|-------------|
@@ -108,8 +117,13 @@ tags: [navigation]
 | [[market-fluctuations-graham]] | Cap.8: volatilita' non e' rischio, il mercato serve — non comanda |
 | [[inflation-investing-graham]] | Cap.2: azioni con pricing power come hedge parziale all'inflazione |
 | [[superinvestors-graham-doddsville]] | Appendice 1 / Buffett 1984: prova empirica — 9 fondi Graham sovraperformano il mercato |
+| [[dcf-discount-rate-policy]] | Scelta del discount rate DCF: r=4.5% (Buffett risk-free) vs r=9.5% (WACC standard CFA) — impatto su valore intrinseco |
+| [[owner-earnings-formula-variants]] | Tre varianti Owner Earnings: formula Buffett 1986, metodo Greenwald maintenance CapEx, semplificazione agent.py |
+| [[munger-inversion-rag]] | Analisi qualitativa 10-K/10-Q con principio inversione Munger: 10 query RAG su SEC EDGAR per rischi catastrofici |
+| [[panic-buy-vs-value-trap-detection]] | Discriminazione panic buy (business solido + panico temporaneo) vs value trap (declino strutturale) via drawdown + news sentiment LLM |
+| [[clone-investing-13f-overlay]] | Tecnica Pabrai/Spier: overlay 13-F trimestrali SEC EDGAR da fondi value (Berkshire, Pershing Square) per universo pre-approvato |
 
-#### Product Spec / EP-011 (6)
+#### Product Spec / EP-011 (7)
 
 | Pagina | Descrizione |
 |--------|-------------|
@@ -119,6 +133,18 @@ tags: [navigation]
 | [[openapi-contract-check]] | springdoc 2.8.16 (webmvc-api), MockMvc `/api/openapi.json`, gate CI `contract-check` |
 | [[pgvector-vector-store]] | Vector store EP-011: schema `filing_chunks`, HNSW (m=16, ef=64), chunking 6000/400 char, query similarity pgvector |
 | [[arctic-embed-l-v2]] | Modello embedding EP-011: `Qwen/Qwen3-Embedding-0.6B` (1024-dim, 32K ctx, MTEB ~64.6); A/B test via `embeddings.model.name`; Arctic Embed L v2.0 come fallback |
+| [[value-investor-bot-architecture]] | Agent.py v2.6.1: architettura LangGraph multi-agente (screener → SEC RAG → news sentiment → DCF → verdetto), prototipo Python delle funzionalità EP-010/011/012 |
+
+#### Fintech Hardening (6)
+
+| Pagina | Descrizione |
+|--------|-------------|
+| [[structured-logging-backend]] | REQ-01: logging JSON strutturato, correlation ID, redazione PII, performance 2ms p99 |
+| [[frontend-error-notifications]] | REQ-02: NotificationService centralizzato, error mapping, WCAG 2.2 AA, correlation ID copiabile |
+| [[material-design-3-accessibility]] | REQ-03: design token M3, light/dark theme, shape system, motion, WCAG 2.2 AA baseline |
+| [[auth-guard-frontend]] | REQ-04: protezione rotte, roles/permissions, token lifecycle, refresh automatico, logout |
+| [[fintech-security-compliance]] | REQ-05: PII policy, token storage, defense-in-depth, PCI-DSS condizionale, threat model, security events |
+| [[correlation-id-tracing]] | Cross-cutting: propagazione X-Correlation-Id end-to-end backend-frontend |
 
 ### Entities (3)
 
@@ -128,7 +154,7 @@ tags: [navigation]
 | [[benjamin-graham]] | Padre fondatore del value investing — biografia, Graham-Newman, allievi, contributi (aggiornato v2026-05-22) |
 | [[warren-buffett]] | Evoluisce Graham con moat, cerchio di competenza, Owner Earnings (aggiornato v2026-05-22) |
 
-### Syntheses (4)
+### Syntheses (6)
 
 | Pagina | Descrizione |
 |--------|-------------|
@@ -136,16 +162,18 @@ tags: [navigation]
 | [[value-investing-fmp-integration]] | Mappa metrica value investing → endpoint FMP stable; invariante ADR-004 |
 | [[webapp-value-investing-spec]] | Specifica cross-domain: requisiti funzionali → regole Rule Engine → endpoint FMP → architettura |
 | [[graham-investing-philosophy]] | Sintesi cross-domain: 5 strati del framework Graham, genealogia Graham→Buffett, evidenza Doddsville |
+| [[graham-modern-bot-methodologies]] | Sintesi cross-domain Graham 1973 ↔ pratiche moderne 2026 ↔ agent.py ↔ Rule Engine Kotlin: convergenze, divergenze, scelte metodologiche |
+| [[fintech-hardening-requirements-map]] | Mappa cross-domain: 5 REQ iterazione fintech, dipendenze inter-REQ, impatto sull'architettura esistente |
 
-### Runbooks (6)
+### Runbooks (7)
 
 | Pagina | Descrizione |
 |--------|-------------|
-| [[fmp-api-quickstart]] | Guida operativa FMP stable: auth, search, profile, statements, key-metrics, screener |
-| [[fmp-api-quickstart]] | Integrazione FMP: quickstart, rate limit (gap), URL base (gap), errori HTTP (gap), ADR-016 ref |
+| [[fmp-api-quickstart]] | Guida operativa FMP stable: auth, search, profile, statements, key-metrics, screener; sezioni rate limit, errori HTTP, ADR-016 ref |
 | [[sec-10k-10q-analysis-playbook]] | Playbook 7-step per analisi 10-K/10-Q con metodo Buffett e FMP API |
 | [[value-investing-rule-engine-runbook]] | Implementazione step-by-step del Rule Engine: acquisizione FMP, validazione regole, DCF, MoS |
 | [[runbook-openapi-contract-check]] | Troubleshooting contract-check: Boot 3.5, PatternParseException, MockMvc vs OpenAPIService |
 | [[defensive-investor-checklist]] | 7 criteri Graham Cap.14 step-by-step con mapping FMP stable e WebApp signals |
 | [[enterprising-investor-checklist]] | Criteri Graham Cap.15 step-by-step: liquidita', P/E≤9, net-net NCAV con FMP stable |
+| [[pii-redaction-checklist]] | PII redaction step-by-step: pattern centralizzati, PiiRedactionEncoder, leak detection CI, GDPR retention |
 
