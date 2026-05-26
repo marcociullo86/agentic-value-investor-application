@@ -1,4 +1,5 @@
 import { SearchBar } from '@/components/search/SearchBar';
+import { TopPicksManualTriggerButton } from '@/components/top-picks/TopPicksManualTriggerButton';
 
 /**
  * Landing page `/` — TSK-003 (US-001).
@@ -40,6 +41,8 @@ export default function HomePage() {
           Screener — coming soon
         </span>
       </div>
+
+      <TopPicksManualTriggerButton />
 
       <p className="mt-4 text-xs text-slate-500">
         Versione {process.env.NEXT_PUBLIC_BUILD_VERSION ?? '0.1.0-dev'} — backend{' '}

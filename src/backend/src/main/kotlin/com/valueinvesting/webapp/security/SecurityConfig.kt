@@ -140,6 +140,7 @@ class SecurityConfig(
                         "/screener/**",
                         "/moat/**",
                         "/analysis/**",
+                        "/top-picks/**",
                         "/*.svg",
                         "/*.png",
                         "/*.jpg",
@@ -160,6 +161,8 @@ class SecurityConfig(
                         "/api/financials/**",
                         "/api/analysis/**",
                         "/api/historical/**",
+                        "/api/top-picks",
+                        "/api/top-picks/**",
                     ).permitAll()
                     .requestMatchers(
                         "/actuator/health",

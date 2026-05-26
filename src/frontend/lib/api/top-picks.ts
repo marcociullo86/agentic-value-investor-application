@@ -1,4 +1,4 @@
-import { apiGet, type ApiResult } from '@/lib/api/client';
+import { apiGet, apiPost, type ApiResult } from '@/lib/api/client';
 
 /**
  * Top Picks domain API (TSK-141 — US-051, EP-012).
@@ -85,4 +85,45 @@ export async function getTopPicks(
   const result: ApiResult<TopPicksPageResponse> =
     await apiGet<TopPicksPageResponse>(url);
   return result.data;
+}
+
+/**
+ * Risposta di POST /api/top-picks/run (manual trigger).
+ *
+ *  - 202 Accepted → `status: "started"`, job avviato in background.
+ *  - 409 Conflict → `status: "already_running"`, un altro run è in flight.
+ */
+export interface TopPicksRunResponse {
+  readonly status: 'started' | 'already_running';
+  readonly startedAt: string | null;
+  readonly message: string;
+}
+
+/**
+ * POST /api/top-picks/run — trigger manuale on-demand del batch
+ * TopValuePicksJob. Fire-and-forget (status 202): il job può durare 10-30
+ * minuti, i risultati arrivano su `/top-picks` al termine.
+ */
+export async function triggerTopPicksRun(): Promise<{
+  readonly httpStatus: number;
+  readonly body: TopPicksRunResponse;
+}> {
+  // 409 va trattato come success-soft, non come errore di rete.
+  try {
+    const result = await apiPost<TopPicksRunResponse, undefined>(
+      '/api/top-picks/run',
+      undefined,
+    );
+    return { httpStatus: result.status, body: result.data };
+  } catch (err) {
+    const status =
+      (err as { response?: { status?: number; data?: TopPicksRunResponse } })
+        ?.response?.status ?? 500;
+    const body =
+      (err as { response?: { data?: TopPicksRunResponse } })?.response?.data;
+    if (status === 409 && body) {
+      return { httpStatus: 409, body };
+    }
+    throw err;
+  }
 }

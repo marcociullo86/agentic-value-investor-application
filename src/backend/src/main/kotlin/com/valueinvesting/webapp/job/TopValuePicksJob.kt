@@ -10,7 +10,6 @@ import com.valueinvesting.webapp.service.VerdictClass
 import com.valueinvesting.webapp.universe.UniverseCandidate
 import com.valueinvesting.webapp.universe.UniverseScreenerService
 import org.slf4j.LoggerFactory
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
@@ -35,9 +34,10 @@ import java.time.temporal.ChronoUnit
 // 5. Upsert idempotente: DELETE WHERE run_date = X + INSERT entities.
 // 6. Run log: 1 row TopPicksRunLogEntity con stato STARTED → COMPLETED/FAILED.
 //
-// CONDITIONAL — il bean viene caricato solo se `top-picks.enabled=true` (default
-// `false`). In dev/test rimane disabilitato, in prod va attivato via env
-// `TOP_PICKS_ENABLED=true` (vedi application.yml profile-aware).
+// BEAN LOADING — il bean è sempre caricato per permettere il trigger manuale
+// via POST /api/top-picks/run anche quando il cron schedulato è disabilitato.
+// Il flag `top-picks.enabled` controlla SOLO l'esecuzione automatica via
+// @Scheduled (vedi `scheduledTick()`).
 //
 // IDEMPOTENZA — il job e' safe per rerun stesso run_date: DELETE-then-INSERT
 // nel boundary del save (PK = run_date + ticker). Non e' transazionale stretto
@@ -50,7 +50,6 @@ import java.time.temporal.ChronoUnit
 // [^src: management/kanban/EP-012-batch-top-value-picks/US-048-job-notturno-top-picks/TSK-131.md]
 // [^src: src/backend/src/main/kotlin/com/valueinvesting/webapp/service/DeepAnalysisService.kt §analyze]
 @Component
-@ConditionalOnProperty(name = ["top-picks.enabled"], havingValue = "true", matchIfMissing = false)
 class TopValuePicksJob(
     private val universeScreenerService: UniverseScreenerService,
     private val deepAnalysisService: DeepAnalysisService,
@@ -72,7 +71,18 @@ class TopValuePicksJob(
         VerdictClass.WATCHLIST,
     )
 
+    // Wrapper @Scheduled: chiamato dal cron, esegue il job SOLO se
+    // `top-picks.enabled=true`. Il trigger manuale (POST /api/top-picks/run)
+    // invoca `run()` direttamente e bypassa questo check, by design.
     @Scheduled(cron = "\${top-picks.cron:0 0 2 * * *}", zone = "\${top-picks.zone:UTC}")
+    fun scheduledTick() {
+        if (!properties.enabled) {
+            log.debug("TopValuePicksJob scheduled tick skipped — top-picks.enabled=false")
+            return
+        }
+        run()
+    }
+
     fun run() {
         val runDate = LocalDate.now(ZoneId.of(properties.zone))
         val startedAt = Instant.now()

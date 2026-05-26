@@ -56,6 +56,13 @@ function DeepAnalysisContent({
     >
       <DeepAnalysisHeader ticker={ticker} />
 
+      <ManualRunBar
+        ticker={ticker}
+        isWorking={isLoading || isValidating}
+        onRun={() => void refresh()}
+        onRunWithLlm={() => void invokeLlm()}
+      />
+
       {isLoading ? <SkeletonLoader /> : null}
 
       {error !== undefined && data === undefined ? (
@@ -137,6 +144,63 @@ function DeepAnalysisHeader({
         Analisi approfondita SEC filing 10-K/10-Q + verdetto Munger.
       </p>
     </header>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Manual run bar                                                     */
+/* ------------------------------------------------------------------ */
+
+function ManualRunBar({
+  ticker,
+  isWorking,
+  onRun,
+  onRunWithLlm,
+}: {
+  readonly ticker: string;
+  readonly isWorking: boolean;
+  readonly onRun: () => void;
+  readonly onRunWithLlm: () => void;
+}): React.ReactElement {
+  return (
+    <section
+      data-testid="deep-analysis-manual-run-bar"
+      aria-label={`Esecuzione manuale deep analysis ${ticker}`}
+      className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-900"
+    >
+      <div className="flex flex-col">
+        <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
+          Esegui job on-demand
+        </span>
+        <span className="text-xs text-slate-600 dark:text-slate-400">
+          Rilancia la pipeline deep analysis per <code>{ticker}</code> senza
+          attendere il batch schedulato.
+        </span>
+      </div>
+      <div className="ml-auto flex gap-2">
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={onRun}
+          disabled={isWorking}
+          data-testid="deep-analysis-manual-run"
+        >
+          {isWorking ? 'In esecuzione…' : 'Esegui ora'}
+        </Button>
+        <Button
+          type="button"
+          variant="primary"
+          size="sm"
+          onClick={onRunWithLlm}
+          disabled={isWorking}
+          data-testid="deep-analysis-manual-run-llm"
+          title="Include Munger LLM (più lento, costo)"
+        >
+          {isWorking ? 'In esecuzione…' : 'Esegui + LLM'}
+        </Button>
+      </div>
+    </section>
   );
 }
 

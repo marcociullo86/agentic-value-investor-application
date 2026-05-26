@@ -1,11 +1,14 @@
 package com.valueinvesting.webapp.api
 
 import com.valueinvesting.webapp.api.model.TopPicksPageResponse
+import com.valueinvesting.webapp.job.TopPicksManualTrigger
 import com.valueinvesting.webapp.service.TopPicksQueryService
 import org.springframework.http.CacheControl
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -36,7 +39,37 @@ import java.time.LocalDate
 @RequestMapping("/api/top-picks")
 class TopPicksController(
     private val service: TopPicksQueryService,
+    private val manualTrigger: TopPicksManualTrigger,
 ) {
+
+    // Manual on-demand trigger of TopValuePicksJob. Fire-and-forget: returns
+    // 202 Accepted immediately while the job runs in a background thread.
+    // Returns 409 Conflict if a run is already in flight (concurrency guard
+    // in TopPicksManualTrigger).
+    @PostMapping("/run", produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun triggerRun(): ResponseEntity<Map<String, Any?>> {
+        val result = manualTrigger.trigger()
+        return when (result) {
+            is TopPicksManualTrigger.TriggerResult.Started -> ResponseEntity
+                .status(HttpStatus.ACCEPTED)
+                .body(
+                    mapOf(
+                        "status" to "started",
+                        "startedAt" to result.startedAt.toString(),
+                        "message" to "Top Picks batch job avviato. Risultati visibili su /top-picks al termine.",
+                    ),
+                )
+            is TopPicksManualTrigger.TriggerResult.AlreadyRunning -> ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(
+                    mapOf(
+                        "status" to "already_running",
+                        "startedAt" to result.startedAt?.toString(),
+                        "message" to "Un run è già in corso. Riprova al termine.",
+                    ),
+                )
+        }
+    }
 
     @GetMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
     fun list(
