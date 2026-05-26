@@ -21,7 +21,10 @@ class FmpEventLogMaintenanceJob(
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    @Scheduled(cron = "0 0 3 * * *", zone = "UTC")
+    @Scheduled(
+        cron = "\${fmp.event-log.purge-cron:0 0 3 * * *}",
+        zone = "\${fmp.event-log.purge-zone:UTC}",
+    )
     @Transactional
     fun purgeExpiredRows() {
         val cutoff = Instant.now(clock).minus(properties.retentionDays, ChronoUnit.DAYS)

@@ -148,6 +148,10 @@ fmp:
     profile-ttl-hours: 1
   event-log:
     retention-days: ${FMP_EVENT_LOG_RETENTION_DAYS:90}
+    # Purge job @Scheduled: cron + timezone configurabili da env.
+    # Default 03:00 UTC ogni giorno (offset 1h dopo TopValuePicksJob 02:00).
+    purge-cron: "${FMP_EVENT_LOG_PURGE_CRON:0 0 3 * * *}"
+    purge-zone: "${FMP_EVENT_LOG_PURGE_ZONE:UTC}"
 
 # FMP batch rate limit dedicato a TopValuePicksJob (TSK-132, EP-012/US-048).
 # Separato da `fmp.rate-limit-per-minute` (online) per non bloccare il traffico
@@ -240,8 +244,8 @@ news-scout:
 # FMP non risponde entro 30m dalla partenza.
 top-picks:
   enabled: ${TOP_PICKS_ENABLED:true}
-  cron: "0 0 2 * * *"
-  zone: "UTC"
+  cron: "${TOP_PICKS_CRON:0 0 2 * * *}"
+  zone: "${TOP_PICKS_ZONE:UTC}"
   top-n: 30
   retention-days: 90
   warning-duration-minutes: 180

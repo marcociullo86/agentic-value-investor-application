@@ -81,6 +81,12 @@ services:
       JWT_SIGNING_SECRET: ${JWT_SIGNING_SECRET}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000}
       EMBEDDINGS_SIDECAR_URL: http://embeddings-sidecar:8001
+      # Scheduled jobs — override cron/timezone da .env
+      TOP_PICKS_ENABLED: ${TOP_PICKS_ENABLED:-true}
+      TOP_PICKS_CRON: ${TOP_PICKS_CRON:-0 0 2 * * *}
+      TOP_PICKS_ZONE: ${TOP_PICKS_ZONE:-UTC}
+      FMP_EVENT_LOG_PURGE_CRON: ${FMP_EVENT_LOG_PURGE_CRON:-0 0 3 * * *}
+      FMP_EVENT_LOG_PURGE_ZONE: ${FMP_EVENT_LOG_PURGE_ZONE:-UTC}
     ports:
       - "8080:8080"
     healthcheck:
@@ -90,6 +96,19 @@ services:
       retries: 12
       start_period: 30s
 
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: vi-portainer
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9443:9443"
+    volumes:
+      - /run/user/1000/podman/podman.sock:/var/run/docker.sock:Z
+      - portainer-data:/data
+
 volumes:
   postgres-data:
+    driver: local
+  portainer-data:
     driver: local
