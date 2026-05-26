@@ -199,6 +199,22 @@ universe:
       - name: "Pershing Square Capital"
         cik: "0001336528"
 
+# NewsScoutService (TSK-128, EP-012 US-047 Sprint 9) — news scout LLM panic-buy.
+# `enabled: false` disabilita il provider e tiene il NoopNewsScoutProvider
+# (TSK-126) come fallback. `max-input-seeds` cappa i ticker seed in input al
+# prompt aggregato (1 chiamata LLM per N ticker, non N chiamate). `max-results`
+# cappa l'output post-parse. `news-days` allinea la finestra news al criterio
+# Graham "calo nelle ultime 4 settimane". `max-news-per-ticker` previene
+# prompt giganti su ticker high-coverage. `llm-max-tokens` cappa la response
+# Anthropic (4000 sufficiente per ~50 entry JSON).
+news-scout:
+  enabled: true
+  max-input-seeds: 200
+  max-results: 50
+  news-days: 30
+  max-news-per-ticker: 5
+  llm-max-tokens: 4000
+
 # Anthropic Claude Opus 4.7 (ADR-017 / TSK-104)
 # API key MUST be set via ANTHROPIC_API_KEY env var in production.
 # Blank value activates the AnthropicClientStub fallback (dev/test).
