@@ -1,0 +1,20 @@
+{
+  "runDate": "2026-05-26",
+  "page": 0,
+  "size": 30,
+  "total": 12,
+  "items": [
+    { "ticker": "AAPL", "rankPosition": 1, "verdettoClasse": "APPROVATO_PANIC_BUY", "marginOfSafety": 55.2, "sector": "Technology", "marketCapUsd": 2800000000000, "source": "SCREENER", "companyName": "Apple Inc." },
+    { "ticker": "MSFT", "rankPosition": 2, "verdettoClasse": "APPROVATO_PANIC_BUY", "marginOfSafety": 48.7, "sector": "Technology", "marketCapUsd": 3100000000000, "source": "SCREENER", "companyName": "Microsoft Corp." },
+    { "ticker": "KO",   "rankPosition": 3, "verdettoClasse": "APPROVATO",           "marginOfSafety": 41.0, "sector": "Consumer Staples", "marketCapUsd": 260000000000, "source": "SCREENER", "companyName": "Coca-Cola Co." },
+    { "ticker": "JNJ",  "rankPosition": 4, "verdettoClasse": "APPROVATO",           "marginOfSafety": 37.5, "sector": "Healthcare", "marketCapUsd": 400000000000, "source": "THIRTEEN_F", "companyName": "Johnson & Johnson" },
+    { "ticker": "PG",   "rankPosition": 5, "verdettoClasse": "APPROVATO",           "marginOfSafety": 32.1, "sector": "Consumer Staples", "marketCapUsd": 340000000000, "source": "SCREENER", "companyName": "Procter & Gamble" },
+    { "ticker": "V",    "rankPosition": 6, "verdettoClasse": "APPROVATO",           "marginOfSafety": 28.9, "sector": "Financials", "marketCapUsd": 490000000000, "source": "SCREENER", "companyName": "Visa Inc." },
+    { "ticker": "GOOGL","rankPosition": 7, "verdettoClasse": "APPROVATO",           "marginOfSafety": 25.4, "sector": "Communication Services", "marketCapUsd": 2100000000000, "source": "SCREENER", "companyName": "Alphabet Inc." },
+    { "ticker": "BRK",  "rankPosition": 8, "verdettoClasse": "APPROVATO",           "marginOfSafety": 22.0, "sector": "Financials", "marketCapUsd": 850000000000, "source": "THIRTEEN_F", "companyName": "Berkshire Hathaway" },
+    { "ticker": "WMT",  "rankPosition": 9, "verdettoClasse": "WATCHLIST",           "marginOfSafety": 18.3, "sector": "Consumer Staples", "marketCapUsd": 450000000000, "source": "SCREENER", "companyName": "Walmart Inc." },
+    { "ticker": "UNH",  "rankPosition": 10, "verdettoClasse": "WATCHLIST",          "marginOfSafety": 14.7, "sector": "Healthcare", "marketCapUsd": 380000000000, "source": "SCREENER", "companyName": "UnitedHealth Group" },
+    { "ticker": "HD",   "rankPosition": 11, "verdettoClasse": "WATCHLIST",          "marginOfSafety": 11.2, "sector": "Consumer Discretionary", "marketCapUsd": 310000000000, "source": "SCREENER", "companyName": "Home Depot" },
+    { "ticker": "CVX",  "rankPosition": 12, "verdettoClasse": "WATCHLIST",          "marginOfSafety":  8.5, "sector": "Energy", "marketCapUsd": 280000000000, "source": "SCREENER", "companyName": "Chevron Corp." }
+  ]
+}

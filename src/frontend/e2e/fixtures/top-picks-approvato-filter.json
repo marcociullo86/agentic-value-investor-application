@@ -1,0 +1,10 @@
+{
+  "runDate": "2026-05-26",
+  "page": 0,
+  "size": 30,
+  "total": 2,
+  "items": [
+    { "ticker": "AAPL", "rankPosition": 1, "verdettoClasse": "APPROVATO_PANIC_BUY", "marginOfSafety": 55.2, "sector": "Technology", "marketCapUsd": 2800000000000, "source": "SCREENER", "companyName": "Apple Inc." },
+    { "ticker": "MSFT", "rankPosition": 2, "verdettoClasse": "APPROVATO_PANIC_BUY", "marginOfSafety": 48.7, "sector": "Technology", "marketCapUsd": 3100000000000, "source": "SCREENER", "companyName": "Microsoft Corp." }
+  ]
+}

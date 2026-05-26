@@ -37,6 +37,8 @@ tags:
     description: Autenticazione (EP-006)
   - name: ops
     description: Operativi (override DCF, diagnostics)
+  - name: top-picks
+    description: Top Value Picks classification batch output (EP-012)
 
 paths:
   # ---------------- EP-001 search/screener ----------------
@@ -518,6 +520,65 @@ paths:
       responses:
         '204': { description: Rimosso }
         '401': { $ref: '#/components/responses/Unauthorized' }
+
+  # ---------------- EP-012 top value picks ----------------
+  /api/top-picks:
+    get:
+      tags: [top-picks]
+      summary: Top Value Picks classification — daily batch output (US-050)
+      description: |
+        Lista paginata della classifica giornaliera prodotta dal job @Scheduled
+        (cron 02:00 UTC). Endpoint pubblico (no auth). Se `date` è omessa, il
+        service risolve l'ultima `run_date` disponibile (sort DESC). Se non
+        esistono ancora run (DB vuoto o primo deploy) → 200 con `total=0`.
+        Filtri opzionali: `verdict` (match esatto), `sector` (substring case-
+        insensitive lato app), `min_mos` (margin_of_safety ≥ soglia).
+      parameters:
+        - name: date
+          in: query
+          required: false
+          schema: { type: string, format: date }
+          description: "Run date (YYYY-MM-DD). Default: latest available."
+        - name: verdict
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [APPROVATO, APPROVATO_PANIC_BUY, WATCHLIST]
+        - name: sector
+          in: query
+          required: false
+          schema: { type: string }
+          description: "Substring case-insensitive su entity.sector"
+        - name: min_mos
+          in: query
+          required: false
+          schema: { type: number, format: double }
+          description: "Soglia minima margin_of_safety"
+        - name: page
+          in: query
+          required: false
+          schema: { type: integer, default: 0, minimum: 0 }
+        - name: size
+          in: query
+          required: false
+          schema: { type: integer, default: 30, minimum: 1, maximum: 100 }
+      responses:
+        '200':
+          description: Lista paginata top picks
+          headers:
+            Cache-Control:
+              schema: { type: string }
+              description: "public, max-age=3600"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TopPicksPageResponse'
+        '400':
+          description: Validation error (date malformata o in futuro, size out-of-range)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
 
 components:
   parameters:
@@ -1045,3 +1106,41 @@ components:
         llmStatus:   { $ref: '#/components/schemas/LlmStatus' }
         llmCalls:    { type: integer, description: "Number of LLM API calls made" }
         totalDurationMs: { type: integer, format: int64, description: "Total pipeline duration in milliseconds" }
+
+    # ---------------- EP-012 top value picks (US-050) ----------------
+    TopPickItem:
+      type: object
+      required: [ticker, rankPosition, verdettoClasse, source]
+      properties:
+        ticker:           { type: string }
+        rankPosition:     { type: integer, description: "1-based ranking within run_date (sort key)" }
+        verdettoClasse:
+          type: string
+          enum: [APPROVATO, APPROVATO_PANIC_BUY, WATCHLIST]
+          description: "Classificazione Munger cascade — solo i 3 valori esposti dal job (top-N filter)"
+        marginOfSafety:   { type: number, format: double, nullable: true, description: "Numeric(10,4) lato DB; null se DCF non disponibile" }
+        sector:           { type: string, nullable: true }
+        marketCapUsd:     { type: integer, format: int64, nullable: true }
+        source:
+          type: string
+          enum: [SCREENER, THIRTEEN_F, NEWS_SCOUT]
+          description: "Provenienza candidato (UniverseScreenerService dedupe order)"
+        companyName:      { type: string, nullable: true }
+
+    TopPicksPageResponse:
+      type: object
+      required: [page, size, total, items]
+      description: |
+        Paginated response for GET /api/top-picks. `runDate` può essere null se
+        il batch non ha ancora prodotto alcuna run (primo deploy o DB vuoto).
+      properties:
+        runDate:
+          type: string
+          format: date
+          nullable: true
+        page:  { type: integer }
+        size:  { type: integer }
+        total: { type: integer }
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/TopPickItem' }

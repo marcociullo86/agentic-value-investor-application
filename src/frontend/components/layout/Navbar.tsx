@@ -33,6 +33,13 @@ export function Navbar(): React.ReactElement {
           >
             Screener
           </Link>
+          <Link
+            href="/top-picks"
+            className="text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+            data-testid="nav-top-picks"
+          >
+            Top Picks
+          </Link>
           {accessToken ? (
             <>
               <Link

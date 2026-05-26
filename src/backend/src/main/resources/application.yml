@@ -34,6 +34,15 @@ spring:
     enabled: true
     baseline-on-migrate: true
     locations: classpath:db/migration
+  # Spring task scheduling (TSK-133, EP-012/US-048) — abilita @Scheduled per
+  # TopValuePicksJob cron 02:00 UTC. Pool 2 thread: 1 per il job principale + 1
+  # margine per cleanup (TSK-137). Per disabilitare in profilo test/dev, override
+  # via env var SPRING_TASK_SCHEDULING_ENABLED=false.
+  task:
+    scheduling:
+      enabled: ${SPRING_TASK_SCHEDULING_ENABLED:true}
+      pool:
+        size: 2
 
 server:
   port: 8080
@@ -140,6 +149,15 @@ fmp:
   event-log:
     retention-days: ${FMP_EVENT_LOG_RETENTION_DAYS:90}
 
+# FMP batch rate limit dedicato a TopValuePicksJob (TSK-132, EP-012/US-048).
+# Separato da `fmp.rate-limit-per-minute` (online) per non bloccare il traffico
+# diurno durante il batch notturno (cron 02:00 UTC). Cap 300 req/min default —
+# sufficiente per ~500 candidati x 3-4 endpoint FMP in ~30 min. timeout-seconds
+# lungo (30s) perche' il batch puo' permettersi di attendere il refresh tick.
+fmp-batch:
+  rate-limit-per-minute: ${FMP_BATCH_RATE_LIMIT_PER_MINUTE:300}
+  timeout-seconds: ${FMP_BATCH_TIMEOUT_SECONDS:30}
+
 # Embeddings sidecar (ADR-018 — Qwen3-Embedding-0.6B, fallback Arctic Embed L v2.0)
 embeddings:
   sidecar:
@@ -214,6 +232,20 @@ news-scout:
   news-days: 30
   max-news-per-ticker: 5
   llm-max-tokens: 4000
+
+# TopValuePicksJob configuration (TSK-133, EP-012/US-048).
+# Cron 02:00 UTC giornaliero; top-n cap 30 candidati; retention 90gg rolling
+# (cleanup applicato in TSK-137). warning-duration-minutes triggera log WARN
+# se durata totale > 180m; abort-fmp-unavailable-minutes aborta il run se
+# FMP non risponde entro 30m dalla partenza.
+top-picks:
+  enabled: ${TOP_PICKS_ENABLED:true}
+  cron: "0 0 2 * * *"
+  zone: "UTC"
+  top-n: 30
+  retention-days: 90
+  warning-duration-minutes: 180
+  abort-fmp-unavailable-minutes: 30
 
 # Anthropic Claude Opus 4.7 (ADR-017 / TSK-104)
 # API key MUST be set via ANTHROPIC_API_KEY env var in production.

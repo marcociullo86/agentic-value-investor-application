@@ -1,0 +1,11 @@
+{
+  "runDate": "2026-05-26",
+  "page": 1,
+  "size": 10,
+  "total": 12,
+  "items": [
+    { "ticker": "WMT",  "rankPosition": 9,  "verdettoClasse": "WATCHLIST", "marginOfSafety": 18.3, "sector": "Consumer Staples",       "marketCapUsd": 450000000000, "source": "SCREENER", "companyName": "Walmart Inc." },
+    { "ticker": "UNH",  "rankPosition": 10, "verdettoClasse": "WATCHLIST", "marginOfSafety": 14.7, "sector": "Healthcare",             "marketCapUsd": 380000000000, "source": "SCREENER", "companyName": "UnitedHealth Group" },
+    { "ticker": "HD",   "rankPosition": 11, "verdettoClasse": "WATCHLIST", "marginOfSafety": 11.2, "sector": "Consumer Discretionary", "marketCapUsd": 310000000000, "source": "SCREENER", "companyName": "Home Depot" }
+  ]
+}
