@@ -486,6 +486,87 @@ class FmpAdapterRestClient(
     // Mai propagata fuori dall'adapter.
     private class EmptySecFilingsSentinelException : RuntimeException()
 
+    // `/stable/search-cusip?cusip={cusip}` — risoluzione CUSIP→ticker (TSK-127).
+    //
+    // Endpoint verificato in raw/fmp_docs.md §CUSIPAPI riga 281. Response shape:
+    //   [ { "symbol": "AAPL.NE", "companyName": "Apple Inc.",
+    //       "cusip": "037833100", "marketCap": ... } ]
+    //
+    // Error policy:
+    //   - 429 → FmpUnavailableException(429) (rate-limited, route resilienza).
+    //   - 5xx → FmpUnavailableException(status).
+    //   - 4xx (non 429) → null (CUSIP non riconosciuto, semantica pragmatica).
+    //   - Lista vuota → null (zero match legittimo).
+    //
+    // Il caller (InstitutionalHoldingsService) tratta null come "skip holding".
+    override fun searchCusip(cusip: String): String? {
+        require(cusip.isNotBlank()) { "cusip must not be blank" }
+        val normalized = cusip.trim().uppercase()
+        // Deserializzazione pragmatica: usiamo SearchHitDto (compatibile col
+        // campo `symbol`) — gli altri campi (companyName/cusip/marketCap) sono
+        // ignorati via @JsonIgnoreProperties.
+        val typeRef = object : ParameterizedTypeReference<List<SearchHitDto>>() {}
+
+        val result: List<SearchHitDto>? = try {
+            client.get()
+                .uri { builder ->
+                    builder
+                        .path("/search-cusip")
+                        .queryParam("apikey", appProperties.fmp.apiKey)
+                        .queryParam("cusip", normalized)
+                        .build()
+                }
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError) { _, response ->
+                    val status = response.statusCode
+                    if (status.value() == 429) {
+                        log.warn("FMP 429 (rate limited) on /search-cusip cusip={}", normalized)
+                        throw FmpUnavailableException(
+                            "FMP rate limited for search-cusip",
+                            httpStatus = 429,
+                        )
+                    }
+                    // 4xx non-429 = CUSIP sconosciuto a FMP → null sentinel.
+                    log.debug(
+                        "FMP 4xx on /search-cusip cusip={} status={} — treating as null",
+                        normalized, status,
+                    )
+                    throw EmptyCusipSentinelException()
+                }
+                .onStatus(HttpStatusCode::is5xxServerError) { _, response ->
+                    val status = response.statusCode
+                    log.warn("FMP 5xx on /search-cusip cusip={} status={}", normalized, status)
+                    throw FmpUnavailableException(
+                        "FMP returned $status for search-cusip",
+                        httpStatus = status.value(),
+                    )
+                }
+                .body(typeRef)
+        } catch (ex: EmptyCusipSentinelException) {
+            return null
+        } catch (ex: FmpUnavailableException) {
+            throw ex
+        } catch (ex: RestClientResponseException) {
+            throw FmpUnavailableException(
+                "FMP call failed: ${ex.statusCode} for search-cusip",
+                cause = ex,
+                httpStatus = ex.statusCode.value(),
+            )
+        }
+
+        if (result.isNullOrEmpty()) {
+            return null
+        }
+        // Prendi il primo elemento; il `symbol` puo' contenere suffisso exchange
+        // (es. "AAPL.NE" per Toronto NEO). Per le holding 13-F US-only ci aspettiamo
+        // simboli "puri" o suffissi US-listing; il caller decide se filtrare.
+        return result.first().symbol?.takeIf { it.isNotBlank() }
+    }
+
+    // Sentinel locale per /search-cusip 4xx (non 429) → null senza errore.
+    // Mai propagata fuori dall'adapter.
+    private class EmptyCusipSentinelException : RuntimeException()
+
     // Generic GET on /{endpoint}?symbol={ticker}&apikey=...&limit=...
     // Stable API (TSK-050): il ticker passa da path-variable a query parameter
     // `symbol`. Empty list response -> FmpTickerNotFoundException (semantica FMP).

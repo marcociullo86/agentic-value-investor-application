@@ -178,6 +178,26 @@ universe:
   cap-candidates: 500
   cache-ttl-hours: 6
   news-scout-seed-top: 200
+  # InstitutionalHoldingsService (TSK-127) — overlay 13-F SEC EDGAR.
+  # Lista top value fund CIK SEC 10-digit zero-padded.
+  # Set `enabled: false` per disabilitare il provider 13-F e tenere il
+  # NoopInstitutionalHoldingsProvider come fallback (dev/test).
+  # cache-ttl-days = 7: i 13-F sono trimestrali, 7gg evita storm e bilancia
+  # freschezza vs SEC fair-access (cap 10 req/s).
+  institutional:
+    enabled: true
+    cache-ttl-days: 7
+    top-value-funds:
+      - name: "Berkshire Hathaway"
+        cik: "0001067983"
+      - name: "Baupost Group"
+        cik: "0001061165"
+      - name: "Oakmark Funds"
+        cik: "0000814580"
+      - name: "Markel Group"
+        cik: "0001096343"
+      - name: "Pershing Square Capital"
+        cik: "0001336528"
 
 # Anthropic Claude Opus 4.7 (ADR-017 / TSK-104)
 # API key MUST be set via ANTHROPIC_API_KEY env var in production.

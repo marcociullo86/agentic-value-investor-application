@@ -132,4 +132,29 @@ interface FmpAdapter {
         formTypes: List<String> = listOf("10-K", "10-Q"),
         limit: Int = 10,
     ): List<SecFilingFmpDto>
+
+    // `/stable/search-cusip?cusip={cusip}` — risolve un CUSIP (9 char alfanumerici)
+    // al ticker corrispondente. Usato da InstitutionalHoldingsService (TSK-127)
+    // per mappare le holding 13-F SEC (che usano CUSIP, non ticker) a simboli
+    // ticker analizzabili dal resto della pipeline FMP.
+    //
+    // Response shape FMP (raw/fmp_docs.md §CUSIPAPI riga 281):
+    //   [ { "symbol": "AAPL.NE", "companyName": "Apple Inc.",
+    //       "cusip": "037833100", "marketCap": 5156676087644.16 } ]
+    //
+    // Ritorna `null` se CUSIP non e' riconosciuto (lista vuota o 404). Il caller
+    // tratta null come "skip questa holding" (e.g. CUSIP di un bond, ETF, o
+    // security non coperta da FMP).
+    //
+    // Error policy: in linea con searchSymbol/getDividendHistory (4xx non-429 →
+    // null pragmatico; 429/5xx → FmpUnavailableException routed via Resilience4j).
+    //
+    // Caching: il caller (InstitutionalHoldingsService) puo' decidere se cachare
+    // a livello service. Il caching a livello FmpCacheService DB e' opzionale —
+    // se attivato, V021 aggiunge 'search-cusip' alla CHECK constraint whitelist
+    // `fmp_fin_snap_endpoint_chk`.
+    //
+    // [^src: raw/fmp_docs.md §CUSIPAPI]
+    // [^src: management/kanban/EP-012-batch-top-value-picks/US-047-universe-screener-service/TSK-127.md]
+    fun searchCusip(cusip: String): String?
 }

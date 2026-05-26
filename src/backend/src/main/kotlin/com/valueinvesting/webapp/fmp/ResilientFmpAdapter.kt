@@ -114,6 +114,11 @@ class ResilientFmpAdapter(
     ): List<SecFilingFmpDto> =
         execute("sec-filings", ticker) { delegate.getSecFilings(ticker, formTypes, limit) }
 
+    override fun searchCusip(cusip: String): String? =
+        // Il logger ticker e' "-" (search-cusip non e' per-ticker, e' per-CUSIP).
+        // Il CUSIP stesso non viene loggato come ticker per evitare ambiguita'.
+        execute("search-cusip", "-") { delegate.searchCusip(cusip) }
+
     /**
      * Apply chain decorators in order Bulkhead -> CB -> Retry, then gate the
      * top-level invocation with the RateLimiter.  The lambda is also wrapped
