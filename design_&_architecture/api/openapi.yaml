@@ -580,6 +580,37 @@ paths:
             application/problem+json:
               schema: { $ref: '#/components/schemas/ProblemDetails' }
 
+  /api/top-picks/run:
+    post:
+      tags: [top-picks]
+      summary: Trigger manuale del batch Top Value Picks
+      description: |
+        Fire-and-forget: avvia il job TopValuePicksJob in background e risponde
+        immediatamente con 202 Accepted. Se un run è già in corso, risponde 409 Conflict.
+      responses:
+        '202':
+          description: Job avviato con successo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: started }
+                  startedAt: { type: string, format: date-time }
+                  message: { type: string }
+                required: [status, message]
+        '409':
+          description: Un run è già in corso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: already_running }
+                  startedAt: { type: string, format: date-time, nullable: true }
+                  message: { type: string }
+                required: [status, message]
+
 components:
   parameters:
     Ticker:

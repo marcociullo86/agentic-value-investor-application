@@ -46,7 +46,15 @@ class SecurityEventLoggerTest {
 
     private fun lastEvent(): ILoggingEvent = listAppender.list.last()
 
-    private fun formattedMessage(event: ILoggingEvent): String = event.formattedMessage
+    private fun structuredArgs(event: ILoggingEvent): Map<String, String> =
+        (event.argumentArray ?: emptyArray())
+            .filterIsInstance<net.logstash.logback.argument.StructuredArgument>()
+            .associate { arg ->
+                val s = arg.toString()
+                val eq = s.indexOf('=')
+                if (eq >= 0) s.substring(0, eq) to s.substring(eq + 1)
+                else s to ""
+            }
 
     // -- Login Success --------------------------------------------------------
 
@@ -66,12 +74,12 @@ class SecurityEventLoggerTest {
         }
 
         @Test
-        fun `contains userId, ip, and userAgent in formatted message`() {
+        fun `contains userId, ip, and userAgent in structured arguments`() {
             securityLogger.loginSuccess(userId = 42L, ip = "10.0.0.1", userAgent = "Mozilla/5.0")
-            val msg = formattedMessage(lastEvent())
-            assertThat(msg).contains("42")
-            assertThat(msg).contains("10.0.0.1")
-            assertThat(msg).contains("Mozilla/5.0")
+            val args = structuredArgs(lastEvent())
+            assertThat(args).containsEntry("userId", "42")
+            assertThat(args).containsEntry("ip", "10.0.0.1")
+            assertThat(args).containsEntry("userAgent", "Mozilla/5.0")
         }
     }
 
@@ -93,11 +101,11 @@ class SecurityEventLoggerTest {
         }
 
         @Test
-        fun `contains email and reason in formatted message`() {
+        fun `contains email and reason in structured arguments`() {
             securityLogger.loginFailure(email = "user@example.com", reason = "invalid_credentials")
-            val msg = formattedMessage(lastEvent())
-            assertThat(msg).contains("user@example.com")
-            assertThat(msg).contains("invalid_credentials")
+            val args = structuredArgs(lastEvent())
+            assertThat(args).containsEntry("email", "user@example.com")
+            assertThat(args).containsEntry("reason", "invalid_credentials")
         }
     }
 
@@ -119,10 +127,10 @@ class SecurityEventLoggerTest {
         }
 
         @Test
-        fun `contains userId in formatted message`() {
+        fun `contains userId in structured arguments`() {
             securityLogger.passwordChanged(userId = 99L)
-            val msg = formattedMessage(lastEvent())
-            assertThat(msg).contains("99")
+            val args = structuredArgs(lastEvent())
+            assertThat(args).containsEntry("userId", "99")
         }
 
         @Test
@@ -158,9 +166,10 @@ class SecurityEventLoggerTest {
         }
 
         @Test
-        fun `contains userId in formatted message`() {
+        fun `contains userId in structured arguments`() {
             securityLogger.passwordResetRequested(userId = 101L)
-            assertThat(formattedMessage(lastEvent())).contains("101")
+            val args = structuredArgs(lastEvent())
+            assertThat(args).containsEntry("userId", "101")
         }
     }
 
@@ -182,11 +191,11 @@ class SecurityEventLoggerTest {
         }
 
         @Test
-        fun `contains userId and method in formatted message`() {
+        fun `contains userId and method in structured arguments`() {
             securityLogger.mfaEnabled(userId = 55L, method = "TOTP")
-            val msg = formattedMessage(lastEvent())
-            assertThat(msg).contains("55")
-            assertThat(msg).contains("TOTP")
+            val args = structuredArgs(lastEvent())
+            assertThat(args).containsEntry("userId", "55")
+            assertThat(args).containsEntry("method", "TOTP")
         }
     }
 
@@ -208,9 +217,10 @@ class SecurityEventLoggerTest {
         }
 
         @Test
-        fun `contains userId in formatted message`() {
+        fun `contains userId in structured arguments`() {
             securityLogger.mfaDisabled(userId = 55L)
-            assertThat(formattedMessage(lastEvent())).contains("55")
+            val args = structuredArgs(lastEvent())
+            assertThat(args).containsEntry("userId", "55")
         }
     }
 
@@ -232,11 +242,11 @@ class SecurityEventLoggerTest {
         }
 
         @Test
-        fun `contains userId and method in formatted message`() {
+        fun `contains userId and method in structured arguments`() {
             securityLogger.mfaFallback(userId = 60L, method = "recovery_code")
-            val msg = formattedMessage(lastEvent())
-            assertThat(msg).contains("60")
-            assertThat(msg).contains("recovery_code")
+            val args = structuredArgs(lastEvent())
+            assertThat(args).containsEntry("userId", "60")
+            assertThat(args).containsEntry("method", "recovery_code")
         }
     }
 
@@ -258,12 +268,12 @@ class SecurityEventLoggerTest {
         }
 
         @Test
-        fun `contains userId, role, and grantedBy in formatted message`() {
+        fun `contains userId, role, and grantedBy in structured arguments`() {
             securityLogger.permissionGranted(userId = 10L, role = "ADMIN", grantedBy = 1L)
-            val msg = formattedMessage(lastEvent())
-            assertThat(msg).contains("10")
-            assertThat(msg).contains("ADMIN")
-            assertThat(msg).contains("1")
+            val args = structuredArgs(lastEvent())
+            assertThat(args).containsEntry("userId", "10")
+            assertThat(args).containsEntry("role", "ADMIN")
+            assertThat(args).containsEntry("grantedBy", "1")
         }
     }
 
@@ -285,12 +295,12 @@ class SecurityEventLoggerTest {
         }
 
         @Test
-        fun `contains userId, role, and revokedBy in formatted message`() {
+        fun `contains userId, role, and revokedBy in structured arguments`() {
             securityLogger.permissionRevoked(userId = 10L, role = "ADMIN", revokedBy = 2L)
-            val msg = formattedMessage(lastEvent())
-            assertThat(msg).contains("10")
-            assertThat(msg).contains("ADMIN")
-            assertThat(msg).contains("2")
+            val args = structuredArgs(lastEvent())
+            assertThat(args).containsEntry("userId", "10")
+            assertThat(args).containsEntry("role", "ADMIN")
+            assertThat(args).containsEntry("revokedBy", "2")
         }
     }
 
@@ -312,19 +322,21 @@ class SecurityEventLoggerTest {
         }
 
         @Test
-        fun `contains userId, resource, and currentRole in formatted message`() {
+        fun `contains userId, resource, and currentRole in structured arguments`() {
             securityLogger.accessDenied(userId = 77L, resource = "/api/admin/users", currentRole = "USER")
-            val msg = formattedMessage(lastEvent())
-            assertThat(msg).contains("77")
-            assertThat(msg).contains("/api/admin/users")
-            assertThat(msg).contains("USER")
+            val args = structuredArgs(lastEvent())
+            assertThat(args).containsEntry("userId", "77")
+            assertThat(args).containsEntry("resource", "/api/admin/users")
+            assertThat(args).containsEntry("currentRole", "USER")
         }
 
         @Test
         fun `handles null userId gracefully`() {
             securityLogger.accessDenied(userId = null, resource = "/api/admin/config", currentRole = null)
             assertThat(lastEvent().level).isEqualTo(Level.WARN)
-            assertThat(formattedMessage(lastEvent())).contains("/api/admin/config")
+            val args = structuredArgs(lastEvent())
+            assertThat(args).containsEntry("resource", "/api/admin/config")
+            assertThat(args).containsEntry("userId", "null")
         }
     }
 
