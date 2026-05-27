@@ -1,5 +1,6 @@
 package com.valueinvesting.webapp.security
 
+import com.valueinvesting.webapp.config.SecurityHeadersConfig
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
@@ -9,6 +10,7 @@ import org.springframework.http.MediaType
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -28,14 +30,20 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  *  - permitAll: api auth, search, screener, financials, analysis, historical,
  *    actuator health, openapi.json, springdoc.
  *  - authenticated: api watchlist, moat-checklist, dcf-overrides.
+ *  - hasRole(ADMIN): `/admin/` subtree (US-079 / ADR-025 §1; @PreAuthorize on controllers).
+ *
+ * Method security: @EnableMethodSecurity activates @PreAuthorize enforcement.
  *
  * See design_&_architecture/decisions/ADR-006-authentication.md §Endpoint policy.
+ * See design_&_architecture/decisions/ADR-025-security-hardening-pci-dss.md §1.
  * See design_&_architecture/components/backend-components.md §SecurityConfig.
  */
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 class SecurityConfig(
     private val userDetailsService: UserDetailsServiceImpl,
+    private val securityHeadersConfig: SecurityHeadersConfig,
 ) {
 
     @Bean
@@ -110,7 +118,7 @@ class SecurityConfig(
         authenticationEntryPoint: AuthenticationEntryPoint,
         accessDeniedHandler: AccessDeniedHandler,
     ): SecurityFilterChain =
-        http
+        securityHeadersConfig.configureHeaders(http)
             // CSRF disabled because the API is stateless JWT-based (ADR-006).
             .csrf { it.disable() }
             // CORS for browser clients is handled by CorsConfig (WebMvcConfigurer).
@@ -178,6 +186,7 @@ class SecurityConfig(
                         "/api/dcf-overrides/**",
                         "/api/auth/logout",
                     ).authenticated()
+                    .requestMatchers("/admin/**").hasRole("ADMIN")
                     .anyRequest().authenticated()
             }
             .addFilterBefore(

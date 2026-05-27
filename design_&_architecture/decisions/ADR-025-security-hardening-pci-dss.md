@@ -183,7 +183,7 @@ Al login riuscito, il `SecurityEventLogger` (ADR-021 §6) logga l'IP e il User-A
 ### Tabella `mfa_secrets`
 
 ```sql
--- V0XX__create_mfa_secrets.sql
+-- V026__create_mfa_secrets.sql (TSK-225; V018 = filing_analysis)
 CREATE TABLE mfa_secrets (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
@@ -198,7 +198,7 @@ CREATE TABLE mfa_secrets (
 ### Tabella `login_attempts`
 
 ```sql
--- V0XX__create_login_attempts.sql
+-- V025__create_login_attempts.sql (TSK-226; V019 = deep_analysis_event_log)
 CREATE TABLE login_attempts (
     id BIGSERIAL PRIMARY KEY,
     ip_address VARCHAR(45) NOT NULL,

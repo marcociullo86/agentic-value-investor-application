@@ -9,6 +9,7 @@ data class AppProperties(
     val cors: Cors = Cors(),
     val jwt: Jwt = Jwt(),
     val fmp: Fmp = Fmp(),
+    val security: Security = Security(),
 ) {
     data class Cors(
         val allowedOrigins: String = "http://localhost:3000",
@@ -41,4 +42,14 @@ data class AppProperties(
         val apiKey: String = "",
         val mock: Boolean = false,
     )
+
+    // EP-018 / ADR-025 §5 — HIBP, rate limiting, MFA (subset wired per TSK).
+    data class Security(
+        val hibp: Hibp = Hibp(),
+    ) {
+        data class Hibp(
+            val enabled: Boolean = true,
+            val apiUrl: String = "https://api.pwnedpasswords.com/range/",
+        )
+    }
 }

@@ -4,6 +4,7 @@ import com.valueinvesting.webapp.service.LlmBudgetConfigService
 import jakarta.validation.Valid
 import jakarta.validation.constraints.DecimalMax
 import jakarta.validation.constraints.DecimalMin
+import jakarta.validation.constraints.NotNull
 import org.springframework.http.ProblemDetail
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -75,6 +76,7 @@ data class LlmCostStatusResponse(
 )
 
 data class UpdateBudgetRequest(
+    @field:NotNull
     @field:DecimalMin("0.01")
     @field:DecimalMax("10000")
     val monthlyCapUsd: BigDecimal,

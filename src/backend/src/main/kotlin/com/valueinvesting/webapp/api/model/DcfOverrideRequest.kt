@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Pattern
 
 data class DcfOverrideRequest(
     @field:NotBlank
+    @field:Pattern(regexp = "^[A-Za-z0-9.\\-]{1,10}$", message = "Invalid ticker symbol")
     val ticker: String,
 
     @field:NotBlank

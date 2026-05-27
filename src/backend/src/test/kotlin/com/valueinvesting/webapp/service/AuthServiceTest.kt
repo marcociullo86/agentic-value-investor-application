@@ -38,6 +38,7 @@ class AuthServiceTest {
     private lateinit var passwordEncoder: PasswordEncoder
     private lateinit var jwtService: JwtService
     private lateinit var appProperties: AppProperties
+    private lateinit var compromisedPasswordGuard: CompromisedPasswordGuard
     private lateinit var service: AuthService
 
     @BeforeEach
@@ -46,6 +47,7 @@ class AuthServiceTest {
         refreshTokenRepository = mockk(relaxed = true)
         passwordEncoder = mockk(relaxed = true)
         jwtService = mockk()
+        compromisedPasswordGuard = mockk(relaxed = true)
         appProperties = AppProperties(
             jwt = AppProperties.Jwt(
                 signingSecret = "test-secret-test-secret-test-secret-test-secret-test-secret",
@@ -60,6 +62,7 @@ class AuthServiceTest {
             passwordEncoder,
             jwtService,
             appProperties,
+            compromisedPasswordGuard,
             clock,
         )
 

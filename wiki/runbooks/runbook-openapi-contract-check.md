@@ -4,7 +4,7 @@ sources:
   - "design_&_architecture/decisions/ADR-007-api-contract.md"
 status: review
 created: 2026-05-21
-updated: 2026-05-21 (post-contract-check)
+updated: 2026-05-27 (auth contract test + Testcontainers lifecycle)
 tags: [runbook, openapi, qa, ci, contract]
 ---
 # Runbook: Contract check OpenAPI
@@ -55,7 +55,8 @@ Push su `feature/*` o PR verso `master`: workflow `contract-check` deve essere g
 | Path runtime non in YAML | Aggiungere path a `openapi.yaml` o rimuovere controller spurio |
 | Schema alias mismatch | `@Schema(name = "RuleEngineResult")` sul DTO response |
 | `openapi-typescript` parse error | Validare YAML (es. spazi in `instance: { type: string }`) |
-| Testcontainers fallisce | Avviare Docker; immagine `postgres:16-alpine` in `OpenApiContractIT` |
+| Testcontainers fallisce | Avviare Docker; immagine tipica `pgvector/pgvector:pg17` (o `postgres:16-alpine` in test legacy) |
+| `Mapped port can only be obtained after the container is started` | Non combinare `@TestInstance(PER_CLASS)` con `@SpringBootTest` + `@DynamicPropertySource` + `@Testcontainers`: Spring valuta le property prima che il container sia avviato. Usare lifecycle default (`PER_METHOD`) e `@BeforeEach` per setup che richiede MockMvc/DB. Vedi §Aggiornamenti (v2026-05-27). |
 | `PatternParseException` all'avvio (Boot 3.5) | Rimuovere `springdoc-openapi-starter-webmvc-ui`; tenere solo `starter-webmvc-api` + `swagger-ui.enabled: false` |
 | Contract test vede pochi path | Non usare `OpenAPIService.build()` — usare MockMvc `GET /api/openapi.json` come in `OpenApiContractIT` |
 | `GET /api/openapi.json` → 404 | Verificare `springdoc.api-docs.enabled: true` e path `/api/openapi.json` in `application.yml` |
@@ -73,6 +74,25 @@ Push su `feature/*` o PR verso `master`: workflow `contract-check` deve essere g
 4. **Versione minima:** per Boot 3.5.x usare springdoc ≥ 2.8.9 (repo fissa 2.8.16). [^src: src/backend/build.gradle.kts §extra springdocVersion]
 
 Workflow CI: `.github/workflows/contract-check.yml` — deve restare green prima del merge verso `master` (stato post TSK-037).
+
+## Aggiornamenti (v2026-05-27)
+
+**Testcontainers + Spring Boot — ordine extension (post EP-017 / fix CI `0050a11`):**
+
+Su `@SpringBootTest` con container PostgreSQL in `companion object` e `@DynamicPropertySource` che legge `postgres::getJdbcUrl`:
+
+| Pattern | Esito |
+|---------|--------|
+| Default `@TestInstance(PER_METHOD)` + `@BeforeEach` per caricare spec OpenAPI | OK — container avviato prima del contesto Spring per ogni test |
+| `@TestInstance(PER_CLASS)` + `@BeforeAll` + `@DynamicPropertySource` | **Race** — `SpringExtension.beforeAll()` può invocare `@DynamicPropertySource` prima di `TestcontainersExtension`, errore *Mapped port can only be obtained after the container is started* |
+
+**Fix applicato:** `AuthOpenApiSchemaContractTest` (TSK-210, ADR-024 §3) — rimosso `PER_CLASS`, `loadOpenApiSpec()` spostato da `@BeforeAll` a `@BeforeEach`. [^src: src/backend/src/test/kotlin/com/valueinvesting/webapp/api/AuthOpenApiSchemaContractTest.kt]
+
+**Nota:** `RuleSignalEnumContractTest` usa ancora `PER_CLASS` senza `@DynamicPropertySource` né Testcontainers (legge YAML da system property) — pattern compatibile.
+
+**Auth OpenAPI contract (tag `@contract`, stesso task Gradle `contractCheck`):**
+
+`AuthOpenApiSchemaContractTest` verifica lo schema runtime springdoc per auth post-migrazione cookie: assenza `refreshToken` nel body di login/refresh 200, presenza `accessToken` + `expiresInSeconds`, header `Set-Cookie` documentato su login/refresh/logout, assenza schemi deprecati `TokenPairResponse` / `TokenPair`. [^src: src/backend/src/test/kotlin/com/valueinvesting/webapp/api/AuthOpenApiSchemaContractTest.kt]
 
 ## Concetti correlati
 

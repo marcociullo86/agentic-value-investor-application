@@ -33,6 +33,7 @@ class AuthService(
     private val passwordEncoder: PasswordEncoder,
     private val jwtService: JwtService,
     private val appProperties: AppProperties,
+    private val compromisedPasswordGuard: CompromisedPasswordGuard,
     private val clock: Clock,
 ) {
 
@@ -42,6 +43,7 @@ class AuthService(
         if (userRepository.findByEmailIgnoreCase(normalizedEmail) != null) {
             throw EmailAlreadyRegisteredException(normalizedEmail)
         }
+        compromisedPasswordGuard.assertNotCompromised(request.password)
         val user = User(
             email = normalizedEmail,
             passwordHash = passwordEncoder.encode(request.password),
@@ -90,6 +92,23 @@ class AuthService(
         token.revokedAt = now
         refreshTokenRepository.save(token)
         return issueTokenPair(user, firstIssuedAt = token.firstIssuedAt)
+    }
+
+    /**
+     * Cambio password autenticato (US-081 / ADR-025 §5). Endpoint HTTP sarà
+     * aggiunto da TSK successivi; la guard HIBP vive qui per riuso.
+     */
+    @Transactional
+    fun changePassword(userId: UUID, currentPassword: String, newPassword: String) {
+        val user = userRepository.findById(userId).orElseThrow {
+            BadCredentialsException("Invalid email or password")
+        }
+        if (!passwordEncoder.matches(currentPassword, user.passwordHash)) {
+            throw BadCredentialsException("Invalid email or password")
+        }
+        compromisedPasswordGuard.assertNotCompromised(newPassword)
+        user.passwordHash = passwordEncoder.encode(newPassword)
+        userRepository.save(user)
     }
 
     @Transactional

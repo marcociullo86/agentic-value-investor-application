@@ -334,6 +334,10 @@ app:
     base-url: ${FMP_BASE_URL:https://financialmodelingprep.com/stable}
     api-key: ${FMP_API_KEY:}
     mock: false
+  security:
+    hibp:
+      enabled: ${HIBP_ENABLED:true}
+      api-url: ${HIBP_API_URL:https://api.pwnedpasswords.com/range/}
 
 ---
 # ---------------- Profile: dev ----------------
@@ -385,6 +389,9 @@ app:
   jwt:
     signing-secret: "test-only-signing-secret-must-be-at-least-256-bits-long-xxx"
     cookie-secure: false
+  security:
+    hibp:
+      enabled: false
 
 logging:
   level:

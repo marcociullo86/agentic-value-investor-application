@@ -123,6 +123,25 @@ La §5.2 (Storage credenziali frontend) e ora implementata:
 
 Dettaglio completo: [[auth-guard-frontend]] §Aggiornamenti (v2026-05-27).
 
+## Aggiornamenti (v2026-05-27) — EP-018 Sprint 15 Wave 1
+
+Implementazione parziale US-079 / US-080 / US-081 (5 TSK, code review e QA ancora pendenti):
+
+| Area | TSK | Stato L5 |
+|------|-----|----------|
+| Defense-in-depth (§5.3) | TSK-219 | `@EnableMethodSecurity`, `/admin/**` → `ROLE_ADMIN`, `DefenseInDepthIT` (401/403/isolamento) |
+| CSP / XSS (§5.5) | TSK-221 | `SecurityHeadersConfig` — `Content-Security-Policy` con `script-src 'self'` (no `unsafe-inline`) |
+| HIBP / credential stuffing (§5.5) | TSK-231 | `HibpClient` k-anonymity su register; degradazione graceful se API down; disabilitato in profilo `test` |
+| Schema DB MFA | TSK-225 | Flyway **`V026__create_mfa_secrets.sql`** (V018 occupato da `filing_analysis`) |
+| Schema DB brute-force | TSK-226 | Flyway **`V025__create_login_attempts.sql`** (V019 occupato da `deep_analysis_event_log`) |
+
+[^src: design_&_architecture/decisions/ADR-025-security-hardening-pci-dss.md §Schema DB]
+[^src: management/kanban/EP-018-hardening-sicurezza-compliance/US-079-defense-in-depth/TSK-219.md]
+[^src: management/kanban/EP-018-hardening-sicurezza-compliance/US-080-protezione-attacchi-web/TSK-221.md]
+[^src: management/kanban/EP-018-hardening-sicurezza-compliance/US-081-protezione-identita-accesso/TSK-231.md]
+
+**Wave 2 prossima:** CSRF (TSK-223), CSP nonce FE (TSK-222), TotpService (TSK-227), RateLimitingFilter (TSK-229).
+
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->
 - EP-014 / [US-060](../../management/kanban/EP-014-logging-strutturato-observability/US-060-redazione-pii-log/US-060.md) — Redazione automatica PII nei log

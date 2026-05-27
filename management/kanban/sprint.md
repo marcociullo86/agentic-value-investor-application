@@ -2,7 +2,7 @@
 ---
 id: sprint
 title: Sprint Plan — R1.0 MVP + R1.1 + R1.1.x + R2.0 + R2.1 + R3.0 Fintech Hardening
-generated: 2026-05-26
+generated: 2026-05-27
 tpm: tpm
 release: R3.0 (EP-014..018 — fintech hardening, logging, notifications, design tokens, auth, security)
 r10_closed: 2026-05-22
@@ -19,7 +19,7 @@ r30_target: TBD
 > **R1.1.x hotfix chiuso:** Sprint 5.5 — 12/12 TSK `done`. US-052, US-053, US-054 completate.
 > **R2.0 chiuso:** Sprint 6–9 completati — 79/79 TSK `done`, 21/21 US, 3/3 EP (EP-010, EP-011, EP-012).
 > **R2.1 chiuso:** Sprint 10 — EP-013 Mr. Market Context Flags — 6/6 TSK `done`, 2/2 US (US-056, US-057).
-> **R3.0 in corso:** Sprint 11–15 — 19 TSK `todo`, 49 `done`, 25 US (21 done, 4 todo), 5 EP (4 done, 1 todo). EP-014, EP-015, EP-016, EP-017 `done`. ADR-021, ADR-022, ADR-023 `accepted`; ADR-024, ADR-025 status: `proposed`.
+> **R3.0 in corso:** Sprint 11–15 — 20 TSK `todo`, 49 `done`, 25 US (21 done, 4 todo), 5 EP (4 done, 1 todo). EP-014, EP-015, EP-016, EP-017 `done`. ADR-021, ADR-022, ADR-023 `accepted`; ADR-024, ADR-025 status: `proposed`.
 
 ---
 
@@ -465,31 +465,32 @@ idle/absolute timeout con prompt, logout completo con blocco history. ADR-024.
 recovery codes, rate limiting + progressive lockout + CAPTCHA threshold, HIBP password check,
 dichiarazione formale PCI-DSS non applicabile. ADR-025. DB: mfa_secrets + login_attempts.
 
-**Stato:** TODO — 0/19 TSK `done`. `pending_clarification: [Q_005]` su TSK-237 (ADR-025 proposed).
+**Stato:** IN PROGRESS — 5/20 TSK `done` (Wave 1). `pending_clarification: [Q_005]` su TSK-237 (ADR-025 proposed).
 
 | TSK | Titolo | Layer | Consumer | Est. | US | Status |
 |-----|--------|-------|----------|------|----|--------|
-| TSK-219 | BE Audit + enforcement defense-in-depth: @Valid, @PreAuthorize, filtro userId | be | agent | M | US-079 | todo |
+| TSK-219 | BE Audit + enforcement defense-in-depth: @Valid, @PreAuthorize, filtro userId | be | agent | M | US-079 | done |
 | TSK-220 | QA Test defense-in-depth: 401, 403, filtro userId, payload invalido | qa | agent | M | US-079 | todo |
-| TSK-221 | BE SecurityHeadersConfig CSP header: script-src no unsafe-inline | be | agent | S | US-080 | todo |
+| TSK-221 | BE SecurityHeadersConfig CSP header: script-src no unsafe-inline | be | agent | S | US-080 | done |
 | TSK-222 | FE Next.js middleware CSP nonce per inline script | fe | agent | S | US-080 | todo |
 | TSK-223 | BE CsrfTokenConfig: CSRF per /api/auth/refresh e /api/auth/logout | be | agent | S | US-080 | todo |
 | TSK-224 | QA Test CSP + CSRF: header, XSS bloccato, 403 no CSRF, SameSite, E2E | qa | agent | M | US-080 | todo |
-| TSK-225 | DB Migration V018__create_mfa_secrets | db | agent | XS | US-081 | todo |
-| TSK-226 | DB Migration V019__create_login_attempts + indici | db | agent | XS | US-081 | todo |
+| TSK-225 | DB Migration V026__create_mfa_secrets | db | agent | XS | US-081 | done |
+| TSK-226 | DB Migration V025__create_login_attempts + indici | db | agent | XS | US-081 | done |
 | TSK-227 | BE TotpService: secret TOTP, verifica codice, recovery codes BCrypt | be | agent | M | US-081 | todo |
 | TSK-228 | BE MfaController: endpoint enroll, verify, challenge, recovery, delete | be | agent | M | US-081 | todo |
 | TSK-229 | BE RateLimitingFilter: limiti IP + account su login/register/password-reset | be | agent | M | US-081 | todo |
 | TSK-230 | BE BruteForceProtectionService: lockout progressivo + CAPTCHA + cleanup | be | agent | M | US-081 | todo |
-| TSK-231 | BE HibpClient: verifica password compromesse k-anonymity SHA-1 | be | agent | S | US-081 | todo |
+| TSK-231 | BE HibpClient: verifica password compromesse k-anonymity SHA-1 | be | agent | S | US-081 | done |
 | TSK-232 | FE MfaEnrollmentPage: QR code + verifica TOTP + recovery codes | fe | agent | M | US-081 | todo |
 | TSK-233 | FE MfaChallengeForm: form TOTP durante login MFA | fe | agent | S | US-081 | todo |
+| TSK-238 | FE Login CAPTCHA Turnstile quando captchaRequired | fe | agent | S | US-081 | todo |
 | TSK-234 | QA Test MFA: enrollment, login TOTP, recovery, disabilitazione | qa | agent | M | US-081 | todo |
 | TSK-235 | QA Test rate limiting + brute force: delay, CAPTCHA, lockout 30min | qa | agent | M | US-081 | todo |
 | TSK-236 | QA Test HIBP: password compromessa rifiutata, sicura accettata | qa | agent | S | US-081 | todo |
 | TSK-237 | QA Verifica codebase no dati carta + validazione ADR PCI-DSS | qa | agent | S | US-082 | todo |
 
-**Totale Sprint 15:** 19 TSK (8 be, 2 fe, 2 db, 7 qa)
+**Totale Sprint 15:** 20 TSK (8 be, 3 fe, 2 db, 7 qa)
 
 ---
 
@@ -509,8 +510,8 @@ dichiarazione formale PCI-DSS non applicabile. ADR-025. DB: mfa_secrets + login_
 | R3.0 | 12 | 0 | 0 | 0 | 5 | 5 | **10** | done |
 | R3.0 | 13 | 0 | 0 | 0 | 6 | 5 | **11** | done |
 | R3.0 | 14 | 0 | 0 | 2 | 7 | 5 | **14** | done |
-| R3.0 | 15 | 0 | 2 | 8 | 2 | 7 | **19** | todo |
-| | **TOTALE** | **10** | **16** | **84** | **47** | **80** | **237** | 218 done, 19 todo (R3.0) |
+| R3.0 | 15 | 0 | 2 | 8 | 3 | 7 | **20** | 5 done, 15 todo |
+| | **TOTALE** | **10** | **16** | **84** | **48** | **80** | **238** | 223 done, 15 todo (R3.0) |
 
 ---
 
@@ -528,7 +529,7 @@ Sprint 12 (EP-016) ✅ ═══╝        │
 ```
 
 **Sprint 11, 12, 13, 14** completati. Dipendenze cross-sprint soddisfatte.
-**Sprint 15** è il prossimo: BE-heavy (8 be) + FE (2 fe) + DB (2 db) + QA (7 qa).
+**Sprint 15** è il prossimo: BE-heavy (8 be) + FE (3 fe) + DB (2 db) + QA (7 qa).
 **Sprint 15** dipende da Sprint 14 per la CSRF protection sugli endpoint cookie-based (TSK-209 → TSK-223). ✅ Dipendenza soddisfatta.
 
 ---
@@ -552,10 +553,7 @@ Sprint 14 → Sprint 15: ✅ SODDISFATTA
 
 **Sprint corrente:** Sprint 15 (EP-018 Hardening Sicurezza e Compliance).
 
-**Wave 1 (avvio parallelo):**
-- be-dev: TSK-219 (audit + enforcement defense-in-depth)
-- be-dev: TSK-221 (SecurityHeadersConfig CSP)
-- db-dev: TSK-225 (migration V018__create_mfa_secrets) + TSK-226 (migration V019__create_login_attempts)
+**Wave 1 (completata ✅):** TSK-219, TSK-221, TSK-225 (V026), TSK-226 (V025), TSK-231 — code review / QA IT ancora da chiudere su singoli DoD.
 
 **Wave 2 (dipende da Wave 1):**
 - fe-dev: TSK-222 (Next.js middleware CSP nonce, richiede TSK-221)
@@ -567,14 +565,19 @@ Sprint 14 → Sprint 15: ✅ SODDISFATTA
 **Wave 3 (dipende da Wave 2):**
 - be-dev: TSK-228 (MfaController, richiede TSK-227)
 - be-dev: TSK-230 (BruteForceProtectionService, richiede TSK-229)
-- be-dev: TSK-231 (HibpClient)
+- be-dev: TSK-231 (HibpClient, parallelo)
 - qa-dev: TSK-224 (QA CSP + CSRF, dopo TSK-221 + TSK-222 + TSK-223)
 
-**Wave 4 (chiusura FE + QA):**
+**Wave 4 (FE MFA + CAPTCHA):**
 - fe-dev: TSK-232 (MfaEnrollmentPage, richiede TSK-228) + TSK-233 (MfaChallengeForm)
-- qa-dev: TSK-234, TSK-235, TSK-236, TSK-237
+- fe-dev: TSK-238 (Login CAPTCHA Turnstile, richiede TSK-230)
 
-**Primo `/dev` suggerito:** `TSK-219` (be-dev), `TSK-221` (be-dev), `TSK-225` + `TSK-226` (db-dev) in parallelo.
+**Wave 5 (chiusura QA):**
+- qa-dev: TSK-234 (dopo TSK-232 + TSK-233)
+- qa-dev: TSK-235 (dopo TSK-229 + TSK-230 + TSK-238)
+- qa-dev: TSK-236, TSK-237 (parallelo, TSK-237 gate Q_005 soft)
+
+**Prossimo `/dev` suggerito (Wave 2):** TSK-222 (fe, dopo 221), TSK-223, TSK-227 (dopo 225), TSK-229 (dopo 226), TSK-220 (qa, dopo 219).
 
 **R1.1 completato:** TSK-071 chiuso (ADR-016 policy 30 req/60s con override env var operativo).
 

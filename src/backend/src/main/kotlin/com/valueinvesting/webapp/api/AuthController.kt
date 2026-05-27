@@ -57,7 +57,7 @@ class AuthController(
                 )],
             ),
             ApiResponse(responseCode = "409", description = "Email already registered (RFC 9457 ProblemDetails)"),
-            ApiResponse(responseCode = "400", description = "Validation error"),
+            ApiResponse(responseCode = "400", description = "Validation error or compromised password (RFC 9457)"),
         ],
     )
     fun register(@Valid @RequestBody request: RegisterRequest): ResponseEntity<UserProfileResponse> {

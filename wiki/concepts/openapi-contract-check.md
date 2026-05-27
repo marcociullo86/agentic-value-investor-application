@@ -5,7 +5,7 @@ sources:
   - "design_&_architecture/decisions/ADR-007-api-contract.md"
 status: review
 created: 2026-05-21
-updated: 2026-05-21 (post-contract-check)
+updated: 2026-05-27 (auth schema contract + Testcontainers lifecycle)
 tags: [qa, openapi, contract, springdoc, ci]
 ---
 # Contract check OpenAPI (springdoc vs openapi.yaml)
@@ -67,6 +67,14 @@ Workflow GitHub: `.github/workflows/contract-check.yml` (job `be-contract` + `fe
 **Anti-pattern:** non usare `org.springdoc.core.service.OpenAPIService.build()` nel test: restituisce solo il bean OpenAPI statico, **senza** i path dei controller Spring MVC. [^src: src/backend/src/test/kotlin/com/valueinvesting/webapp/contract/OpenApiContractIT.kt §class KDoc]
 
 Allowlist operazioni Sprint 2 in `OpenApiContractSupport.IMPLEMENTED_OPERATIONS`; path infra ignorati (`/actuator/*`, residui swagger) via `RUNTIME_PATH_IGNORE`. [^src: src/backend/src/test/kotlin/com/valueinvesting/webapp/contract/OpenApiContractSupport.kt]
+
+## Aggiornamenti (v2026-05-27)
+
+**Auth schema contract (EP-017 / TSK-210, ADR-024 §3):**
+
+Oltre a `OpenApiContractIT` (drift path globali), il gate `contractCheck` include `AuthOpenApiSchemaContractTest`: `@SpringBootTest` + Testcontainers `pgvector/pgvector:pg17` + MockMvc su `GET /api/openapi.json`; assert su assenza `refreshToken` nelle response login/refresh, documentazione `Set-Cookie`, rimozione schemi `TokenPair*`. [^src: src/backend/src/test/kotlin/com/valueinvesting/webapp/api/AuthOpenApiSchemaContractTest.kt]
+
+**Lifecycle Testcontainers:** non usare `@TestInstance(PER_CLASS)` insieme a `@DynamicPropertySource` su container statico — race CI risolta in commit `0050a11` (dettaglio in [[runbook-openapi-contract-check]] §Aggiornamenti v2026-05-27). [^src: src/backend/src/test/kotlin/com/valueinvesting/webapp/api/AuthOpenApiSchemaContractTest.kt]
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->

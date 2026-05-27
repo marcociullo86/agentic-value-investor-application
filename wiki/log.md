@@ -659,3 +659,70 @@ Pagine create: 0 | Aggiornamenti: 3 | Gap nuovi: 0 | Gap chiusi: 0
 [2026-05-27 01:28] ingest — [[auth-guard-frontend]] aggiornata con §Aggiornamenti EP-017 Sprint 14 (14 TSK done, ADR-024, 9 feature documentate, 1 gap aperto) — files touched: 1
 [2026-05-27 01:28] ingest — [[webapp-architecture-vi]] aggiornata con §Aggiornamenti EP-017 (layer auth end-to-end) — files touched: 1
 [2026-05-27 01:28] ingest — [[fintech-security-compliance]] aggiornata con §Aggiornamenti EP-017 (migrazione storage credenziali §5.2 completata) — files touched: 1
+
+## [2026-05-27] ingest | L5 sync contract-check Testcontainers (no raw nuovi)
+**Agente:** wiki-keeper
+Pagine create: 0 | Aggiornamenti: 3 | Gap nuovi: 0 | Gap chiusi: 0
+
+[2026-05-27] ingest — [[runbook-openapi-contract-check]] §Aggiornamenti v2026-05-27: pattern Testcontainers+Spring (no PER_CLASS con @DynamicPropertySource), troubleshooting Mapped port, AuthOpenApiSchemaContractTest — files touched: 1
+[2026-05-27] ingest — [[openapi-contract-check]] §Aggiornamenti v2026-05-27: auth schema contract + link runbook lifecycle — files touched: 1
+[2026-05-27] ingest — [[auth-guard-frontend]] nota contract test 0050a11, gap auth-cascade-revocation, ADR-024 proposed vs codice — files touched: 1
+
+## 2026-05-27 14:20 — develop TSK-221
+**Agente:** be-dev
+**TSK:** [[../management/kanban/EP-018-hardening-sicurezza-compliance/US-080-protezione-attacchi-web/TSK-221]]
+**Layer:** be
+**Code path:** ./src/backend/
+**Files touched:** 5 (SecurityHeadersConfig.kt [new], SecurityConfig.kt, SecurityHeadersConfigTest.kt [new], SecurityHeadersIT.kt [new], TSK-221.md frontmatter)
+**Commit:** n/a
+**DoD:** partial — implementazione e unit test OK (3/3); SecurityHeadersIT richiede Docker/Testcontainers (CI); code review umana pendente
+**Note:** CSP via Spring Security `contentSecurityPolicy()` (ADR-025 §2); `script-src 'self'` senza unsafe-inline. Fix KDoc `*/` in SecurityConfig commento `/admin/**`.
+
+## 2026-05-27 04:12 — develop TSK-226
+**Agente:** db-dev
+**TSK:** [[../management/kanban/EP-018-hardening-sicurezza-compliance/US-081-protezione-identita-accesso/TSK-226]]
+**Layer:** db
+**Code path:** ./src/backend/
+**Files touched:** 2 (V025__create_login_attempts.sql, TSK-226.md frontmatter)
+**Commit:** n/a
+**DoD:** partial — migration DDL + indici (incl. parziale email) creati; Testcontainers non eseguito (gradle assente in shell); code review umana pendente
+**Note:** TSK richiede V019 ma V019 occupato da `V019__deep_analysis_event_log.sql` (TSK-119); usata V025. TPM aggiorni TSK-226/225 con versioni Flyway correnti.
+
+## 2026-05-27 12:00 — develop TSK-219
+**Agente:** be-dev
+**TSK:** [[../management/kanban/EP-018-hardening-sicurezza-compliance/US-079-defense-in-depth/TSK-219]]
+**Layer:** be
+**Code path:** ./src/backend/
+**Files touched:** 6 (SecurityConfig.kt, DcfOverrideRequest.kt, LlmBudgetAdminController.kt, DefenseInDepthIT.kt, TSK-219.md)
+**Commit:** n/a
+**DoD:** partial — audit OK (@Valid su tutti @RequestBody, userId nei service user-scoped, calcoli Graham/DCF/MoS solo BE); fix @EnableMethodSecurity + `/admin/**` hasRole(ADMIN); IT US-079 aggiunti; test non eseguiti (gradle/podman assenti in shell); code review umana pendente
+**Note:** `@PreAuthorize` su LlmBudgetAdminController era inerte senza `@EnableMethodSecurity`. Frontend limita a display i valori API (nessun calcolo MoS/Graham/DCF lato client).
+
+## 2026-05-27 06:12 — develop TSK-225
+**Agente:** db-dev
+**TSK:** [[../management/kanban/EP-018-hardening-sicurezza-compliance/US-081-protezione-identita-accesso/TSK-225]]
+**Layer:** db
+**Code path:** ./src/backend/
+**Files touched:** 2 (V026__create_mfa_secrets.sql, TSK-225.md frontmatter)
+**Commit:** n/a
+**DoD:** partial — DDL ADR-025 (FK CASCADE, UNIQUE user_id) in `V026__create_mfa_secrets.sql`; Testcontainers non eseguito (gradle/docker assenti); code review umana pendente
+**Note:** TSK nomina V018 (occupato da `V018__filing_analysis.sql`); V025 da TSK-226 (`login_attempts`). Versione effettiva V026. Verifica: `gradle test --tests AuthControllerIT` in `src/backend/` (JDK 21).
+
+[2026-05-27 06:12] vcs-handoff — proposed commit on monorepo — gate: pending
+
+## 2026-05-27 04:13 — develop TSK-231
+**Agente:** be-dev
+**TSK:** [[../management/kanban/EP-018-hardening-sicurezza-compliance/US-081-protezione-identita-accesso/TSK-231]]
+**Layer:** be
+**Code path:** ./src/backend/
+**Files touched:** 12
+**Commit:** n/a
+**DoD:** partial — implementazione HIBP k-anonymity + integrazione register/changePassword; unit test locali aggiunti; `gradle test` non eseguito (toolchain assente); WireMock IT in TSK-236; code review umana pendente
+**Note:** HIBP disabilitato in profilo `test` per non rompere IT esistenti; `AuthService.changePassword` pronto per endpoint futuro.
+
+[2026-05-27 04:13] vcs-handoff — proposed commit on monorepo — gate: pending
+
+## [2026-05-27] doc-sync | EP-018 Wave 1 commit bundle
+**Agente:** orchestrator (wiki + kanban + ADR-025)
+Pagine wiki aggiornate: 1 ([[fintech-security-compliance]] §Wave 1) | Kanban: sprint.md + TSK-225/226 Flyway V025/V026 | ADR-025 schema comments allineati
+Note: commit convenzionale Wave 1 (TSK-219, 221, 231, 225, 226) + TPM TSK-238 + doc

@@ -2,6 +2,7 @@ package com.valueinvesting.webapp.api.error
 
 import com.valueinvesting.webapp.fmp.FmpTickerNotFoundException
 import com.valueinvesting.webapp.fmp.FmpUnavailableException
+import com.valueinvesting.webapp.service.CompromisedPasswordException
 import com.valueinvesting.webapp.service.EmailAlreadyRegisteredException
 import com.valueinvesting.webapp.service.InvalidRefreshTokenException
 import com.valueinvesting.webapp.service.LlmUnavailableException
@@ -341,6 +342,22 @@ class GlobalExceptionHandler(
     // possiede). Sull'endpoint `/login` invece NON la riflettiamo (vedi
     // handleBadCredentials), così il client non può fare enum-attack.
     // [^src: design_&_architecture/decisions/ADR-010-auth-consolidation.md §1]
+    // US-081 / ADR-025 §5 — password in HIBP breach set; no count in detail.
+    @ExceptionHandler(CompromisedPasswordException::class)
+    fun handleCompromisedPassword(
+        ex: CompromisedPasswordException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        val problem = mapper.build(
+            status = HttpStatus.BAD_REQUEST,
+            type = "https://api/errors/password-compromised",
+            title = "Password not allowed",
+            detail = ex.message ?: "This password has appeared in a known data breach. Please choose a different password.",
+            request = req,
+        )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem)
+    }
+
     @ExceptionHandler(EmailAlreadyRegisteredException::class)
     fun handleEmailConflict(
         ex: EmailAlreadyRegisteredException,
