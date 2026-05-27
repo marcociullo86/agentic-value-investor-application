@@ -10,7 +10,6 @@ import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.web.filter.OncePerRequestFilter
-import org.springframework.web.util.ContentCachingRequestWrapper
 
 // Per-IP and per-account rate limiting on auth endpoints (TSK-229 / US-081).
 // [^src: design_&_architecture/decisions/ADR-025-security-hardening-pci-dss.md §5]
@@ -29,16 +28,16 @@ class RateLimitingFilter(
             return
         }
 
-        val wrapped = if (request is ContentCachingRequestWrapper) {
+        val repeatable = if (request is RepeatableReadHttpServletRequest) {
             request
         } else {
-            ContentCachingRequestWrapper(request)
+            RepeatableReadHttpServletRequest(request)
         }
-        val bodyBytes = readRequestBody(wrapped)
+        val bodyBytes = repeatable.cachedBody()
 
-        val ip = resolveClientIp(wrapped)
-        val email = extractEmail(bodyBytes, wrapped.contentType)
-        val userAgent = wrapped.getHeader("User-Agent")
+        val ip = resolveClientIp(repeatable)
+        val email = extractEmail(bodyBytes, repeatable.contentType)
+        val userAgent = repeatable.getHeader("User-Agent")
 
         val decision = authRateLimitService.checkAndRecord(endpoint, ip, email, userAgent)
         if (!decision.allowed) {
@@ -46,7 +45,7 @@ class RateLimitingFilter(
             return
         }
 
-        filterChain.doFilter(wrapped, response)
+        filterChain.doFilter(repeatable, response)
     }
 
     private fun resolveEndpoint(request: HttpServletRequest): AuthEndpoint? {
@@ -73,15 +72,6 @@ class RateLimitingFilter(
         } else {
             uri
         }
-    }
-
-    private fun readRequestBody(request: ContentCachingRequestWrapper): ByteArray {
-        val cached = request.contentAsByteArray
-        if (cached.isNotEmpty()) {
-            return cached
-        }
-        request.inputStream.use { it.readBytes() }
-        return request.contentAsByteArray
     }
 
     private fun extractEmail(body: ByteArray, contentType: String?): String? {
