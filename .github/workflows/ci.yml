@@ -71,6 +71,9 @@ jobs:
             fi
           done
           echo ""
+          echo "=== Root cause chain ==="
+          grep -A2 'Caused by:' /tmp/gradle-test.log 2>/dev/null | tail -80 || true
+          echo ""
           echo "=== Gradle FAILED lines ==="
           grep -B2 -A5 'FAILED' /tmp/gradle-test.log 2>/dev/null | tail -150 || true
 
