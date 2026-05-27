@@ -40,9 +40,15 @@ class AuthRateLimitService(
         val window = Duration.ofMinutes(rateLimitingProperties.windowMinutes)
         val since = clock.instant().minus(window)
 
-        val ipCount = loginAttemptRepository.countByIpAddressAndAttemptedAtAfter(ipAddress, since)
+        val probeReason = probeReason(endpoint)
+        val ipCount =
+            loginAttemptRepository.countByIpAddressAndFailureReasonAndAttemptedAtAfter(
+                ipAddress,
+                probeReason,
+                since,
+            )
         if (ipCount >= limits.perIp) {
-            val oldest = loginAttemptRepository.findOldestAttemptedAtByIpSince(ipAddress, since)
+            val oldest = loginAttemptRepository.findOldestAttemptedAtByIpSince(ipAddress, probeReason, since)
             return RateLimitDecision(
                 allowed = false,
                 retryAfterSeconds = retryAfterSeconds(oldest, window),
@@ -53,10 +59,18 @@ class AuthRateLimitService(
         if (perAccount != null && !accountEmail.isNullOrBlank()) {
             val normalizedEmail = accountEmail.trim().lowercase()
             val accountCount =
-                loginAttemptRepository.countByAccountEmailAndAttemptedAtAfter(normalizedEmail, since)
+                loginAttemptRepository.countByAccountEmailAndFailureReasonAndAttemptedAtAfter(
+                    normalizedEmail,
+                    probeReason,
+                    since,
+                )
             if (accountCount >= perAccount) {
                 val oldest =
-                    loginAttemptRepository.findOldestAttemptedAtByAccountSince(normalizedEmail, since)
+                    loginAttemptRepository.findOldestAttemptedAtByAccountSince(
+                        normalizedEmail,
+                        probeReason,
+                        since,
+                    )
                 return RateLimitDecision(
                     allowed = false,
                     retryAfterSeconds = retryAfterSeconds(oldest, window),
@@ -64,11 +78,12 @@ class AuthRateLimitService(
             }
         }
 
-        recordAttempt(ipAddress, accountEmail, userAgent)
+        recordAttempt(endpoint, ipAddress, accountEmail, userAgent)
         return RateLimitDecision(allowed = true)
     }
 
     private fun recordAttempt(
+        endpoint: AuthEndpoint,
         ipAddress: String,
         accountEmail: String?,
         userAgent: String?,
@@ -79,11 +94,14 @@ class AuthRateLimitService(
                 accountEmail = accountEmail?.trim()?.lowercase()?.takeIf { it.isNotEmpty() },
                 attemptedAt = clock.instant(),
                 success = false,
-                failureReason = RATE_LIMIT_PROBE_REASON,
+                failureReason = probeReason(endpoint),
                 userAgent = userAgent?.take(500),
             ),
         )
     }
+
+    private fun probeReason(endpoint: AuthEndpoint): String =
+        "$RATE_LIMIT_PROBE_REASON:${endpoint.name}"
 
     private fun limitsFor(endpoint: AuthEndpoint): RateLimitingProperties.EndpointLimits =
         when (endpoint) {

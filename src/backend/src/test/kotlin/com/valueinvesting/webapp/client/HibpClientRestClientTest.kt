@@ -30,12 +30,12 @@ class HibpClientRestClientTest {
         val (prefix, suffix) = client.sha1PrefixAndSuffix("password")
         assertThat(prefix).hasSize(5)
         assertThat(prefix).isEqualTo("5BAA6")
-        assertThat(suffix).isEqualTo("1E4C9B93F3F0682250B6CF8331B7EE68FD")
+        assertThat(suffix).isEqualTo("1E4C9B93F3F0682250B6CF8331B7EE68FD8")
     }
 
     @Test
     fun `responseContainsSuffix matches HIBP range line format`() {
-        val suffix = "1E4C9B93F3F0682250B6CF8331B7EE68FD"
+        val suffix = "1E4C9B93F3F0682250B6CF8331B7EE68FD8"
         val body = """
             00000:1
             1E4C9B93F3F0682250B6CF8331B7EE68FD:3730471

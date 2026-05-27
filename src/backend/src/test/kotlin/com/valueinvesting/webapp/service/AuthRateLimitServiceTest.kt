@@ -35,8 +35,12 @@ class AuthRateLimitServiceTest {
 
     @Test
     fun `allows request under IP and account limits and records attempt`() {
-        every { loginAttemptRepository.countByIpAddressAndAttemptedAtAfter(any(), any()) } returns 0
-        every { loginAttemptRepository.countByAccountEmailAndAttemptedAtAfter(any(), any()) } returns 0
+        every {
+            loginAttemptRepository.countByIpAddressAndFailureReasonAndAttemptedAtAfter(any(), any(), any())
+        } returns 0
+        every {
+            loginAttemptRepository.countByAccountEmailAndFailureReasonAndAttemptedAtAfter(any(), any(), any())
+        } returns 0
 
         val decision = service.checkAndRecord(
             AuthEndpoint.LOGIN,
@@ -51,8 +55,10 @@ class AuthRateLimitServiceTest {
 
     @Test
     fun `blocks when IP limit exceeded with retry-after`() {
-        every { loginAttemptRepository.countByIpAddressAndAttemptedAtAfter(any(), any()) } returns 2
-        every { loginAttemptRepository.findOldestAttemptedAtByIpSince(any(), any()) } returns
+        every {
+            loginAttemptRepository.countByIpAddressAndFailureReasonAndAttemptedAtAfter(any(), any(), any())
+        } returns 2
+        every { loginAttemptRepository.findOldestAttemptedAtByIpSince(any(), any(), any()) } returns
             fixedInstant.minusSeconds(120)
 
         val decision = service.checkAndRecord(
@@ -68,9 +74,13 @@ class AuthRateLimitServiceTest {
 
     @Test
     fun `blocks when account limit exceeded`() {
-        every { loginAttemptRepository.countByIpAddressAndAttemptedAtAfter(any(), any()) } returns 0
-        every { loginAttemptRepository.countByAccountEmailAndAttemptedAtAfter(any(), any()) } returns 1
-        every { loginAttemptRepository.findOldestAttemptedAtByAccountSince(any(), any()) } returns
+        every {
+            loginAttemptRepository.countByIpAddressAndFailureReasonAndAttemptedAtAfter(any(), any(), any())
+        } returns 0
+        every {
+            loginAttemptRepository.countByAccountEmailAndFailureReasonAndAttemptedAtAfter(any(), any(), any())
+        } returns 1
+        every { loginAttemptRepository.findOldestAttemptedAtByAccountSince(any(), any(), any()) } returns
             fixedInstant.minusSeconds(60)
 
         val decision = service.checkAndRecord(

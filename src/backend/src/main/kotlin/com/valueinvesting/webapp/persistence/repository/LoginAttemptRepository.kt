@@ -13,29 +13,39 @@ import java.time.Instant
 @Repository
 interface LoginAttemptRepository : JpaRepository<LoginAttemptEntity, Long> {
 
-    fun countByIpAddressAndAttemptedAtAfter(ipAddress: String, since: Instant): Long
+    fun countByIpAddressAndFailureReasonAndAttemptedAtAfter(
+        ipAddress: String,
+        failureReason: String,
+        since: Instant,
+    ): Long
 
-    fun countByAccountEmailAndAttemptedAtAfter(accountEmail: String, since: Instant): Long
+    fun countByAccountEmailAndFailureReasonAndAttemptedAtAfter(
+        accountEmail: String,
+        failureReason: String,
+        since: Instant,
+    ): Long
 
     @Query(
         """
         SELECT MIN(l.attemptedAt) FROM LoginAttemptEntity l
-        WHERE l.ipAddress = :ipAddress AND l.attemptedAt >= :since
+        WHERE l.ipAddress = :ipAddress AND l.failureReason = :failureReason AND l.attemptedAt >= :since
         """,
     )
     fun findOldestAttemptedAtByIpSince(
         @Param("ipAddress") ipAddress: String,
+        @Param("failureReason") failureReason: String,
         @Param("since") since: Instant,
     ): Instant?
 
     @Query(
         """
         SELECT MIN(l.attemptedAt) FROM LoginAttemptEntity l
-        WHERE l.accountEmail = :accountEmail AND l.attemptedAt >= :since
+        WHERE l.accountEmail = :accountEmail AND l.failureReason = :failureReason AND l.attemptedAt >= :since
         """,
     )
     fun findOldestAttemptedAtByAccountSince(
         @Param("accountEmail") accountEmail: String,
+        @Param("failureReason") failureReason: String,
         @Param("since") since: Instant,
     ): Instant?
 
