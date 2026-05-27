@@ -791,3 +791,5 @@ Note: commit convenzionale Wave 1 (TSK-219, 221, 231, 225, 226) + TPM TSK-238 + 
 **Agente:** orchestrator (wiki + kanban)
 Pagine wiki aggiornate: 1 ([[fintech-security-compliance]] §Wave 2) | Kanban: TSK-220/222/223/227/229 → done
 Note: commit convenzionale Wave 2 — CSRF, CSP nonce FE, QA defense-in-depth, TotpService, rate limiting auth
+
+[2026-05-27 14:10] vcs-handoff — commit+push on monorepo — gate: approved — commit 341610b
