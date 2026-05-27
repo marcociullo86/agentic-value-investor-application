@@ -3,10 +3,9 @@ package com.valueinvesting.webapp.api
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -32,7 +31,6 @@ import org.testcontainers.junit.jupiter.Testcontainers
 @ActiveProfiles("test")
 @Testcontainers
 @Tag("contract")
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AuthOpenApiSchemaContractTest {
 
     companion object {
@@ -58,7 +56,7 @@ class AuthOpenApiSchemaContractTest {
     private val objectMapper = jacksonObjectMapper()
     private lateinit var openApiDoc: JsonNode
 
-    @BeforeAll
+    @BeforeEach
     fun loadOpenApiSpec() {
         val response = mockMvc.get("/api/openapi.json") { accept(MediaType.APPLICATION_JSON) }
             .andReturn().response
