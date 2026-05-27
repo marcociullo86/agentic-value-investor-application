@@ -1,7 +1,7 @@
 ---
 created: 2026-05-20
-updated: 2026-05-27
-status: open
+updated: 2026-05-28
+status: resolved
 ---
 # Questions — App Template Demo
 
@@ -12,6 +12,8 @@ Formato canonico: vedi `.claude/skills/apri-question.md`.
 indipendentemente dal `blocking_level`. Diventa `resolved` quando `[APERTE]` è vuota.
 
 ## [APERTE]
+
+## [RISOLTE]
 
 ### Q_005 — Dichiarazione formale scope PCI-DSS
 **Origine:** [[fintech-security-compliance]]
@@ -24,7 +26,13 @@ indipendentemente dal `blocking_level`. Diventa `resolved` quando `[APERTE]` è 
 [^src: wiki/concepts/fintech-security-compliance.md §5.4 — Scope PCI-DSS (condizionale)]
 [^src: wiki/gaps.md §fintech-pci-dss-scope]
 
-## [RISOLTE]
+**Risoluzione (2026-05-28):** ADR-025 — "Security Hardening, Threat Model & PCI-DSS Non-Applicability" (`status: accepted`, deciders: lead-architect + simone.olivieri, resolves: [Q_005]) — **PCI-DSS: non applicabile**. L'applicazione è un tool di screening azionario value investing: nessun flusso pagamento, nessun campo PAN/CVV/expiry nello schema DB, nessun provider Stripe/Adyen/Checkout.com; uniche integrazioni esterne FMP (dati di mercato) e Anthropic (LLM). REQ-05 §5.4 soddisfatto con dichiarazione formale in ADR-025 §8. Verifica QA (TSK-237): grep codebase senza match flussi carta.
+- **resolved_date:** 2026-05-28
+- **resolved_by:** ADR-025 (§8 PCI-DSS Non Applicabile)
+- **Storie sbloccate:** US-082
+[^src: design_&_architecture/decisions/ADR-025-security-hardening-pci-dss.md §8]
+
+---
 
 ### Q_004 — Strategia design system React: M3 token system vs componenti attuali
 **Origine:** [[material-design-3-accessibility]]

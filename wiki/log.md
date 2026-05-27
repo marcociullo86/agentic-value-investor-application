@@ -1723,6 +1723,11 @@ Code review + convalida E2E: 30 pass / 0 fail / 10 skip | US-083 done | EP-016 d
 ## [2026-05-28] ingest | giro L1-L4 wiki reconcile post EP-019 CQRL bonifica + factory v2.13
 Pagine create: 0 | Figure: 0 | Aggiornamenti: 2 (agentic-factory-v213, index.md) | Gap nuovi: 0 | Gap chiusi: 0
 
+## 2026-05-28 — Q_005 risolta: PCI-DSS non applicabile
+**Agente:** orchestrator (gate umano)
+**Decisione:** ADR-025 `accepted` — §8 dichiara PCI-DSS **non applicabile** (screening azionario, nessun pagamento). Q_005 → `[RISOLTE]`; US-082 + TSK-237 `done`; gap `fintech-pci-dss-scope` chiuso.
+[^src: design_&_architecture/decisions/ADR-025-security-hardening-pci-dss.md §8]
+
 ## 2026-05-28 — kanban reconcile EP-019 (depends_on + waiver slot 3)
 **Agente:** orchestrator (doc-sync pre-commit)
 **TSK:** TSK-252..261, US-084, US-085

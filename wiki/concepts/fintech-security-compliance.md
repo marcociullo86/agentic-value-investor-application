@@ -3,7 +3,7 @@ type: concept
 sources: ["raw/requisiti-funzionali-fintech.md"]
 status: draft
 created: 2026-05-26
-updated: 2026-05-27
+updated: 2026-05-28
 tags: [security, compliance, pii, pci-dss, threat-model, gdpr, csrf, xss, fintech]
 ---
 # Sicurezza, Privacy e Compliance Fintech
@@ -56,13 +56,15 @@ Principi cardine: [^src: raw/requisiti-funzionali-fintech.md §REQ-05]
 
 ### 5.4 — Scope PCI-DSS (condizionale)
 
+**Stato progetto (2026-05-28): PCI-DSS non applicabile** — dichiarazione formale in ADR-025 §8 (`status: accepted`, risolve Q_005). L'applicazione è un tool di screening azionario value investing: nessun flusso pagamento, nessun campo PAN/CVV nello schema DB, nessun provider Stripe/Adyen/Checkout.com. [^src: design_&_architecture/decisions/ADR-025-security-hardening-pci-dss.md §8]
+
 Applicabile solo se l'applicazione tratta dati di carta di pagamento. [^src: raw/requisiti-funzionali-fintech.md §REQ-05] In tal caso:
 
 - PAN completo e CVV non transitano mai per server applicativi ne log.
 - Uso di tokenization tramite provider certificato PCI-DSS (Stripe, Adyen, Checkout.com).
 - Form di inserimento carta implementati tramite iframe/elements del provider per mantenere il frontend fuori dallo scope SAQ A-EP / D.
 - Documentare il flusso dei dati di carta in un diagramma con perimetro PCI evidenziato.
-- Se non applicabile, dichiararlo esplicitamente nell'ADR di sicurezza.
+- Se non applicabile, dichiararlo esplicitamente nell'ADR di sicurezza (soddisfatto da ADR-025).
 
 ### 5.5 — Threat model di baseline
 

@@ -1,9 +1,10 @@
 ---
 id: ADR-025
 title: "Security Hardening, Threat Model & PCI-DSS Non-Applicability (EP-018, risolve Q_005)"
-status: proposed
+status: accepted
 created: 2026-05-26
-deciders: [lead-architect]
+updated: 2026-05-28
+deciders: [lead-architect, simone.olivieri]
 resolves: [Q_005]
 ---
 # ADR-025 — Security Hardening, Threat Model & PCI-DSS Non-Applicability

@@ -424,6 +424,8 @@ ADR-007 §Error format dichiara RFC 9457 §3.2 (extensions al top-level). Quattr
 **Sospetta fonte:** lead-architect — ADR di sicurezza con dichiarazione scope PCI-DSS.
 **Impatto:** Documentale. Nessun impatto tecnico se il scope e effettivamente non applicabile. Richiesto da REQ-05 come acceptance criterion ("ADR esplicito che documenta scope PCI-DSS"). Bloccante: no.
 
+**Risolto:** 2026-05-28 — ADR-025 accettato (§8): **PCI-DSS non applicabile** — tool di screening azionario, nessun flusso pagamento né provider carta. Q_005 chiusa. [[fintech-security-compliance]] aggiornato. [^src: design_&_architecture/decisions/ADR-025-security-hardening-pci-dss.md §8]
+
 ---
 
 ### 2026-05-27 — auth-cascade-revocation-missing
