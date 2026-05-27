@@ -69,20 +69,21 @@ class RateLimitingFilterIT {
 
     @Test
     fun `login returns 429 with Retry-After when per-IP limit exceeded`() {
-        val body = objectMapper.writeValueAsString(
-            LoginRequest(email = "unknown@example.com", password = "wrong-password-12"),
-        )
-
-        repeat(3) {
+        repeat(3) { attempt ->
+            val attemptBody = objectMapper.writeValueAsString(
+                LoginRequest(email = "ip-limit-$attempt@example.com", password = "wrong-password-12"),
+            )
             mockMvc.post("/api/auth/login") {
                 contentType = MediaType.APPLICATION_JSON
-                content = body
+                content = attemptBody
             }.andExpect { status { isUnauthorized() } }
         }
 
         mockMvc.post("/api/auth/login") {
             contentType = MediaType.APPLICATION_JSON
-            content = body
+            content = objectMapper.writeValueAsString(
+                LoginRequest(email = "ip-limit-4@example.com", password = "wrong-password-12"),
+            )
         }.andExpect {
             status { isTooManyRequests() }
             header { exists(RateLimitingFilter.RETRY_AFTER_HEADER) }

@@ -34,7 +34,7 @@ class RateLimitingFilter(
         } else {
             ContentCachingRequestWrapper(request)
         }
-        val bodyBytes = wrapped.inputStream.readAllBytes()
+        val bodyBytes = readRequestBody(wrapped)
 
         val ip = resolveClientIp(wrapped)
         val email = extractEmail(bodyBytes, wrapped.contentType)
@@ -53,12 +53,35 @@ class RateLimitingFilter(
         if (!HttpMethod.POST.matches(request.method)) {
             return null
         }
-        return when (request.servletPath) {
+        return when (authPath(request)) {
             LOGIN_PATH -> AuthEndpoint.LOGIN
             REGISTER_PATH -> AuthEndpoint.REGISTER
             PASSWORD_RESET_PATH -> AuthEndpoint.PASSWORD_RESET
             else -> null
         }
+    }
+
+    private fun authPath(request: HttpServletRequest): String {
+        val servletPath = request.servletPath
+        if (servletPath.isNotEmpty()) {
+            return servletPath
+        }
+        val contextPath = request.contextPath.orEmpty()
+        val uri = request.requestURI.orEmpty()
+        return if (contextPath.isNotEmpty() && uri.startsWith(contextPath)) {
+            uri.removePrefix(contextPath)
+        } else {
+            uri
+        }
+    }
+
+    private fun readRequestBody(request: ContentCachingRequestWrapper): ByteArray {
+        val cached = request.contentAsByteArray
+        if (cached.isNotEmpty()) {
+            return cached
+        }
+        request.inputStream.use { it.readBytes() }
+        return request.contentAsByteArray
     }
 
     private fun extractEmail(body: ByteArray, contentType: String?): String? {
