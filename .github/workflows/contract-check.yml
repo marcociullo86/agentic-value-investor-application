@@ -23,6 +23,17 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Run OpenAPI contract tests
         run: gradle contractCheck --no-daemon
+      - name: Print test failures on error
+        if: failure()
+        run: |
+          echo "=== contractCheck test failures ==="
+          for f in build/test-results/contractCheck/TEST-*.xml; do
+            if grep -q 'failures="[1-9]\|errors="[1-9]' "$f" 2>/dev/null; then
+              echo "--- $(basename "$f") ---"
+              grep -A20 '<failure\|<error' "$f" | head -60
+              echo
+            fi
+          done
 
   fe-contract:
     name: FE OpenAPI types

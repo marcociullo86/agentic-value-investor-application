@@ -58,6 +58,17 @@ jobs:
         # Profilo `test` viene attivato dai test stessi (Testcontainers gestisce
         # PostgreSQL autonomamente tramite Docker socket esposto dal runner).
         run: gradle test --no-daemon
+      - name: Print test failures on error
+        if: failure()
+        run: |
+          echo "=== gradle test failures ==="
+          for f in build/test-results/test/TEST-*.xml; do
+            if grep -q 'failures="[1-9]\|errors="[1-9]' "$f" 2>/dev/null; then
+              echo "--- $(basename "$f") ---"
+              grep -A20 '<failure\|<error' "$f" | head -60
+              echo
+            fi
+          done
 
   fe-test:
     name: FE — vitest
