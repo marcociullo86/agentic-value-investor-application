@@ -96,19 +96,19 @@ services:
       retries: 12
       start_period: 30s
 
-  portainer:
-    image: portainer/portainer-ce:latest
-    container_name: vi-portainer
-    restart: unless-stopped
-    ports:
-      - "9000:9000"
-      - "9443:9443"
-    volumes:
-      - /run/user/1000/podman/podman.sock:/var/run/docker.sock:Z
-      - portainer-data:/data
+# Portainer is intentionally NOT defined here on Windows + Podman:
+# podman-compose path-translates the host source of the Podman socket bind
+# (/run/user/1000/podman/podman.sock -> /mnt/c/run/user/...), which breaks
+# the mount. Run Portainer directly with `podman run`, which preserves the
+# VM-internal path. See src/docker/portainer.ps1 (or run the one-liner below).
+#
+#   podman run -d --name vi-portainer --restart unless-stopped \
+#     --network docker_default \
+#     -p 9000:9000 -p 9443:9443 \
+#     -v /run/user/1000/podman/podman.sock:/var/run/docker.sock \
+#     -v portainer-data:/data \
+#     portainer/portainer-ce:latest
 
 volumes:
   postgres-data:
-    driver: local
-  portainer-data:
     driver: local
