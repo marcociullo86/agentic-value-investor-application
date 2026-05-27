@@ -1,5 +1,6 @@
 package com.valueinvesting.webapp.service
 
+import java.util.Locale
 import kotlin.math.abs
 
 /**
@@ -46,6 +47,6 @@ object MungerPromptContextBuilder {
     }
 
     private fun formatRoe(value: Double?): String =
-        value?.let { "%.1f%%".format(it * 100.0) }
+        value?.let { "%.1f%%".format(Locale.ROOT, it * 100.0) }
             ?: "N/A (dati insufficienti)"
 }
