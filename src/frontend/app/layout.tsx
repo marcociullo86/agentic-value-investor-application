@@ -31,6 +31,8 @@ export default function RootLayout({
   return (
     <html lang="it" suppressHydrationWarning>
       <head>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="alternate icon" type="image/x-icon" href="/favicon.ico" />
         {/* External script: allowed by script-src 'self' without inline nonce (TSK-222). */}
         <script src="/theme-init.js" />
       </head>

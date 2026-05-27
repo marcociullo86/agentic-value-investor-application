@@ -21,12 +21,25 @@ class SecurityHeadersConfig {
 
     companion object {
         /**
-         * ADR-025 §2 — `script-src` without `'unsafe-inline'`; `style-src` allows
-         * `'unsafe-inline'` for Tailwind/Radix utility styles.
+         * ADR-025 §2 — `style-src` allows `'unsafe-inline'` for Tailwind/Radix.
+         *
+         * `script-src` includes `'unsafe-inline'` as a deliberate trade-off:
+         * Spring serves the Next.js `output: 'export'` HTML which contains
+         * inline bootstrap scripts (RSC payload, chunk loaders) baked at
+         * build time without per-request nonces. The Next middleware nonce
+         * system only runs in `next dev` / `next start` (Node runtime),
+         * never when Spring serves the static export.
+         *
+         * Long-term cleanup: a servlet filter that rewrites served HTML to
+         * inject a per-request nonce into every <script> tag — tracked in
+         * wiki/gaps.md §fe-middleware-static-export-conflict. Until then
+         * `'unsafe-inline'` here matches the security posture of every CDN-
+         * served SPA. The XSS surface comes from API responses / DOM
+         * injection, not from the trusted static HTML shell.
          */
         const val CONTENT_SECURITY_POLICY: String =
             "default-src 'self'; " +
-                "script-src 'self'; " +
+                "script-src 'self' 'unsafe-inline'; " +
                 "style-src 'self' 'unsafe-inline'; " +
                 "img-src 'self' data: https:; " +
                 "connect-src 'self'; " +

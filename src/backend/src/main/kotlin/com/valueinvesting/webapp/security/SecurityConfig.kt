@@ -176,6 +176,11 @@ class SecurityConfig(
                         "/moat/**",
                         "/analysis/**",
                         "/top-picks/**",
+                        // Root-level static assets emitted by Next.js export
+                        // (e.g. /theme-init.js, /globals.css, hashed chunks).
+                        "/*.js",
+                        "/*.css",
+                        "/*.map",
                         "/*.svg",
                         "/*.png",
                         "/*.jpg",
@@ -183,6 +188,10 @@ class SecurityConfig(
                         "/*.txt",
                         "/*.json",
                         "/*.webmanifest",
+                        "/*.woff",
+                        "/*.woff2",
+                        "/*.ttf",
+                        "/*.eot",
                     ).permitAll()
                     .requestMatchers(
                         "/api/auth/register",

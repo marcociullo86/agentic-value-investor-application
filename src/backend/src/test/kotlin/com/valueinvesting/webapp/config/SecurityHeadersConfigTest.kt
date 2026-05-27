@@ -9,14 +9,17 @@ import org.junit.jupiter.api.Test
 class SecurityHeadersConfigTest {
 
     @Test
-    fun `script-src does not allow unsafe-inline`() {
+    fun `script-src allows unsafe-inline for Spring-served Next export`() {
+        // Trade-off documented in SecurityHeadersConfig kdoc: Spring serves the
+        // Next.js static export whose inline bootstrap scripts cannot be
+        // noncified (the Next middleware nonce only runs under `next dev`).
+        // Tracked in wiki/gaps.md §fe-middleware-static-export-conflict.
         val policy = SecurityHeadersConfig.CONTENT_SECURITY_POLICY
         val scriptSrc = policy.split(";")
             .map { it.trim() }
             .first { it.startsWith("script-src") }
 
-        assertThat(scriptSrc).isEqualTo("script-src 'self'")
-        assertThat(scriptSrc).doesNotContain("unsafe-inline")
+        assertThat(scriptSrc).isEqualTo("script-src 'self' 'unsafe-inline'")
     }
 
     @Test

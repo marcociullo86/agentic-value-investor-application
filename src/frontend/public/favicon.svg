@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f766e"/>
+      <stop offset="100%" stop-color="#0e7490"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="12" fill="url(#g)"/>
+  <!-- Stylised value-investing chart: rising candles -->
+  <g stroke="#ffffff" stroke-width="3" stroke-linecap="round" fill="none">
+    <line x1="14" y1="48" x2="14" y2="36"/>
+    <line x1="26" y1="48" x2="26" y2="28"/>
+    <line x1="38" y1="48" x2="38" y2="20"/>
+    <line x1="50" y1="48" x2="50" y2="12"/>
+  </g>
+  <g fill="#ffffff">
+    <rect x="11" y="34" width="6" height="10" rx="1"/>
+    <rect x="23" y="26" width="6" height="14" rx="1"/>
+    <rect x="35" y="18" width="6" height="18" rx="1"/>
+    <rect x="47" y="10" width="6" height="22" rx="1"/>
+  </g>
+  <!-- Baseline -->
+  <line x1="8" y1="52" x2="56" y2="52" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+</svg>
