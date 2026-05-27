@@ -55,9 +55,9 @@ jobs:
           java-version: "21"
       - uses: gradle/actions/setup-gradle@v4
       - name: Run unit + integration tests
-        # Profilo `test` viene attivato dai test stessi (Testcontainers gestisce
-        # PostgreSQL autonomamente tramite Docker socket esposto dal runner).
-        run: gradle test --no-daemon --info 2>&1 | tail -300
+        run: |
+          set -o pipefail
+          gradle test --no-daemon --info 2>&1 | tee /tmp/gradle-test.log | tail -300
       - name: Print test failures on error
         if: failure()
         run: |
@@ -74,8 +74,8 @@ jobs:
           done
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           echo ""
-          echo "=== All test XML files ==="
-          ls -la build/test-results/test/ 2>/dev/null || echo "No test results directory"
+          echo "=== Full Gradle log (failed tests) ==="
+          grep -E 'FAILED|PASSED|ERROR|Exception|assert|expected|actual' /tmp/gradle-test.log 2>/dev/null | tail -100 || true
 
   fe-test:
     name: FE — vitest

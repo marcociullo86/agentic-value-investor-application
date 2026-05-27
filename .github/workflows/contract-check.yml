@@ -22,7 +22,9 @@ jobs:
           java-version: "21"
       - uses: gradle/actions/setup-gradle@v4
       - name: Run OpenAPI contract tests
-        run: gradle contractCheck --no-daemon --info 2>&1 | tail -200
+        run: |
+          set -o pipefail
+          gradle contractCheck --no-daemon --info 2>&1 | tee /tmp/gradle-contract.log | tail -300
       - name: Print test failures on error
         if: failure()
         run: |
@@ -39,11 +41,9 @@ jobs:
           done
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           echo ""
-          echo "=== All test XML files ==="
-          ls -la build/test-results/contractCheck/ 2>/dev/null || echo "No test results directory"
           echo ""
-          echo "=== Gradle build output (last 100 lines) ==="
-          cat build/reports/tests/contractCheck/index.html 2>/dev/null | head -200 || echo "No HTML report"
+          echo "=== Full Gradle log (failed tests) ==="
+          grep -E 'FAILED|PASSED|ERROR|Exception|assert|expected|actual' /tmp/gradle-contract.log 2>/dev/null | tail -100 || true
 
   fe-contract:
     name: FE OpenAPI types
