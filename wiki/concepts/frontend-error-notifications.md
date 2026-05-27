@@ -147,6 +147,12 @@ Dopo il completamento di Sprint 12 e Sprint 13, 4 commit di fix CI hanno risolto
 
 **Stato CI finale:** FE vitest pass, Playwright E2E (mocked + real BE) pass, BE gradle pass, contract-check pass.
 
+### Run locale 2026-05-27 (post-CI #131)
+
+Vitest locale allineato a CI (**434/434 pass**). Playwright mocked in locale **non confrontabile** con CI finché manca `npx playwright install` (30 fail infrastrutturali su `accessibility-*`, `deep-analysis`, `search-to-analysis`, `top-picks`). Report completo: [[2026-05-27-local-fe-test-run]].
+
+[^src: wiki/incidents/2026-05-27-local-fe-test-run.md §Riepilogo]
+
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->
 - EP-015 / [US-064](../../management/kanban/EP-015-notifiche-errori-frontend/US-064-notification-service/US-064.md) — Servizio centralizzato notifiche errori

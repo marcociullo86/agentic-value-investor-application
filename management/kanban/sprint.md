@@ -19,7 +19,7 @@ r30_target: TBD
 > **R1.1.x hotfix chiuso:** Sprint 5.5 — 12/12 TSK `done`. US-052, US-053, US-054 completate.
 > **R2.0 chiuso:** Sprint 6–9 completati — 79/79 TSK `done`, 21/21 US, 3/3 EP (EP-010, EP-011, EP-012).
 > **R2.1 chiuso:** Sprint 10 — EP-013 Mr. Market Context Flags — 6/6 TSK `done`, 2/2 US (US-056, US-057).
-> **R3.0 in corso:** Sprint 11–15 — 10 TSK `todo`, 54 `done`, 25 US (21 done, 4 todo), 5 EP (4 done, 1 todo). EP-014, EP-015, EP-016, EP-017 `done`. ADR-021, ADR-022, ADR-023 `accepted`; ADR-024, ADR-025 status: `proposed`.
+> **R3.0 in corso:** Sprint 11–15 + 15.5 hotfix — 10 TSK `todo`, 55 `done`, 26 US (22 done, 4 todo), 5 EP (4 done, 1 in-progress). EP-014, EP-015, EP-016, EP-017 `done`; EP-018 `in-progress`. ADR-021, ADR-022, ADR-023 `accepted`; ADR-024, ADR-025 status: `proposed`.
 
 ---
 
@@ -377,7 +377,7 @@ sicurezza e retention GDPR differenziata. ADR-021.
 motion) sopra shadcn/ui + Tailwind, switch light/dark persistente, audit e fix WCAG 2.2 AA
 su tutte le viste. ADR-023.
 
-**Stato:** COMPLETATO — 10/10 TSK `done`. US-069, US-070, US-071, US-072 chiuse. EP-016 `done`.
+**Stato:** COMPLETATO (Sprint 12) — 10/10 TSK `done`. US-069–072 chiuse. **Hotfix Sprint 15.5:** US-083 + TSK-239 `done` (convalidati 2026-05-27) — EP-016 `done`.
 
 | TSK | Titolo | Layer | Consumer | Est. | US | Status |
 |-----|--------|-------|----------|------|----|--------|
@@ -494,6 +494,24 @@ dichiarazione formale PCI-DSS non applicabile. ADR-025. DB: mfa_secrets + login_
 
 ---
 
+## Sprint 15.5 — Hotfix incident E2E locale (EP-016 US-083) — COMPLETATO
+
+**Obiettivo:** Hardening Playwright mocked dopo incident run locale 2026-05-27: 4 fail
+funzionali (keyboard a11y ×3, deep-analysis flake ×1). Vitest invariato; cutover-smoke skip
+fuori scope. CI #131 resta riferimento.
+
+**Stato:** IN PROGRESS — 0/1 TSK `done`. US-083 `ready`. EP-016 riaperta `in-progress`.
+
+| TSK | Titolo | Layer | Consumer | Est. | US | Status |
+|-----|--------|-------|----------|------|----|--------|
+| TSK-239 | QA Hardening E2E: 4 fail post-incident run locale | qa | agent | S | US-083 | done |
+
+**Incident:** [wiki/incidents/2026-05-27-local-fe-test-run.md](../../wiki/incidents/2026-05-27-local-fe-test-run.md) — 26/40 pass post `playwright install`, 4 fail, 10 skip staging.
+
+**Totale Sprint 15.5:** 1 TSK (0 be, 0 fe, 0 db, 1 qa)
+
+---
+
 ## Riepilogo TSK per layer
 
 | Release | Sprint | infra | db | be | fe | qa | Totale | Stato |
@@ -511,7 +529,8 @@ dichiarazione formale PCI-DSS non applicabile. ADR-025. DB: mfa_secrets + login_
 | R3.0 | 13 | 0 | 0 | 0 | 6 | 5 | **11** | done |
 | R3.0 | 14 | 0 | 0 | 2 | 7 | 5 | **14** | done |
 | R3.0 | 15 | 0 | 2 | 8 | 3 | 7 | **20** | 10 done, 10 todo |
-| | **TOTALE** | **10** | **16** | **84** | **48** | **80** | **238** | 228 done, 10 todo (R3.0) |
+| R3.0 | 15.5 | 0 | 0 | 0 | 0 | 1 | **1** | 1 done, 0 todo |
+| | **TOTALE** | **10** | **16** | **84** | **48** | **81** | **239** | 228 done, 11 todo (R3.0) |
 
 ---
 
@@ -526,10 +545,13 @@ Sprint 12 (EP-016) ✅ ═══╝        │
                                    │
                                    ▼
                            Sprint 15 (EP-018) ◄── CORRENTE
+                                   │
+                                   ├──► Sprint 15.5 (EP-016 hotfix TSK-239) — parallelo QA
 ```
 
 **Sprint 11, 12, 13, 14** completati. Dipendenze cross-sprint soddisfatte.
-**Sprint 15** è il prossimo: BE-heavy (8 be) + FE (3 fe) + DB (2 db) + QA (7 qa).
+**Sprint 15** in corso: BE-heavy (8 be) + FE (3 fe) + DB (2 db) + QA (7 qa).
+**Sprint 15.5** hotfix incident E2E: TSK-239 (qa-dev) parallelo a Sprint 15 — nessuna dipendenza BE/FE Sprint 15.
 **Sprint 15** dipende da Sprint 14 per la CSRF protection sugli endpoint cookie-based (TSK-209 → TSK-223). ✅ Dipendenza soddisfatta.
 
 ---
@@ -573,6 +595,8 @@ Sprint 14 → Sprint 15: ✅ SODDISFATTA
 - qa-dev: TSK-236, TSK-237 (parallelo, TSK-237 gate Q_005 soft)
 
 **Prossimo `/dev` suggerito (Wave 3):** TSK-228 (MfaController, dopo 227), TSK-230 (BruteForceProtectionService, dopo 229), TSK-224 (QA CSP+CSRF, parallelo dopo 222+223).
+
+**Hotfix Sprint 15.5:** TSK-239 `done` — convalidato 2026-05-27 (`npm run test:e2e` 30 pass / 0 fail / 10 skip).
 
 **R1.1 completato:** TSK-071 chiuso (ADR-016 policy 30 req/60s con override env var operativo).
 

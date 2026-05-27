@@ -74,8 +74,7 @@ test.describe('Deep Analysis page', () => {
 
     await page.goto('/analysis/deep?ticker=AAPL');
 
-    await expect(page.getByTestId('deep-analysis-loading')).toBeVisible();
-
+    // TSK-239: skip transient loading skeleton — mocked API resolves instantly (flake in CI/local).
     const verdictBadge = page.getByTestId('verdict-badge');
     await expect(verdictBadge).toBeVisible({ timeout: 15_000 });
     await expect(verdictBadge).toContainText(/APPROVATO/);

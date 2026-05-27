@@ -10,6 +10,7 @@ updated: 2026-05-25 (gap-close run: +2 concept EP-011, +1 extend analysis-api-pi
 updated: 2026-05-25 (gap-close massivo 9 gap + ingest fmp_mcp-server.txt: +1 concept fmp-mcp-integration, +1 source fmp-mcp-server)
 updated: 2026-05-26 (indice riallineato: +6 concept agent.py, +1 synthesis, fix conteggi, dedup runbook)
 updated: 2026-05-26 (ingest requisiti-funzionali-fintech.md: +1 source, +6 concept, +1 synthesis, +1 runbook)
+updated: 2026-05-27 (+1 incident run test FE locale)
 tags: [navigation]
 ---
 # Wiki Index — App Template Demo
@@ -176,4 +177,10 @@ tags: [navigation]
 | [[defensive-investor-checklist]] | 7 criteri Graham Cap.14 step-by-step con mapping FMP stable e WebApp signals |
 | [[enterprising-investor-checklist]] | Criteri Graham Cap.15 step-by-step: liquidita', P/E≤9, net-net NCAV con FMP stable |
 | [[pii-redaction-checklist]] | PII redaction step-by-step: pattern centralizzati, PiiRedactionEncoder, leak detection CI, GDPR retention |
+
+### Incidents (1)
+
+| Pagina | Descrizione |
+|--------|-------------|
+| [[2026-05-27-local-fe-test-run]] | Run Vitest/Playwright locale: 434/434 unit pass; E2E mocked fail per browser assente; cutover-smoke skip |
 

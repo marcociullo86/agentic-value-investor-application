@@ -133,6 +133,12 @@ US-072 completata con 3 TSK (TSK-191, TSK-192, TSK-193) che coprono audit manual
 
 Le basi per la conformità WCAG 2.2 AA sono ora verificate: contrasto OKLCH, focus-visible globale, prefers-reduced-motion, aria-label, heading hierarchy, form labels, table a11y, skip-to-content, Lighthouse ≥ 95, axe-core zero serious/critical, tastiera navigabile, zoom 200% supportato.
 
+## Aggiornamenti (v2026-05-27) — Run test E2E locale
+
+Snapshot run manuale Playwright mocked su workstation (post-CI #131 verde): **30/30 test E2E a11y falliti per assenza browser Chromium** (`npx playwright install` non eseguito); **10/10 cutover-smoke skipped** (credenziali staging assenti). Vitest locale **434/434 pass**. Dettaglio tabellare e remediation in [[2026-05-27-local-fe-test-run]].
+
+[^src: wiki/incidents/2026-05-27-local-fe-test-run.md §Playwright mocked — dettaglio per file]
+
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->
 - EP-016 / [US-069](../../management/kanban/EP-016-refinement-ui-accessibilita/US-069-design-token-system/US-069.md) — Sistema design token colori, tipografia e shape

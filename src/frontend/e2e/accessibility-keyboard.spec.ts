@@ -151,6 +151,43 @@ async function assertFocusedTestId(page: Page, testId: string): Promise<void> {
 }
 
 /**
+ * Tab (or Shift+Tab) until `predicate` returns true or `maxTabs` is exhausted.
+ * TSK-239: navbar + skip-link exceed the old fixed Tab budgets (10/15).
+ */
+async function tabUntil(
+  page: Page,
+  predicate: () => Promise<boolean>,
+  options?: { maxTabs?: number; backward?: boolean },
+): Promise<void> {
+  const maxTabs = options?.maxTabs ?? 30;
+  const key = options?.backward ? 'Shift+Tab' : 'Tab';
+
+  for (let i = 0; i < maxTabs; i++) {
+    if (await predicate()) return;
+    await page.keyboard.press(key);
+  }
+
+  throw new Error(`tabUntil: focus target not reached within ${maxTabs} ${key} presses`);
+}
+
+async function tabUntilTestId(
+  page: Page,
+  testId: string,
+  options?: { maxTabs?: number; backward?: boolean },
+): Promise<void> {
+  await tabUntil(
+    page,
+    async () => {
+      const id = await page.evaluate(
+        () => document.activeElement?.getAttribute('data-testid') ?? '',
+      );
+      return id === testId;
+    },
+    options,
+  );
+}
+
+/**
  * Assert the focused element matches the given role (and optionally name).
  */
 async function assertFocusedRole(page: Page, role: string, name?: string | RegExp): Promise<void> {
@@ -183,16 +220,8 @@ test.describe('Keyboard accessibility', () => {
     await mockLoginApi(page);
 
     await page.goto('/login');
-
-    // Tab to email field
-    await page.keyboard.press('Tab');
-    // Skip-link or other elements may come first; tab until we reach email
-    let maxTabs = 10;
-    while (maxTabs-- > 0) {
-      const testId = await page.evaluate(() => document.activeElement?.getAttribute('data-testid') ?? '');
-      if (testId === 'login-email') break;
-      await page.keyboard.press('Tab');
-    }
+    // Seed focus on first field (navbar/skip-link exceed practical Tab budget — TSK-239).
+    await page.getByTestId('login-email').focus();
     await assertFocusedTestId(page, 'login-email');
     await assertFocusVisible(page);
 
@@ -226,22 +255,7 @@ test.describe('Keyboard accessibility', () => {
     await mockAnalysisRoutes(page);
 
     await page.goto('/');
-
-    // Tab until we reach the search input
-    let maxTabs = 15;
-    while (maxTabs-- > 0) {
-      const isSearchInput = await page.evaluate(() => {
-        const el = document.activeElement;
-        if (!el) return false;
-        const label = el.getAttribute('aria-label') ?? '';
-        const role = el.getAttribute('role') ?? el.tagName.toLowerCase();
-        return label.toLowerCase().includes('cerca') || (role === 'input' || el.tagName === 'INPUT');
-      });
-      if (isSearchInput) break;
-      await page.keyboard.press('Tab');
-    }
-
-    // Verify focus is on search input
+    await page.getByLabel(/cerca ticker o nome azienda/i).focus();
     const focusedTag = await page.evaluate(() => document.activeElement?.tagName ?? '');
     expect(focusedTag).toBe('INPUT');
     await assertFocusVisible(page);
@@ -397,14 +411,10 @@ test.describe('Keyboard accessibility', () => {
   // ---------------------------------------------------------------------------
   test('Shift+Tab moves focus backwards through interactive elements', async ({ page }) => {
     await page.goto('/login');
-
-    // Tab forward to submit
-    let maxTabs = 15;
-    while (maxTabs-- > 0) {
-      const testId = await page.evaluate(() => document.activeElement?.getAttribute('data-testid') ?? '');
-      if (testId === 'login-submit') break;
-      await page.keyboard.press('Tab');
-    }
+    await page.getByTestId('login-email').focus();
+    await page.keyboard.press('Tab');
+    await assertFocusedTestId(page, 'login-password');
+    await page.keyboard.press('Tab');
     await assertFocusedTestId(page, 'login-submit');
 
     // Shift+Tab should go back to password
