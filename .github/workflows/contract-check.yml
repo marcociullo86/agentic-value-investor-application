@@ -25,25 +25,21 @@ jobs:
         run: |
           set -o pipefail
           gradle contractCheck --no-daemon --info 2>&1 | tee /tmp/gradle-contract.log | tail -300
-      - name: Print test failures on error
+      - name: Surface test failures as annotations
         if: failure()
         run: |
-          echo "## contractCheck test failures" >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
           for f in build/test-results/contractCheck/TEST-*.xml; do
             if [ -f "$f" ]; then
               if grep -q 'failures="[1-9]\|errors="[1-9]' "$f" 2>/dev/null; then
-                echo "--- $(basename "$f") ---" | tee -a "$GITHUB_STEP_SUMMARY"
-                grep -A30 '<failure\|<error' "$f" | head -80 | tee -a "$GITHUB_STEP_SUMMARY"
-                echo | tee -a "$GITHUB_STEP_SUMMARY"
+                testname="$(basename "$f" .xml | sed 's/^TEST-//')"
+                msg="$(grep -A30 '<failure\|<error' "$f" | head -80 | tr '\n' '|')"
+                echo "::error title=Test failure: $testname::$msg"
               fi
             fi
           done
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
           echo ""
-          echo ""
-          echo "=== Full Gradle log (failed tests) ==="
-          grep -E 'FAILED|PASSED|ERROR|Exception|assert|expected|actual' /tmp/gradle-contract.log 2>/dev/null | tail -100 || true
+          echo "=== Gradle FAILED lines ==="
+          grep -B2 -A5 'FAILED' /tmp/gradle-contract.log 2>/dev/null | tail -150 || true
 
   fe-contract:
     name: FE OpenAPI types
