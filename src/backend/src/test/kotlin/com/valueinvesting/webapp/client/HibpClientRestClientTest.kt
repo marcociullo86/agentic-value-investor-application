@@ -38,7 +38,7 @@ class HibpClientRestClientTest {
         val suffix = "1E4C9B93F3F0682250B6CF8331B7EE68FD8"
         val body = """
             00000:1
-            1E4C9B93F3F0682250B6CF8331B7EE68FD:3730471
+            1E4C9B93F3F0682250B6CF8331B7EE68FD8:3730471
             ABCDE:2
         """.trimIndent()
         assertThat(client.responseContainsSuffix(body, suffix)).isTrue()
@@ -47,7 +47,7 @@ class HibpClientRestClientTest {
     @Test
     fun `responseContainsSuffix returns false when suffix absent`() {
         val body = "ABCDE:1\nFFFFF:2"
-        assertThat(client.responseContainsSuffix(body, "1E4C9B93F3F0682250B6CF8331B7EE68FD")).isFalse()
+        assertThat(client.responseContainsSuffix(body, "1E4C9B93F3F0682250B6CF8331B7EE68FD8")).isFalse()
     }
 
     @Test

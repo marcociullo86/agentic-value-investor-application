@@ -405,7 +405,8 @@ spring:
 app:
   fmp:
     mock: true
-    base-url: http://localhost:0/fmp-mock
+    # Valid URL placeholder — ITs mock FmpAdapter; avoid port 0 (connection refused).
+    base-url: https://financialmodelingprep.com/stable
   jwt:
     signing-secret: "test-only-signing-secret-must-be-at-least-256-bits-long-xxx"
     cookie-secure: false

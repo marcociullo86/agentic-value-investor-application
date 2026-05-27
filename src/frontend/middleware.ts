@@ -16,6 +16,8 @@ const REGISTER_PATH = "/register";
 const FORBIDDEN_PATH = "/403";
 const HOME_PATH = "/";
 
+const CSP_DEV_MODE = process.env.NODE_ENV === "development";
+
 /**
  * Normalise pathname by stripping a trailing slash (keeps "/" intact).
  * next.config.js has `trailingSlash: true`, so the request may arrive with
@@ -45,7 +47,7 @@ function withCspHeaders(
   requestHeaders.set(CSP_NONCE_HEADER, nonce);
   response.headers.set(
     "Content-Security-Policy",
-    buildContentSecurityPolicy(nonce),
+    buildContentSecurityPolicy(nonce, { devMode: CSP_DEV_MODE }),
   );
   return response;
 }

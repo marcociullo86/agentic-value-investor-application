@@ -22,13 +22,21 @@ describe('CSP helpers (TSK-222)', () => {
     vi.unstubAllGlobals();
   });
 
-  it('builds script-src with nonce and without unsafe-inline', () => {
+  it('builds strict script-src with nonce (production / CI build)', () => {
     const policy = buildContentSecurityPolicy('abc-123');
 
     expect(policy).toContain("script-src 'self' 'nonce-abc-123'");
     expect(policy).not.toMatch(/script-src[^;]*unsafe-inline/);
+    expect(policy).toContain("connect-src 'self'");
     expect(policy).toContain("style-src 'self' 'unsafe-inline'");
     expect(policy).toContain("frame-src 'none'");
     expect(policy).toContain("object-src 'none'");
+  });
+
+  it('relaxes script-src and connect-src in dev mode for Next.js HMR', () => {
+    const policy = buildContentSecurityPolicy('abc-123', { devMode: true });
+
+    expect(policy).toContain("script-src 'self' 'nonce-abc-123' 'unsafe-eval' 'unsafe-inline'");
+    expect(policy).toContain("connect-src 'self' ws: wss:");
   });
 });

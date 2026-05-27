@@ -1,5 +1,6 @@
 package com.valueinvesting.webapp.config
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.client.reactive.ReactorClientHttpConnector
@@ -20,9 +21,10 @@ class RestClientConfig {
             .defaultHeader("Accept", "application/json")
             .build()
 
-    // WebClient targeted at FMP — used by FmpAdapterRestClient (TSK successivi).
-    // Resilience4j is layered in FmpResilienceConfig, not here.
+    // WebClient targeted at FMP (future parallel fetch). Skipped when `app.fmp.mock=true`
+    // so test profile does not bind reactor-netty to an invalid base URL.
     @Bean
+    @ConditionalOnProperty(name = ["app.fmp.mock"], havingValue = "false", matchIfMissing = true)
     fun fmpWebClient(appProperties: AppProperties): WebClient {
         val httpClient = HttpClient.create()
             .responseTimeout(Duration.ofSeconds(10))

@@ -11,17 +11,31 @@ export function generateCspNonce(): string {
   return crypto.randomUUID();
 }
 
+export type CspOptions = {
+  /** Relaxed policy for `next dev` (HMR needs inline scripts + ws). */
+  devMode?: boolean;
+};
+
 /**
- * ADR-025 §2 / TSK-222 — `script-src` without `'unsafe-inline'`;
- * inline Next.js / layout scripts use `'nonce-{nonce}'`.
+ * ADR-025 §2 / TSK-222 — `script-src` without `'unsafe-inline'` in production;
+ * layout inline scripts use `'nonce-{nonce}'`. Dev mode relaxes script/connect for HMR.
  */
-export function buildContentSecurityPolicy(nonce: string): string {
+export function buildContentSecurityPolicy(
+  nonce: string,
+  options: CspOptions = {},
+): string {
+  const devMode = options.devMode ?? false;
+  const scriptSrc = devMode
+    ? `script-src 'self' 'nonce-${nonce}' 'unsafe-eval' 'unsafe-inline'`
+    : `script-src 'self' 'nonce-${nonce}'`;
+  const connectSrc = devMode ? "connect-src 'self' ws: wss:" : "connect-src 'self'";
+
   return [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}'`,
+    scriptSrc,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https:",
-    "connect-src 'self'",
+    connectSrc,
     "font-src 'self'",
     "frame-src 'none'",
     "object-src 'none'",
