@@ -1,6 +1,6 @@
 ---
 created: 2026-05-20
-updated: 2026-05-26
+updated: 2026-05-27
 status: open
 ---
 # Questions — App Template Demo
@@ -38,8 +38,11 @@ indipendentemente dal `blocking_level`. Diventa `resolved` quando `[APERTE]` è 
 [^src: wiki/syntheses/fintech-hardening-requirements-map.md §Gap identificati]
 [^src: wiki/gaps.md §fintech-design-system-react]
 
-**Risoluzione (2026-05-27):** ADR-023 accettato (deciders: lead-architect + marco.ciullo) — Opzione (b): design token system shadcn/ui con semantic token M3-aligned (colori OKLCH, tipografia, shape, motion). Componenti shadcn/ui estesi con layer di design token, non sostituiti con MUI. EP-016 completata (10/10 TSK done, 4/4 US done). US-069 sbloccata e completata.
-[^src: design_&_architecture/decisions/ADR-023-design-token-system-m3-shadcn.md]
+**Risoluzione (2026-05-27):** ADR-023 — "Design Token System: shadcn/ui + Semantic Token M3-Aligned" (status: accepted 2026-05-26, deciders: lead-architect + simone.olivieri, resolves: [Q_004]) — Opzione (b): design token system shadcn/ui con semantic token M3-aligned (colori OKLCH, tipografia, shape, motion). Componenti shadcn/ui estesi con layer di design token, non sostituiti con MUI. Motivazione prioritaria: `raw/tech_stack.md` (priorità assoluta PATTERN §7 r.10) prescrive "Tailwind CSS + Radix UI primitives". EP-016 completata (10/10 TSK done, 4/4 US done). US-069 sbloccata e completata.
+- **resolved_date:** 2026-05-27
+- **resolved_by:** ADR-023 (Design Token System: shadcn/ui + Semantic Token M3-Aligned)
+- **Storie sbloccate:** US-069
+[^src: design_&_architecture/decisions/ADR-023-design-token-system-shadcn.md §Decisione]
 [^src: wiki/gaps.md §fintech-design-system-react]
 
 ---
