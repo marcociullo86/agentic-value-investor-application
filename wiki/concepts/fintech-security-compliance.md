@@ -142,15 +142,15 @@ Implementazione parziale US-079 / US-080 / US-081 (5 TSK, code review e QA ancor
 
 ## Aggiornamenti (v2026-05-27) — EP-018 Sprint 15 Wave 2
 
-Implementazione parziale US-079 / US-080 / US-081 (5 TSK `done` in kanban; code review e `gradle test` BE ancora pendenti):
+Implementazione US-079 / US-080 / US-081 (5 TSK `done` in kanban; **CI verde** su `4c7ca73`; code review umana ancora pendente):
 
 | Area | TSK | Stato L5 |
 |------|-----|----------|
 | QA defense-in-depth (§5.3) | TSK-220 | `DefenseInDepthIT` esteso (401/403/400, isolamento cross-user); Vitest guard statico FE (nessuna formula Graham/MoS/DCF client-only) |
-| CSP / XSS FE (§5.5) | TSK-222 | Middleware Next.js: `Content-Security-Policy` con `script-src 'nonce-…'`; anti-FOUC in `/theme-init.js`; attivo in `next dev` — gap [[gaps#fe-middleware-static-export-conflict]] in produzione con `output: 'export'` |
+| CSP / XSS FE (§5.5) | TSK-222 | Middleware Next.js: `Content-Security-Policy` con `script-src 'nonce-…'` (strict); in `next dev` policy rilassata per HMR (`unsafe-inline`/`unsafe-eval`, `connect-src` ws); anti-FOUC in `/theme-init.js`; gap [[gaps#fe-middleware-static-export-conflict]] con `output: 'export'` |
 | CSRF cookie-based (§5.5) | TSK-223 | `CsrfTokenConfig`: cookie `XSRF-TOKEN` + header `X-CSRF-Token` su POST `/api/auth/refresh` e `/api/auth/logout`; SameSite=Strict; Bearer routes escluse |
 | MFA TOTP core (§5.5) | TSK-227 | `TotpService` (secret, otpauth URI, TOTP ±1, 8 recovery BCrypt, AES-GCM per `totp_secret_encrypted`); `MfaSecretRepository`/controller in TSK-228 |
-| Brute force / stuffing (§5.5) | TSK-229 | `RateLimitingFilter` + `AuthRateLimitService` su login/register/password-reset; conteggi `login_attempts`; 429 + `Retry-After`; esiti auth reali in TSK-230 |
+| Brute force / stuffing (§5.5) | TSK-229 | `RateLimitingFilter` + `AuthRateLimitService` su login/register/password-reset; conteggi `login_attempts` **per endpoint** (`rate_limit_probe:LOGIN|REGISTER|…`); body POST preservato (`RepeatableReadHttpServletRequest`); 429 + `Retry-After`; esiti auth reali in TSK-230 |
 
 [^src: management/kanban/EP-018-hardening-sicurezza-compliance/US-079-defense-in-depth/TSK-220.md]
 [^src: management/kanban/EP-018-hardening-sicurezza-compliance/US-080-protezione-attacchi-web/TSK-222.md]
@@ -158,7 +158,20 @@ Implementazione parziale US-079 / US-080 / US-081 (5 TSK `done` in kanban; code 
 [^src: management/kanban/EP-018-hardening-sicurezza-compliance/US-081-protezione-identita-accesso/TSK-227.md]
 [^src: management/kanban/EP-018-hardening-sicurezza-compliance/US-081-protezione-identita-accesso/TSK-229.md]
 
-**Wave 3 prossima:** integrazione MFA end-to-end (TSK-228), audit log tentativi auth (TSK-230), client CSRF header su refresh/logout FE.
+### Stabilizzazione CI (post-Wave 2)
+
+Dopo `feat(ep-018)` (`341610b`), la pipeline `ci` è stata riallineata con fix incrementali fino a **`4c7ca73`** (run #131 tutti job success):
+
+| Fix | Commit | Dettaglio |
+|-----|--------|-----------|
+| Compile + IT isolation | `22cad86` | `CsrfTokenConfig` API Spring 6.5; `login_attemptRepository.deleteAll()` in IT auth; mockk in unit test |
+| Rate limit path/body | `c20a303`, `3788852` | `requestURI` in filter; body JSON ripetibile per register/login |
+| Conteggi per endpoint | `d4cd23a` | probe `failure_reason` scoped; HIBP suffix test |
+| Playwright + profilo test | `4c7ca73` | CSP dev-mode per HMR; `app.fmp.base-url` valido; `fmpWebClient` disabilitato se `app.fmp.mock=true` |
+
+[^src: .github/workflows/ci.yml]
+
+**Wave 3 prossima:** integrazione MFA end-to-end (TSK-228), audit log tentativi auth (TSK-230), QA CSP+CSRF (TSK-224), client CSRF header su refresh/logout FE.
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->

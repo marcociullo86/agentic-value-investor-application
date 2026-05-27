@@ -793,3 +793,10 @@ Pagine wiki aggiornate: 1 ([[fintech-security-compliance]] §Wave 2) | Kanban: T
 Note: commit convenzionale Wave 2 — CSRF, CSP nonce FE, QA defense-in-depth, TotpService, rate limiting auth
 
 [2026-05-27 14:10] vcs-handoff — commit+push on monorepo — gate: approved — commit 341610b
+
+## [2026-05-27] doc-sync | EP-018 Wave 2 CI green + kanban sprint
+**Agente:** orchestrator (wiki + kanban)
+Pagine wiki aggiornate: 1 ([[fintech-security-compliance]] §Wave 2 + §Stabilizzazione CI) | Kanban: sprint.md Wave 2 → done (10/20 Sprint 15)
+Note: CI #131 success su 4c7ca73 (BE gradle test, Playwright mocked+realbe, contract-check); Wave 3 next (TSK-228, 230, 224)
+
+[2026-05-27 08:24] vcs-handoff — commit+push on monorepo — gate: approved — commit 4c7ca73 (CI stabilization chain 22cad86→4c7ca73)
