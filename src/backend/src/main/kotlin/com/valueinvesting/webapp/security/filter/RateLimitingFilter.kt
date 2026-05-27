@@ -83,7 +83,7 @@ class RateLimitingFilter(
     }
 
     private fun writeTooManyRequests(response: HttpServletResponse, retryAfterSeconds: Long) {
-        response.status = HttpServletResponse.SC_TOO_MANY_REQUESTS
+        response.status = TOO_MANY_REQUESTS
         response.setHeader(RETRY_AFTER_HEADER, retryAfterSeconds.toString())
         response.contentType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
         response.writer.write(
@@ -99,6 +99,8 @@ class RateLimitingFilter(
     }
 
     companion object {
+        private const val TOO_MANY_REQUESTS = 429
+
         const val LOGIN_PATH = "/api/auth/login"
         const val REGISTER_PATH = "/api/auth/register"
         const val PASSWORD_RESET_PATH = "/api/auth/password-reset"

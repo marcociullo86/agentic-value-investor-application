@@ -7,6 +7,7 @@ import com.valueinvesting.webapp.api.model.LoginRequest
 import com.valueinvesting.webapp.api.model.MoatChecklistEntryRequest
 import com.valueinvesting.webapp.api.model.RegisterRequest
 import com.valueinvesting.webapp.api.model.WatchlistItemRequest
+import com.valueinvesting.webapp.persistence.repository.LoginAttemptRepository
 import com.valueinvesting.webapp.persistence.repository.MoatChecklistRepository
 import com.valueinvesting.webapp.persistence.repository.RefreshTokenRepository
 import com.valueinvesting.webapp.persistence.repository.StockRepository
@@ -64,6 +65,7 @@ class DefenseInDepthIT {
     @Autowired private lateinit var moatChecklistRepository: MoatChecklistRepository
     @Autowired private lateinit var stockRepository: StockRepository
     @Autowired private lateinit var refreshTokenRepository: RefreshTokenRepository
+    @Autowired private lateinit var loginAttemptRepository: LoginAttemptRepository
     @Autowired private lateinit var userRepository: UserRepository
 
     private val objectMapper: ObjectMapper = jacksonObjectMapper()
@@ -74,6 +76,7 @@ class DefenseInDepthIT {
         watchlistItemRepository.deleteAll()
         watchlistRepository.deleteAll()
         stockRepository.deleteAll()
+        loginAttemptRepository.deleteAll()
         refreshTokenRepository.deleteAll()
         userRepository.deleteAll()
     }
@@ -174,7 +177,7 @@ class DefenseInDepthIT {
             header("Authorization", "Bearer $tokenB")
         }.andExpect {
             status { isOk() }
-            jsonPath("$.entries[?(@.moatType == 'NETWORK_EFFECT' && @.status == 'PRESENT')]") { isEmpty }
+            jsonPath("$.entries[?(@.moatType == 'NETWORK_EFFECT' && @.status == 'PRESENT')]") { isEmpty() }
         }
     }
 

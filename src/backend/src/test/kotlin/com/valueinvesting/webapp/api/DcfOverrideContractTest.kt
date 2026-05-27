@@ -9,6 +9,7 @@ import com.valueinvesting.webapp.api.model.AccessTokenResponse
 import com.valueinvesting.webapp.fmp.FmpAdapter
 import com.valueinvesting.webapp.fmp.FmpFixtureFactory
 import com.valueinvesting.webapp.persistence.repository.DcfMethodOverrideRepository
+import com.valueinvesting.webapp.persistence.repository.LoginAttemptRepository
 import com.valueinvesting.webapp.persistence.repository.RefreshTokenRepository
 import com.valueinvesting.webapp.persistence.repository.UserRepository
 import com.ninjasquad.springmockk.MockkBean
@@ -60,6 +61,7 @@ class DcfOverrideContractTest {
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var dcfOverrideRepository: DcfMethodOverrideRepository
     @Autowired private lateinit var refreshTokenRepository: RefreshTokenRepository
+    @Autowired private lateinit var loginAttemptRepository: LoginAttemptRepository
     @Autowired private lateinit var userRepository: UserRepository
 
     @MockkBean
@@ -71,6 +73,7 @@ class DcfOverrideContractTest {
     fun reset() {
         clearMocks(fmpAdapter, answers = false, recordedCalls = true)
         dcfOverrideRepository.deleteAll()
+        loginAttemptRepository.deleteAll()
         refreshTokenRepository.deleteAll()
         userRepository.deleteAll()
         FmpFixtureFactory.stubSuccessfulFmp(fmpAdapter, "AAPL")

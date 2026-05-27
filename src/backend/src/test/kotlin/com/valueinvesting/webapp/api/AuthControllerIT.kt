@@ -5,6 +5,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.valueinvesting.webapp.api.model.AccessTokenResponse
 import com.valueinvesting.webapp.api.model.LoginRequest
 import com.valueinvesting.webapp.api.model.RegisterRequest
+import com.valueinvesting.webapp.persistence.repository.LoginAttemptRepository
 import com.valueinvesting.webapp.persistence.repository.RefreshTokenRepository
 import com.valueinvesting.webapp.persistence.repository.UserRepository
 import jakarta.servlet.http.Cookie
@@ -67,10 +68,14 @@ class AuthControllerIT {
     @Autowired
     private lateinit var refreshTokenRepository: RefreshTokenRepository
 
+    @Autowired
+    private lateinit var loginAttemptRepository: LoginAttemptRepository
+
     private val objectMapper: ObjectMapper = jacksonObjectMapper()
 
     @BeforeEach
     fun cleanup() {
+        loginAttemptRepository.deleteAll()
         refreshTokenRepository.deleteAll()
         userRepository.deleteAll()
     }

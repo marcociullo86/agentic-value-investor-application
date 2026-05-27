@@ -28,8 +28,9 @@ class CsrfTokenConfig(
     @Bean
     fun csrfTokenRepository(): CookieCsrfTokenRepository =
         CookieCsrfTokenRepository.withHttpOnlyFalse().apply {
-            cookieName = CSRF_COOKIE_NAME
-            cookiePath = "/"
+            setCookieName(CSRF_COOKIE_NAME)
+            setHeaderName(CSRF_HEADER_NAME)
+            setCookiePath("/")
             setCookieCustomizer { cookie ->
                 cookie.sameSite("Strict")
                 if (appProperties.jwt.cookieSecure) {
@@ -40,9 +41,7 @@ class CsrfTokenConfig(
 
     @Bean
     fun csrfTokenRequestHandler(): CsrfTokenRequestAttributeHandler =
-        CsrfTokenRequestAttributeHandler().apply {
-            setHeaderName(CSRF_HEADER_NAME)
-        }
+        CsrfTokenRequestAttributeHandler()
 
     fun configureCsrf(
         http: HttpSecurity,

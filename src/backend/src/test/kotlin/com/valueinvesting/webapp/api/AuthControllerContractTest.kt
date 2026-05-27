@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.valueinvesting.webapp.api.model.LoginRequest
 import com.valueinvesting.webapp.api.model.RegisterRequest
+import com.valueinvesting.webapp.persistence.repository.LoginAttemptRepository
 import com.valueinvesting.webapp.persistence.repository.RefreshTokenRepository
 import com.valueinvesting.webapp.persistence.repository.UserRepository
 import org.assertj.core.api.Assertions.assertThat
@@ -70,6 +71,9 @@ class AuthControllerContractTest {
     @Autowired
     private lateinit var refreshTokenRepository: RefreshTokenRepository
 
+    @Autowired
+    private lateinit var loginAttemptRepository: LoginAttemptRepository
+
     private val objectMapper: ObjectMapper = jacksonObjectMapper()
 
     private val knownEmail = "registered@example.com"
@@ -77,6 +81,7 @@ class AuthControllerContractTest {
 
     @BeforeEach
     fun setup() {
+        loginAttemptRepository.deleteAll()
         refreshTokenRepository.deleteAll()
         userRepository.deleteAll()
         // Pre-condition: one known account so we can exercise "wrong password"

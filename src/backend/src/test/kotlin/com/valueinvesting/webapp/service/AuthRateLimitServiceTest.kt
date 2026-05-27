@@ -1,26 +1,22 @@
 package com.valueinvesting.webapp.service
 
 import com.valueinvesting.webapp.config.RateLimitingProperties
+import com.valueinvesting.webapp.persistence.entity.LoginAttemptEntity
 import com.valueinvesting.webapp.persistence.repository.LoginAttemptRepository
 import com.valueinvesting.webapp.service.AuthRateLimitService.AuthEndpoint
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.Mock
-import org.mockito.junit.jupiter.MockitoExtension
-import org.mockito.kotlin.any
-import org.mockito.kotlin.verify
-import org.mockito.kotlin.whenever
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
 
-@ExtendWith(MockitoExtension::class)
 class AuthRateLimitServiceTest {
 
-    @Mock
-    private lateinit var loginAttemptRepository: LoginAttemptRepository
+    private val loginAttemptRepository: LoginAttemptRepository = mockk(relaxed = true)
 
     private val fixedInstant = Instant.parse("2026-05-27T12:00:00Z")
     private val clock: Clock = Clock.fixed(fixedInstant, ZoneOffset.UTC)
@@ -29,6 +25,7 @@ class AuthRateLimitServiceTest {
 
     @BeforeEach
     fun setUp() {
+        every { loginAttemptRepository.save(any<LoginAttemptEntity>()) } answers { firstArg() }
         val props = RateLimitingProperties(
             windowMinutes = 5,
             login = RateLimitingProperties.EndpointLimits(perIp = 2, perAccount = 1),
@@ -38,8 +35,8 @@ class AuthRateLimitServiceTest {
 
     @Test
     fun `allows request under IP and account limits and records attempt`() {
-        whenever(loginAttemptRepository.countByIpAddressAndAttemptedAtAfter(any(), any())).thenReturn(0)
-        whenever(loginAttemptRepository.countByAccountEmailAndAttemptedAtAfter(any(), any())).thenReturn(0)
+        every { loginAttemptRepository.countByIpAddressAndAttemptedAtAfter(any(), any()) } returns 0
+        every { loginAttemptRepository.countByAccountEmailAndAttemptedAtAfter(any(), any()) } returns 0
 
         val decision = service.checkAndRecord(
             AuthEndpoint.LOGIN,
@@ -49,14 +46,14 @@ class AuthRateLimitServiceTest {
         )
 
         assertThat(decision.allowed).isTrue()
-        verify(loginAttemptRepository).save(any())
+        verify { loginAttemptRepository.save(any()) }
     }
 
     @Test
     fun `blocks when IP limit exceeded with retry-after`() {
-        whenever(loginAttemptRepository.countByIpAddressAndAttemptedAtAfter(any(), any())).thenReturn(2)
-        whenever(loginAttemptRepository.findOldestAttemptedAtByIpSince(any(), any()))
-            .thenReturn(fixedInstant.minusSeconds(120))
+        every { loginAttemptRepository.countByIpAddressAndAttemptedAtAfter(any(), any()) } returns 2
+        every { loginAttemptRepository.findOldestAttemptedAtByIpSince(any(), any()) } returns
+            fixedInstant.minusSeconds(120)
 
         val decision = service.checkAndRecord(
             AuthEndpoint.LOGIN,
@@ -71,10 +68,10 @@ class AuthRateLimitServiceTest {
 
     @Test
     fun `blocks when account limit exceeded`() {
-        whenever(loginAttemptRepository.countByIpAddressAndAttemptedAtAfter(any(), any())).thenReturn(0)
-        whenever(loginAttemptRepository.countByAccountEmailAndAttemptedAtAfter(any(), any())).thenReturn(1)
-        whenever(loginAttemptRepository.findOldestAttemptedAtByAccountSince(any(), any()))
-            .thenReturn(fixedInstant.minusSeconds(60))
+        every { loginAttemptRepository.countByIpAddressAndAttemptedAtAfter(any(), any()) } returns 0
+        every { loginAttemptRepository.countByAccountEmailAndAttemptedAtAfter(any(), any()) } returns 1
+        every { loginAttemptRepository.findOldestAttemptedAtByAccountSince(any(), any()) } returns
+            fixedInstant.minusSeconds(60)
 
         val decision = service.checkAndRecord(
             AuthEndpoint.LOGIN,

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.valueinvesting.webapp.api.model.AccessTokenResponse
 import com.valueinvesting.webapp.api.model.LoginRequest
 import com.valueinvesting.webapp.api.model.RegisterRequest
+import com.valueinvesting.webapp.persistence.repository.LoginAttemptRepository
 import com.valueinvesting.webapp.persistence.repository.RefreshTokenRepository
 import com.valueinvesting.webapp.persistence.repository.UserRepository
 import io.jsonwebtoken.Jwts
@@ -81,6 +82,9 @@ class AuthStorageSecurityIT {
     @Autowired
     private lateinit var refreshTokenRepository: RefreshTokenRepository
 
+    @Autowired
+    private lateinit var loginAttemptRepository: LoginAttemptRepository
+
     @Value("\${app.jwt.signing-secret}")
     private lateinit var jwtSigningSecret: String
 
@@ -88,6 +92,7 @@ class AuthStorageSecurityIT {
 
     @BeforeEach
     fun cleanup() {
+        loginAttemptRepository.deleteAll()
         refreshTokenRepository.deleteAll()
         userRepository.deleteAll()
         register()
