@@ -346,6 +346,29 @@ app:
       password-reset:
         per-ip: 3
         per-account: 3
+    # ADR-025 §5 — brute-force progressive lockout + per-IP CAPTCHA gate
+    # + 30 min account lockout + nightly purge (TSK-230).
+    brute-force:
+      failure-window-minutes: 5       # window for progressive delay & IP captcha threshold
+      progressive-delay-threshold: 5  # 5+ bad_credentials/account/5min triggers delay
+      progressive-delay-cap-seconds: 60
+      ip-captcha-threshold: 10        # 10+ bad_credentials/IP/5min → captchaRequired
+      lockout-window-minutes: 15
+      lockout-threshold: 20           # 20+ bad_credentials/account/15min → 423 Locked
+      lockout-duration-minutes: 30
+      new-device-history-size: 5
+      cleanup-retention-days: 90
+      # 04:00 UTC daily — offset 1h after FMP event-log purge (03:00) to avoid
+      # bursting Hikari with two purge transactions back-to-back.
+      cleanup-cron: "${BRUTE_FORCE_CLEANUP_CRON:0 0 4 * * *}"
+      cleanup-zone: "${BRUTE_FORCE_CLEANUP_ZONE:UTC}"
+    # Cloudflare Turnstile siteverify (ADR-025 §5).
+    # Blank secret-key disables server-side verification — any non-blank token
+    # is treated as valid. Production must wire TURNSTILE_SECRET_KEY env var.
+    turnstile:
+      secret-key: ${TURNSTILE_SECRET_KEY:}
+      site-verify-url: ${TURNSTILE_SITE_VERIFY_URL:https://challenges.cloudflare.com/turnstile/v0/siteverify}
+      timeout-seconds: ${TURNSTILE_TIMEOUT_SECONDS:5}
     hibp:
       enabled: ${HIBP_ENABLED:true}
       api-url: ${HIBP_API_URL:https://api.pwnedpasswords.com/range/}

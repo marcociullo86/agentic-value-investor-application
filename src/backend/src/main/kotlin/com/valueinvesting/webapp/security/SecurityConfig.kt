@@ -223,6 +223,12 @@ class SecurityConfig(
                         "/api/auth/register",
                         "/api/auth/login",
                         "/api/auth/refresh",
+                        // MFA challenge / recovery during login: the user has
+                        // proven password but not yet the second factor; the
+                        // mfaToken (validated in-controller) carries identity,
+                        // so we cannot require Bearer here (TSK-228 / ADR-025 §4).
+                        "/api/auth/mfa/challenge",
+                        "/api/auth/mfa/recovery",
                     ).permitAll()
                     .requestMatchers(
                         "/api/search/**",
@@ -247,6 +253,14 @@ class SecurityConfig(
                         "/api/moat-checklist/**",
                         "/api/dcf-overrides/**",
                         "/api/auth/logout",
+                        // Bearer-protected MFA management endpoints (post-login):
+                        //   POST   /api/auth/mfa/enroll  — start enrollment
+                        //   POST   /api/auth/mfa/verify  — activate MFA
+                        //   DELETE /api/auth/mfa         — disable MFA (+ password)
+                        // (TSK-228 / ADR-025 §4)
+                        "/api/auth/mfa/enroll",
+                        "/api/auth/mfa/verify",
+                        "/api/auth/mfa",
                     ).authenticated()
                     .requestMatchers("/admin/**").hasRole("ADMIN")
                     .anyRequest().authenticated()

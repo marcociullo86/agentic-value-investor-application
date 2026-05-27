@@ -1,6 +1,7 @@
 package com.valueinvesting.webapp.persistence.repository
 
 import com.valueinvesting.webapp.persistence.entity.LoginAttemptEntity
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
@@ -48,6 +49,36 @@ interface LoginAttemptRepository : JpaRepository<LoginAttemptEntity, Long> {
         @Param("failureReason") failureReason: String,
         @Param("since") since: Instant,
     ): Instant?
+
+    // Most-recent (max) attempt for an account_email+reason in a rolling
+    // window — used by BruteForceProtectionService (TSK-230) to compute the
+    // lockout expiry: lockout_until = max(attemptedAt) + lockoutDuration.
+    @Query(
+        """
+        SELECT MAX(l.attemptedAt) FROM LoginAttemptEntity l
+        WHERE l.accountEmail = :accountEmail AND l.failureReason = :failureReason AND l.attemptedAt >= :since
+        """,
+    )
+    fun findLatestAttemptedAtByAccountSince(
+        @Param("accountEmail") accountEmail: String,
+        @Param("failureReason") failureReason: String,
+        @Param("since") since: Instant,
+    ): Instant?
+
+    // Last N successful login IPs for an account — used by new-device detection
+    // (TSK-230 / ADR-025 §7). Pageable bounds the result set to the configured
+    // history size (default 5).
+    @Query(
+        """
+        SELECT l.ipAddress FROM LoginAttemptEntity l
+        WHERE l.accountEmail = :accountEmail AND l.success = true
+        ORDER BY l.attemptedAt DESC
+        """,
+    )
+    fun findRecentSuccessfulIpsByAccount(
+        @Param("accountEmail") accountEmail: String,
+        pageable: Pageable,
+    ): List<String>
 
     @Modifying
     @Query("DELETE FROM LoginAttemptEntity l WHERE l.attemptedAt < :cutoff")

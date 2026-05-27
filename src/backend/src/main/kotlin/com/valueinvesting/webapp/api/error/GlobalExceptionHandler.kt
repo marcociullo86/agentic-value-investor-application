@@ -3,10 +3,17 @@ package com.valueinvesting.webapp.api.error
 import com.valueinvesting.webapp.fmp.FmpTickerNotFoundException
 import com.valueinvesting.webapp.fmp.FmpUnavailableException
 import com.valueinvesting.webapp.llm.LlmFrozenException
+import com.valueinvesting.webapp.service.AccountLockedException
+import com.valueinvesting.webapp.service.CaptchaRequiredException
 import com.valueinvesting.webapp.service.CompromisedPasswordException
 import com.valueinvesting.webapp.service.EmailAlreadyRegisteredException
+import com.valueinvesting.webapp.service.InvalidRecoveryCodeException
 import com.valueinvesting.webapp.service.InvalidRefreshTokenException
+import com.valueinvesting.webapp.service.InvalidTotpCodeException
 import com.valueinvesting.webapp.service.LlmUnavailableException
+import com.valueinvesting.webapp.service.MfaAlreadyEnabledException
+import com.valueinvesting.webapp.service.MfaNotEnabledException
+import com.valueinvesting.webapp.service.MfaNotEnrolledException
 import com.valueinvesting.webapp.service.NoSecFilingsException
 import com.valueinvesting.webapp.service.TickerNotInWatchlistException
 import com.valueinvesting.webapp.service.exception.DcfMethodUnfeasibleException
@@ -14,6 +21,7 @@ import com.valueinvesting.webapp.service.exception.DcfOverrideNotFoundException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.ConstraintViolationException
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ProblemDetail
 import org.springframework.http.ResponseEntity
@@ -384,6 +392,142 @@ class GlobalExceptionHandler(
             request = req,
         )
         return ResponseEntity.status(HttpStatus.CONFLICT).body(problem)
+    }
+
+    // MFA flow errors (US-081 / ADR-025 §4 / TSK-228) — RFC 9457 ProblemDetail.
+    // Distinct types let the FE branch on the specific failure (re-enroll vs.
+    // already-enabled vs. wrong code) without parsing user-facing strings.
+    @ExceptionHandler(MfaAlreadyEnabledException::class)
+    fun handleMfaAlreadyEnabled(
+        ex: MfaAlreadyEnabledException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        val problem = mapper.build(
+            status = HttpStatus.CONFLICT,
+            type = "https://api/errors/mfa-already-enabled",
+            title = "MFA already enabled",
+            detail = ex.message ?: "MFA is already enabled for this account",
+            request = req,
+        )
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(problem)
+    }
+
+    @ExceptionHandler(MfaNotEnrolledException::class)
+    fun handleMfaNotEnrolled(
+        ex: MfaNotEnrolledException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        val problem = mapper.build(
+            status = HttpStatus.CONFLICT,
+            type = "https://api/errors/mfa-not-enrolled",
+            title = "MFA enrollment not started",
+            detail = ex.message ?: "MFA enrollment has not been initiated",
+            request = req,
+        )
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(problem)
+    }
+
+    @ExceptionHandler(MfaNotEnabledException::class)
+    fun handleMfaNotEnabled(
+        ex: MfaNotEnabledException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        val problem = mapper.build(
+            status = HttpStatus.CONFLICT,
+            type = "https://api/errors/mfa-not-enabled",
+            title = "MFA not enabled",
+            detail = ex.message ?: "MFA is not enabled for this account",
+            request = req,
+        )
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(problem)
+    }
+
+    @ExceptionHandler(InvalidTotpCodeException::class)
+    fun handleInvalidTotpCode(
+        ex: InvalidTotpCodeException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        val problem = mapper.build(
+            status = HttpStatus.BAD_REQUEST,
+            type = "https://api/errors/invalid-totp-code",
+            title = "Invalid TOTP code",
+            detail = ex.message ?: "Invalid TOTP code",
+            request = req,
+        )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem)
+    }
+
+    @ExceptionHandler(InvalidRecoveryCodeException::class)
+    fun handleInvalidRecoveryCode(
+        ex: InvalidRecoveryCodeException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        val problem = mapper.build(
+            status = HttpStatus.BAD_REQUEST,
+            type = "https://api/errors/invalid-recovery-code",
+            title = "Invalid recovery code",
+            detail = ex.message ?: "Invalid or already-used recovery code",
+            request = req,
+        )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem)
+    }
+
+    // ADR-025 §5 (TSK-230): account lockout after 20+ failed logins in 15min.
+    // RFC 7231 §6.5.15 — 423 Locked is the canonical status; we also surface
+    // `Retry-After` (seconds) so the FE can drive a countdown without storing
+    // the lockout deadline locally.
+    @ExceptionHandler(AccountLockedException::class)
+    fun handleAccountLocked(
+        ex: AccountLockedException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        log.warn(
+            "Account locked on {} {}: retryAfter={}s",
+            req.method,
+            req.requestURI,
+            ex.retryAfterSeconds,
+        )
+        val problem = mapper.build(
+            status = HttpStatus.LOCKED,
+            type = "https://api/errors/account-locked",
+            title = "Account temporarily locked",
+            // Generic detail (no email echo) to avoid enumeration — the same
+            // 423 fires regardless of whether the locked account exists, in
+            // line with the ADR-010 §2 generic-credentials policy.
+            detail = "Account temporarily locked due to repeated failed login attempts",
+            request = req,
+            extensions = mapOf("retryAfterSeconds" to ex.retryAfterSeconds),
+        )
+        return ResponseEntity.status(HttpStatus.LOCKED)
+            .header(HttpHeaders.RETRY_AFTER, ex.retryAfterSeconds.toString())
+            .body(problem)
+    }
+
+    // ADR-025 §5 (TSK-230): per-IP CAPTCHA gate. 401 with `captchaRequired=true`
+    // extension so the FE can show the Turnstile widget. The `detail` is the
+    // standard "Invalid email or password" string so a wrong-password attempt
+    // when the IP threshold trips looks indistinguishable from a normal failure
+    // except for the captchaRequired flag (no leak of brute-force counters).
+    @ExceptionHandler(CaptchaRequiredException::class)
+    fun handleCaptchaRequired(
+        ex: CaptchaRequiredException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        log.warn(
+            "CAPTCHA required on {} {}: reason={}",
+            req.method,
+            req.requestURI,
+            ex.reason,
+        )
+        val problem = mapper.build(
+            status = HttpStatus.UNAUTHORIZED,
+            type = "https://api/errors/captcha-required",
+            title = "Captcha required",
+            detail = "Invalid email or password",
+            request = req,
+            extensions = mapOf("captchaRequired" to true),
+        )
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem)
     }
 
     @ExceptionHandler(NoSecFilingsException::class)

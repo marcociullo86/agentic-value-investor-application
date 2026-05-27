@@ -3,11 +3,13 @@ import {
   login as apiLogin,
   logout as apiLogout,
   refreshTokens as apiRefresh,
+  challengeMfa as apiChallengeMfa,
+  recoveryMfa as apiRecoveryMfa,
   type UserProfile,
 } from '@/lib/api/auth';
 
 /**
- * Auth store (TSK-034, TSK-211 — cookie-based refresh).
+ * Auth store (TSK-034, TSK-211 — cookie-based refresh; TSK-232/233 MFA).
  *
  * TSK-211: refresh token migrated to httpOnly cookie (TSK-209 BE).
  * The FE only holds `accessToken` in Zustand memory (never persisted).
@@ -26,8 +28,25 @@ import {
  * deletes it in the same response. Without this cookie hint the middleware
  * branch is unreachable from a client-side 401 interceptor.
  *
+ * TSK-232/233 (US-081): when the BE returns `{ mfaRequired: true, mfaToken }`,
+ * `login` returns a discriminated `LoginResult` instead of finalizing the
+ * session. The caller (login page) renders `MfaChallengeForm` and replays
+ * the `mfaToken` via `completeMfaChallenge` / `completeMfaRecovery` — both
+ * apply the same cookie-and-state finalization as the no-MFA path so the
+ * post-login UX is byte-identical.
+ *
  * Reference: design_&_architecture/components/frontend-components.md §useAuthStore.
+ * [^src: design_&_architecture/decisions/ADR-025-security-hardening-pci-dss.md §4]
  */
+
+/**
+ * Discriminated outcome returned by `login`. The MFA branch carries the
+ * short-lived `mfaToken` (≈5 min) issued by the BE; the caller MUST replay
+ * it within that window via `completeMfaChallenge` or `completeMfaRecovery`.
+ */
+export type LoginResult =
+  | { readonly type: 'success' }
+  | { readonly type: 'mfa-required'; readonly mfaToken: string };
 
 export interface AuthState {
   readonly accessToken: string | null;
@@ -48,7 +67,17 @@ export interface AuthState {
    * the banner via "Accedi".
    */
   readonly sessionExpired: boolean;
-  readonly login: (email: string, password: string) => Promise<void>;
+  readonly login: (email: string, password: string) => Promise<LoginResult>;
+  readonly completeMfaChallenge: (
+    mfaToken: string,
+    totpCode: string,
+    email?: string,
+  ) => Promise<void>;
+  readonly completeMfaRecovery: (
+    mfaToken: string,
+    recoveryCode: string,
+    email?: string,
+  ) => Promise<void>;
   readonly logout: () => Promise<void>;
   readonly refresh: () => Promise<void>;
   readonly rehydrate: () => Promise<void>;
@@ -115,8 +144,24 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     });
   },
 
-  login: async (email: string, password: string): Promise<void> => {
+  login: async (email: string, password: string): Promise<LoginResult> => {
     const response = await apiLogin({ email, password });
+    // MFA path: il BE non emette accessToken né set-cookie refresh; il caller
+    // (login page) deve completare la challenge entro la finestra `mfaToken`
+    // (≈5 min). Non si tocca lo stato auth qui — la sessione scaduta resta
+    // segnalata se lo era, e nessun hint cookie viene scritto.
+    if (response.mfaRequired) {
+      if (!response.mfaToken) {
+        throw new Error('mfa-required without mfaToken');
+      }
+      return { type: 'mfa-required', mfaToken: response.mfaToken };
+    }
+    if (
+      response.accessToken === undefined ||
+      response.expiresInSeconds === undefined
+    ) {
+      throw new Error('login response missing access token');
+    }
     // Pulisce prima il marker di sessione scaduta (TSK-043 fix), poi imposta
     // il hint di sessione attiva. L'ordine è rilevante solo per ambienti
     // di test con shim string del document.cookie; in browser reali i due
@@ -127,6 +172,41 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       accessToken: response.accessToken,
       expiresAt: Date.now() + response.expiresInSeconds * 1000,
       user: { id: '', email, displayName: null, createdAt: '' },
+      sessionExpired: false,
+      rehydrationStatus: 'done',
+    });
+    return { type: 'success' };
+  },
+
+  completeMfaChallenge: async (
+    mfaToken: string,
+    totpCode: string,
+    email?: string,
+  ): Promise<void> => {
+    const tokens = await apiChallengeMfa({ mfaToken, totpCode });
+    clearSessionExpiredCookie();
+    setAuthHintCookie();
+    set({
+      accessToken: tokens.accessToken,
+      expiresAt: Date.now() + tokens.expiresInSeconds * 1000,
+      user: { id: '', email: email ?? '', displayName: null, createdAt: '' },
+      sessionExpired: false,
+      rehydrationStatus: 'done',
+    });
+  },
+
+  completeMfaRecovery: async (
+    mfaToken: string,
+    recoveryCode: string,
+    email?: string,
+  ): Promise<void> => {
+    const tokens = await apiRecoveryMfa({ mfaToken, recoveryCode });
+    clearSessionExpiredCookie();
+    setAuthHintCookie();
+    set({
+      accessToken: tokens.accessToken,
+      expiresAt: Date.now() + tokens.expiresInSeconds * 1000,
+      user: { id: '', email: email ?? '', displayName: null, createdAt: '' },
       sessionExpired: false,
       rehydrationStatus: 'done',
     });

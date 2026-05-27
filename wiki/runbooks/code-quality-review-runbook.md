@@ -85,6 +85,10 @@ Metriche da tenere sotto controllo per evitare derive (vedi [[code-quality-revie
 [[parallel-scheduler]]
 [[feedback-loop-gate]]
 
+## Post-bonifica Sprint 16 — note operative
+
+EP-019 chiusa il 2026-05-28. La bonifica ha coperto **224 TSK storici** in **14 onde** parallele (Fase A), con **14 finding conditional** risolti in Fase B (6 TSK refactor effettivi, 4 no-op). Pass rate finale **100 %**; escalation rate **0 %** (nessun loop ha raggiunto `max_iterations: 3`). Il ruleset canonical conta **20 regole `active`** (10 Kotlin/Spring + 9 TypeScript/Next.js + 1 QA). Per review future, il costo di convergenza atteso è ≤ 2 iterazioni per stack BE e FE. Le regole più frequentemente violate (`kotlin.spring.resilience.external_api_guard`, `typescript.nextjs.errorhandling.user_safe_messages`) sono candidate prioritarie per il feedback digest verso gli agenti autori. [^src: code_quality/reports/sprint-16-cqrl-summary.md §5]
+
 ## Pagine collegate
 
 [[2026-05-27-code-quality-review-layer]]

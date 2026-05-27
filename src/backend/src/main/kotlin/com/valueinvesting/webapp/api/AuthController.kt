@@ -2,11 +2,13 @@ package com.valueinvesting.webapp.api
 
 import com.valueinvesting.webapp.api.model.AccessTokenResponse
 import com.valueinvesting.webapp.api.model.LoginRequest
+import com.valueinvesting.webapp.api.model.LoginResponse
 import com.valueinvesting.webapp.api.model.RegisterRequest
 import com.valueinvesting.webapp.api.model.UserProfileResponse
 import com.valueinvesting.webapp.config.AppProperties
 import com.valueinvesting.webapp.security.UserPrincipal
 import com.valueinvesting.webapp.service.AuthService
+import com.valueinvesting.webapp.service.LoginOutcome
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.headers.Header
 import io.swagger.v3.oas.annotations.media.Content
@@ -14,6 +16,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -60,44 +63,80 @@ class AuthController(
             ApiResponse(responseCode = "400", description = "Validation error or compromised password (RFC 9457)"),
         ],
     )
-    fun register(@Valid @RequestBody request: RegisterRequest): ResponseEntity<UserProfileResponse> {
-        val profile = authService.register(request)
+    fun register(
+        @Valid @RequestBody request: RegisterRequest,
+        httpRequest: HttpServletRequest,
+    ): ResponseEntity<UserProfileResponse> {
+        val profile = authService.register(
+            request = request,
+            ip = resolveClientIp(httpRequest),
+            userAgent = httpRequest.getHeader(HttpHeaders.USER_AGENT),
+        )
         return ResponseEntity.status(HttpStatus.CREATED).body(profile)
     }
 
     @PostMapping("/login")
     @Operation(
         summary = "Authenticate and obtain an access token",
-        description = "Returns an access token in the body. " +
-            "The refresh token is set as an httpOnly Secure SameSite=Strict cookie " +
-            "(Path=/api/auth) — it is never exposed in the response body (ADR-024 §3).",
+        description = "Returns an access token in the body when MFA is not enabled. " +
+            "When MFA is enabled the body carries `mfaRequired=true` + a short-lived `mfaToken` " +
+            "and NO access token / refresh cookie — the FE must call /api/auth/mfa/challenge " +
+            "(ADR-025 §4). The refresh token is set as an httpOnly Secure SameSite=Strict cookie " +
+            "(Path=/api/auth) only when MFA is not required (ADR-024 §3).",
         responses = [
             ApiResponse(
                 responseCode = "200",
-                description = "Login successful",
+                description = "Login successful (or MFA challenge required)",
                 headers = [Header(
                     name = "Set-Cookie",
-                    description = "refresh_token={value}; HttpOnly; Secure; SameSite=Strict; Path=/api/auth; Max-Age=604800",
+                    description = "refresh_token={value}; HttpOnly; Secure; SameSite=Strict; Path=/api/auth; Max-Age=604800 — set only when MFA is not required",
                     schema = Schema(type = "string"),
                 )],
                 content = [Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = Schema(implementation = AccessTokenResponse::class),
+                    schema = Schema(implementation = LoginResponse::class),
                 )],
             ),
             ApiResponse(responseCode = "401", description = "Invalid email or password (RFC 9457 ProblemDetails)"),
         ],
     )
-    fun login(@Valid @RequestBody request: LoginRequest): ResponseEntity<AccessTokenResponse> {
-        val result = authService.login(request)
-        val cookie = RefreshTokenCookieHelper.create(
-            result.refreshTokenValue,
-            Duration.ofDays(appProperties.jwt.refreshSlidingTtlDays),
-            appProperties.jwt.cookieSecure,
-        )
-        return ResponseEntity.ok()
-            .header(HttpHeaders.SET_COOKIE, cookie.toString())
-            .body(AccessTokenResponse(result.accessToken, result.expiresInSeconds))
+    fun login(
+        @Valid @RequestBody request: LoginRequest,
+        httpRequest: HttpServletRequest,
+    ): ResponseEntity<LoginResponse> {
+        return when (
+            val outcome = authService.login(
+                request = request,
+                ip = resolveClientIp(httpRequest),
+                userAgent = httpRequest.getHeader(HttpHeaders.USER_AGENT),
+            )
+        ) {
+            is LoginOutcome.TokenPair -> {
+                val cookie = RefreshTokenCookieHelper.create(
+                    outcome.refreshTokenValue,
+                    Duration.ofDays(appProperties.jwt.refreshSlidingTtlDays),
+                    appProperties.jwt.cookieSecure,
+                )
+                ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                    .body(
+                        LoginResponse(
+                            accessToken = outcome.accessToken,
+                            expiresInSeconds = outcome.expiresInSeconds,
+                            mfaRequired = false,
+                            mfaToken = null,
+                        ),
+                    )
+            }
+            is LoginOutcome.MfaRequired -> ResponseEntity.ok(
+                LoginResponse(
+                    accessToken = null,
+                    expiresInSeconds = null,
+                    mfaRequired = true,
+                    mfaToken = outcome.mfaToken,
+                ),
+            )
+        }
     }
 
     @PostMapping("/refresh")
@@ -164,5 +203,23 @@ class AuthController(
         return ResponseEntity.noContent()
             .header(HttpHeaders.SET_COOKIE, cookie.toString())
             .build()
+    }
+
+    // Mirrors the IP-resolution policy already used by [RateLimitingFilter]
+    // (TSK-229) — X-Forwarded-For first entry when present, otherwise the
+    // direct remoteAddr. Required so brute-force counters and rate-limit
+    // counters key on the same client identifier.
+    private fun resolveClientIp(request: HttpServletRequest): String {
+        val forwarded = request.getHeader("X-Forwarded-For")
+        if (!forwarded.isNullOrBlank()) {
+            return forwarded.split(",").first().trim()
+        }
+        return request.remoteAddr.orEmpty().ifBlank { UNKNOWN_CLIENT_IP }
+    }
+
+    companion object {
+        // Synced with AuthService.UNKNOWN_IP — kept private to its module since
+        // the constant has different visibility semantics in the two layers.
+        private const val UNKNOWN_CLIENT_IP: String = "0.0.0.0"
     }
 }

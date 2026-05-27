@@ -30,6 +30,11 @@ data class AppProperties(
         // ri-autenticarsi. Mitiga il rischio di refresh-token "eterno" in
         // caso di leak persistente.
         val refreshAbsoluteCapDays: Long = 30,
+        // Short-lived MFA challenge token (TSK-228, ADR-025 §4): bridges the
+        // gap between password verification and TOTP/recovery-code success.
+        // 5 minutes is short enough to limit abuse if the token leaks, long
+        // enough to handle authenticator app fumble.
+        val mfaChallengeTtlMinutes: Long = 5,
         // Legacy single-TTL kept for back-compat with config; non più letto
         // dall'AuthService dopo ADR-010 (usa refreshSlidingTtlDays).
         @Deprecated("Replaced by refreshSlidingTtlDays + refreshAbsoluteCapDays (ADR-010 §3)")

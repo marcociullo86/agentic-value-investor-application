@@ -6,6 +6,8 @@ vi.mock('@/lib/api/auth', () => ({
   logout: vi.fn(),
   refreshTokens: vi.fn(),
   register: vi.fn(),
+  challengeMfa: vi.fn(),
+  recoveryMfa: vi.fn(),
 }));
 
 import * as authApi from '@/lib/api/auth';
@@ -13,6 +15,8 @@ import * as authApi from '@/lib/api/auth';
 const mockedLogin = authApi.login as ReturnType<typeof vi.fn>;
 const mockedLogout = authApi.logout as ReturnType<typeof vi.fn>;
 const mockedRefresh = authApi.refreshTokens as ReturnType<typeof vi.fn>;
+const mockedChallenge = authApi.challengeMfa as ReturnType<typeof vi.fn>;
+const mockedRecovery = authApi.recoveryMfa as ReturnType<typeof vi.fn>;
 
 function mockDocumentCookie(): void {
   Object.defineProperty(document, 'cookie', {
@@ -34,6 +38,8 @@ describe('useAuthStore', () => {
     mockedLogin.mockReset();
     mockedLogout.mockReset();
     mockedRefresh.mockReset();
+    mockedChallenge.mockReset();
+    mockedRecovery.mockReset();
     mockDocumentCookie();
   });
 
@@ -222,6 +228,87 @@ describe('useAuthStore', () => {
     await useAuthStore.getState().login('bob@example.com', 'pw');
 
     expect(useAuthStore.getState().sessionExpired).toBe(false);
+  });
+
+  describe('MFA flow (TSK-232/233)', () => {
+    it('login returns mfa-required result when BE signals mfaRequired', async () => {
+      mockedLogin.mockResolvedValueOnce({
+        mfaRequired: true,
+        mfaToken: 'mfa-token-xyz',
+      });
+
+      const result = await useAuthStore
+        .getState()
+        .login('alice@example.com', 'pw');
+
+      expect(result).toEqual({ type: 'mfa-required', mfaToken: 'mfa-token-xyz' });
+      const state = useAuthStore.getState();
+      expect(state.accessToken).toBeNull();
+      expect(state.user).toBeNull();
+    });
+
+    it('login throws when mfaRequired=true but mfaToken missing', async () => {
+      mockedLogin.mockResolvedValueOnce({ mfaRequired: true });
+
+      await expect(
+        useAuthStore.getState().login('alice@example.com', 'pw'),
+      ).rejects.toThrow();
+    });
+
+    it('login returns success result on no-MFA path', async () => {
+      mockedLogin.mockResolvedValueOnce({
+        accessToken: 'access-1',
+        expiresInSeconds: 900,
+        mfaRequired: false,
+      });
+
+      const result = await useAuthStore
+        .getState()
+        .login('alice@example.com', 'pw');
+
+      expect(result).toEqual({ type: 'success' });
+      expect(useAuthStore.getState().accessToken).toBe('access-1');
+    });
+
+    it('completeMfaChallenge stores access token and finalizes session', async () => {
+      mockedChallenge.mockResolvedValueOnce({
+        accessToken: 'mfa-access-1',
+        expiresInSeconds: 900,
+      });
+
+      await useAuthStore
+        .getState()
+        .completeMfaChallenge('mfa-token', '123456', 'alice@example.com');
+
+      const state = useAuthStore.getState();
+      expect(state.accessToken).toBe('mfa-access-1');
+      expect(state.user?.email).toBe('alice@example.com');
+      expect(state.rehydrationStatus).toBe('done');
+      expect(document.cookie).toContain('isAuthenticated=true');
+      expect(mockedChallenge).toHaveBeenCalledWith({
+        mfaToken: 'mfa-token',
+        totpCode: '123456',
+      });
+    });
+
+    it('completeMfaRecovery stores access token using recovery code', async () => {
+      mockedRecovery.mockResolvedValueOnce({
+        accessToken: 'rec-access-1',
+        expiresInSeconds: 900,
+      });
+
+      await useAuthStore
+        .getState()
+        .completeMfaRecovery('mfa-token', 'recovery-code-xy', 'bob@example.com');
+
+      const state = useAuthStore.getState();
+      expect(state.accessToken).toBe('rec-access-1');
+      expect(state.user?.email).toBe('bob@example.com');
+      expect(mockedRecovery).toHaveBeenCalledWith({
+        mfaToken: 'mfa-token',
+        recoveryCode: 'recovery-code-xy',
+      });
+    });
   });
 
   describe('rehydrate', () => {

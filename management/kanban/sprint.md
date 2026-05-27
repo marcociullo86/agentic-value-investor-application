@@ -2,7 +2,7 @@
 ---
 id: sprint
 title: Sprint Plan — R1.0 MVP + R1.1 + R1.1.x + R2.0 + R2.1 + R3.0 + CQRL Bonifica
-generated: 2026-05-27
+generated: 2026-05-28
 tpm: tpm
 release: R3.1 (EP-019 CQRL bonifica, in corso) + R3.0 chiusura EP-018 (Sprint 15)
 r10_closed: 2026-05-22
@@ -20,19 +20,17 @@ r31_cqrl_target: TBD
 > **R1.1.x hotfix chiuso:** Sprint 5.5 — 12/12 TSK `done`. US-052, US-053, US-054 completate.
 > **R2.0 chiuso:** Sprint 6–9 completati — 79/79 TSK `done`, 21/21 US, 3/3 EP (EP-010, EP-011, EP-012).
 > **R2.1 chiuso:** Sprint 10 — EP-013 Mr. Market Context Flags — 6/6 TSK `done`, 2/2 US (US-056, US-057).
-> **R3.0 in corso:** Sprint 15 — 10 TSK `todo` (EP-018). Sprint 15.5 chiuso (TSK-239). EP-014..017 `done`; EP-018 `in-progress`.
-> **R3.1 in corso:** Sprint 16 (EP-019 CQRL) — **20/25 TSK `done`** (Fase A 14/14; Fase B 6/10 + 4 no-op `todo`; Fase C 0/1). US-084/085 `done`; US-086 `in-progress`.
+> **R3.0 in corso:** Sprint 15 — **17/20 TSK `done`** (EP-018). Residui: TSK-234, TSK-235, TSK-238. Sprint 15.5 chiuso (TSK-239). EP-014..017 `done`; EP-019 CQRL chiusa.
+> **R3.1 chiuso:** Sprint 16 (EP-019 CQRL) — **25/25 TSK `done`**. US-084/085/086 `done`; EP-019 `done`.
 
 ---
 
-## Sprint 16 — CQRL Bonifica Generale (EP-019) — IN CORSO
+## Sprint 16 — CQRL Bonifica Generale (EP-019) — COMPLETATO
 
 **Obiettivo:** Retro-review CQRL su 224 TSK storici `done` (R1.0→15.5, esclusi TSK-224..238),
 digest per wave, refactor da finding `conditional`/`high`, consolidamento ruleset canonical.
 
-**Stato:** IN PROGRESS — **20/25 TSK `done`**. EP-019 `in-progress`. US-084 `done` (14/14 Fase A);
-US-085 `done` (slot 1+2 refactor + iter-2 re-review; slot 3 no-op pendente su TSK-253/259/260/261);
-US-086 `in-progress` (TSK-265).
+**Stato:** COMPLETATO — **25/25 TSK `done`**. EP-019 `done`. US-084/085/086 `done`. Snapshot analytics: `code_quality/reports/sprint-16-cqrl-summary.md` (locale, gitignored).
 
 **Parallelismo (scheduler v2.11):** Fase A completata. Fase B slot 1+2 chiusi; slot 3 = 4 TSK no-op
 (zero task_package dai digest). Level 2 = TSK-265 (gate: no-op close slot 3 o waiver PM).
@@ -527,7 +525,7 @@ idle/absolute timeout con prompt, logout completo con blocco history. ADR-024.
 recovery codes, rate limiting + progressive lockout + CAPTCHA threshold, HIBP password check,
 dichiarazione formale PCI-DSS non applicabile. ADR-025. DB: mfa_secrets + login_attempts.
 
-**Stato:** IN PROGRESS — 10/20 TSK `done` (Wave 1 + Wave 2). CI verde su `4c7ca73`. `pending_clarification: [Q_005]` su TSK-237 (ADR-025 proposed).
+**Stato:** IN PROGRESS — **17/20 TSK `done`**. Wave 1 completata (MFA BE/FE, brute-force, CSP/CSRF QA, HIBP QA). Q_005 risolta; TSK-237 `done`; TSK-230 CQRL `passed` iter-2. Residui wave 2: TSK-234, TSK-235, TSK-238.
 
 | TSK | Titolo | Layer | Consumer | Est. | US | Status |
 |-----|--------|-------|----------|------|----|--------|
@@ -536,23 +534,23 @@ dichiarazione formale PCI-DSS non applicabile. ADR-025. DB: mfa_secrets + login_
 | TSK-221 | BE SecurityHeadersConfig CSP header: script-src no unsafe-inline | be | agent | S | US-080 | done |
 | TSK-222 | FE Next.js middleware CSP nonce per inline script | fe | agent | S | US-080 | done |
 | TSK-223 | BE CsrfTokenConfig: CSRF per /api/auth/refresh e /api/auth/logout | be | agent | S | US-080 | done |
-| TSK-224 | QA Test CSP + CSRF: header, XSS bloccato, 403 no CSRF, SameSite, E2E | qa | agent | M | US-080 | todo |
+| TSK-224 | QA Test CSP + CSRF: header, XSS bloccato, 403 no CSRF, SameSite, E2E | qa | agent | M | US-080 | done |
 | TSK-225 | DB Migration V026__create_mfa_secrets | db | agent | XS | US-081 | done |
 | TSK-226 | DB Migration V025__create_login_attempts + indici | db | agent | XS | US-081 | done |
 | TSK-227 | BE TotpService: secret TOTP, verifica codice, recovery codes BCrypt | be | agent | M | US-081 | done |
-| TSK-228 | BE MfaController: endpoint enroll, verify, challenge, recovery, delete | be | agent | M | US-081 | todo |
+| TSK-228 | BE MfaController: endpoint enroll, verify, challenge, recovery, delete | be | agent | M | US-081 | done |
 | TSK-229 | BE RateLimitingFilter: limiti IP + account su login/register/password-reset | be | agent | M | US-081 | done |
-| TSK-230 | BE BruteForceProtectionService: lockout progressivo + CAPTCHA + cleanup | be | agent | M | US-081 | todo |
+| TSK-230 | BE BruteForceProtectionService: lockout progressivo + CAPTCHA + cleanup | be | agent | M | US-081 | done |
 | TSK-231 | BE HibpClient: verifica password compromesse k-anonymity SHA-1 | be | agent | S | US-081 | done |
-| TSK-232 | FE MfaEnrollmentPage: QR code + verifica TOTP + recovery codes | fe | agent | M | US-081 | todo |
-| TSK-233 | FE MfaChallengeForm: form TOTP durante login MFA | fe | agent | S | US-081 | todo |
+| TSK-232 | FE MfaEnrollmentPage: QR code + verifica TOTP + recovery codes | fe | agent | M | US-081 | done |
+| TSK-233 | FE MfaChallengeForm: form TOTP durante login MFA | fe | agent | S | US-081 | done |
 | TSK-238 | FE Login CAPTCHA Turnstile quando captchaRequired | fe | agent | S | US-081 | todo |
 | TSK-234 | QA Test MFA: enrollment, login TOTP, recovery, disabilitazione | qa | agent | M | US-081 | todo |
 | TSK-235 | QA Test rate limiting + brute force: delay, CAPTCHA, lockout 30min | qa | agent | M | US-081 | todo |
-| TSK-236 | QA Test HIBP: password compromessa rifiutata, sicura accettata | qa | agent | S | US-081 | todo |
-| TSK-237 | QA Verifica codebase no dati carta + validazione ADR PCI-DSS | qa | agent | S | US-082 | todo |
+| TSK-236 | QA Test HIBP: password compromessa rifiutata, sicura accettata | qa | agent | S | US-081 | done |
+| TSK-237 | QA Verifica codebase no dati carta + validazione ADR PCI-DSS | qa | agent | S | US-082 | done |
 
-**Totale Sprint 15:** 20 TSK (8 be, 3 fe, 2 db, 7 qa)
+**Totale Sprint 15:** 20 TSK (8 be, 3 fe, 2 db, 7 qa) — 3 `todo` residui
 
 ---
 

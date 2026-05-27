@@ -34,16 +34,44 @@ class AuthService(
     private val jwtService: JwtService,
     private val appProperties: AppProperties,
     private val compromisedPasswordGuard: CompromisedPasswordGuard,
+    private val mfaService: MfaService,
+    private val bruteForceProtectionService: BruteForceProtectionService,
     private val clock: Clock,
 ) {
 
     @Transactional
-    fun register(request: RegisterRequest): UserProfileResponse {
+    fun register(
+        request: RegisterRequest,
+        ip: String = UNKNOWN_IP,
+        userAgent: String? = null,
+    ): UserProfileResponse {
+        // ADR-025 §5 — per-IP CAPTCHA gate also covers registration so a bot
+        // burning the rate-limit per-IP=5/5min on /register doesn't bypass the
+        // captcha challenge. Throws CaptchaRequiredException(401) when the IP
+        // has tripped the threshold and no valid token is supplied.
+        bruteForceProtectionService.guardRegister(ip, request.captchaToken)
+
         val normalizedEmail = request.email.trim()
         if (userRepository.findByEmailIgnoreCase(normalizedEmail) != null) {
+            bruteForceProtectionService.recordLoginFailure(
+                email = normalizedEmail,
+                ip = ip,
+                userAgent = userAgent,
+                reason = BruteForceProtectionService.REASON_REGISTER_FAILURE,
+            )
             throw EmailAlreadyRegisteredException(normalizedEmail)
         }
-        compromisedPasswordGuard.assertNotCompromised(request.password)
+        try {
+            compromisedPasswordGuard.assertNotCompromised(request.password)
+        } catch (ex: CompromisedPasswordException) {
+            bruteForceProtectionService.recordLoginFailure(
+                email = normalizedEmail,
+                ip = ip,
+                userAgent = userAgent,
+                reason = BruteForceProtectionService.REASON_REGISTER_FAILURE,
+            )
+            throw ex
+        }
         val user = User(
             email = normalizedEmail,
             passwordHash = passwordEncoder.encode(request.password),
@@ -55,11 +83,79 @@ class AuthService(
     }
 
     @Transactional
-    fun login(request: LoginRequest): AuthResult {
+    fun login(
+        request: LoginRequest,
+        ip: String = UNKNOWN_IP,
+        userAgent: String? = null,
+    ): LoginOutcome {
+        // ADR-025 §5 — pre-flight: lockout / captcha / progressive delay.
+        // [bruteForceProtectionService.guardLogin] runs with propagation
+        // NOT_SUPPORTED so the optional [Thread.sleep] does not hold this
+        // method's transaction connection.
+        bruteForceProtectionService.guardLogin(request.email, ip, request.captchaToken)
+
         val user = userRepository.findByEmailIgnoreCase(request.email.trim())
-            ?: throw BadCredentialsException("Invalid email or password")
-        if (!passwordEncoder.matches(request.password, user.passwordHash)) {
+        if (user == null) {
+            bruteForceProtectionService.recordLoginFailure(
+                email = request.email,
+                ip = ip,
+                userAgent = userAgent,
+                reason = BruteForceProtectionService.REASON_BAD_CREDENTIALS,
+            )
             throw BadCredentialsException("Invalid email or password")
+        }
+        if (!passwordEncoder.matches(request.password, user.passwordHash)) {
+            bruteForceProtectionService.recordLoginFailure(
+                email = user.email,
+                ip = ip,
+                userAgent = userAgent,
+                reason = BruteForceProtectionService.REASON_BAD_CREDENTIALS,
+            )
+            throw BadCredentialsException("Invalid email or password")
+        }
+        // ADR-025 §4 — short-circuit when MFA is enabled: emit a 5-min mfaToken
+        // and do NOT touch lastLoginAt or issue refresh tokens until the user
+        // proves the second factor at /api/auth/mfa/challenge|recovery.
+        if (mfaService.isMfaEnabled(user.id)) {
+            // Record an intermediate "mfa_required" row — counts as neither
+            // success nor bad_credentials so it does NOT fuel brute-force
+            // counters but DOES leave an audit trail for the security log.
+            bruteForceProtectionService.recordLoginFailure(
+                email = user.email,
+                ip = ip,
+                userAgent = userAgent,
+                reason = BruteForceProtectionService.REASON_MFA_REQUIRED,
+            )
+            val issued = jwtService.issueMfaChallengeToken(user.id, user.email)
+            return LoginOutcome.MfaRequired(
+                mfaToken = issued.token,
+                expiresInSeconds = issued.expiresInSeconds,
+            )
+        }
+        user.lastLoginAt = Instant.now(clock)
+        userRepository.save(user)
+        val tokens = issueTokenPair(user)
+        // New-device detection (ADR-025 §7) — fires only on the password-only
+        // login branch. The MFA branch logs on /api/auth/mfa/{challenge,recovery}
+        // when the full session is finally issued (out of scope for TSK-230 —
+        // see wiki/gaps.md if extended).
+        bruteForceProtectionService.recordLoginSuccess(user, ip, userAgent)
+        return LoginOutcome.TokenPair(
+            accessToken = tokens.accessToken,
+            refreshTokenValue = tokens.refreshTokenValue,
+            expiresInSeconds = tokens.expiresInSeconds,
+        )
+    }
+
+    /**
+     * Completes the MFA login leg by issuing the regular access + refresh
+     * pair after [MfaService.verifyTotpForLogin] / [MfaService.consumeRecoveryCodeForLogin]
+     * has succeeded. Caller passes the userId carried by the parsed mfaToken.
+     */
+    @Transactional
+    fun completeMfaChallenge(userId: UUID): AuthResult {
+        val user = userRepository.findById(userId).orElseThrow {
+            BadCredentialsException("Invalid email or password")
         }
         user.lastLoginAt = Instant.now(clock)
         userRepository.save(user)
@@ -160,10 +256,36 @@ data class AuthResult(
     val expiresInSeconds: Long,
 )
 
+/**
+ * Outcome of [AuthService.login]: either a full token pair (no MFA on the
+ * account or MFA already proven) or an `mfaRequired` short-circuit with a
+ * short-lived JWT carrying the MFA challenge purpose (ADR-025 §4).
+ */
+sealed class LoginOutcome {
+    data class TokenPair(
+        val accessToken: String,
+        val refreshTokenValue: String,
+        val expiresInSeconds: Long,
+    ) : LoginOutcome()
+
+    data class MfaRequired(
+        val mfaToken: String,
+        val expiresInSeconds: Long,
+    ) : LoginOutcome()
+}
+
 class EmailAlreadyRegisteredException(val email: String) :
     RuntimeException("Email already registered: $email")
 
 private const val SECONDS_PER_DAY: Long = 86_400
+
+/**
+ * Placeholder IP used when the controller-side resolver returns blank (no
+ * X-Forwarded-For, no remoteAddr) — keeps the brute-force counters keyed on
+ * SOMETHING rather than crashing on a null. Production should always carry a
+ * real address (forward-headers-strategy=framework in application.yml).
+ */
+private const val UNKNOWN_IP: String = "0.0.0.0"
 
 // Anti-enum reason codes carried server-side only by InvalidRefreshTokenException.
 // Stable identifiers so log-sink queries / security dashboards can filter by cause.

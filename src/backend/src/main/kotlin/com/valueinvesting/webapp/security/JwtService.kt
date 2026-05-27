@@ -50,6 +50,7 @@ class JwtService(
         val token = Jwts.builder()
             .subject(userId.toString())
             .claim("email", email)
+            .claim(PURPOSE_CLAIM, PURPOSE_ACCESS)
             .issuedAt(Date.from(now))
             .expiration(Date.from(expiry))
             .signWith(signingKey, Jwts.SIG.HS256)
@@ -62,7 +63,63 @@ class JwtService(
         )
     }
 
+    /**
+     * Short-lived JWT minted by [com.valueinvesting.webapp.service.AuthService.login]
+     * when the user has MFA enabled. Bearer-equivalent for the MFA challenge
+     * step only — JwtAuthenticationFilter rejects tokens with this purpose so
+     * an mfaToken cannot impersonate a fully-authenticated session.
+     *
+     * [^src: design_&_architecture/decisions/ADR-025-security-hardening-pci-dss.md §4]
+     */
+    fun issueMfaChallengeToken(userId: UUID, email: String): IssuedToken {
+        val now = Instant.now(clock)
+        val ttlSeconds = appProperties.jwt.mfaChallengeTtlMinutes * 60
+        val expiry = now.plusSeconds(ttlSeconds)
+        val token = Jwts.builder()
+            .subject(userId.toString())
+            .claim("email", email)
+            .claim(PURPOSE_CLAIM, PURPOSE_MFA_CHALLENGE)
+            .issuedAt(Date.from(now))
+            .expiration(Date.from(expiry))
+            .signWith(signingKey, Jwts.SIG.HS256)
+            .compact()
+        return IssuedToken(
+            token = token,
+            issuedAt = now,
+            expiresAt = expiry,
+            expiresInSeconds = ttlSeconds,
+        )
+    }
+
+    /**
+     * Parse an access-purpose JWT. Tokens minted with a different purpose
+     * (e.g. mfa_challenge) are rejected so [JwtAuthenticationFilter] cannot
+     * be tricked into authenticating with an mfaToken.
+     */
     fun parse(token: String): ParsedJwt {
+        val parsed = parseAny(token)
+        // Backward-compat: tokens minted before TSK-228 carry no purpose claim
+        // and are treated as access tokens.
+        val purpose = parsed.purpose
+        if (purpose != null && purpose != PURPOSE_ACCESS) {
+            throw InvalidJwtException("JWT purpose '$purpose' is not valid for an access token")
+        }
+        return parsed
+    }
+
+    /**
+     * Parse a JWT and require [PURPOSE_MFA_CHALLENGE]. Used by MfaController
+     * to validate the [issueMfaChallengeToken] handed to the FE.
+     */
+    fun parseMfaChallengeToken(token: String): ParsedJwt {
+        val parsed = parseAny(token)
+        if (parsed.purpose != PURPOSE_MFA_CHALLENGE) {
+            throw InvalidJwtException("JWT is not an MFA challenge token")
+        }
+        return parsed
+    }
+
+    private fun parseAny(token: String): ParsedJwt {
         val claims = try {
             Jwts.parser()
                 .verifyWith(signingKey)
@@ -79,7 +136,14 @@ class JwtService(
         }
         val email = claims.get("email", String::class.java)
             ?: throw InvalidJwtException("JWT missing email claim")
-        return ParsedJwt(userId = userId, email = email, claims = claims)
+        val purpose = claims.get(PURPOSE_CLAIM, String::class.java)
+        return ParsedJwt(userId = userId, email = email, claims = claims, purpose = purpose)
+    }
+
+    companion object {
+        const val PURPOSE_CLAIM: String = "purpose"
+        const val PURPOSE_ACCESS: String = "access"
+        const val PURPOSE_MFA_CHALLENGE: String = "mfa_challenge"
     }
 }
 
@@ -94,6 +158,7 @@ data class ParsedJwt(
     val userId: UUID,
     val email: String,
     val claims: Claims,
+    val purpose: String? = null,
 )
 
 class InvalidJwtException(message: String, cause: Throwable? = null) :

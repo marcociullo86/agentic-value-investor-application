@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
 import { FormErrorSummary } from '@/components/forms/form-error-summary';
 import { FormField } from '@/components/forms/form-field';
+import { MfaChallengeForm } from '@/components/auth/mfa-challenge-form';
 import { useAuthStore } from '@/lib/stores/useAuthStore';
 import { getAuthFormErrorMessage } from '../_lib/form-errors';
 
@@ -46,11 +47,20 @@ export default function LoginPage(): React.ReactElement {
   );
 }
 
+/**
+ * Tracks the MFA challenge state when /api/auth/login responded with
+ * `mfaRequired: true`. The login page swaps the credentials form for an
+ * `MfaChallengeForm` until the challenge succeeds (and the user is then
+ * redirected to `/`).
+ */
+type MfaChallenge = { readonly mfaToken: string; readonly email: string };
+
 function LoginContent(): React.ReactElement {
   const router = useRouter();
   const searchParams = useSearchParams();
   const login = useAuthStore((s) => s.login);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [mfaChallenge, setMfaChallenge] = useState<MfaChallenge | null>(null);
 
   const expired = searchParams.get('expired') === 'true';
 
@@ -66,11 +76,37 @@ function LoginContent(): React.ReactElement {
   async function onSubmit(data: LoginFormValues): Promise<void> {
     setServerError(null);
     try {
-      await login(data.email, data.password);
+      const result = await login(data.email, data.password);
+      if (result.type === 'mfa-required') {
+        setMfaChallenge({ mfaToken: result.mfaToken, email: data.email });
+        return;
+      }
       router.push('/');
     } catch (err) {
       setServerError(getAuthFormErrorMessage(err, 'login'));
     }
+  }
+
+  if (mfaChallenge) {
+    return (
+      <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-6">
+        <Card className="w-full p-6">
+          <MfaChallengeForm
+            mfaToken={mfaChallenge.mfaToken}
+            email={mfaChallenge.email}
+            onSuccess={() => router.push('/')}
+          />
+          <button
+            type="button"
+            className="mt-4 block w-full text-center text-sm text-slate-600 hover:underline"
+            onClick={() => setMfaChallenge(null)}
+            data-testid="mfa-cancel"
+          >
+            Torna al login
+          </button>
+        </Card>
+      </main>
+    );
   }
 
   return (

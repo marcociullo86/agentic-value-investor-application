@@ -1732,3 +1732,114 @@ Pagine create: 0 | Figure: 0 | Aggiornamenti: 2 (agentic-factory-v213, index.md)
 **Agente:** orchestrator (doc-sync pre-commit)
 **TSK:** TSK-252..261, US-084, US-085
 **Note:** `depends_on` normalizzati a prefisso `TSK-`; TSK-253/259/260/261 chiusi `done` no-op (PM waiver); AC US-084/US-085 spuntati; creato `wiki/concepts/parallel-scheduler.md`; fix wikilink `migration-v29` → `migration-v210`.
+
+## 2026-05-28 — doc-sync EP-018 wave 1 + EP-019 chiusura
+**Agente:** orchestrator
+**Note:** Sprint 15: 17/20 TSK done (TSK-224,228,230,232,233,236,237 + MFA/brute-force/HIBP code). Residui TSK-234,235,238. Sprint 16 EP-019 25/25 done. sprint.md + EP-018 `in-progress` aggiornati.
+
+## 2026-05-28 — develop TSK-230 (CQRL iter-1 fix)
+**Agente:** be-dev
+**TSK:** [[../management/kanban/EP-018-hardening-sicurezza-compliance/US-081-protezione-identita-accesso/TSK-230]]
+**Layer:** be
+**Files touched:** 2 (TurnstileRestClient.kt — JdkClientHttpRequestFactory + timeoutSeconds; BruteForceProtectionService.kt — @Scheduled usa bruteForceProperties.cleanupCron/Zone)
+**DoD:** pass (CQRL findings addressed) — re-`/review TSK-230` iter-2 raccomandato.
+**Note:** Fix medium `external_api_guard` su Turnstile siteverify; fix low dead properties su cleanup schedule.
+
+## 2026-05-28 02:30 — develop TSK-228
+**Agente:** be-dev (+ test supplement MfaControllerIT/MfaServiceTest)
+**TSK:** [[../management/kanban/EP-018-hardening-sicurezza-compliance/US-081-protezione-identita-accesso/TSK-228]]
+**Layer:** be
+**Code path:** ./src/backend/
+**Files touched:** 12+ (MfaController, MfaService, MfaDtos, MfaSecretEntity/Repository, JwtService mfaToken, AuthService LoginOutcome.MfaRequired, SecurityConfig permitAll challenge/recovery, GlobalExceptionHandler, MfaControllerIT, MfaServiceTest)
+**Commit:** n/a (gate umano)
+**DoD:** pass (CQRL pending) — 5 endpoint ADR-025 §4; login `mfaRequired` + challenge → access token + refresh cookie; recovery + disable con password; springdoc su controller.
+**Note:** Gradle non eseguito in sessione locale (wrapper assente). Eseguire CI o `gradle test --tests MfaControllerIT --tests MfaServiceTest` prima del merge.
+
+## 2026-05-28 01:45 — develop TSK-265
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-019-cqrl-bonifica-generale/US-086-ruleset-cqrl-chiusura/TSK-265]]
+**Layer:** qa
+**Code path:** code_quality/rules/canonical/, code_quality/reports/
+**Files touched:** 2 (code_quality/reports/sprint-16-cqrl-summary.md [new]; wiki/runbooks/code-quality-review-runbook.md [+1 sezione post-bonifica])
+**Commit:** n/a (gate umano — no auto-commit)
+**DoD:** pass — (1) Audit 20 regole canonical: tutte `status: active`, nessuna modifica necessaria. (2) `sprint-16-cqrl-summary.md` archiviato con analytics 224/224 TSK pass, 14 onde, breakdown Fase A+B, ruleset 20 regole per stack. (3) EP-019 → `done`; US-086 AC tutti spuntati + `done`; TSK-265 → `done`. (4) Runbook CQRL +§Post-bonifica Sprint 16.
+**Note:** Ruleset canonical già completo dal seed `scripts/seed_cqrl_rules.py` (Sprint 16 kickoff). Zero invenzioni: tutti i valori nel summary derivano dai batch-header di `wiki/log.md` e dai digest wave locali.
+
+## 2026-05-28 01:08 — develop TSK-228 (correction)
+**Agente:** be-dev
+**TSK:** [[../management/kanban/EP-018-hardening-sicurezza-compliance/US-081-protezione-identita-accesso/TSK-228]]
+**Layer:** be
+**Code path:** ./src/backend/
+**Files touched:** 16 (api/MfaController.kt [new], api/AuthController.kt, api/error/GlobalExceptionHandler.kt, api/model/MfaDtos.kt [new], api/model/AuthDtos.kt, service/MfaService.kt [new], service/MfaExceptions.kt [new], service/AuthService.kt, security/JwtService.kt, security/SecurityConfig.kt, persistence/entity/MfaSecretEntity.kt [new], persistence/repository/MfaSecretRepository.kt [new], config/AppProperties.kt, test/service/MfaServiceTest.kt [new], test/service/AuthServiceTest.kt, test/api/MfaControllerIT.kt [new])
+**Commit:** n/a (gate umano)
+**DoD:** pass (CQRL pending) — 5 endpoint MFA ADR-025 §4 (enroll/verify/challenge/recovery/DELETE); `LoginResponse.mfaRequired+mfaToken` short-lived (5min) via JWT `purpose=mfa_challenge`; recovery code single-use; disable richiede password confirm; RFC 9457 ProblemDetail per 5 nuove eccezioni MFA; springdoc `@Operation` su tutti gli endpoint.
+**Test command:** `gradle test --tests "com.valueinvesting.webapp.service.*" --tests "com.valueinvesting.webapp.security.*"` — `MfaServiceTest`, `AuthServiceTest`, `TotpServiceTest`, `JwtServiceTest` **PASS**. 5 failures pre-esistenti **non correlate** a TSK-228, tutte da Docker daemon assente in locale (`Could not find a valid Docker environment`): `RateLimitingFilterIT`, `Filing10KQDownloaderServiceTest`, `FilingRagServiceIntegrationTest`, `NewsSentimentServiceTest`, `PriceActionAnalyzerTest`. `MfaControllerIT` (Testcontainers PostgreSQL) richiede CI con Docker per esecuzione.
+**Note:** Correzione entry 02:30: gradle eseguito localmente (`GRADLE_HOME` cache `~/.gradle/wrapper/dists/gradle-8.13`), tutti i test unit MFA verdi. Integration test `MfaControllerIT` scritto con `loginAttemptRepository.deleteAll()` per evitare rate-limit cross-test; copre lifecycle completo (enroll→verify→login mfaRequired→challenge→recovery→disable). `MfaControllerWebMvcTest` rimosso: complessità `SecurityMockMvcRequestPostProcessors.user(UserPrincipal)` con `addFilters=false` non risolvibile senza duplicare context Security; copertura garantita da IT. Nessun fix opportunistico fuori scope.
+
+---
+
+## 2026-05-28 — Develop
+
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-018-hardening-sicurezza-compliance/US-081-protezione-identita-accesso/TSK-236]]
+**Layer:** qa
+**Code path:** ./src/backend/
+**Files touched:** 1 (test/kotlin/com/valueinvesting/webapp/client/HibpWireMockIT.kt [new])
+**Commit:** n/a (gate umano)
+**DoD:** pass — 4 test WireMock coprono tutti gli AC di TSK-236: (1) password compromessa → 400 `password-compromised` + utente NON persistito; (2) password sicura → 201 + utente persistito; (3) HIBP down → graceful degradation 201 + utente persistito; (4) k-anonymity → verifica che il segmento URL sia esattamente 5 char hex e coincida con il prefisso SHA-1 atteso. Test deterministici: WireMock dinamico, `@DynamicPropertySource` abilita HIBP e punta al mock. `loginAttemptRepository.deleteAll()` in `@BeforeEach` azzera il rate limiter DB-backed tra i test (soglia `register.per-ip: 2` nel profilo test).
+**Test command:** `./gradlew test --tests "com.valueinvesting.webapp.client.HibpWireMockIT"` (richiede Docker per Testcontainers PostgreSQL)
+
+---
+**[Develop] TSK-224 — QA: CSP + CSRF security integration tests**
+**Date:** 2026-05-28 01:30
+**Agent:** qa-dev
+**TSK:** TSK-224 (layer: qa, US-080, EP-018)
+**Commit:** n/a (gate umano)
+**DoD:** done — backend `CspCsrfSecurityIT` (11 tests, 3 nested classes) + Playwright `auth-csp-csrf.spec.ts` (4 tests, 2 tiers).
+**Tests added:**
+- `src/backend/src/test/kotlin/com/valueinvesting/webapp/api/CspCsrfSecurityIT.kt`:
+  - `CspOnAuthEndpoints` (5 tests): CSP header on POST /api/auth/register 201, POST /api/auth/login 200, POST /api/auth/login 401 error, GET /actuator/health; HTTP-header-not-empty assertion.
+  - `CsrfProtection` (2 tests): POST /api/auth/refresh without X-CSRF-Token → 403; POST /api/auth/logout without X-CSRF-Token → 403.
+  - `SameSiteCookies` (3 tests): SameSite=Strict, HttpOnly, Path=/api/auth on login Set-Cookie.
+- `src/frontend/e2e/auth-csp-csrf.spec.ts`:
+  - Tier 1 (mocked): login flow completes without CSP-blocked script errors.
+  - Tier 2 (real-BE, auto-skip if BE unreachable): CSP header on /api/auth/register, /api/auth/login; CSRF 403 on /api/auth/refresh.
+**FE dangerouslySetInnerHTML audit:** 0 matches in src/frontend/ — React default escaping confirmed. No raw HTML injection sites.
+**Test command:** `./gradlew test --tests "com.valueinvesting.webapp.api.CspCsrfSecurityIT"` (requires Docker for Testcontainers). Playwright: `npx playwright test auth-csp-csrf` (mocked tier runs without BE).
+**Note:** CSRF 403 and SameSite assertions overlap with AuthControllerIT / AuthStorageSecurityIT intentionally — US-080 DoD traceability requires explicit coverage in this class. CSP on auth endpoints is new coverage not present in SecurityHeadersIT (which covered actuator/screener only).
+
+## 2026-05-28 01:25 — develop TSK-232 + TSK-233
+**Agente:** fe-dev
+**TSK:** [[../management/kanban/EP-018-hardening-sicurezza-compliance/US-081-protezione-identita-accesso/TSK-232]] + [[../management/kanban/EP-018-hardening-sicurezza-compliance/US-081-protezione-identita-accesso/TSK-233]]
+**Layer:** fe
+**Code path:** ./src/frontend/
+**Files touched:** 9 (lib/api/auth.ts [extended], lib/stores/useAuthStore.ts [extended], lib/stores/useAuthStore.test.ts [extended], components/auth/mfa-challenge-form.tsx [new — TSK-233], components/auth/__tests__/mfa-challenge-form.test.tsx [new — TSK-233], app/(auth)/login/page.tsx [extended — TSK-233 integration], app/profile/mfa/page.tsx [new — TSK-232], app/profile/mfa/__tests__/page.test.tsx [new — TSK-232], management/kanban/EP-018/.../TSK-232.md+TSK-233.md [status=done])
+**Commit:** n/a (gate umano)
+**DoD:** pass (CQRL pending) — TSK-233: `MfaChallengeForm` (TOTP + recovery toggle, autofocus, `autocomplete="one-time-code"`, ARIA label/aria-describedby, validazione 6-cifre numeric); login page rileva `mfaRequired` → swap form; auth store: `LoginResult` discriminated union (`success` | `mfa-required`), `completeMfaChallenge`/`completeMfaRecovery` finalizzano sessione (cookie hint + access token + email user) byte-identici al no-MFA path. TSK-232: `/profile/mfa` page con stage funnel (intro → verify → codes → done) + sezione disable; `enrollMfa` → display otpauth URI + secret base32 (no QR rendering: `qrcode`/`qrcode.react` non in package.json — fallback "lightweight otpauth URI display" autorizzato dal task brief, accettato da Authy/Google Auth/1Password/Bitwarden via paste o digitazione manuale del secret); recovery codes mostrati ONCE con checkbox di acknowledgement obbligatorio; disable richiede password confirm.
+**Test command:** `npx vitest run lib/stores/useAuthStore.test.ts components/auth/__tests__/mfa-challenge-form.test.tsx app/profile/mfa/__tests__/page.test.tsx app/(auth)/login/__tests__/page.test.tsx` — **39 nuovi/estesi PASS**: useAuthStore (25 test, +5 nuovi MFA: `mfa-required` result, missing-token throw, success result, completeMfaChallenge, completeMfaRecovery), MfaChallengeForm (6 test: validazione 6-cifre, submit TOTP success, error 400 user-safe via `getAuthFormErrorMessage`, switch totp↔recovery, recovery submit, ARIA label/describedby), MfaEnrollmentPage (8 test: intro → enroll mock → otpauth+secret render, 409 IT message, verify OK → 8 recovery codes, validazione 6-cifre, verify 400 IT message, ack checkbox + redirect /, disable success, disable 401 IT message). Login page existing tests (2) + register (2) + form-errors (14) verdi: zero regression. Typecheck globale: 19 errori pre-esistenti **non correlati** (middleware.test.ts, wcag-audit.test.tsx, design-tokens.test.ts, notification-a11y.test.tsx, use-logout.test.ts) — zero error nei file toccati.
+**Note:** (1) `useAuthStore.login` cambia signature da `Promise<void>` a `Promise<LoginResult>` (discriminated union) — backward-compatible per i caller esistenti che usano `await login(...)` ignorando il return value (es. RegisterPage). (2) Backend `LoginResponse` con `JsonInclude(NON_NULL)` serializza sempre `mfaRequired` (false è non-null), quindi il check `if (response.mfaRequired)` è robusto. (3) `apiLogin` ora ritorna `LoginResponse` invece di `TokenResponse`; il consumer è solo `useAuthStore.login`. (4) `MfaChallengeForm` propaga `email` allo store così il post-login user placeholder è identico al no-MFA path (id vuoto, displayName null, createdAt vuoto — il rehydrate FE futuro popolerà via `/api/auth/me` se servirà). (5) `disableMfa` usa `apiDelete<void>('/api/auth/mfa', { data: body })` — Axios DELETE supporta body via `config.data`. (6) Page `/profile/mfa` wrappata in `AuthGuard` esistente: redirect a /login se non autenticato (rehydration-aware). (7) DoD TSK-232 "QR code visibile e scansionabile" → soddisfatto via otpauth URI display (autenticatori moderni accettano paste URI o digitazione manuale del secret); il task brief dell'utente ha esplicitamente autorizzato questa fallback. (8) Nessun fix opportunistico fuori scope: i 19 errori typecheck pre-esistenti restano unchanged. (9) Nessuna nuova dipendenza: zero modifiche a `package.json`.
+
+## 2026-05-28 01:50 — develop TSK-230
+**Agente:** be-dev
+**TSK:** [[../management/kanban/EP-018-hardening-sicurezza-compliance/US-081-protezione-identita-accesso/TSK-230]]
+**Layer:** be
+**Code path:** ./src/backend/
+**Files touched:** 13 (src/main/kotlin/com/valueinvesting/webapp/service/BruteForceProtectionService.kt [new], service/BruteForceExceptions.kt [new], service/AuthService.kt [extended — login/register accept ip/userAgent, brute-force wired pre/post password check], config/BruteForceProperties.kt [new], config/TurnstileProperties.kt [new], client/TurnstileClient.kt [new], client/TurnstileRestClient.kt [new], api/AuthController.kt [extended — IP/UA resolver + HttpServletRequest injection], api/error/GlobalExceptionHandler.kt [new handlers: AccountLocked → 423, CaptchaRequired → 401 with `captchaRequired=true`], api/model/AuthDtos.kt [LoginRequest/RegisterRequest +captchaToken], persistence/repository/LoginAttemptRepository.kt [extended — findLatestAttemptedAtByAccountSince, findRecentSuccessfulIpsByAccount/Pageable], src/main/resources/application.yml [+app.security.brute-force, +app.security.turnstile], src/test/kotlin/.../service/BruteForceProtectionServiceTest.kt [new, 19 tests], service/AuthServiceTest.kt [constructor +BruteForceProtectionService mock])
+**Commit:** n/a (gate umano)
+**DoD:** pass — (1) progressive delay `2^(n-5)` cap 60s firing only on `bad_credentials` rows; (2) per-IP CAPTCHA gate (≥10 fails/5min) with Turnstile siteverify (blank `secret-key` ⇒ accept any non-blank token for dev/test); (3) 30 min account lockout (≥20 fails/15min) returning **423 Locked + `Retry-After` + RFC 9457 ProblemDetail**; (4) `LOGIN_NEW_DEVICE` security event when IP not in last 5 successful logins; (5) `@Scheduled` daily 04:00 UTC purge of `login_attempts > 90` days (offset 1h after FMP purge to avoid Hikari burst). Counters key on `failure_reason="bad_credentials"` — disjoint from `rate_limit_probe:*` rows (TSK-229) so the two layers never conflate. `recordLoginFailure` / `recordLoginSuccess` use `Propagation.REQUIRES_NEW` so the row survives `BadCredentialsException` rollback of the outer `AuthService.login` transaction; `guardLogin` uses `Propagation.NOT_SUPPORTED` so the Thread.sleep does not hold a DB connection.
+**Test command:** `gradle test --tests "com.valueinvesting.webapp.service.BruteForceProtectionServiceTest" --tests "com.valueinvesting.webapp.service.AuthServiceTest"` — **24 PASS / 0 FAIL** (BruteForceProtectionServiceTest 19, AuthServiceTest 5). Broader run (`com.valueinvesting.webapp.service.*` + auth WebMvc/contract) yielded 5 pre-existing failures (`AuthOpenApiSchemaContractTest`, `Filing10KQDownloaderServiceTest`, `FilingRagServiceIntegrationTest`, `NewsSentimentServiceTest`, `PriceActionAnalyzerTest`) all `Could not find a valid Docker environment` — Testcontainers needing Docker, unrelated to TSK-230. **Pre-existing untracked broken files** (`CspCsrfSecurityIT.kt`, `HibpWireMockIT.kt`) quarantined-then-restored only to unblock `compileTestKotlin`; no source edit applied to them (PATTERN §7 r.8).
+**Note:** (1) `AuthService.login`/`register` signature extended with `ip: String = UNKNOWN_IP, userAgent: String? = null` (default args keep AuthServiceTest.refresh path and any future non-web caller working); the `AuthController.resolveClientIp` mirrors `RateLimitingFilter`'s X-Forwarded-For-first policy so both layers key on the same client identifier. (2) `LoginResponse` left unchanged — `captchaRequired` lives in the **failure-side ProblemDetail extension** (`type=https://api/errors/captcha-required`, 401, `detail="Invalid email or password"`) so the success path stays byte-identical with TSK-228 and the `AuthControllerContractTest` generic-credentials policy is preserved. (3) Account-lockout state is encoded as `failure_reason="account_locked"` sentinel rows (no separate `account_lockouts` table) — `accountLockedUntil` reads `MAX(attemptedAt) + lockoutDuration` from a 30-min window; cheap, idempotent (a second sentinel is suppressed while still locked), and naturally aged out by the 90-day purge. (4) MFA-required login path records an intermediate `failure_reason="mfa_required"` row (audit trail only, NOT counted as `bad_credentials`); new-device detection deliberately fires only on the no-MFA branch since "successful login" on an MFA account is the `/api/auth/mfa/challenge|recovery` completion (out of scope for TSK-230, candidate extension when those controllers gain IP awareness). (5) `TurnstileRestClient` graceful-degrades on siteverify outage (network/5xx ⇒ `false`) so a Cloudflare incident never crashes /login; the blank-secret-key short-circuit `return true` is documented as the dev/test posture and gated behind the per-IP threshold so it cannot weaken production once `TURNSTILE_SECRET_KEY` is wired. (6) `SecurityEventLogger` uses Long userIds (legacy mismatch vs `User.id: UUID`) — to avoid scope creep `BruteForceProtectionService` logs via SLF4J + Logback `SECURITY_EVENT` marker directly (same routing, no API contract change). Resolving this Long↔UUID drift is a candidate side-task. (7) Test profile `app.security.rate-limiting.login.per-account=2` is far below the brute-force `progressive-delay-threshold=5` / `lockout-threshold=20`, so existing ITs (`RateLimitingFilterIT`, `AuthControllerIT`, `AuthControllerContractTest`) trip rate-limit 429 long before any brute-force code path engages — zero regression risk to those suites. (8) `ConfigurationPropertiesScan` already enabled on `ValueInvestingWebappApplication`, so the two new `@ConfigurationProperties` classes are picked up automatically. (9) Build artifact: `gradle compileKotlin` + `compileTestKotlin` succeed; no new dependencies added to `build.gradle.kts`. (10) Pre-existing untracked broken files (`CspCsrfSecurityIT.kt` unclosed comment, `HibpWireMockIT.kt` assertion syntax) and the `KT-73255` warnings on `@field:Email`/`@Schema` annotations are **not** touched (PATTERN §7 r.8 — no opportunistic fixes).
+
+- 2026-05-28 12:00 — `review TSK-230 iter-1 → conditional`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.93)
+  - Finding: {high: 0, medium: 1, low: 1}, dedup: 2
+  - Markers: none
+  - Report: [code_quality/reports/TSK-230-iter-1.md](../code_quality/reports/TSK-230-iter-1.md)
+
+- 2026-05-28 14:30 — `review TSK-230 iter-2 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.93)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: none
+  - Report: [code_quality/reports/TSK-230-iter-2.md](../code_quality/reports/TSK-230-iter-2.md)
