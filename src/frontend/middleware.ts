@@ -1,6 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { getRouteConfig } from "./lib/auth/route-config";
+import {
+  buildContentSecurityPolicy,
+  CSP_NONCE_HEADER,
+  generateCspNonce,
+} from "./lib/security/csp";
 
 const AUTH_COOKIE = "isAuthenticated";
 const ROLE_COOKIE = "userRole";
@@ -28,10 +33,51 @@ function isAuthPage(pathname: string): boolean {
 }
 
 /**
+ * Attach per-request CSP + nonce request header (TSK-222 / US-080).
+ * Propagates nonce to App Router via `x-nonce` for inline scripts in layout.
+ */
+function withCspHeaders(
+  request: NextRequest,
+  response: NextResponse,
+  nonce: string,
+): NextResponse {
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set(CSP_NONCE_HEADER, nonce);
+  response.headers.set(
+    "Content-Security-Policy",
+    buildContentSecurityPolicy(nonce),
+  );
+  return response;
+}
+
+function nextWithCsp(request: NextRequest): NextResponse {
+  const nonce = generateCspNonce();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set(CSP_NONCE_HEADER, nonce);
+
+  const response = NextResponse.next({
+    request: { headers: requestHeaders },
+  });
+  return withCspHeaders(request, response, nonce);
+}
+
+function redirectWithCsp(
+  request: NextRequest,
+  url: URL | string,
+): NextResponse {
+  const nonce = generateCspNonce();
+  const response = NextResponse.redirect(url);
+  return withCspHeaders(request, response, nonce);
+}
+
+/**
  * AuthGuard middleware (TSK-206 / US-073 / EP-017).
  *
  * UX improvement — NOT a security boundary. Every protected backend endpoint
  * independently verifies auth & authz server-side (defense-in-depth).
+ *
+ * CSP with per-request nonce (TSK-222 / US-080): all FE responses include
+ * `Content-Security-Policy` with `script-src 'nonce-…'` (no `unsafe-inline`).
  *
  * Decision table:
  *  1. Session-expired marker cookie  → clear cookie, redirect /login?expired=true
@@ -66,7 +112,7 @@ export function middleware(request: NextRequest): NextResponse {
   if (sessionExpired) {
     const loginUrl = new URL(LOGIN_PATH, request.url);
     loginUrl.searchParams.set("expired", "true");
-    const response = NextResponse.redirect(loginUrl);
+    const response = redirectWithCsp(request, loginUrl);
     response.cookies.delete(SESSION_EXPIRED_COOKIE);
     response.cookies.delete(AUTH_COOKIE);
     return response;
@@ -74,14 +120,14 @@ export function middleware(request: NextRequest): NextResponse {
 
   // 2. Authenticated user visiting /login or /register → redirect home
   if (isAuthenticated && isAuthPage(pathname)) {
-    return NextResponse.redirect(new URL(HOME_PATH, request.url));
+    return redirectWithCsp(request, new URL(HOME_PATH, request.url));
   }
 
   // 3–4. Lookup declarative route config (route-config.ts, TSK-205)
   const routeConfig = getRouteConfig(normalised);
 
   if (!routeConfig || !routeConfig.requiresAuth) {
-    return NextResponse.next();
+    return nextWithCsp(request);
   }
 
   // 5. Protected route, not authenticated → redirect to login with returnUrl
@@ -89,17 +135,17 @@ export function middleware(request: NextRequest): NextResponse {
     const loginUrl = new URL(LOGIN_PATH, request.url);
     const returnUrl = pathname + search;
     loginUrl.searchParams.set("returnUrl", returnUrl);
-    return NextResponse.redirect(loginUrl);
+    return redirectWithCsp(request, loginUrl);
   }
 
   // 6. Role check (only when the route declares required roles)
   const requiredRoles = routeConfig.roles ?? [];
   if (requiredRoles.length > 0 && !requiredRoles.includes(userRole)) {
-    return NextResponse.redirect(new URL(FORBIDDEN_PATH, request.url));
+    return redirectWithCsp(request, new URL(FORBIDDEN_PATH, request.url));
   }
 
   // 7. All checks passed
-  return NextResponse.next();
+  return nextWithCsp(request);
 }
 
 /**

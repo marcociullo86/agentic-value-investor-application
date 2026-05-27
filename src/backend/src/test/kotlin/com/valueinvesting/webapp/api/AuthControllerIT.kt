@@ -18,6 +18,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.post
@@ -32,6 +33,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
  *
  * TSK-209 (ADR-024 §3): refresh token migrated from body JSON to httpOnly
  * cookie. Tests verify Set-Cookie headers and cookie-based refresh/logout.
+ * TSK-223 (ADR-025 §3): CSRF required on refresh/logout via X-CSRF-Token header.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -155,6 +157,7 @@ class AuthControllerIT {
         val refreshCookie = extractRefreshCookie(loginResult)
 
         val refreshResult = mockMvc.post("/api/auth/refresh") {
+            with(csrf())
             cookie(Cookie(RefreshTokenCookieHelper.COOKIE_NAME, refreshCookie))
         }.andExpect {
             status { isOk() }
@@ -175,9 +178,40 @@ class AuthControllerIT {
     @Test
     fun `refresh without cookie returns 400`() {
         mockMvc.post("/api/auth/refresh") {
+            with(csrf())
             contentType = MediaType.APPLICATION_JSON
         }.andExpect {
             status { isBadRequest() }
+        }
+    }
+
+    @Test
+    fun `refresh without CSRF token returns 403`() {
+        register(RegisterRequest("csrf-eve@example.com", "eves-strong-password-12345", null))
+        val loginResult = loginReturningResult("csrf-eve@example.com", "eves-strong-password-12345")
+        val refreshCookie = extractRefreshCookie(loginResult)
+
+        mockMvc.post("/api/auth/refresh") {
+            cookie(Cookie(RefreshTokenCookieHelper.COOKIE_NAME, refreshCookie))
+        }.andExpect {
+            status { isForbidden() }
+            jsonPath("$.status") { value(403) }
+        }
+    }
+
+    @Test
+    fun `logout without CSRF token returns 403`() {
+        register(RegisterRequest("csrf-frank@example.com", "franks-strong-password-12345", null))
+        val loginResult = loginReturningResult("csrf-frank@example.com", "franks-strong-password-12345")
+        val refreshCookie = extractRefreshCookie(loginResult)
+        val accessToken = extractAccessToken(loginResult)
+
+        mockMvc.post("/api/auth/logout") {
+            header("Authorization", "Bearer $accessToken")
+            cookie(Cookie(RefreshTokenCookieHelper.COOKIE_NAME, refreshCookie))
+        }.andExpect {
+            status { isForbidden() }
+            jsonPath("$.status") { value(403) }
         }
     }
 
@@ -189,6 +223,7 @@ class AuthControllerIT {
         val accessToken = extractAccessToken(loginResult)
 
         val logoutResult = mockMvc.post("/api/auth/logout") {
+            with(csrf())
             header("Authorization", "Bearer $accessToken")
             cookie(Cookie(RefreshTokenCookieHelper.COOKIE_NAME, refreshCookie))
         }.andExpect {

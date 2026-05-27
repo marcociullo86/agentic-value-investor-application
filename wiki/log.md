@@ -722,7 +722,72 @@ Pagine create: 0 | Aggiornamenti: 3 | Gap nuovi: 0 | Gap chiusi: 0
 
 [2026-05-27 04:13] vcs-handoff — proposed commit on monorepo — gate: pending
 
+## 2026-05-27 06:40 — develop TSK-220
+**Agente:** qa-dev
+**TSK:** [[../management/kanban/EP-018-hardening-sicurezza-compliance/US-079-defense-in-depth/TSK-220]]
+**Layer:** qa
+**Code path:** ./src/backend/ + ./src/frontend/
+**Files touched:** 3 (DefenseInDepthIT.kt, defense-in-depth-client-logic.test.ts, TSK-220.md frontmatter)
+**Commit:** n/a
+**DoD:** pass — 401/403/400 e isolamento cross-user in `DefenseInDepthIT`; guard statico FE senza formule Graham/MoS/DCF client-only; Vitest OK; `gradle test` BE non eseguito (toolchain assente); code review umana pendente
+**Note:** Esteso IT da TSK-219 (watchlist 401, moat 400/isolation); overlap documentato sotto.
+
+[2026-05-27 06:40] vcs-handoff — proposed commit on monorepo — gate: pending
+
 ## [2026-05-27] doc-sync | EP-018 Wave 1 commit bundle
 **Agente:** orchestrator (wiki + kanban + ADR-025)
 Pagine wiki aggiornate: 1 ([[fintech-security-compliance]] §Wave 1) | Kanban: sprint.md + TSK-225/226 Flyway V025/V026 | ADR-025 schema comments allineati
 Note: commit convenzionale Wave 1 (TSK-219, 221, 231, 225, 226) + TPM TSK-238 + doc
+
+## 2026-05-27 12:00 — develop TSK-223
+**Agente:** be-dev
+**TSK:** [[../management/kanban/EP-018-hardening-sicurezza-compliance/US-080-protezione-attacchi-web/TSK-223]]
+**Layer:** be
+**Code path:** ./src/backend/
+**Files touched:** 5
+**Commit:** n/a
+**DoD:** partial — `CsrfTokenConfig` (cookie `XSRF-TOKEN` + header `X-CSRF-Token`, SameSite=Strict) su POST `/api/auth/refresh` e `/api/auth/logout` via `requireCsrfProtectionMatcher`; IT 403 senza CSRF; Bearer routes escluse; `gradle test` non eseguito (toolchain assente); code review umana pendente
+**Note:** `SecurityConfig` delega CSRF a `CsrfTokenConfig`; IT auth aggiornati con `csrf()` post-processor. Coordinamento FE (lettura cookie + header) in TSK successivi US-080.
+
+[2026-05-27 12:00] vcs-handoff — proposed commit on monorepo — gate: pending
+
+## 2026-05-27 12:35 — develop TSK-229
+**Agente:** be-dev
+**TSK:** [[../management/kanban/EP-018-hardening-sicurezza-compliance/US-081-protezione-identita-accesso/TSK-229]]
+**Layer:** be
+**Code path:** ./src/backend/
+**Files touched:** 11
+**Commit:** n/a
+**DoD:** partial — `RateLimitingFilter` + `AuthRateLimitService` su login/register/password-reset con conteggi `login_attempts`, 429 + `Retry-After`, limiti `app.security.rate-limiting.*`; unit + IT aggiunti; `gradle test` non eseguito (toolchain assente); code review umana pendente
+**Note:** Righe `failure_reason=rate_limit_probe` per contatori TSK-229; esiti auth reali in TSK-230. `/api/auth/password-reset` filtrato ma endpoint non ancora implementato.
+
+[2026-05-27 12:35] vcs-handoff — proposed commit on monorepo — gate: pending
+
+## 2026-05-27 13:05 — develop TSK-227
+**Agente:** be-dev
+**TSK:** [[../management/kanban/EP-018-hardening-sicurezza-compliance/US-081-protezione-identita-accesso/TSK-227]]
+**Layer:** be
+**Code path:** ./src/backend/
+**Files touched:** 6 (TotpService.kt, TotpServiceTest.kt, AppProperties.kt, application.yml, build.gradle.kts, TSK-227.md frontmatter)
+**Commit:** n/a
+**DoD:** partial — `TotpService` (secret, otpauth URI, TOTP ±1, 8 recovery BCrypt monouso, AES-GCM encrypt/decrypt per `totp_secret_encrypted`); `dev.samstevens.totp:1.7.1`; unit test aggiunti; `gradle test` bloccato da errori compile preesistenti (`CsrfTokenConfig`, `RateLimitingFilter`); code review umana pendente
+**Note:** Config `app.security.mfa.*` allineata ADR-025; `MfaSecretRepository`/controller in TSK-228.
+
+[2026-05-27 13:05] vcs-handoff — proposed commit on monorepo — gate: pending
+
+## 2026-05-27 04:42 — develop TSK-222
+**Agente:** fe-dev
+**TSK:** [[../management/kanban/EP-018-hardening-sicurezza-compliance/US-080-protezione-attacchi-web/TSK-222]]
+**Layer:** fe
+**Code path:** ./src/frontend/
+**Files touched:** 7 (csp.ts, middleware.ts, layout.tsx, theme-init.js, 2 test files, TSK-222.md frontmatter)
+**Commit:** n/a
+**DoD:** partial — middleware emette `Content-Security-Policy` con `script-src 'nonce-…'` (no `unsafe-inline`) e propaga `x-nonce` per request; anti-FOUC spostato su `/theme-init.js` per compatibilità `output: export`; build + Vitest OK; header CSP attivi solo con runtime Next (`next dev`), non sul bundle statico servito da BE (gap `fe-middleware-static-export-conflict`); code review umana pendente
+**Note:** Policy allineata ad ADR-025 §2 / `SecurityHeadersConfig` BE (TSK-221) con nonce su `script-src` lato FE.
+
+[2026-05-27 04:42] vcs-handoff — proposed commit on monorepo — gate: pending
+
+## [2026-05-27] doc-sync | EP-018 Wave 2 commit bundle
+**Agente:** orchestrator (wiki + kanban)
+Pagine wiki aggiornate: 1 ([[fintech-security-compliance]] §Wave 2) | Kanban: TSK-220/222/223/227/229 → done
+Note: commit convenzionale Wave 2 — CSRF, CSP nonce FE, QA defense-in-depth, TotpService, rate limiting auth

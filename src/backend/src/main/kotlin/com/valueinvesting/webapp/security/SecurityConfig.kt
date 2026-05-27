@@ -1,6 +1,10 @@
 package com.valueinvesting.webapp.security
 
+import com.valueinvesting.webapp.config.CsrfTokenConfig
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.valueinvesting.webapp.config.SecurityHeadersConfig
+import com.valueinvesting.webapp.security.filter.RateLimitingFilter
+import com.valueinvesting.webapp.service.AuthRateLimitService
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
@@ -20,6 +24,8 @@ import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.access.AccessDeniedHandler
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler
+import org.springframework.security.web.csrf.CsrfTokenRepository
 
 /**
  * Stateless JWT-backed security chain (TSK-033) — supersedes the temporary
@@ -31,6 +37,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  *    actuator health, openapi.json, springdoc.
  *  - authenticated: api watchlist, moat-checklist, dcf-overrides.
  *  - hasRole(ADMIN): `/admin/` subtree (US-079 / ADR-025 §1; @PreAuthorize on controllers).
+ *  - CSRF: cookie `XSRF-TOKEN` + header `X-CSRF-Token` on POST
+ *    `/api/auth/refresh` and `/api/auth/logout` only (TSK-223 / ADR-025 §3).
  *
  * Method security: @EnableMethodSecurity activates @PreAuthorize enforcement.
  *
@@ -44,6 +52,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 class SecurityConfig(
     private val userDetailsService: UserDetailsServiceImpl,
     private val securityHeadersConfig: SecurityHeadersConfig,
+    private val csrfTokenConfig: CsrfTokenConfig,
 ) {
 
     @Bean
@@ -66,6 +75,21 @@ class SecurityConfig(
     fun jwtAuthenticationFilterRegistration(
         filter: JwtAuthenticationFilter,
     ): FilterRegistrationBean<JwtAuthenticationFilter> {
+        val registration = FilterRegistrationBean(filter)
+        registration.isEnabled = false
+        return registration
+    }
+
+    @Bean
+    fun rateLimitingFilter(
+        authRateLimitService: AuthRateLimitService,
+        objectMapper: ObjectMapper,
+    ): RateLimitingFilter = RateLimitingFilter(authRateLimitService, objectMapper)
+
+    @Bean
+    fun rateLimitingFilterRegistration(
+        filter: RateLimitingFilter,
+    ): FilterRegistrationBean<RateLimitingFilter> {
         val registration = FilterRegistrationBean(filter)
         registration.isEnabled = false
         return registration
@@ -114,13 +138,16 @@ class SecurityConfig(
     @Bean
     fun securityFilterChain(
         http: HttpSecurity,
+        rateLimitingFilter: RateLimitingFilter,
         jwtAuthenticationFilter: JwtAuthenticationFilter,
         authenticationEntryPoint: AuthenticationEntryPoint,
         accessDeniedHandler: AccessDeniedHandler,
-    ): SecurityFilterChain =
-        securityHeadersConfig.configureHeaders(http)
-            // CSRF disabled because the API is stateless JWT-based (ADR-006).
-            .csrf { it.disable() }
+        csrfTokenRepository: CsrfTokenRepository,
+        csrfTokenRequestHandler: CsrfTokenRequestAttributeHandler,
+    ): SecurityFilterChain {
+        var chain = securityHeadersConfig.configureHeaders(http)
+        chain = csrfTokenConfig.configureCsrf(chain, csrfTokenRepository, csrfTokenRequestHandler)
+        return chain
             // CORS for browser clients is handled by CorsConfig (WebMvcConfigurer).
             // Preflight OPTIONS is permitted below so it reaches the MVC handler.
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
@@ -190,10 +217,15 @@ class SecurityConfig(
                     .anyRequest().authenticated()
             }
             .addFilterBefore(
+                rateLimitingFilter,
+                UsernamePasswordAuthenticationFilter::class.java,
+            )
+            .addFilterBefore(
                 jwtAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter::class.java,
             )
             .build()
+    }
 
     companion object {
         // ADR-006 §Token — BCrypt cost 12 (~250ms hash on commodity hardware).

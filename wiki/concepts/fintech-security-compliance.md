@@ -140,7 +140,25 @@ Implementazione parziale US-079 / US-080 / US-081 (5 TSK, code review e QA ancor
 [^src: management/kanban/EP-018-hardening-sicurezza-compliance/US-080-protezione-attacchi-web/TSK-221.md]
 [^src: management/kanban/EP-018-hardening-sicurezza-compliance/US-081-protezione-identita-accesso/TSK-231.md]
 
-**Wave 2 prossima:** CSRF (TSK-223), CSP nonce FE (TSK-222), TotpService (TSK-227), RateLimitingFilter (TSK-229).
+## Aggiornamenti (v2026-05-27) — EP-018 Sprint 15 Wave 2
+
+Implementazione parziale US-079 / US-080 / US-081 (5 TSK `done` in kanban; code review e `gradle test` BE ancora pendenti):
+
+| Area | TSK | Stato L5 |
+|------|-----|----------|
+| QA defense-in-depth (§5.3) | TSK-220 | `DefenseInDepthIT` esteso (401/403/400, isolamento cross-user); Vitest guard statico FE (nessuna formula Graham/MoS/DCF client-only) |
+| CSP / XSS FE (§5.5) | TSK-222 | Middleware Next.js: `Content-Security-Policy` con `script-src 'nonce-…'`; anti-FOUC in `/theme-init.js`; attivo in `next dev` — gap [[gaps#fe-middleware-static-export-conflict]] in produzione con `output: 'export'` |
+| CSRF cookie-based (§5.5) | TSK-223 | `CsrfTokenConfig`: cookie `XSRF-TOKEN` + header `X-CSRF-Token` su POST `/api/auth/refresh` e `/api/auth/logout`; SameSite=Strict; Bearer routes escluse |
+| MFA TOTP core (§5.5) | TSK-227 | `TotpService` (secret, otpauth URI, TOTP ±1, 8 recovery BCrypt, AES-GCM per `totp_secret_encrypted`); `MfaSecretRepository`/controller in TSK-228 |
+| Brute force / stuffing (§5.5) | TSK-229 | `RateLimitingFilter` + `AuthRateLimitService` su login/register/password-reset; conteggi `login_attempts`; 429 + `Retry-After`; esiti auth reali in TSK-230 |
+
+[^src: management/kanban/EP-018-hardening-sicurezza-compliance/US-079-defense-in-depth/TSK-220.md]
+[^src: management/kanban/EP-018-hardening-sicurezza-compliance/US-080-protezione-attacchi-web/TSK-222.md]
+[^src: management/kanban/EP-018-hardening-sicurezza-compliance/US-080-protezione-attacchi-web/TSK-223.md]
+[^src: management/kanban/EP-018-hardening-sicurezza-compliance/US-081-protezione-identita-accesso/TSK-227.md]
+[^src: management/kanban/EP-018-hardening-sicurezza-compliance/US-081-protezione-identita-accesso/TSK-229.md]
+
+**Wave 3 prossima:** integrazione MFA end-to-end (TSK-228), audit log tentativi auth (TSK-230), client CSRF header su refresh/logout FE.
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->

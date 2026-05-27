@@ -4,9 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.valueinvesting.webapp.api.model.AccessTokenResponse
 import com.valueinvesting.webapp.api.model.LoginRequest
+import com.valueinvesting.webapp.api.model.MoatChecklistEntryRequest
 import com.valueinvesting.webapp.api.model.RegisterRequest
 import com.valueinvesting.webapp.api.model.WatchlistItemRequest
+import com.valueinvesting.webapp.persistence.repository.MoatChecklistRepository
 import com.valueinvesting.webapp.persistence.repository.RefreshTokenRepository
+import com.valueinvesting.webapp.persistence.repository.StockRepository
 import com.valueinvesting.webapp.persistence.repository.UserRepository
 import com.valueinvesting.webapp.persistence.repository.WatchlistItemRepository
 import com.valueinvesting.webapp.persistence.repository.WatchlistRepository
@@ -27,10 +30,10 @@ import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 
 /**
- * US-079 / TSK-219 — defense-in-depth enforcement (ADR-025 §1).
+ * US-079 — defense-in-depth QA (TSK-219 audit + TSK-220 AC verification, ADR-025 §1).
  *
  * Verifies 401/403 on protected endpoints, server-side validation rejection,
- * and per-user data isolation for user-scoped resources.
+ * and per-user data isolation for user-scoped resources (watchlist, moat checklist).
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -58,6 +61,8 @@ class DefenseInDepthIT {
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var watchlistItemRepository: WatchlistItemRepository
     @Autowired private lateinit var watchlistRepository: WatchlistRepository
+    @Autowired private lateinit var moatChecklistRepository: MoatChecklistRepository
+    @Autowired private lateinit var stockRepository: StockRepository
     @Autowired private lateinit var refreshTokenRepository: RefreshTokenRepository
     @Autowired private lateinit var userRepository: UserRepository
 
@@ -65,10 +70,20 @@ class DefenseInDepthIT {
 
     @BeforeEach
     fun cleanup() {
+        moatChecklistRepository.deleteAll()
         watchlistItemRepository.deleteAll()
         watchlistRepository.deleteAll()
+        stockRepository.deleteAll()
         refreshTokenRepository.deleteAll()
         userRepository.deleteAll()
+    }
+
+    @Test
+    fun `watchlist GET without token returns 401`() {
+        mockMvc.get("/api/watchlist").andExpect {
+            status { isUnauthorized() }
+            jsonPath("$.status") { value(401) }
+        }
     }
 
     @Test
@@ -111,6 +126,20 @@ class DefenseInDepthIT {
     }
 
     @Test
+    fun `crafted invalid moat checklist payload returns 400`() {
+        val token = registerAndLogin("alice@example.com")
+
+        mockMvc.post("/api/moat-checklist/AAPL") {
+            header("Authorization", "Bearer $token")
+            contentType = MediaType.APPLICATION_JSON
+            content = """{"moatType":"NOT_A_MOAT","status":"PRESENT"}"""
+        }.andExpect {
+            status { isBadRequest() }
+            jsonPath("$.status") { value(400) }
+        }
+    }
+
+    @Test
     fun `crafted invalid watchlist ticker returns 400`() {
         val token = registerAndLogin("alice@example.com")
 
@@ -121,6 +150,31 @@ class DefenseInDepthIT {
         }.andExpect {
             status { isBadRequest() }
             jsonPath("$.status") { value(400) }
+        }
+    }
+
+    @Test
+    fun `user A moat checklist entries are not visible to user B`() {
+        val tokenA = registerAndLogin("alice@example.com")
+        val tokenB = registerAndLogin("bob@example.com")
+
+        mockMvc.post("/api/moat-checklist/AAPL") {
+            header("Authorization", "Bearer $tokenA")
+            contentType = MediaType.APPLICATION_JSON
+            content = objectMapper.writeValueAsString(
+                MoatChecklistEntryRequest(
+                    moatType = "NETWORK_EFFECT",
+                    status = "PRESENT",
+                    note = "User A only",
+                ),
+            )
+        }.andExpect { status { isOk() } }
+
+        mockMvc.get("/api/moat-checklist/AAPL") {
+            header("Authorization", "Bearer $tokenB")
+        }.andExpect {
+            status { isOk() }
+            jsonPath("$.entries[?(@.moatType == 'NETWORK_EFFECT' && @.status == 'PRESENT')]") { isEmpty }
         }
     }
 

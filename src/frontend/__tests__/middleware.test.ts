@@ -12,6 +12,7 @@ const mockNext = vi.fn();
 
 vi.mock('next/server', () => {
   class MockNextResponse {
+    headers = new Headers();
     cookies = {
       delete: vi.fn(),
     };
@@ -24,9 +25,15 @@ vi.mock('next/server', () => {
         mockRedirect(...args);
         return instance;
       },
-      next: () => {
+      next: (init?: { request?: { headers?: Headers } }) => {
         const instance = new MockNextResponse();
-        mockNext();
+        if (init?.request?.headers) {
+          const nonce = init.request.headers.get('x-nonce');
+          if (nonce) {
+            instance.headers.set('x-nonce', nonce);
+          }
+        }
+        mockNext(init);
         return instance;
       },
     },
@@ -188,5 +195,59 @@ describe('AuthGuard middleware', () => {
     const redirectUrl: URL = mockRedirect.mock.calls[0][0];
     expect(redirectUrl.pathname).toBe('/login');
     expect(redirectUrl.searchParams.get('returnUrl')).toBe('/watchlist/');
+  });
+});
+
+describe('CSP middleware (TSK-222)', () => {
+  const fixedNonce = '00000000-0000-4000-8000-000000000001';
+
+  beforeEach(() => {
+    vi.resetModules();
+    mockRedirect.mockClear();
+    mockNext.mockClear();
+    vi.stubGlobal('crypto', {
+      randomUUID: () => fixedNonce,
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  async function importMiddleware() {
+    const mod = await import('../middleware');
+    return mod.middleware;
+  }
+
+  function expectCspOnResponse(response: { headers: Headers }): void {
+    const csp = response.headers.get('Content-Security-Policy');
+    expect(csp).toBeTruthy();
+    expect(csp).toContain(`'nonce-${fixedNonce}'`);
+    expect(csp).not.toMatch(/script-src[^;]*unsafe-inline/);
+  }
+
+  it('adds Content-Security-Policy with nonce on pass-through responses', async () => {
+    const middleware = await importMiddleware();
+    const request = createMockRequest('/', {});
+
+    const response = middleware(request as never);
+
+    expect(mockNext).toHaveBeenCalledTimes(1);
+    expectCspOnResponse(response);
+    const nextInit = mockNext.mock.calls[0][0] as {
+      request?: { headers?: Headers };
+    };
+    expect(nextInit.request?.headers?.get('x-nonce')).toBe(fixedNonce);
+  });
+
+  it('adds Content-Security-Policy with nonce on redirect responses', async () => {
+    const middleware = await importMiddleware();
+    const request = createMockRequest('/watchlist', {});
+
+    const response = middleware(request as never);
+
+    expect(mockRedirect).toHaveBeenCalledTimes(1);
+    expectCspOnResponse(response);
   });
 });

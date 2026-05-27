@@ -335,9 +335,24 @@ app:
     api-key: ${FMP_API_KEY:}
     mock: false
   security:
+    rate-limiting:
+      window-minutes: 5
+      login:
+        per-ip: 10
+        per-account: 5
+      register:
+        per-ip: 5
+      password-reset:
+        per-ip: 3
+        per-account: 3
     hibp:
       enabled: ${HIBP_ENABLED:true}
       api-url: ${HIBP_API_URL:https://api.pwnedpasswords.com/range/}
+    mfa:
+      issuer: ${MFA_ISSUER:ValueInvestor}
+      totp-period-seconds: ${MFA_TOTP_PERIOD_SECONDS:30}
+      recovery-codes-count: ${MFA_RECOVERY_CODES_COUNT:8}
+      encryption-key: ${MFA_ENCRYPTION_KEY:}
 
 ---
 # ---------------- Profile: dev ----------------
@@ -363,6 +378,11 @@ management:
     web:
       exposure:
         include: "*"
+
+app:
+  security:
+    mfa:
+      encryption-key: ${MFA_ENCRYPTION_KEY:dev-only-mfa-encryption-key-32chars-min}
 
 ---
 # ---------------- Profile: test ----------------
@@ -390,8 +410,20 @@ app:
     signing-secret: "test-only-signing-secret-must-be-at-least-256-bits-long-xxx"
     cookie-secure: false
   security:
+    rate-limiting:
+      window-minutes: 5
+      login:
+        per-ip: 3
+        per-account: 2
+      register:
+        per-ip: 2
+      password-reset:
+        per-ip: 2
+        per-account: 2
     hibp:
       enabled: false
+    mfa:
+      encryption-key: "test-only-mfa-encryption-key-32chars-min"
 
 logging:
   level:

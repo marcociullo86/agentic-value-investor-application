@@ -23,6 +23,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.post
@@ -201,6 +202,7 @@ class AuthStorageSecurityIT {
             val refreshCookie = extractRefreshCookie(loginResult)
 
             mockMvc.post("/api/auth/refresh") {
+                with(csrf())
                 cookie(Cookie(RefreshTokenCookieHelper.COOKIE_NAME, refreshCookie))
             }.andExpect {
                 status { isOk() }
@@ -215,6 +217,7 @@ class AuthStorageSecurityIT {
             val refreshCookie = extractRefreshCookie(loginResult)
 
             val refreshResult = mockMvc.post("/api/auth/refresh") {
+                with(csrf())
                 cookie(Cookie(RefreshTokenCookieHelper.COOKIE_NAME, refreshCookie))
             }.andReturn()
 
@@ -231,6 +234,7 @@ class AuthStorageSecurityIT {
             val refreshCookie = extractRefreshCookie(loginResult)
 
             val refreshResult = mockMvc.post("/api/auth/refresh") {
+                with(csrf())
                 cookie(Cookie(RefreshTokenCookieHelper.COOKIE_NAME, refreshCookie))
             }.andReturn()
 
@@ -242,6 +246,7 @@ class AuthStorageSecurityIT {
         @Test
         fun `refresh without cookie returns 400`() {
             mockMvc.post("/api/auth/refresh") {
+                with(csrf())
                 contentType = MediaType.APPLICATION_JSON
             }.andExpect {
                 status { isBadRequest() }
@@ -260,11 +265,13 @@ class AuthStorageSecurityIT {
 
             // Rotate: use the original cookie → new cookie emitted, old one revoked
             mockMvc.post("/api/auth/refresh") {
+                with(csrf())
                 cookie(Cookie(RefreshTokenCookieHelper.COOKIE_NAME, originalCookie))
             }.andExpect { status { isOk() } }
 
             // Reuse: try the original (now-revoked) cookie again
             mockMvc.post("/api/auth/refresh") {
+                with(csrf())
                 cookie(Cookie(RefreshTokenCookieHelper.COOKIE_NAME, originalCookie))
             }.andExpect {
                 status { isUnauthorized() }
@@ -277,6 +284,7 @@ class AuthStorageSecurityIT {
             val originalCookie = extractRefreshCookie(loginResult)
 
             mockMvc.post("/api/auth/refresh") {
+                with(csrf())
                 cookie(Cookie(RefreshTokenCookieHelper.COOKIE_NAME, originalCookie))
             }.andExpect { status { isOk() } }
 
@@ -292,6 +300,7 @@ class AuthStorageSecurityIT {
             val accessToken = extractAccessToken(loginResult)
 
             val logoutResult = mockMvc.post("/api/auth/logout") {
+                with(csrf())
                 header("Authorization", "Bearer $accessToken")
                 cookie(Cookie(RefreshTokenCookieHelper.COOKIE_NAME, refreshCookie))
             }.andExpect {
@@ -313,11 +322,13 @@ class AuthStorageSecurityIT {
             val accessToken = extractAccessToken(loginResult)
 
             mockMvc.post("/api/auth/logout") {
+                with(csrf())
                 header("Authorization", "Bearer $accessToken")
                 cookie(Cookie(RefreshTokenCookieHelper.COOKIE_NAME, refreshCookie))
             }.andExpect { status { isNoContent() } }
 
             mockMvc.post("/api/auth/refresh") {
+                with(csrf())
                 cookie(Cookie(RefreshTokenCookieHelper.COOKIE_NAME, refreshCookie))
             }.andExpect {
                 status { isUnauthorized() }

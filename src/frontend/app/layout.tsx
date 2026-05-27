@@ -15,17 +15,6 @@ export const metadata: Metadata = {
     'Analisi quantitative Graham/Buffett su titoli quotati USA + watchlist personale.',
 };
 
-const ANTI_FOUC_SCRIPT = `
-(function(){
-  try {
-    var t = localStorage.getItem('theme');
-    var d = (t === 'dark') ||
-            (!t && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    if (d) document.documentElement.classList.add('dark');
-  } catch(e) {}
-})();
-`;
-
 /**
  * Root layout (Next.js 16 App Router).
  *
@@ -42,9 +31,8 @@ export default function RootLayout({
   return (
     <html lang="it" suppressHydrationWarning>
       <head>
-        <script
-          dangerouslySetInnerHTML={{ __html: ANTI_FOUC_SCRIPT }}
-        />
+        {/* External script: allowed by script-src 'self' without inline nonce (TSK-222). */}
+        <script src="/theme-init.js" />
       </head>
       <body>
         <ThemeProvider>

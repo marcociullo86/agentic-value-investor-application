@@ -81,6 +81,9 @@ dependencies {
     // HTML stripping for SEC filing text extraction (TSK-096)
     implementation("org.jsoup:jsoup:1.18.1")
 
+    // MFA TOTP RFC 6238 (US-081 / ADR-025 §4, TSK-227)
+    implementation("dev.samstevens.totp:totp:1.7.1")
+
     // Observability (Micrometer + Prometheus) [^src: design_&_architecture/decisions/ADR-008-observability-logging.md]
     implementation("io.micrometer:micrometer-registry-prometheus")
     implementation("net.logstash.logback:logstash-logback-encoder:8.0")

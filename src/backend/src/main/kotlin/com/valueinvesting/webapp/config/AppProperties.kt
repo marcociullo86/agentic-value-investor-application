@@ -46,10 +46,20 @@ data class AppProperties(
     // EP-018 / ADR-025 §5 — HIBP, rate limiting, MFA (subset wired per TSK).
     data class Security(
         val hibp: Hibp = Hibp(),
+        val mfa: Mfa = Mfa(),
     ) {
         data class Hibp(
             val enabled: Boolean = true,
             val apiUrl: String = "https://api.pwnedpasswords.com/range/",
+        )
+
+        // ADR-025 §4 — TOTP enrollment/challenge (TSK-227 TotpService).
+        data class Mfa(
+            val issuer: String = "ValueInvestor",
+            val totpPeriodSeconds: Int = 30,
+            val recoveryCodesCount: Int = 8,
+            /** AES-256-GCM key material for `totp_secret_encrypted` (env MFA_ENCRYPTION_KEY in prod). */
+            val encryptionKey: String = "",
         )
     }
 }
