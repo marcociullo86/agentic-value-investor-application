@@ -70,9 +70,10 @@ jobs:
               fi
             fi
           done
-          echo ""
-          echo "=== Root cause chain ==="
-          grep -A2 'Caused by:' /tmp/gradle-test.log 2>/dev/null | tail -80 || true
+          causes="$(grep -A1 'Caused by:' /tmp/gradle-test.log 2>/dev/null | head -40 | tr '\n' '|')"
+          if [ -n "$causes" ]; then
+            echo "::error title=Root cause chain::$causes"
+          fi
           echo ""
           echo "=== Gradle FAILED lines ==="
           grep -B2 -A5 'FAILED' /tmp/gradle-test.log 2>/dev/null | tail -150 || true
