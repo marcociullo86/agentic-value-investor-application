@@ -22,18 +22,28 @@ jobs:
           java-version: "21"
       - uses: gradle/actions/setup-gradle@v4
       - name: Run OpenAPI contract tests
-        run: gradle contractCheck --no-daemon
+        run: gradle contractCheck --no-daemon --info 2>&1 | tail -200
       - name: Print test failures on error
         if: failure()
         run: |
-          echo "=== contractCheck test failures ==="
+          echo "## contractCheck test failures" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
           for f in build/test-results/contractCheck/TEST-*.xml; do
-            if grep -q 'failures="[1-9]\|errors="[1-9]' "$f" 2>/dev/null; then
-              echo "--- $(basename "$f") ---"
-              grep -A20 '<failure\|<error' "$f" | head -60
-              echo
+            if [ -f "$f" ]; then
+              if grep -q 'failures="[1-9]\|errors="[1-9]' "$f" 2>/dev/null; then
+                echo "--- $(basename "$f") ---" | tee -a "$GITHUB_STEP_SUMMARY"
+                grep -A30 '<failure\|<error' "$f" | head -80 | tee -a "$GITHUB_STEP_SUMMARY"
+                echo | tee -a "$GITHUB_STEP_SUMMARY"
+              fi
             fi
           done
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo ""
+          echo "=== All test XML files ==="
+          ls -la build/test-results/contractCheck/ 2>/dev/null || echo "No test results directory"
+          echo ""
+          echo "=== Gradle build output (last 100 lines) ==="
+          cat build/reports/tests/contractCheck/index.html 2>/dev/null | head -200 || echo "No HTML report"
 
   fe-contract:
     name: FE OpenAPI types
