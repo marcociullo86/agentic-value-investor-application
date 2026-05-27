@@ -68,24 +68,28 @@ class AuthService(
 
     @Transactional
     fun refresh(refreshTokenValue: String): AuthResult {
+        // Anti-enum-attack (TSK-041): clients never see why a refresh was
+        // rejected (revoked vs expired vs cap vs unknown); the cause lives
+        // only in [InvalidRefreshTokenException.reason] for server-side
+        // logging by GlobalExceptionHandler.
         val token = refreshTokenRepository.findByTokenValue(refreshTokenValue)
-            ?: throw InvalidRefreshTokenException("Invalid refresh token")
+            ?: throw InvalidRefreshTokenException(REASON_NOT_FOUND)
         val now = Instant.now(clock)
         if (token.revokedAt != null) {
-            throw InvalidRefreshTokenException("Refresh token revoked")
+            throw InvalidRefreshTokenException(REASON_REVOKED)
         }
         if (!token.expiresAt.isAfter(now)) {
-            throw InvalidRefreshTokenException("Refresh token expired")
+            throw InvalidRefreshTokenException(REASON_SLIDING_EXPIRED)
         }
         // ADR-010 §3 — cap assoluto dal login originale (first_issued_at).
         // La catena di rotation conserva first_issued_at del refresh iniziale.
         val capDays = appProperties.jwt.refreshAbsoluteCapDays
         val capDeadline = token.firstIssuedAt.plusSeconds(capDays * SECONDS_PER_DAY)
         if (!capDeadline.isAfter(now)) {
-            throw InvalidRefreshTokenException("Refresh token absolute cap reached")
+            throw InvalidRefreshTokenException(REASON_ABSOLUTE_CAP)
         }
         val user = userRepository.findById(token.userId).orElseThrow {
-            InvalidRefreshTokenException("Refresh token references unknown user")
+            InvalidRefreshTokenException(REASON_USER_UNKNOWN)
         }
         // Rotation (ADR-006 §Refresh token rotation): segna il vecchio come
         // revocato e emetti un nuovo refresh preservando first_issued_at.
@@ -160,3 +164,11 @@ class EmailAlreadyRegisteredException(val email: String) :
     RuntimeException("Email already registered: $email")
 
 private const val SECONDS_PER_DAY: Long = 86_400
+
+// Anti-enum reason codes carried server-side only by InvalidRefreshTokenException.
+// Stable identifiers so log-sink queries / security dashboards can filter by cause.
+private const val REASON_NOT_FOUND: String = "not_found"
+private const val REASON_REVOKED: String = "revoked"
+private const val REASON_SLIDING_EXPIRED: String = "sliding_expired"
+private const val REASON_ABSOLUTE_CAP: String = "absolute_cap"
+private const val REASON_USER_UNKNOWN: String = "user_unknown"

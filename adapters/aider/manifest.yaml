@@ -1,0 +1,124 @@
+# Aider adapter manifest (PATTERN §12.1)
+# Mappa i costrutti del pattern llm-wiki++ ai costrutti Aider (≥0.50).
+
+adapter_name: aider
+adapter_folder: .aider
+runtime: aider
+runtime_version_min: "0.50"
+maturity: full
+contract_version: 2.13
+
+mappings:
+  agent:
+    pattern_concept: "Agente specializzato (PATTERN §2 ruoli)"
+    runtime_construct: "Prompt template in .aider/prompts/<name>.md + alias in CONVENTIONS.md"
+    file_path_template: ".aider/prompts/{name}.md"
+    invocation: "aider --read .aider/prompts/<name>.md --message '...' (o /read in sessione)"
+  skill:
+    pattern_concept: "Procedura riusabile (PATTERN v2.3 'fat skills')"
+    runtime_construct: "Prompt template incluso via /read in sessione corrente"
+    file_path_template: ".aider/skills/{name}.md"
+    invocation: "/read .aider/skills/<name>.md (nella sessione Aider)"
+  command:
+    pattern_concept: "Slash command per invocazione esplicita"
+    runtime_construct: "Shell wrapper script .aider/commands/<name>.sh + entry in README"
+    file_path_template: ".aider/commands/{name}.sh"
+    invocation: "bash .aider/commands/<name>.sh [args] (lancia aider con i prompt necessari)"
+  tool_read:
+    pattern_concept: "Lettura file"
+    runtime_construct: "Aider built-in /read o argomento --read"
+  tool_write:
+    pattern_concept: "Scrittura file"
+    runtime_construct: "Aider built-in (modifica file con conferma utente)"
+  tool_glob:
+    pattern_concept: "Glob filesystem"
+    runtime_construct: "/ls o /add con wildcard"
+  tool_bash:
+    pattern_concept: "Shell access"
+    runtime_construct: "Aider built-in /run o subprocess"
+  subagent_fanout:
+    pattern_concept: "Sub-agent fan-out"
+    runtime_construct: "N invocazioni separate di `aider --read <prompt> --message ...`"
+    supported: false
+    fallback: "Sequential script invocation; nessun parallelismo nativo"
+
+templates:
+  # CONVENTIONS.md è il file di entrata di Aider — letto automaticamente in ogni sessione
+  conventions:
+    - { name: CONVENTIONS, required: true, path: CONVENTIONS.md }
+
+  agents:
+    # In Aider, gli "agenti" sono prompt template che l'utente carica con /read
+    # Non c'è auto-attivazione come Claude Code sub-agent
+    - { name: orchestrator,       required: true,  path: .aider/prompts/orchestrator.md }
+    - { name: sync-docs,          required: true,  path: .aider/prompts/sync-docs.md }
+    - { name: wiki-keeper,        required: true,  path: .aider/prompts/wiki-keeper.md }
+    - { name: product-manager,    required: true,  path: .aider/prompts/product-manager.md }
+    - { name: lead-architect,     required: true,  path: .aider/prompts/lead-architect.md }
+    - { name: tpm,                required: true,  path: .aider/prompts/tpm.md }
+    - { name: wiki-query,         required: true,  path: .aider/prompts/wiki-query.md }
+    - { name: wiki-lint,          required: true,  path: .aider/prompts/wiki-lint.md }
+    - { name: figma-sync,         required: false, path: .aider/prompts/figma-sync.md, condition: "has_figma_sync" }
+    - { name: repo-sync,          required: false, path: .aider/prompts/repo-sync.md, condition: "has_repo_sync" }
+    - { name: be-dev,             required: false, path: .aider/prompts/be-dev.md, condition: "routing.be == agent" }
+    - { name: fe-dev,             required: false, path: .aider/prompts/fe-dev.md, condition: "routing.fe == agent" }
+    - { name: db-dev,             required: false, path: .aider/prompts/db-dev.md, condition: "routing.db == agent" }
+    - { name: qa-dev,             required: false, path: .aider/prompts/qa-dev.md, condition: "routing.qa == agent" }
+    - { name: code-reviewer,      required: false, path: .aider/prompts/code-reviewer.md, condition: "code_quality.enabled == true" }
+    # wiki-keeper-worker e github-publisher: NON traducibili facilmente in Aider (no parallel sub-agent)
+
+  skills:
+    - { name: ingest-protocol,        required: true,  path: .aider/skills/ingest-protocol.md }
+    - { name: lint-checks,            required: true,  path: .aider/skills/lint-checks.md }
+    - { name: heal-protocol,          required: true,  path: .aider/skills/heal-protocol.md }
+    - { name: dev-protocol,           required: false, path: .aider/skills/dev-protocol.md, condition: "has_dev_agents" }
+    - { name: vcs-handoff,            required: false, path: .aider/skills/vcs-handoff.md, condition: "has_dev_agents AND any_vcs_mode_not_none" }
+    - { name: code-review-protocol,   required: false, path: .aider/skills/code-review-protocol.md, condition: "code_quality.enabled == true" }
+    - { name: stack-detector,         required: false, path: .aider/skills/stack-detector.md, condition: "has_code_reviewer OR has_repo_sync" }
+
+  commands:
+    # Shell wrappers che invocano aider con i prompt giusti
+    - { name: run,          required: true,  path: .aider/commands/run.sh }
+    - { name: sync-docs,    required: true,  path: .aider/commands/sync-docs.sh }
+    - { name: lint,         required: true,  path: .aider/commands/lint.sh }
+    - { name: query,        required: true,  path: .aider/commands/query.sh }
+    - { name: promote,      required: true,  path: .aider/commands/promote.sh }
+    - { name: dev,          required: false, path: .aider/commands/dev.sh, condition: "has_dev_agents" }
+    - { name: review,       required: false, path: .aider/commands/review.sh, condition: "code_quality.enabled == true" }
+
+runtime_overrides:
+  parallel_dispatch:
+    supported: false
+    fallback: "Sequential bash script invocations. wave plan suggested but executed serially."
+  subagent_fanout:
+    supported: false
+    fallback: "Sequential aider sessions; orchestrator scripta un .sh che invoca aider N volte"
+  multi_tool_call_per_response:
+    supported: false
+    fallback: "Aider è single-turn; ogni operazione richiede una nuova invocazione"
+
+template_translation:
+  approach: |
+    Per ogni prompt template, parti dal .claude/<file>.md corrispondente.
+    Riformulazione:
+    - Rimuovi il frontmatter Claude (name/description/model/tools)
+    - Aggiungi un'intestazione "# Prompt: <name>" + "Use this prompt as system context for an Aider session"
+    - Sostituisci "Read <file>" / "Write <file>" con linguaggio Aider (e.g., "Add <file> to chat" / "Modify <file>")
+    - Sostituisci "Invoca Agent(subagent_type=X)" con "Esci da questa sessione e lancia una nuova sessione Aider con --read .aider/prompts/X.md"
+  preservation: |
+    Lo SCOPO del ruolo (responsabilità, scope di scrittura, gate, regole §2/§7) resta identico.
+    Cambia il MECCANISMO di invocazione.
+
+notes: |
+  Aider non ha sub-agent nativi. Ogni "agente" è un prompt template che l'utente
+  carica con `--read` o `/read` in sessione.
+
+  Esempio invocazione manuale:
+    aider --read .aider/prompts/wiki-keeper.md --read CONVENTIONS.md raw/2026-05-27-foo.txt
+    # Aider apre una sessione con wiki-keeper come system prompt + CONVENTIONS contesto
+
+  Shell wrappers `.aider/commands/*.sh` automatizzano queste invocazioni per i casi comuni.
+
+  Coesistenza con .claude/: gli stessi file wiki/, management/, raw/ sono letti/scritti.
+  Il principio §7 r.12 single-committer wiki/ resta enforced — l'utente non invoca
+  wiki-keeper in parallelo da Aider e da Claude Code contemporaneamente.

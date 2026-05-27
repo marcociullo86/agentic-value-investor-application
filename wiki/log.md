@@ -823,5 +823,907 @@ Incident [[2026-05-27-local-fe-test-run]] aggiornato | Playwright mocked 26/40 p
 **DoD:** pass — `npm run test:e2e` 30 pass / 0 fail / 10 skip (×2 run); Vitest 434/434 invariato; code review umana pendente
 **Note:** Seed focus su form/search poi navigazione tastiera; rimosso assert skeleton deep-analysis con mock veloce.
 
+## [2026-05-27] migrate | factory v2.11 → v2.13 (soli-multi-agents-factory)
+PATTERN.md sostituito con v2.13 (§12 multi-adapter, §19 CQRL, repo-sync, code_paths). factory.config.yaml: adapters [claude,cursor], code_paths, code_quality (disabled), scheduler.review. Nuovi agent: code-reviewer, repo-sync. Nuovi command: /review, /repo-sync. Cartelle: adapters/, code_quality/rules|reports. Meta-prompt v2.13; archivio v2.11.
+
+## [2026-05-27] migrate | factory v2.8 → v2.11 (soli-multi-agents-factory)
+Pattern v2.11: §16 sync adapters (`figma-sync`), §17 publisher (`github-publisher`, kanban_publish none), §18 parallel scheduler. Adapter `.cursor/` + `.claude/`: 4 agent, 4 skill, 2 command, 3 runbook. Meta-prompt aggiornato; archivio `meta-prompt-llm-wiki-factory-v2.8.md`.
+
 ## [2026-05-27] review | TSK-239 US-083 convalidati
 Code review + convalida E2E: 30 pass / 0 fail / 10 skip | US-083 done | EP-016 done | incident [[2026-05-27-local-fe-test-run]] chiuso operativamente
+
+## [2026-05-27] run | giro completo L1-L4
+**Agente:** orchestrator + wiki-lint + wiki-keeper + PM + TPM (5 subagent paralleli)
+**Scope:** scan stato, lint, reconcile wiki/kanban/sprint — no L5
+
+## [2026-05-27] review | CQRL iter-2 slot 2 (TSK-126,027,035)
+**Agente:** orchestrator — 2× code-reviewer background
+
+## [2026-05-27] develop | CQRL Fase B slot 2 avviato
+**Agente:** orchestrator
+**Dev:** TSK-256 (be screener fmp-batch), TSK-258 (fe pages error UX)
+
+## [2026-05-27] review | CQRL iter-2 slot 1 (11 TSK conditional)
+**Agente:** orchestrator
+**Batch:** TSK-033,041,221 | TSK-018 | TSK-100,156,159,162 | TSK-034,043,222 (4× code-reviewer)
+
+## [2026-05-27] develop | CQRL Fase B slot 1 avviato
+**Agente:** orchestrator
+**US-084:** done | **US-085:** in-progress
+**Dev parallel:** TSK-252 (be auth), TSK-254 (ruleengine DCF), TSK-255 (deep/llm), TSK-257 (fe auth)
+
+## [2026-05-27] develop | CQRL Sprint 16 wave batch 2
+**Agente:** orchestrator
+**Wave avviate:** TSK-242,263,243,264,245,246,247,249,251,262 (10× code-reviewer background)
+**Completate prima:** A1,A2,A5,A9 (TSK-240,241,244,248)
+
+## [2026-05-27] develop | CQRL Sprint 16 kickoff
+**Agente:** orchestrator
+**EP-019:** 20 regole canonical seed (`code_quality/rules/canonical/`), wave A1/A2/A5/A9 avviate (TSK-240,241,244,248 in-progress, 4× code-reviewer background)
+**Note:** Fase A retro-review su backlog done; digest in `code_quality/reports/wave-*-digest.md`
+
+## [2026-05-27] doc-sync | factory v2.13 + CQRL enabled
+**Agente:** wiki-keeper
+**Pagine create:** 1 ([[agentic-factory-v213]])
+**Pagine aggiornate:** 1 ([[index]] — +1 sezione Factory/Tooling, +1 runbook code-quality-review-runbook, conteggi aggiornati)
+**Gap verificati:** tpm-watchlist-default-creation (nessuna fonte citabile, rimane aperto) | auth-cascade-revocation-missing (nessuna fonte citabile, rimane aperto) | fe-middleware-static-export-conflict (nessuna fonte citabile, rimane aperto)
+**Gap chiusi:** nessuno
+**Note:** Migrazione factory v2.11→v2.13 completata il 2026-05-27 (PATTERN §0); code_quality.enabled impostato a true contestualmente. Il log entry precedente su migrazione v2.13 annotava code_quality disabled — la configurazione corrente è enabled: true (factory.config.yaml). Concept [[agentic-factory-v213]] documenta layer L1-L5+CQRL, multi-adapter (claude+cursor), /review, /repo-sync, schema factory.config.yaml annotato. Runbook [[code-quality-review-runbook]] già esistente referenziato dall'index.
+
+- 2026-05-27 23:30 — `review TSK-009 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.92)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: none
+  - Report: [code_quality/reports/TSK-009-iter-1.md](../code_quality/reports/TSK-009-iter-1.md)
+
+- 2026-05-27 23:30 — `review TSK-010 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.92)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: none
+  - Report: [code_quality/reports/TSK-010-iter-1.md](../code_quality/reports/TSK-010-iter-1.md)
+
+- 2026-05-27 23:30 — `review TSK-011 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.92)
+  - Finding: {high: 0, medium: 0, low: 1}, dedup: 1
+  - Markers: none
+  - Report: [code_quality/reports/TSK-011-iter-1.md](../code_quality/reports/TSK-011-iter-1.md)
+
+- 2026-05-27 23:30 — `review TSK-037 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.92)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: scope_inferred, scope_out_of_batch
+  - Report: [code_quality/reports/TSK-037-iter-1.md](../code_quality/reports/TSK-037-iter-1.md)
+
+- 2026-05-27 23:30 — `review TSK-038 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.92)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: scope_inferred, scope_out_of_batch
+  - Report: [code_quality/reports/TSK-038-iter-1.md](../code_quality/reports/TSK-038-iter-1.md)
+
+- 2026-05-27 23:30 — `review TSK-069 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.92)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: none
+  - Report: [code_quality/reports/TSK-069-iter-1.md](../code_quality/reports/TSK-069-iter-1.md)
+
+- 2026-05-27 23:30 — `review TSK-070 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.92)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: none
+  - Report: [code_quality/reports/TSK-070-iter-1.md](../code_quality/reports/TSK-070-iter-1.md)
+
+- 2026-05-27 23:30 — `review TSK-071 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.92)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: none
+  - Report: [code_quality/reports/TSK-071-iter-1.md](../code_quality/reports/TSK-071-iter-1.md)
+
+- 2026-05-27 23:30 — `review TSK-072 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.92)
+  - Finding: {high: 0, medium: 0, low: 1}, dedup: 1
+  - Markers: none
+  - Report: [code_quality/reports/TSK-072-iter-1.md](../code_quality/reports/TSK-072-iter-1.md)
+
+- 2026-05-27 23:30 — `review wave A2 TSK-241 orchestrator → done`
+  - Reviewer: code-reviewer@2.12.0
+  - Batch: TSK-009,010,011,037,038,069,070,071,072 (9/9 pass)
+  - Digest: [code_quality/reports/wave-02-be-fmp-digest.md](../code_quality/reports/wave-02-be-fmp-digest.md)
+
+- 2026-05-27 18:00 — `review TSK-033 iter-1 → conditional`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring 3.5 (conf 0.94)
+  - Finding: {high: 0, medium: 1, low: 0}, dedup: 1
+  - Markers: scope_inferred
+  - Report: [code_quality/reports/TSK-033-iter-1.md](../code_quality/reports/TSK-033-iter-1.md)
+
+- 2026-05-27 18:00 — `review TSK-039 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring 3.5 (conf 0.93)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Report: [code_quality/reports/TSK-039-iter-1.md](../code_quality/reports/TSK-039-iter-1.md)
+
+- 2026-05-27 18:00 — `review TSK-041 iter-1 → conditional`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring 3.5 (conf 0.95)
+  - Finding: {high: 0, medium: 1, low: 0}, dedup: 1
+  - Markers: scope_inferred
+  - Report: [code_quality/reports/TSK-041-iter-1.md](../code_quality/reports/TSK-041-iter-1.md)
+
+- 2026-05-27 18:00 — `review TSK-042 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring 3.5 (conf 0.92)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Report: [code_quality/reports/TSK-042-iter-1.md](../code_quality/reports/TSK-042-iter-1.md)
+
+- 2026-05-27 18:00 — `review TSK-219 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring 3.5 (conf 0.91)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Report: [code_quality/reports/TSK-219-iter-1.md](../code_quality/reports/TSK-219-iter-1.md)
+
+- 2026-05-27 18:00 — `review TSK-220 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring 3.5 (conf 0.90)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Report: [code_quality/reports/TSK-220-iter-1.md](../code_quality/reports/TSK-220-iter-1.md)
+
+- 2026-05-27 18:00 — `review TSK-221 iter-1 → conditional`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring 3.5 (conf 0.93)
+  - Finding: {high: 0, medium: 1, low: 0}, dedup: 1
+  - Report: [code_quality/reports/TSK-221-iter-1.md](../code_quality/reports/TSK-221-iter-1.md)
+
+- 2026-05-27 18:00 — `review TSK-223 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring 3.5 (conf 0.94)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Report: [code_quality/reports/TSK-223-iter-1.md](../code_quality/reports/TSK-223-iter-1.md)
+
+## [2026-05-27] review | Wave A1 BE auth & security (TSK-240)
+**Agente:** code-reviewer
+**Batch:** TSK-033,039,041,042,219,220,221,223 (8/8)
+**Verdict:** pass 5 | conditional 3 | reject 0
+**Digest:** [code_quality/reports/wave-01-be-auth-security-digest.md](../code_quality/reports/wave-01-be-auth-security-digest.md)
+**Orchestrator:** TSK-240 → done
+
+- 2026-05-27 23:15 — `review TSK-022 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/playwright 1.51.1 (conf 0.84)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: degraded, ruleset_gap
+  - Report: [code_quality/reports/TSK-022-iter-1.md](../code_quality/reports/TSK-022-iter-1.md)
+
+- 2026-05-27 23:15 — `review TSK-036 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/playwright 1.51.1 (conf 0.84)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: degraded, ruleset_gap
+  - Report: [code_quality/reports/TSK-036-iter-1.md](../code_quality/reports/TSK-036-iter-1.md)
+
+- 2026-05-27 23:15 — `review TSK-057 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/playwright 1.51.1 (conf 0.84)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: degraded, ruleset_gap
+  - Report: [code_quality/reports/TSK-057-iter-1.md](../code_quality/reports/TSK-057-iter-1.md)
+
+- 2026-05-27 23:15 — `review TSK-066 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/playwright 1.51.1 (conf 0.86)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: degraded, ruleset_gap
+  - Report: [code_quality/reports/TSK-066-iter-1.md](../code_quality/reports/TSK-066-iter-1.md)
+
+- 2026-05-27 23:15 — `review TSK-090 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring 3.5 (conf 0.91)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: scope_excluded
+  - Report: [code_quality/reports/TSK-090-iter-1.md](../code_quality/reports/TSK-090-iter-1.md)
+
+- 2026-05-27 23:15 — `review TSK-120 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring 3.5 (conf 0.91)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: scope_excluded
+  - Report: [code_quality/reports/TSK-120-iter-1.md](../code_quality/reports/TSK-120-iter-1.md)
+
+- 2026-05-27 23:15 — `review TSK-125 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/playwright 1.51.1 (conf 0.85)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: degraded, ruleset_gap
+  - Report: [code_quality/reports/TSK-125-iter-1.md](../code_quality/reports/TSK-125-iter-1.md)
+
+- 2026-05-27 23:15 — `review TSK-142 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/playwright 1.51.1 (conf 0.85)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: degraded, ruleset_gap
+  - Report: [code_quality/reports/TSK-142-iter-1.md](../code_quality/reports/TSK-142-iter-1.md)
+
+- 2026-05-27 23:15 — `review TSK-154 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/playwright 1.51.1 (conf 0.82)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: degraded, ruleset_gap, ac_observation, scope_inferred
+  - Report: [code_quality/reports/TSK-154-iter-1.md](../code_quality/reports/TSK-154-iter-1.md)
+
+## [2026-05-27] review | Wave A9 FE E2E Playwright (TSK-248)
+**Agente:** code-reviewer
+**Batch:** TSK-022,036,057,066,090,120,125,142,154 (9/9)
+**Verdict:** pass 9 | conditional 0 | reject 0
+**Digest:** [code_quality/reports/wave-09-fe-e2e-digest.md](../code_quality/reports/wave-09-fe-e2e-digest.md)
+**Orchestrator:** TSK-248 → done
+
+
+## 2026-05-27 — review Wave A5 batch (TSK-244 orchestrator)
+**Agente:** code-reviewer (code-reviewer@2.12.0)
+**Wave scope:** `src/backend/src/main/kotlin/com/valueinvesting/webapp/universe/**`
+**Batch:** 21/21 TSK reviewed
+**Verdict counts:** pass=20, conditional=1, reject=0
+**Digest:** [wave-05-be-screener-top-picks-digest.md](../code_quality/reports/wave-05-be-screener-top-picks-digest.md)
+
+- 2026-05-27 — `review TSK-002 iter-1 → pass` (H:0 M:0 L:0) — [TSK-002-iter-1.md](../code_quality/reports/TSK-002-iter-1.md)
+- 2026-05-27 — `review TSK-003 iter-1 → pass` (H:0 M:0 L:0) — [TSK-003-iter-1.md](../code_quality/reports/TSK-003-iter-1.md)
+- 2026-05-27 — `review TSK-004 iter-1 → pass` (H:0 M:0 L:0) — [TSK-004-iter-1.md](../code_quality/reports/TSK-004-iter-1.md)
+- 2026-05-27 — `review TSK-005 iter-1 → pass` (H:0 M:0 L:0) — [TSK-005-iter-1.md](../code_quality/reports/TSK-005-iter-1.md)
+- 2026-05-27 — `review TSK-006 iter-1 → pass` (H:0 M:0 L:0) — [TSK-006-iter-1.md](../code_quality/reports/TSK-006-iter-1.md)
+- 2026-05-27 — `review TSK-007 iter-1 → pass` (H:0 M:0 L:0) — [TSK-007-iter-1.md](../code_quality/reports/TSK-007-iter-1.md)
+- 2026-05-27 — `review TSK-030 iter-1 → pass` (H:0 M:0 L:0) — [TSK-030-iter-1.md](../code_quality/reports/TSK-030-iter-1.md)
+- 2026-05-27 — `review TSK-126 iter-1 → conditional` (H:0 M:1 L:1) — [TSK-126-iter-1.md](../code_quality/reports/TSK-126-iter-1.md)
+- 2026-05-27 — `review TSK-127 iter-1 → pass` (H:0 M:0 L:1) — [TSK-127-iter-1.md](../code_quality/reports/TSK-127-iter-1.md)
+- 2026-05-27 — `review TSK-128 iter-1 → pass` (H:0 M:0 L:2) — [TSK-128-iter-1.md](../code_quality/reports/TSK-128-iter-1.md)
+- 2026-05-27 — `review TSK-129 iter-1 → pass` (H:0 M:0 L:1) — [TSK-129-iter-1.md](../code_quality/reports/TSK-129-iter-1.md)
+- 2026-05-27 — `review TSK-130 iter-1 → pass` (H:0 M:0 L:0) — [TSK-130-iter-1.md](../code_quality/reports/TSK-130-iter-1.md)
+- 2026-05-27 — `review TSK-131 iter-1 → pass` (H:0 M:0 L:0) — [TSK-131-iter-1.md](../code_quality/reports/TSK-131-iter-1.md)
+- 2026-05-27 — `review TSK-132 iter-1 → pass` (H:0 M:0 L:0) — [TSK-132-iter-1.md](../code_quality/reports/TSK-132-iter-1.md)
+- 2026-05-27 — `review TSK-134 iter-1 → pass` (H:0 M:0 L:0) — [TSK-134-iter-1.md](../code_quality/reports/TSK-134-iter-1.md)
+- 2026-05-27 — `review TSK-136 iter-1 → pass` (H:0 M:0 L:0) — [TSK-136-iter-1.md](../code_quality/reports/TSK-136-iter-1.md)
+- 2026-05-27 — `review TSK-137 iter-1 → pass` (H:0 M:0 L:0) — [TSK-137-iter-1.md](../code_quality/reports/TSK-137-iter-1.md)
+- 2026-05-27 — `review TSK-138 iter-1 → pass` (H:0 M:0 L:0) — [TSK-138-iter-1.md](../code_quality/reports/TSK-138-iter-1.md)
+- 2026-05-27 — `review TSK-139 iter-1 → pass` (H:0 M:0 L:0) — [TSK-139-iter-1.md](../code_quality/reports/TSK-139-iter-1.md)
+- 2026-05-27 — `review TSK-140 iter-1 → pass` (H:0 M:0 L:0) — [TSK-140-iter-1.md](../code_quality/reports/TSK-140-iter-1.md)
+- 2026-05-27 — `review TSK-141 iter-1 → pass` (H:0 M:0 L:0) — [TSK-141-iter-1.md](../code_quality/reports/TSK-141-iter-1.md)
+
+- 2026-05-27 20:50 — `review TSK-034 iter-1 → conditional`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.94)
+  - Finding: {high: 0, medium: 2, low: 1}, dedup: 2
+  - Markers: none
+  - Wave: A6 / TSK-245
+  - Report: [code_quality/reports/TSK-034-iter-1.md](../code_quality/reports/TSK-034-iter-1.md)
+
+- 2026-05-27 20:50 — `review TSK-043 iter-1 → conditional`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.94)
+  - Finding: {high: 0, medium: 1, low: 1}, dedup: 1
+  - Markers: none
+  - Wave: A6 / TSK-245
+  - Report: [code_quality/reports/TSK-043-iter-1.md](../code_quality/reports/TSK-043-iter-1.md)
+
+- 2026-05-27 20:50 — `review TSK-222 iter-1 → conditional`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.95)
+  - Finding: {high: 0, medium: 1, low: 1}, dedup: 1
+  - Markers: none
+  - Wave: A6 / TSK-245
+  - Report: [code_quality/reports/TSK-222-iter-1.md](../code_quality/reports/TSK-222-iter-1.md)
+
+- 2026-05-27 23:59 — `review TSK-034 iter-2 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.94)
+  - Finding: {high: 0, medium: 0, low: 2}, dedup: 2
+  - Markers: none
+  - Post-fix: develop TSK-257 (form-errors.ts)
+  - Report: [code_quality/reports/TSK-034-iter-2.md](../code_quality/reports/TSK-034-iter-2.md)
+
+- 2026-05-27 23:59 — `review TSK-043 iter-2 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.94)
+  - Finding: {high: 0, medium: 0, low: 1}, dedup: 1
+  - Markers: none
+  - Post-fix: develop TSK-257 (sessionExpired cookie sync)
+  - Report: [code_quality/reports/TSK-043-iter-2.md](../code_quality/reports/TSK-043-iter-2.md)
+
+- 2026-05-27 23:59 — `review TSK-222 iter-2 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.95)
+  - Finding: {high: 0, medium: 0, low: 1}, dedup: 1
+  - Markers: none
+  - Post-fix: develop TSK-257 (middleware static-export doc)
+  - Report: [code_quality/reports/TSK-222-iter-2.md](../code_quality/reports/TSK-222-iter-2.md)
+
+## 2026-05-27 — review Wave A10 batch (TSK-249 orchestrator)
+**Agente:** code-reviewer (code-reviewer@2.12.0)
+**Wave scope:** `src/backend/src/main/resources/db/migration/**`
+**Batch:** 24/24 TSK reviewed
+**Verdict counts:** pass=24, conditional=0, reject=0
+**Digest:** [wave-10-db-flyway-digest.md](../code_quality/reports/wave-10-db-flyway-digest.md)
+
+- 2026-05-27 — `review TSK-001 iter-1 → pass` (H:0 M:0 L:0) — [TSK-001-iter-1.md](../code_quality/reports/TSK-001-iter-1.md)
+- 2026-05-27 — `review TSK-008 iter-1 → pass` (H:0 M:0 L:0) — [TSK-008-iter-1.md](../code_quality/reports/TSK-008-iter-1.md)
+- 2026-05-27 — `review TSK-017 iter-1 → pass` (H:0 M:0 L:0) — [TSK-017-iter-1.md](../code_quality/reports/TSK-017-iter-1.md)
+- 2026-05-27 — `review TSK-025 iter-1 → pass` (H:0 M:0 L:0) — [TSK-025-iter-1.md](../code_quality/reports/TSK-025-iter-1.md)
+- 2026-05-27 — `review TSK-028 iter-1 → pass` (H:0 M:0 L:0) — [TSK-028-iter-1.md](../code_quality/reports/TSK-028-iter-1.md)
+- 2026-05-27 — `review TSK-031 iter-1 → pass` (H:0 M:0 L:0, scope_out) — [TSK-031-iter-1.md](../code_quality/reports/TSK-031-iter-1.md)
+- 2026-05-27 — `review TSK-032 iter-1 → pass` (H:0 M:0 L:0, scope_out) — [TSK-032-iter-1.md](../code_quality/reports/TSK-032-iter-1.md)
+- 2026-05-27 — `review TSK-040 iter-1 → pass` (H:0 M:0 L:0) — [TSK-040-iter-1.md](../code_quality/reports/TSK-040-iter-1.md)
+- 2026-05-27 — `review TSK-054 iter-1 → pass` (H:0 M:0 L:0, scope_out) — [TSK-054-iter-1.md](../code_quality/reports/TSK-054-iter-1.md)
+- 2026-05-27 — `review TSK-061 iter-1 → pass` (H:0 M:0 L:0, scope_out) — [TSK-061-iter-1.md](../code_quality/reports/TSK-061-iter-1.md)
+- 2026-05-27 — `review TSK-062 iter-1 → pass` (H:0 M:0 L:0, scope_out) — [TSK-062-iter-1.md](../code_quality/reports/TSK-062-iter-1.md)
+- 2026-05-27 — `review TSK-063 iter-1 → pass` (H:0 M:0 L:0, scope_out) — [TSK-063-iter-1.md](../code_quality/reports/TSK-063-iter-1.md)
+- 2026-05-27 — `review TSK-068 iter-1 → pass` (H:0 M:0 L:0, scope_out) — [TSK-068-iter-1.md](../code_quality/reports/TSK-068-iter-1.md)
+- 2026-05-27 — `review TSK-084 iter-1 → pass` (H:0 M:0 L:0) — [TSK-084-iter-1.md](../code_quality/reports/TSK-084-iter-1.md)
+- 2026-05-27 — `review TSK-095 iter-1 → pass` (H:0 M:0 L:0) — [TSK-095-iter-1.md](../code_quality/reports/TSK-095-iter-1.md)
+- 2026-05-27 — `review TSK-098 iter-1 → pass` (H:0 M:0 L:0) — [TSK-098-iter-1.md](../code_quality/reports/TSK-098-iter-1.md)
+- 2026-05-27 — `review TSK-099 iter-1 → pass` (H:0 M:0 L:0, scope_out) — [TSK-099-iter-1.md](../code_quality/reports/TSK-099-iter-1.md)
+- 2026-05-27 — `review TSK-106 iter-1 → pass` (H:0 M:0 L:0) — [TSK-106-iter-1.md](../code_quality/reports/TSK-106-iter-1.md)
+- 2026-05-27 — `review TSK-110 iter-1 → pass` (H:0 M:0 L:0) — [TSK-110-iter-1.md](../code_quality/reports/TSK-110-iter-1.md)
+- 2026-05-27 — `review TSK-119 iter-1 → pass` (H:0 M:0 L:0, partial_scope_out) — [TSK-119-iter-1.md](../code_quality/reports/TSK-119-iter-1.md)
+- 2026-05-27 — `review TSK-133 iter-1 → pass` (H:0 M:0 L:0, partial_scope_out) — [TSK-133-iter-1.md](../code_quality/reports/TSK-133-iter-1.md)
+- 2026-05-27 — `review TSK-135 iter-1 → pass` (H:0 M:0 L:0) — [TSK-135-iter-1.md](../code_quality/reports/TSK-135-iter-1.md)
+- 2026-05-27 — `review TSK-155 iter-1 → pass` (H:0 M:0 L:0) — [TSK-155-iter-1.md](../code_quality/reports/TSK-155-iter-1.md)
+- 2026-05-27 — `review TSK-177 iter-1 → pass` (H:0 M:0 L:0, scope_out) — [TSK-177-iter-1.md](../code_quality/reports/TSK-177-iter-1.md)
+
+## [2026-05-27] review | Wave A3b BE Rule Engine (TSK-263)
+**Agente:** code-reviewer (code-reviewer@2.12.0)
+**Batch:** TSK-074,075,076,077,078,079,080,081,082,083,085,086,164,165,166,167 (16/16)
+**Verdict:** pass 16 | conditional 0 | reject 0
+**Digest:** [wave-03b-be-ruleengine-digest.md](../code_quality/reports/wave-03b-be-ruleengine-digest.md)
+**Orchestrator:** TSK-263 → done
+
+- 2026-05-27 — `review TSK-074 iter-1 → pass` (H:0 M:0 L:0) — [TSK-074-iter-1.md](../code_quality/reports/TSK-074-iter-1.md)
+- 2026-05-27 — `review TSK-075 iter-1 → pass` (H:0 M:0 L:0) — [TSK-075-iter-1.md](../code_quality/reports/TSK-075-iter-1.md)
+- 2026-05-27 — `review TSK-076 iter-1 → pass` (H:0 M:0 L:0) — [TSK-076-iter-1.md](../code_quality/reports/TSK-076-iter-1.md)
+- 2026-05-27 — `review TSK-077 iter-1 → pass` (H:0 M:0 L:0) — [TSK-077-iter-1.md](../code_quality/reports/TSK-077-iter-1.md)
+- 2026-05-27 — `review TSK-078 iter-1 → pass` (H:0 M:0 L:0) — [TSK-078-iter-1.md](../code_quality/reports/TSK-078-iter-1.md)
+- 2026-05-27 — `review TSK-079 iter-1 → pass` (H:0 M:0 L:0) — [TSK-079-iter-1.md](../code_quality/reports/TSK-079-iter-1.md)
+- 2026-05-27 — `review TSK-080 iter-1 → pass` (H:0 M:0 L:0) — [TSK-080-iter-1.md](../code_quality/reports/TSK-080-iter-1.md)
+- 2026-05-27 — `review TSK-081 iter-1 → pass` (H:0 M:0 L:0) — [TSK-081-iter-1.md](../code_quality/reports/TSK-081-iter-1.md)
+- 2026-05-27 — `review TSK-082 iter-1 → pass` (H:0 M:0 L:0) — [TSK-082-iter-1.md](../code_quality/reports/TSK-082-iter-1.md)
+- 2026-05-27 — `review TSK-083 iter-1 → pass` (H:0 M:0 L:0) — [TSK-083-iter-1.md](../code_quality/reports/TSK-083-iter-1.md)
+- 2026-05-27 — `review TSK-085 iter-1 → pass` (H:0 M:0 L:1) — [TSK-085-iter-1.md](../code_quality/reports/TSK-085-iter-1.md)
+- 2026-05-27 — `review TSK-086 iter-1 → pass` (H:0 M:0 L:0) — [TSK-086-iter-1.md](../code_quality/reports/TSK-086-iter-1.md)
+- 2026-05-27 — `review TSK-164 iter-1 → pass` (H:0 M:0 L:0) — [TSK-164-iter-1.md](../code_quality/reports/TSK-164-iter-1.md)
+- 2026-05-27 — `review TSK-165 iter-1 → pass` (H:0 M:0 L:0) — [TSK-165-iter-1.md](../code_quality/reports/TSK-165-iter-1.md)
+- 2026-05-27 — `review TSK-166 iter-1 → pass` (H:0 M:0 L:0) — [TSK-166-iter-1.md](../code_quality/reports/TSK-166-iter-1.md)
+- 2026-05-27 — `review TSK-167 iter-1 → pass` (H:0 M:0 L:0) — [TSK-167-iter-1.md](../code_quality/reports/TSK-167-iter-1.md)
+
+## 2026-05-27 — review Wave A12a batch (TSK-251 orchestrator)
+**Agente:** code-reviewer (code-reviewer@2.12.0)
+**Wave scope:** `src/backend/src/main/kotlin/com/valueinvesting/webapp/config/**`
+**Batch:** 23/23 TSK reviewed
+**Verdict counts:** pass=23, conditional=0, reject=0
+**Digest:** [wave-12a-be-platform-digest.md](../code_quality/reports/wave-12a-be-platform-digest.md)
+
+- 2026-05-27 — `review TSK-029 iter-1 → pass` (H:0 M:0 L:0) — [TSK-029-iter-1.md](../code_quality/reports/TSK-029-iter-1.md)
+- 2026-05-27 — `review TSK-050 iter-1 → pass` (H:0 M:0 L:0) — [TSK-050-iter-1.md](../code_quality/reports/TSK-050-iter-1.md)
+- 2026-05-27 — `review TSK-051 iter-1 → pass` (H:0 M:0 L:0) — [TSK-051-iter-1.md](../code_quality/reports/TSK-051-iter-1.md)
+- 2026-05-27 — `review TSK-052 iter-1 → pass` (H:0 M:0 L:0) — [TSK-052-iter-1.md](../code_quality/reports/TSK-052-iter-1.md)
+- 2026-05-27 — `review TSK-058 iter-1 → pass` (H:0 M:0 L:0) — [TSK-058-iter-1.md](../code_quality/reports/TSK-058-iter-1.md)
+- 2026-05-27 — `review TSK-059 iter-1 → pass` (H:0 M:0 L:0) — [TSK-059-iter-1.md](../code_quality/reports/TSK-059-iter-1.md)
+- 2026-05-27 — `review TSK-060 iter-1 → pass` (H:0 M:0 L:0) — [TSK-060-iter-1.md](../code_quality/reports/TSK-060-iter-1.md)
+- 2026-05-27 — `review TSK-064 iter-1 → pass` (H:0 M:0 L:0) — [TSK-064-iter-1.md](../code_quality/reports/TSK-064-iter-1.md)
+- 2026-05-27 — `review TSK-065 iter-1 → pass` (H:0 M:0 L:0) — [TSK-065-iter-1.md](../code_quality/reports/TSK-065-iter-1.md)
+- 2026-05-27 — `review TSK-067 iter-1 → pass` (H:0 M:0 L:0) — [TSK-067-iter-1.md](../code_quality/reports/TSK-067-iter-1.md)
+- 2026-05-27 — `review TSK-087 iter-1 → pass` (H:0 M:0 L:0) — [TSK-087-iter-1.md](../code_quality/reports/TSK-087-iter-1.md)
+- 2026-05-27 — `review TSK-089 iter-1 → pass` (H:0 M:0 L:0) — [TSK-089-iter-1.md](../code_quality/reports/TSK-089-iter-1.md)
+- 2026-05-27 — `review TSK-143 iter-1 → pass` (H:0 M:0 L:0) — [TSK-143-iter-1.md](../code_quality/reports/TSK-143-iter-1.md)
+- 2026-05-27 — `review TSK-144 iter-1 → pass` (H:0 M:0 L:0) — [TSK-144-iter-1.md](../code_quality/reports/TSK-144-iter-1.md)
+- 2026-05-27 — `review TSK-145 iter-1 → pass` (H:0 M:0 L:0) — [TSK-145-iter-1.md](../code_quality/reports/TSK-145-iter-1.md)
+- 2026-05-27 — `review TSK-146 iter-1 → pass` (H:0 M:0 L:0) — [TSK-146-iter-1.md](../code_quality/reports/TSK-146-iter-1.md)
+- 2026-05-27 — `review TSK-147 iter-1 → pass` (H:0 M:0 L:0) — [TSK-147-iter-1.md](../code_quality/reports/TSK-147-iter-1.md)
+- 2026-05-27 — `review TSK-148 iter-1 → pass` (H:0 M:0 L:0) — [TSK-148-iter-1.md](../code_quality/reports/TSK-148-iter-1.md)
+- 2026-05-27 — `review TSK-149 iter-1 → pass` (H:0 M:0 L:0) — [TSK-149-iter-1.md](../code_quality/reports/TSK-149-iter-1.md)
+- 2026-05-27 — `review TSK-150 iter-1 → pass` (H:0 M:0 L:0) — [TSK-150-iter-1.md](../code_quality/reports/TSK-150-iter-1.md)
+- 2026-05-27 — `review TSK-153 iter-1 → pass` (H:0 M:0 L:0) — [TSK-153-iter-1.md](../code_quality/reports/TSK-153-iter-1.md)
+- 2026-05-27 — `review TSK-170 iter-1 → pass` (H:0 M:0 L:0) — [TSK-170-iter-1.md](../code_quality/reports/TSK-170-iter-1.md)
+- 2026-05-27 — `review TSK-171 iter-1 → pass` (H:0 M:0 L:0) — [TSK-171-iter-1.md](../code_quality/reports/TSK-171-iter-1.md)
+
+## 2026-05-27 — review Wave A7 batch (TSK-246 orchestrator)
+**Agente:** code-reviewer (code-reviewer@2.12.0)
+**Wave scope:** `src/frontend/app/analysis/**`
+**Batch:** 13/13 TSK reviewed
+**Verdict counts:** pass=11, conditional=2, reject=0
+**Digest:** [wave-07-fe-core-pages-digest.md](../code_quality/reports/wave-07-fe-core-pages-digest.md)
+
+- 2026-05-27 — `review TSK-021 iter-1 → pass` (H:0 M:0 L:0) — [TSK-021-iter-1.md](../code_quality/reports/TSK-021-iter-1.md)
+- 2026-05-27 — `review TSK-024 iter-1 → pass` (H:0 M:0 L:2) — [TSK-024-iter-1.md](../code_quality/reports/TSK-024-iter-1.md)
+- 2026-05-27 — `review TSK-027 iter-1 → conditional` (H:0 M:3 L:0) — [TSK-027-iter-1.md](../code_quality/reports/TSK-027-iter-1.md)
+- 2026-05-27 — `review TSK-035 iter-1 → conditional` (H:0 M:2 L:0) — [TSK-035-iter-1.md](../code_quality/reports/TSK-035-iter-1.md)
+- 2026-05-27 — `review TSK-048 iter-1 → pass` (H:0 M:0 L:0) — [TSK-048-iter-1.md](../code_quality/reports/TSK-048-iter-1.md)
+- 2026-05-27 — `review TSK-053 iter-1 → pass` (H:0 M:0 L:0) — [TSK-053-iter-1.md](../code_quality/reports/TSK-053-iter-1.md)
+- 2026-05-27 — `review TSK-055 iter-1 → pass` (H:0 M:0 L:0) — [TSK-055-iter-1.md](../code_quality/reports/TSK-055-iter-1.md)
+- 2026-05-27 — `review TSK-056 iter-1 → pass` (H:0 M:0 L:0) — [TSK-056-iter-1.md](../code_quality/reports/TSK-056-iter-1.md)
+- 2026-05-27 — `review TSK-088 iter-1 → pass` (H:0 M:0 L:0) — [TSK-088-iter-1.md](../code_quality/reports/TSK-088-iter-1.md)
+- 2026-05-27 — `review TSK-151 iter-1 → pass` (H:0 M:0 L:0) — [TSK-151-iter-1.md](../code_quality/reports/TSK-151-iter-1.md)
+- 2026-05-27 — `review TSK-152 iter-1 → pass` (H:0 M:0 L:0) — [TSK-152-iter-1.md](../code_quality/reports/TSK-152-iter-1.md)
+- 2026-05-27 — `review TSK-168 iter-1 → pass` (H:0 M:0 L:0) — [TSK-168-iter-1.md](../code_quality/reports/TSK-168-iter-1.md)
+- 2026-05-27 — `review TSK-169 iter-1 → pass` (H:0 M:0 L:0) — [TSK-169-iter-1.md](../code_quality/reports/TSK-169-iter-1.md)
+
+## 2026-05-27 — review Wave A3 batch (TSK-242 orchestrator)
+**Agente:** code-reviewer (code-reviewer@2.12.0)
+**Wave scope:** `src/backend/src/main/kotlin/com/valueinvesting/webapp/ruleengine/**`
+**Batch:** 16/16 TSK reviewed
+**Verdict counts:** pass=15, conditional=1, reject=0
+**Digest:** [wave-03-be-ruleengine-digest.md](../code_quality/reports/wave-03-be-ruleengine-digest.md)
+
+- 2026-05-27 — `review TSK-012 iter-1 → pass` (H:0 M:0 L:0) — [TSK-012-iter-1.md](../code_quality/reports/TSK-012-iter-1.md)
+- 2026-05-27 — `review TSK-013 iter-1 → pass` (H:0 M:0 L:0) — [TSK-013-iter-1.md](../code_quality/reports/TSK-013-iter-1.md)
+- 2026-05-27 — `review TSK-014 iter-1 → pass` (H:0 M:0 L:1) — [TSK-014-iter-1.md](../code_quality/reports/TSK-014-iter-1.md)
+- 2026-05-27 — `review TSK-015 iter-1 → pass` (H:0 M:0 L:0) — [TSK-015-iter-1.md](../code_quality/reports/TSK-015-iter-1.md)
+- 2026-05-27 — `review TSK-016 iter-1 → pass` (H:0 M:0 L:1) — [TSK-016-iter-1.md](../code_quality/reports/TSK-016-iter-1.md)
+- 2026-05-27 — `review TSK-018 iter-1 → conditional` (H:0 M:1 L:0) — [TSK-018-iter-1.md](../code_quality/reports/TSK-018-iter-1.md)
+- 2026-05-27 — `review TSK-018 iter-2 → pass` (H:0 M:0 L:0) fix:TSK-254 — [TSK-018-iter-2.md](../code_quality/reports/TSK-018-iter-2.md)
+- 2026-05-27 — `review TSK-019 iter-1 → pass` (H:0 M:0 L:0) — [TSK-019-iter-1.md](../code_quality/reports/TSK-019-iter-1.md)
+- 2026-05-27 — `review TSK-020 iter-1 → pass` (H:0 M:0 L:0) — [TSK-020-iter-1.md](../code_quality/reports/TSK-020-iter-1.md)
+- 2026-05-27 — `review TSK-023 iter-1 → pass` (H:0 M:0 L:0) — [TSK-023-iter-1.md](../code_quality/reports/TSK-023-iter-1.md)
+- 2026-05-27 — `review TSK-026 iter-1 → pass` (H:0 M:0 L:0) — [TSK-026-iter-1.md](../code_quality/reports/TSK-026-iter-1.md)
+- 2026-05-27 — `review TSK-044 iter-1 → pass` (H:0 M:0 L:0) — [TSK-044-iter-1.md](../code_quality/reports/TSK-044-iter-1.md)
+- 2026-05-27 — `review TSK-045 iter-1 → pass` (H:0 M:0 L:0) — [TSK-045-iter-1.md](../code_quality/reports/TSK-045-iter-1.md)
+- 2026-05-27 — `review TSK-046 iter-1 → pass` (H:0 M:0 L:0) — [TSK-046-iter-1.md](../code_quality/reports/TSK-046-iter-1.md)
+- 2026-05-27 — `review TSK-047 iter-1 → pass` (H:0 M:0 L:0) — [TSK-047-iter-1.md](../code_quality/reports/TSK-047-iter-1.md)
+- 2026-05-27 — `review TSK-049 iter-1 → pass` (H:0 M:0 L:0) — [TSK-049-iter-1.md](../code_quality/reports/TSK-049-iter-1.md)
+- 2026-05-27 — `review TSK-073 iter-1 → pass` (H:0 M:0 L:1) — [TSK-073-iter-1.md](../code_quality/reports/TSK-073-iter-1.md)
+
+
+## 2026-05-27 — review Wave A12b batch (TSK-262 orchestrator)
+**Agente:** code-reviewer (code-reviewer@2.12.0)
+**Wave scope:** `src/backend/src/test/**`
+**Batch:** 23/23 TSK reviewed
+**Verdict counts:** pass=23, conditional=0, reject=0
+**Digest:** [wave-12b-qa-platform-digest.md](../code_quality/reports/wave-12b-qa-platform-digest.md)
+
+- 2026-05-27 — `review TSK-172 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.91) | scope_excluded se FE
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: ruleset_gap, scope_excluded (se applicabile)
+  - Report: [code_quality/reports/TSK-172-iter-1.md](../code_quality/reports/TSK-172-iter-1.md)
+- 2026-05-27 — `review TSK-173 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.91) | scope_excluded se FE
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: ruleset_gap, scope_excluded (se applicabile)
+  - Report: [code_quality/reports/TSK-173-iter-1.md](../code_quality/reports/TSK-173-iter-1.md)
+- 2026-05-27 — `review TSK-174 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.91) | scope_excluded se FE
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: ruleset_gap, scope_excluded (se applicabile)
+  - Report: [code_quality/reports/TSK-174-iter-1.md](../code_quality/reports/TSK-174-iter-1.md)
+- 2026-05-27 — `review TSK-175 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.91) | scope_excluded se FE
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: ruleset_gap, scope_excluded (se applicabile)
+  - Report: [code_quality/reports/TSK-175-iter-1.md](../code_quality/reports/TSK-175-iter-1.md)
+- 2026-05-27 — `review TSK-176 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.91) | scope_excluded se FE
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: ruleset_gap, scope_excluded (se applicabile)
+  - Report: [code_quality/reports/TSK-176-iter-1.md](../code_quality/reports/TSK-176-iter-1.md)
+- 2026-05-27 — `review TSK-178 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.91) | scope_excluded se FE
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: ruleset_gap, scope_excluded (se applicabile)
+  - Report: [code_quality/reports/TSK-178-iter-1.md](../code_quality/reports/TSK-178-iter-1.md)
+- 2026-05-27 — `review TSK-179 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.91) | scope_excluded se FE
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: ruleset_gap, scope_excluded (se applicabile)
+  - Report: [code_quality/reports/TSK-179-iter-1.md](../code_quality/reports/TSK-179-iter-1.md)
+- 2026-05-27 — `review TSK-180 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.91) | scope_excluded se FE
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: ruleset_gap, scope_excluded (se applicabile)
+  - Report: [code_quality/reports/TSK-180-iter-1.md](../code_quality/reports/TSK-180-iter-1.md)
+- 2026-05-27 — `review TSK-181 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.91) | scope_excluded se FE
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: ruleset_gap, scope_excluded (se applicabile)
+  - Report: [code_quality/reports/TSK-181-iter-1.md](../code_quality/reports/TSK-181-iter-1.md)
+- 2026-05-27 — `review TSK-182 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.91) | scope_excluded se FE
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: ruleset_gap, scope_excluded (se applicabile)
+  - Report: [code_quality/reports/TSK-182-iter-1.md](../code_quality/reports/TSK-182-iter-1.md)
+- 2026-05-27 — `review TSK-183 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.91) | scope_excluded se FE
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: ruleset_gap, scope_excluded (se applicabile)
+  - Report: [code_quality/reports/TSK-183-iter-1.md](../code_quality/reports/TSK-183-iter-1.md)
+- 2026-05-27 — `review TSK-196 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.91) | scope_excluded se FE
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: ruleset_gap, scope_excluded (se applicabile)
+  - Report: [code_quality/reports/TSK-196-iter-1.md](../code_quality/reports/TSK-196-iter-1.md)
+- 2026-05-27 — `review TSK-198 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.91) | scope_excluded se FE
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: ruleset_gap, scope_excluded (se applicabile)
+  - Report: [code_quality/reports/TSK-198-iter-1.md](../code_quality/reports/TSK-198-iter-1.md)
+- 2026-05-27 — `review TSK-200 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.91) | scope_excluded se FE
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: ruleset_gap, scope_excluded (se applicabile)
+  - Report: [code_quality/reports/TSK-200-iter-1.md](../code_quality/reports/TSK-200-iter-1.md)
+- 2026-05-27 — `review TSK-202 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.91) | scope_excluded se FE
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: ruleset_gap, scope_excluded (se applicabile)
+  - Report: [code_quality/reports/TSK-202-iter-1.md](../code_quality/reports/TSK-202-iter-1.md)
+- 2026-05-27 — `review TSK-204 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.91) | scope_excluded se FE
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: ruleset_gap, scope_excluded (se applicabile)
+  - Report: [code_quality/reports/TSK-204-iter-1.md](../code_quality/reports/TSK-204-iter-1.md)
+- 2026-05-27 — `review TSK-208 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.91) | scope_excluded se FE
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: ruleset_gap, scope_excluded (se applicabile)
+  - Report: [code_quality/reports/TSK-208-iter-1.md](../code_quality/reports/TSK-208-iter-1.md)
+- 2026-05-27 — `review TSK-209 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.91) | scope_excluded se FE
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: ruleset_gap, scope_excluded (se applicabile)
+  - Report: [code_quality/reports/TSK-209-iter-1.md](../code_quality/reports/TSK-209-iter-1.md)
+- 2026-05-27 — `review TSK-210 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.91) | scope_excluded se FE
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: ruleset_gap, scope_excluded (se applicabile)
+  - Report: [code_quality/reports/TSK-210-iter-1.md](../code_quality/reports/TSK-210-iter-1.md)
+- 2026-05-27 — `review TSK-212 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.91) | scope_excluded se FE
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: ruleset_gap, scope_excluded (se applicabile)
+  - Report: [code_quality/reports/TSK-212-iter-1.md](../code_quality/reports/TSK-212-iter-1.md)
+- 2026-05-27 — `review TSK-214 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.91) | scope_excluded se FE
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: ruleset_gap, scope_excluded (se applicabile)
+  - Report: [code_quality/reports/TSK-214-iter-1.md](../code_quality/reports/TSK-214-iter-1.md)
+- 2026-05-27 — `review TSK-216 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.91) | scope_excluded se FE
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: ruleset_gap, scope_excluded (se applicabile)
+  - Report: [code_quality/reports/TSK-216-iter-1.md](../code_quality/reports/TSK-216-iter-1.md)
+- 2026-05-27 — `review TSK-218 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.91) | scope_excluded se FE
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: ruleset_gap, scope_excluded (se applicabile)
+  - Report: [code_quality/reports/TSK-218-iter-1.md](../code_quality/reports/TSK-218-iter-1.md)
+
+## [2026-05-27] review | Wave A8 FE Shared UI & lib (TSK-247)
+**Agente:** code-reviewer
+**Batch:** TSK-184,185,186,187,188,189,190,191,192,193,194,195,197,199,201,203,205,206,207,211,213,215,217,239 (24/24)
+**Verdict:** pass 24 | conditional 0 | reject 0
+**Digest:** [code_quality/reports/wave-08-fe-shared-ui-digest.md](../code_quality/reports/wave-08-fe-shared-ui-digest.md)
+**Orchestrator:** TSK-247 → done
+
+- 2026-05-27 22:50 — `review TSK-184 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.88)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: scope_excluded
+  - Report: [code_quality/reports/TSK-184-iter-1.md](../code_quality/reports/TSK-184-iter-1.md)
+- 2026-05-27 22:50 — `review TSK-185 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.88)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Report: [code_quality/reports/TSK-185-iter-1.md](../code_quality/reports/TSK-185-iter-1.md)
+- 2026-05-27 22:50 — `review TSK-186 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.88)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: scope_excluded
+  - Report: [code_quality/reports/TSK-186-iter-1.md](../code_quality/reports/TSK-186-iter-1.md)
+- 2026-05-27 22:50 — `review TSK-187 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.88)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Report: [code_quality/reports/TSK-187-iter-1.md](../code_quality/reports/TSK-187-iter-1.md)
+- 2026-05-27 22:50 — `review TSK-188 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.88)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Report: [code_quality/reports/TSK-188-iter-1.md](../code_quality/reports/TSK-188-iter-1.md)
+- 2026-05-27 22:50 — `review TSK-189 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.88)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: scope_excluded
+  - Report: [code_quality/reports/TSK-189-iter-1.md](../code_quality/reports/TSK-189-iter-1.md)
+- 2026-05-27 22:50 — `review TSK-190 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.88)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: scope_excluded
+  - Report: [code_quality/reports/TSK-190-iter-1.md](../code_quality/reports/TSK-190-iter-1.md)
+- 2026-05-27 22:50 — `review TSK-191 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.88)
+  - Finding: {high: 0, medium: 0, low: 3}, dedup: 3
+  - Report: [code_quality/reports/TSK-191-iter-1.md](../code_quality/reports/TSK-191-iter-1.md)
+- 2026-05-27 22:50 — `review TSK-192 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.88)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: scope_excluded
+  - Report: [code_quality/reports/TSK-192-iter-1.md](../code_quality/reports/TSK-192-iter-1.md)
+- 2026-05-27 22:50 — `review TSK-193 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.88)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: scope_excluded
+  - Report: [code_quality/reports/TSK-193-iter-1.md](../code_quality/reports/TSK-193-iter-1.md)
+- 2026-05-27 22:50 — `review TSK-194 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.88)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Report: [code_quality/reports/TSK-194-iter-1.md](../code_quality/reports/TSK-194-iter-1.md)
+- 2026-05-27 22:50 — `review TSK-195 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.88)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Report: [code_quality/reports/TSK-195-iter-1.md](../code_quality/reports/TSK-195-iter-1.md)
+- 2026-05-27 22:50 — `review TSK-197 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.88)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Report: [code_quality/reports/TSK-197-iter-1.md](../code_quality/reports/TSK-197-iter-1.md)
+- 2026-05-27 22:50 — `review TSK-199 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.88)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Report: [code_quality/reports/TSK-199-iter-1.md](../code_quality/reports/TSK-199-iter-1.md)
+- 2026-05-27 22:50 — `review TSK-201 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.88)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Report: [code_quality/reports/TSK-201-iter-1.md](../code_quality/reports/TSK-201-iter-1.md)
+- 2026-05-27 22:50 — `review TSK-203 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.88)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Report: [code_quality/reports/TSK-203-iter-1.md](../code_quality/reports/TSK-203-iter-1.md)
+- 2026-05-27 22:50 — `review TSK-205 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.88)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Report: [code_quality/reports/TSK-205-iter-1.md](../code_quality/reports/TSK-205-iter-1.md)
+- 2026-05-27 22:50 — `review TSK-206 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.88)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Report: [code_quality/reports/TSK-206-iter-1.md](../code_quality/reports/TSK-206-iter-1.md)
+- 2026-05-27 22:50 — `review TSK-207 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.88)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: scope_excluded
+  - Report: [code_quality/reports/TSK-207-iter-1.md](../code_quality/reports/TSK-207-iter-1.md)
+- 2026-05-27 22:50 — `review TSK-211 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.88)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Report: [code_quality/reports/TSK-211-iter-1.md](../code_quality/reports/TSK-211-iter-1.md)
+- 2026-05-27 22:50 — `review TSK-213 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.88)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Report: [code_quality/reports/TSK-213-iter-1.md](../code_quality/reports/TSK-213-iter-1.md)
+- 2026-05-27 22:50 — `review TSK-215 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.88)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Report: [code_quality/reports/TSK-215-iter-1.md](../code_quality/reports/TSK-215-iter-1.md)
+- 2026-05-27 22:50 — `review TSK-217 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.88)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: scope_excluded
+  - Report: [code_quality/reports/TSK-217-iter-1.md](../code_quality/reports/TSK-217-iter-1.md)
+- 2026-05-27 22:50 — `review TSK-239 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.88)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: scope_excluded
+  - Report: [code_quality/reports/TSK-239-iter-1.md](../code_quality/reports/TSK-239-iter-1.md)
+
+## 2026-05-27 — review Wave A4b batch (TSK-264 orchestrator)
+**Agente:** code-reviewer (code-reviewer@2.12.0)
+**Wave scope:** `src/backend/src/main/kotlin/com/valueinvesting/webapp/llm/**`
+**Batch:** 17/17 TSK reviewed
+**Verdict counts:** pass=14, conditional=3, reject=0
+**Digest:** [wave-04b-be-deep-llm-digest.md](../code_quality/reports/wave-04b-be-deep-llm-digest.md)
+
+- 2026-05-27 — `review TSK-114 iter-1 → pass` (H:0 M:0 L:0) — [TSK-114-iter-1.md](../code_quality/reports/TSK-114-iter-1.md)
+- 2026-05-27 — `review TSK-115 iter-1 → pass` (H:0 M:0 L:0) — [TSK-115-iter-1.md](../code_quality/reports/TSK-115-iter-1.md)
+- 2026-05-27 — `review TSK-116 iter-1 → pass` (H:0 M:0 L:0) — [TSK-116-iter-1.md](../code_quality/reports/TSK-116-iter-1.md)
+- 2026-05-27 — `review TSK-117 iter-1 → pass` (H:0 M:0 L:0) — [TSK-117-iter-1.md](../code_quality/reports/TSK-117-iter-1.md)
+- 2026-05-27 — `review TSK-118 iter-1 → pass` (H:0 M:0 L:0) — [TSK-118-iter-1.md](../code_quality/reports/TSK-118-iter-1.md)
+- 2026-05-27 — `review TSK-121 iter-1 → pass` (H:0 M:0 L:0) — [TSK-121-iter-1.md](../code_quality/reports/TSK-121-iter-1.md)
+- 2026-05-27 — `review TSK-122 iter-1 → pass` (H:0 M:0 L:0) — [TSK-122-iter-1.md](../code_quality/reports/TSK-122-iter-1.md)
+- 2026-05-27 — `review TSK-123 iter-1 → pass` (H:0 M:0 L:0) — [TSK-123-iter-1.md](../code_quality/reports/TSK-123-iter-1.md)
+- 2026-05-27 — `review TSK-124 iter-1 → pass` (H:0 M:0 L:0) — [TSK-124-iter-1.md](../code_quality/reports/TSK-124-iter-1.md)
+- 2026-05-27 — `review TSK-156 iter-1 → conditional` (H:0 M:2 L:1) — [TSK-156-iter-1.md](../code_quality/reports/TSK-156-iter-1.md)
+- 2026-05-27 — `review TSK-157 iter-1 → pass` (H:0 M:0 L:0) — [TSK-157-iter-1.md](../code_quality/reports/TSK-157-iter-1.md)
+- 2026-05-27 — `review TSK-158 iter-1 → pass` (H:0 M:0 L:0) — [TSK-158-iter-1.md](../code_quality/reports/TSK-158-iter-1.md)
+- 2026-05-27 — `review TSK-159 iter-1 → conditional` (H:0 M:1 L:0) — [TSK-159-iter-1.md](../code_quality/reports/TSK-159-iter-1.md)
+- 2026-05-27 — `review TSK-160 iter-1 → pass` (H:0 M:0 L:0) — [TSK-160-iter-1.md](../code_quality/reports/TSK-160-iter-1.md)
+- 2026-05-27 — `review TSK-161 iter-1 → pass` (H:0 M:0 L:0) — [TSK-161-iter-1.md](../code_quality/reports/TSK-161-iter-1.md)
+- 2026-05-27 — `review TSK-162 iter-1 → conditional` (H:0 M:1 L:0) — [TSK-162-iter-1.md](../code_quality/reports/TSK-162-iter-1.md)
+- 2026-05-27 — `review TSK-163 iter-1 → pass` (H:0 M:0 L:0) — [TSK-163-iter-1.md](../code_quality/reports/TSK-163-iter-1.md)
+
+## 2026-05-27 23:10 — develop TSK-257
+**Agente:** fe-dev
+**TSK:** [[../management/kanban/EP-019-cqrl-bonifica-generale/US-085-refactor-findings-cqrl/TSK-257]]
+**Layer:** fe
+**Code path:** ./src/frontend/
+**Files touched:** 7 (app/(auth)/_lib/form-errors.ts, app/(auth)/_lib/form-errors.test.ts, app/(auth)/login/page.tsx, app/(auth)/register/page.tsx, lib/stores/useAuthStore.ts, lib/stores/useAuthStore.test.ts, middleware.ts)
+**Commit:** n/a (no commit per PATTERN §7 r.14 — gate umano)
+**DoD:** pass
+**Note:** Wave A6 fix dei 3 conditional. (1) TSK-034: nuovo helper `getAuthFormErrorMessage(err, ctx)` mappa ProblemDetail.type → HTTP status → fallback IT, mai propaga `err.message` raw o `includes('401')`. (2) TSK-043: `setSessionExpired(value)` ora scrive/elimina il cookie `sessionExpired` consumato dal middleware `?expired=true`; `login()` ripulisce il cookie a sessione nuova. (3) TSK-222: documentata in `middleware.ts §withCspHeaders` la limitazione del nonce con `output: 'export'` (gap `fe-middleware-static-export-conflict` invariato; fix completo richiede ADR — fuori scope). Vitest 451/451 verdi (50 sul perimetro auth, 14 nuovi sul helper). Playwright e2e `auth-watchlist.spec.ts` non eseguiti (richiede BE up). Lint pre-esistente rotto (next 16 `next lint` cerca dir `lint`) — non introdotto da queste modifiche.
+
+## 2026-05-27 23:05 — develop TSK-254
+**Agente:** be-dev
+**TSK:** [[../management/kanban/EP-019-cqrl-bonifica-generale/US-085-refactor-findings-cqrl/TSK-254]]
+**Layer:** be
+**Code path:** ./src/backend/src/main/kotlin/com/valueinvesting/webapp/ruleengine/
+**Files touched:** 2 (calculators/DcfCalculator.kt, ../test/.../calculators/DcfCalculatorTest.kt)
+**Commit:** n/a (no commit per PATTERN §7 r.14 — gate umano)
+**DoD:** pass
+**Note:** Fase B Wave A3 fix del solo finding `conditional` di `wave-03-be-ruleengine-digest.md` (TSK-018-iter-1, medium). `DcfCalculator.calculate` ora rispetta **strict** il `forcedMethod`: se `forcedMethod=GREENWALD` ma `greenwald.usable=false` (o `forcedMethod=FCF_FALLBACK` ma `fcf.usable=false`), early-return `DcfResult(method=NOT_APPLICABLE, intrinsicValue=null)` con rationale che cita esplicitamente il metodo forzato e disclama l'assenza di fallback cross-method — risolve il rischio di disallineamento con `dcfMethodSource=USER_OVERRIDE` in `AnalyzeTickerService` (che espone `dcfMethod=forcedMethod` per `USER_OVERRIDE` e pubblicava silenziosamente `GREENWALD` su un valore calcolato via FCF). Aggiornati i test: 3 nuovi (`forced GREENWALD with no PPE → NOT_APPLICABLE`, `forced FCF_FALLBACK with insufficient FCF history → NOT_APPLICABLE`, `forced GREENWALD with sufficient data is honored` come control); helper `syntheticDataset` esteso con flag `includePpe`. `gradle test --tests DcfCalculatorTest` verde 8/8 (0 failures, 0 errors). **Incidente di repo state:** working tree contiene 14+ file modificati e 6 untracked appartenenti ad altri TSK in-flight (TSK-033/041 anti-enum + EP-018 CSP/SecurityHeaders + EP-LLM budget guard) — il dev-protocol vieta i fix opportunistici (§7 r.8), ma la compilazione era bloccata da quegli stessi diff. Per isolare i test ho usato un ciclo `git stash push` + `git checkout HEAD -- src/backend/` + `apply` di tutti gli stash al ripristino: tutti i diff in-flight risultano ripristinati a fine sessione (verificato con `git status` + `git diff`). Nessun commit eseguito. Re-`/review` TSK-018 raccomandato (loop iter-2/3 secondo `code_quality.max_iterations: 3`).
+
+## 2026-05-27 23:25 — develop TSK-252
+**Agente:** be-dev
+**TSK:** [[../management/kanban/EP-019-cqrl-bonifica-generale/US-085-refactor-findings-cqrl/TSK-252]]
+**Layer:** be
+**Code path:** ./src/backend/src/main/kotlin/com/valueinvesting/webapp/ (security/ + service/ + api/error/ + config/)
+**Files touched:** 10 (security/SecurityConfig.kt, config/FlatteningProblemDetailHttpMessageConverter.kt, config/ProblemDetailMvcConfig.kt, config/AppProperties.kt, config/SecurityHeadersConfig.kt, service/AuthService.kt, service/InvalidRefreshTokenException.kt, api/error/GlobalExceptionHandler.kt, test/.../service/AuthServiceTest.kt, test/.../config/SecurityHeadersConfigTest.kt)
+**Commit:** n/a (no commit per PATTERN §7 r.14 — gate umano)
+**DoD:** partial — codice + test aggiornati, lint clean su tutti i file toccati; esecuzione `gradle test` NON disponibile in sessione (nessun gradle wrapper né binario in PATH). DoD del TSK richiede "Test layer verdi": verifica delegata a CI / gate umano.
+**Note:** Fase B Wave A1 fix dei 3 finding `conditional` di `wave-01-be-auth-security-digest.md` (tutti medium, anti-enum + RFC 9457 parity). **(1) TSK-033** — `SecurityConfig.authenticationEntryPoint` / `accessDeniedHandler` non emettono più JSON ad-hoc: ora costruiscono il body via `ProblemDetailsMapper.build(...)` e lo serializzano via `FlatteningProblemDetailHttpMessageConverter` (ADR-012) wrappando `HttpServletResponse` in `ServletServerHttpResponse`, così i 401/403 emessi dalla filter chain sono byte-identical a quelli prodotti da `GlobalExceptionHandler` (top-level extension flattening, timestamp + requestId + correlationId da MDC). Il converter è ora `@Component` Spring-managed, riusato sia da `ProblemDetailMvcConfig.extendMessageConverters` (path MVC) sia dai due entry-point handler (path servlet chain). **(2) TSK-041** — `InvalidRefreshTokenException` ridisegnato anti-enum: signature `(val reason: String)` con `RuntimeException(CLIENT_DETAIL)` costante uniforme ("Invalid refresh token"); `AuthService.refresh` solleva con codici stabili (`not_found` / `revoked` / `sliding_expired` / `absolute_cap` / `user_unknown`); `GlobalExceptionHandler.handleInvalidRefreshToken` logga `ex.reason` server-side a WARN e usa `CLIENT_DETAIL` come `detail` ProblemDetail (mai `ex.message` / `ex.reason` esposti al client). `AuthServiceTest` aggiornato per asserire su `.reason` invece che `hasMessageContaining(...)` cause-specific. **(3) TSK-221** — `SecurityHeadersConfig` aggiunge property flag `app.security.csp.strict-script-src` (default `false`) e costante `STRICT_CONTENT_SECURITY_POLICY` che droppa `'unsafe-inline'` da `script-src` mantenendo style-src per Tailwind; `activePolicy()` seleziona dinamicamente. KDoc estesa documenta il vincolo Next static export (gap `fe-middleware-static-export-conflict` invariato) e il prerequisito (middleware nonce upstream) per attivare strict-mode senza rompere il bootstrap. Aggiunti 3 test (strict variant constant, activePolicy false→default, true→strict). **Scope expansion documentata:** il TSK frontmatter restringe `code_path` a `security/**`, ma i 3 finding richiedevano modifiche correlate in `config/` + `service/` + `api/error/` (es. `InvalidRefreshTokenException` vive in `service/`, `SecurityHeadersConfig` in `config/`); l'orchestrator ha esplicitamente listato i 3 fix nel prompt — interpretato come "dominio sicurezza" anziché letterale path. Nessun TSK storico toccato. Re-`/review` raccomandato su TSK-033, TSK-041, TSK-221 per chiudere il loop CQRL iter-2.
+
+## 2026-05-27 23:55 — develop TSK-255
+**Agente:** be-dev
+**TSK:** [[../management/kanban/EP-019-cqrl-bonifica-generale/US-085-refactor-findings-cqrl/TSK-255]]
+**Layer:** be
+**Code path:** ./src/backend/src/main/kotlin/com/valueinvesting/webapp/llm/ + service/ (EmbeddingService, MungerInversionAnalyzer, DeepAnalysisService) + api/error/GlobalExceptionHandler + persistence/repository/LlmCostCounterRepository + test/.../api/LlmBudgetAdminIT
+**Files touched:** vedi commit (15 file: 5 new + 10 edits)
+**Commit:** n/a (no commit per PATTERN §7 r.14 — gate umano)
+**DoD:** partial — codice + IT scritti + compile verde (`gradle compileKotlin` + `compileTestKotlin`); unit test impattati verdi (MungerInversionAnalyzerTest 25/25, *.llm.* WebMvc verdi). 4 IT esistenti falliscono per "Could not find a valid Docker environment" (Filing10KQDownloaderServiceTest, FilingRagServiceIntegrationTest, NewsSentimentServiceTest, PriceActionAnalyzerTest) — pre-esistente, NON regressione: Docker non disponibile in sessione. LlmBudgetAdminIT (TSK-159) richiede Testcontainers → esecuzione delegata a CI / gate umano con Docker.
+**Note:** Fase B wave-04 fix dei 4 finding `conditional` (wave-04-be-deep-analysis-digest + wave-04b-be-deep-llm-digest). **(1) TSK-100 — EmbeddingService timeout wiring:** sostituito il `RestClient.Builder` default-factory con `JdkClientHttpRequestFactory` configurato (connectTimeout + readTimeout = `embeddings.sidecar.timeout-seconds`); un sidecar bloccato non potrà più pinnare i thread RAG indefinitamente. **(2) TSK-156 — ADR-019 wiring:** creati 5 file in `llm/` (LlmPricingProperties @ConfigurationProperties `llm.budget.cost.*`, LlmCostCalculator object stateless `cost = (in×rate_in + out×rate_out)/1000` scale 6 HALF_UP, LlmFrozenException distinta da LlmException per non triggerare retry/circuit-breaker, LlmBudgetGuard pre-call freeze enforcement, LlmCostCounterService @Transactional con INSERT llm_call_log + UPSERT atomico llm_cost_counter ON CONFLICT (year_month) DO UPDATE — fail-soft try/catch perché la response Anthropic è già stata consegnata); cablati su `AnthropicRestClient` (constructor +budgetGuard, +costCounterService; `complete()` chiama `budgetGuard.checkOrThrow()` PRIMA del rate-limit/CB/retry chain, `executeHttpCall` registra latenza+token via `recordTelemetry()` post-parsing); applicato anche `AnthropicProperties.timeoutSeconds` via JdkClientHttpRequestFactory (finding 3 review iter-1); `AnthropicConfig` @EnableConfigurationProperties +LlmPricingProperties e inietta i due nuovi bean; `GlobalExceptionHandler` +`@ExceptionHandler(LlmFrozenException)` → 503 type `https://api/errors/llm-frozen-by-admin` con extension `reason=llm_frozen_by_admin` (distinto da generic LlmUnavailable per FE banner ops); `LlmCostCounterRepository` +native PostgreSQL UPSERT `@Modifying @Query` per atomicità su concurrent callers. **(3) TSK-162 — ROE context wiring:** `MungerInversionAnalyzer.analyze` accetta ora `roeFiveYearAvg`/`roeTenYearAvg` (default null, signature backward-compat); pre-pende `MungerPromptContextBuilder.buildRoeContext(...)` sia ad ogni `callLlm(query, context, roeContext, ticker)` sia a `buildSynthesisInput(queryResults, roeContext, ticker)` (dual-lookback ADR-020 visibile a livello query e synthesis); `DeepAnalysisService` passa `roe5y.average` + `roe10y.average` (già calcolati dalla pipeline Step 1) all'analyzer. **(4) TSK-159 — IT Testcontainers budget admin:** nuovo `LlmBudgetAdminIT` (@SpringBootTest+@Testcontainers PostgreSQL pgvector:pg17) con 7 test: PUT happy path + reflect-by-GET, PUT 0/negative/>10000 → 400 (bean validation), PUT non-admin → 403 (SecurityFilter `/admin/**` hasRole ADMIN), PUT idempotente (updatedAt invariato sul no-op), freeze/unfreeze toggle osservabile via GET. CSRF gestito con `with(csrf())` su PUT/POST (SecurityConfig CSRF cookie-based attivo); `resetState()` ripristina cap=50.00 + `invalidateCache()` + defensive `unfreeze()`. **Drift documentato:** scope TSK frontmatter `secedgar/** + llm/**` esteso anche a `service/EmbeddingService` (TSK-100 esplicito nel prompt orchestrator) + `api/error/GlobalExceptionHandler` (handler richiesto da ADR-019 §6) + `service/MungerInversionAnalyzer`+`DeepAnalysisService` (TSK-162 builder wiring) + `persistence/repository/LlmCostCounterRepository` (UPSERT atomico ADR-019 §2.1) — interpretato come "dominio deep-analysis" anziché letterale path. **Test gap:** la nuova IT LlmBudgetAdminIT + i 4 ITs pre-esistenti richiedono Docker — verifica delegata a CI/gate umano. Nessun TSK storico toccato (solo TSK-255 status/updated). Re-`/review` raccomandato su TSK-100/156/159/162 per chiudere loop CQRL iter-2.
+
+- 2026-05-27 24:15 — `review TSK-033 iter-2 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring 3.5 (conf 0.94)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: none
+  - Report: [code_quality/reports/TSK-033-iter-2.md](../code_quality/reports/TSK-033-iter-2.md)
+
+- 2026-05-27 24:15 — `review TSK-041 iter-2 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring 3.5 (conf 0.95)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: none
+  - Report: [code_quality/reports/TSK-041-iter-2.md](../code_quality/reports/TSK-041-iter-2.md)
+
+- 2026-05-27 24:15 — `review TSK-221 iter-2 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring 3.5 (conf 0.93)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: none
+  - Report: [code_quality/reports/TSK-221-iter-2.md](../code_quality/reports/TSK-221-iter-2.md)
+
+- 2026-05-28 00:12 — `review TSK-100 iter-2 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.92)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: none
+  - Report: [code_quality/reports/TSK-100-iter-2.md](../code_quality/reports/TSK-100-iter-2.md)
+
+- 2026-05-28 00:12 — `review TSK-156 iter-2 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.92)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: ac_observation (cron/AOP vs TSK scope letterale)
+  - Report: [code_quality/reports/TSK-156-iter-2.md](../code_quality/reports/TSK-156-iter-2.md)
+
+- 2026-05-28 00:12 — `review TSK-159 iter-2 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.92)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: ac_observation (Docker required; audit/freeze→503 optional follow-up)
+  - Report: [code_quality/reports/TSK-159-iter-2.md](../code_quality/reports/TSK-159-iter-2.md)
+
+- 2026-05-28 00:12 — `review TSK-162 iter-2 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.92)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: none
+  - Report: [code_quality/reports/TSK-162-iter-2.md](../code_quality/reports/TSK-162-iter-2.md)
+
+- 2026-05-27 21:15 — `review TSK-027 iter-2 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.95)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: none
+  - Fix verified: TSK-258 (`to-user-message.ts`, MoatChecklist skeleton + aria-busy, no raw err.message)
+  - Report: [code_quality/reports/TSK-027-iter-2.md](../code_quality/reports/TSK-027-iter-2.md)
+
+- 2026-05-27 21:15 — `review TSK-035 iter-2 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.x (conf 0.95)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: none
+  - Fix verified: TSK-258 (`to-user-message.ts`, AddToWatchlistButton, watchlist/page, useWatchlistStore)
+  - Report: [code_quality/reports/TSK-035-iter-2.md](../code_quality/reports/TSK-035-iter-2.md)
+
+## 2026-05-27 23:45 — develop TSK-258
+**Agente:** fe-dev
+**TSK:** [[../management/kanban/EP-019-cqrl-bonifica-generale/US-085-refactor-findings-cqrl/TSK-258]]
+**Layer:** fe
+**Code path:** ./src/frontend/
+**Files touched:** 7 (src/frontend/lib/to-user-message.ts [new], src/frontend/lib/__tests__/to-user-message.test.ts [new], src/frontend/components/moat/MoatChecklist.tsx, src/frontend/components/moat/MoatChecklist.test.tsx, src/frontend/components/watchlist/AddToWatchlistButton.tsx, src/frontend/components/watchlist/AddToWatchlistButton.test.tsx [new], src/frontend/app/watchlist/page.tsx, src/frontend/lib/stores/useWatchlistStore.ts)
+**Commit:** n/a (gate umano — no auto-commit)
+**DoD:** pass — TSK-027 finding 1/2 (user_safe_messages) + 3 (loading skeleton + aria-busy) risolti; TSK-035 finding 1/2 (user_safe_messages) risolti via helper condiviso `toUserMessage` (estende pattern EP-015). Vitest: 26/26 verdi (4 file, incluso 12 nuovi test helper + 3 nuovi MoatChecklist + 5 nuovi AddToWatchlistButton). Re-review TSK-027/035 in coda.
+**Note:** Helper `src/frontend/lib/to-user-message.ts` unifica `useScreenerStore.toUserMessage`, `useAnalysisStore.toUserMessage` e `app/(auth)/_lib/form-errors.ts` con precedenza ProblemDetail.type → status → network fallback (mai err.message raw). `useWatchlistStore` migrato sulla stessa helper per coerenza store↔page. TSK-191 (semantic tokens badge/chart) non incluso — opzionale low, fuori budget atomico.
+
+## 2026-05-27 23:50 — develop TSK-256
+**Agente:** be-dev
+**TSK:** [[../management/kanban/EP-019-cqrl-bonifica-generale/US-085-refactor-findings-cqrl/TSK-256]]
+**Layer:** be
+**Code path:** ./src/backend/src/main/kotlin/com/valueinvesting/webapp/universe/
+**Files touched:** 4 (universe/UniverseScreenerService.kt, universe/UniverseProperties.kt, resources/application.yml, test/.../universe/UniverseScreenerServiceTest.kt)
+**Commit:** n/a (no commit per PATTERN §7 r.14 — gate umano)
+**DoD:** pass
+**Note:** Fase B Wave A5 fix dei 2 finding `conditional` di `wave-05-be-screener-top-picks-digest.md` (TSK-126-iter-1, medium+low). **(1) fmp-batch limiter (medium, `kotlin.spring.resilience.external_api_guard`):** `UniverseScreenerService` ora inietta `@Qualifier("fmpBatchRateLimiter") RateLimiter` (BatchResilienceConfig.INSTANCE_NAME = "fmp-batch", cap 300 req/min, timeout 30s) e gate-ia la chiamata `fmpAdapter.screen(...)` con `RateLimiter.decorateSupplier(fmpBatchRateLimiter, ...).get()` DENTRO il fetchFn di `FmpCacheService.getOrFetch` (il token viene consumato solo su cache miss, evitando waste su cache hit). KDoc §RATE LIMITER aggiornata: cita TSK-132 §Motivazione, ADR-016 §4 e specifica l'isolamento dal bucket online `fmp` (FmpResilienceConfig, cap 30 req/min condiviso con UI/REST controllers). Rimosso commento "rimandata". Soddisfa AC TSK-126 "RateLimiter fmp-batch usato (separato da fmp-online)". **(2) cacheTtlHours dead config (low, `kotlin.spring.design.single_responsibility_service`):** rimossa la property `cacheTtlHours: Long = 6` da `UniverseProperties` (mai wired) e l'`init {}` block di warning runtime da `UniverseScreenerService` (dead code). `application.yml §universe` perde la riga `cache-ttl-hours: 6`. KDoc post-data class + commento in YAML documentano che `FmpCacheService.getOrFetch` applica un TTL globale fisso 24h (`FINANCIAL_TTL`, ADR-004 §Cache layer 24h) e che un TTL ridotto per `company-screener` richiederebbe l'estensione di FmpCacheService con override per-endpoint — out-of-scope (universe/** + job/** non possono modificare fmp/**). **Test:** aggiunto `UniverseScreenerServiceTest$fmp-batch rate limiter is acquired before the FMP screener HTTP call on cache miss` che istanzia un `RateLimiter` reale (cap 1M, timeout 0) e verifica via `metrics.availablePermissions` che ogni `screen()` consuma esattamente 1 token (deterministico, refresh period 1min non scatta nel test). Aggiornato il setup del test fixture per passare il nuovo argomento al costruttore. **Build:** `gradle compileKotlin compileTestKotlin` verde; `gradle test --tests UniverseScreenerServiceTest --tests TopValuePicksJobTest` verde (14/14 + 7/7, 0 failures, 0 errors). Re-`/review` raccomandato su TSK-126 per chiudere loop CQRL iter-2.
+
+- 2026-05-28 00:18 — `review TSK-126 iter-2 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: kotlin/spring-boot 3.5 (conf 0.92)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: none
+  - Report: [code_quality/reports/TSK-126-iter-2.md](../code_quality/reports/TSK-126-iter-2.md)
+
+[2026-05-28 01:15] run — giro completo L1-L4: L1 green (17 raw, 0 PDF), L2 amber (74 pagine, 16 gap), L3 amber (18 EP, Q_005 soft), L4 green (265 TSK, Sprint 16 EP-019 6/10 Fase B done) — files touched: 1
+
+
+## [2026-05-28] ingest | giro L1-L4 wiki reconcile post EP-019 CQRL bonifica + factory v2.13
+Pagine create: 0 | Figure: 0 | Aggiornamenti: 2 (agentic-factory-v213, index.md) | Gap nuovi: 0 | Gap chiusi: 0
+
+## 2026-05-28 — kanban reconcile EP-019 (depends_on + waiver slot 3)
+**Agente:** orchestrator (doc-sync pre-commit)
+**TSK:** TSK-252..261, US-084, US-085
+**Note:** `depends_on` normalizzati a prefisso `TSK-`; TSK-253/259/260/261 chiusi `done` no-op (PM waiver); AC US-084/US-085 spuntati; creato `wiki/concepts/parallel-scheduler.md`; fix wikilink `migration-v29` → `migration-v210`.

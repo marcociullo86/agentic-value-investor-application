@@ -1,12 +1,12 @@
-# /run — Dashboard di stato
+---
+description: Mostra dashboard di stato e suggerisce il prossimo agente.
+---
 
-Mostra dashboard di stato e suggerisce il prossimo subagent. Argomento opzionale: focus layer (es. `l3`, `l5`).
+Invoca l'agente `orchestrator` via `Agent`. Passa eventuale argomento come "focus"
+(es. `/run l3` per focus L3). L'orchestrator:
 
-## Esecuzione
-
-1. Delega al subagent **`orchestrator`** (Task tool `subagent_type: orchestrator`, oppure `/orchestrator` in chat).
-2. L'orchestrator applica la skill **`state-scan`**, legge l'ultima entry in `memory/episodic/` se presente.
-3. Output: tabella layer L1–L5, TSK aperti, gap/question, **un solo** suggerimento next-step (nessuna delega automatica).
-4. Append `memory/episodic/YYYY-MM-DD-HH-MM-run.md`.
-
-Non modificare artefatti oltre a memoria episodica e (se `/promote` separato) frontmatter wiki.
+1. Scansiona lo stato del filesystem per i 4 layer.
+2. Legge l'ultima entry di `memory/episodic/` per continuità.
+3. Emette un dashboard tabellare.
+4. Suggerisce il prossimo agente da invocare (mai delega automatica).
+5. Append a `memory/episodic/<YYYY-MM-DD-HH-MM>-run.md`.

@@ -1,9 +1,9 @@
 ---
 type: lint
-date: 2026-05-27
+date: 2026-05-28
 heal_eligible_count: 0
 ---
-# Lint Report — 2026-05-27
+# Lint Report — 2026-05-28
 
 ## Riepilogo
 
@@ -197,6 +197,6 @@ Nessuno. Tutti gli item precedenti marcati come "decisione umana" sono stati ris
 
 ---
 
-**Generato**: wiki-lint agent @ 2026-05-27 12:45 UTC+2
+**Generato**: wiki-lint agent @ 2026-05-27 12:45 UTC+2; reconcile doc @ 2026-05-28 (depends_on TSK-*, wikilink migration-v29/parallel-scheduler, EP-019 waiver)
 **Snapshot precedente**: 2026-05-27 00:27 UTC+2 (82 ERROR / 12 WARNING — stale, corretto in filesystem)
 **Prossimo audit**: ~2026-06-03 (periodico ~1 settimana)

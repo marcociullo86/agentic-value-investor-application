@@ -13,6 +13,7 @@ import { FormErrorSummary } from '@/components/forms/form-error-summary';
 import { FormField } from '@/components/forms/form-field';
 import { register as apiRegister } from '@/lib/api/auth';
 import { useAuthStore } from '@/lib/stores/useAuthStore';
+import { getAuthFormErrorMessage } from '../_lib/form-errors';
 
 const registerSchema = z
   .object({
@@ -73,13 +74,7 @@ export default function RegisterPage(): React.ReactElement {
       await login(data.email, data.password);
       router.push('/');
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Registrazione fallita';
-      if (message.includes('409')) {
-        setServerError('Email già registrata');
-      } else {
-        setServerError(message);
-      }
+      setServerError(getAuthFormErrorMessage(err, 'register'));
     }
   }
 

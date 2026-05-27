@@ -1,0 +1,72 @@
+# ChatGPT (Custom GPT + file tools) adapter manifest (PATTERN §12.1)
+
+adapter_name: chatgpt
+adapter_folder: .chatgpt
+runtime: chatgpt-custom-gpt
+runtime_version_min: "ChatGPT Plus/Team/Enterprise con Custom GPTs"
+maturity: manifest-only
+contract_version: 2.13
+
+mappings:
+  agent:
+    pattern_concept: "Agente specializzato (PATTERN §2)"
+    runtime_construct: "Custom GPT con instructions + Knowledge files (RAG)"
+    file_path_template: ".chatgpt/gpts/{name}.md"
+    invocation: "Crea un Custom GPT per ciascun ruolo; instructions = contenuto file"
+  skill:
+    pattern_concept: "Procedura riusabile"
+    runtime_construct: "Sezione delle Custom GPT instructions o Knowledge file"
+    file_path_template: ".chatgpt/skills/{name}.md"
+  command:
+    pattern_concept: "Slash command"
+    runtime_construct: "Custom Action / Function call configurato nel Custom GPT"
+    file_path_template: ".chatgpt/commands/{name}.md (instructions per l'utente)"
+  tool_read:
+    pattern_concept: "Lettura file"
+    runtime_construct: "Code Interpreter Python read + Knowledge files"
+  tool_write:
+    pattern_concept: "Scrittura file"
+    runtime_construct: "Code Interpreter Python write (output scaricabili)"
+  tool_glob:
+    pattern_concept: "Glob filesystem"
+    runtime_construct: "Code Interpreter Python (sandbox)"
+  tool_bash:
+    pattern_concept: "Shell access"
+    runtime_construct: "Code Interpreter Python subprocess (sandbox limitato)"
+  subagent_fanout:
+    pattern_concept: "Sub-agent fan-out"
+    runtime_construct: "Sequential GPT switching o Custom Actions che chiamano altri GPT"
+    supported: false
+    fallback: "Sequential: l'utente switch fra Custom GPT per ciascun ruolo"
+
+templates: {}  # manifest-only
+
+caveats: |
+  ChatGPT Custom GPT è single-session. Niente filesystem persistente esterno alla sandbox:
+  - Upload preventivo dei file come Knowledge files (max 20 per GPT, ~512MB totali)
+  - Modifiche post-run scaricate manualmente come output
+
+  Per workflow seri, considera l'OpenAI Assistants adapter (`adapters/openai/`).
+
+scaffolding_instructions: |
+  Maturity: manifest-only.
+
+  Scaffolding manuale in v2.13:
+
+  1. Crea un Custom GPT per ciascun ruolo del pattern (orchestrator, wiki-keeper, …):
+     - Vai a chatgpt.com/gpts/editor
+     - Name: "Factory <role>"
+     - Description: "<copia da .claude/agents/<role>.md>"
+     - Instructions: contenuto del corrispondente .claude/agents/<role>.md
+       tradotto via tool conversion table in adapters/README.md
+     - Knowledge files: upload PATTERN.md + factory.config.yaml + wiki/ + management/
+     - Capabilities: Code Interpreter (sì), Web Browse (no), DALL-E (no)
+  2. Salva copy delle instructions in .chatgpt/gpts/<role>.md per versioning.
+  3. (Opzionale) Configura Custom Actions per integrazione con repo locale.
+
+notes: |
+  ChatGPT è l'adapter meno strutturato per uso intensivo della factory.
+  Adatto a: prototipazione rapida, esplorazione, single-user.
+
+  Per uso production o team, preferisci OpenAI Assistants (file_search vector store,
+  multi-thread) o Claude Code (sub-agent nativi, MCP integration).

@@ -1,0 +1,133 @@
+# Cursor adapter manifest (PATTERN §12.1)
+# Mappa i costrutti del pattern llm-wiki++ ai costrutti Cursor (≥0.45).
+
+adapter_name: cursor
+adapter_folder: .cursor
+runtime: cursor
+runtime_version_min: "0.45"
+maturity: full
+contract_version: 2.13
+
+mappings:
+  agent:
+    pattern_concept: "Agente specializzato (PATTERN §2 ruoli)"
+    runtime_construct: "Cursor rules file (.mdc) con frontmatter description + globs/agents"
+    file_path_template: ".cursor/rules/{name}.mdc"
+    invocation: "Activated by file globs or @-mention in chat"
+  skill:
+    pattern_concept: "Procedura riusabile (PATTERN v2.3 'fat skills')"
+    runtime_construct: "Cursor rules file in .cursor/rules/skills/"
+    file_path_template: ".cursor/rules/skills/{name}.mdc"
+    invocation: "Referenced from agents via [[name]] or activated by context"
+  command:
+    pattern_concept: "Slash command per invocazione esplicita"
+    runtime_construct: "Cursor custom command (markdown con istruzioni)"
+    file_path_template: ".cursor/commands/{name}.md"
+    invocation: "/{name} <args>"
+  tool_read:
+    pattern_concept: "Lettura file"
+    runtime_construct: "@<file> (Cursor mention) o built-in Read"
+  tool_write:
+    pattern_concept: "Scrittura file"
+    runtime_construct: "Edit/Apply (Cursor built-in agent mode)"
+  tool_glob:
+    pattern_concept: "Glob filesystem"
+    runtime_construct: "@-mention con wildcard o built-in tool"
+  tool_bash:
+    pattern_concept: "Shell access"
+    runtime_construct: "Terminal embedded (Cursor agent mode)"
+  subagent_fanout:
+    pattern_concept: "Sub-agent fan-out (Agent tool con subagent_type)"
+    runtime_construct: "Cursor 'Compose agent' (parallel) o sequential rules activation"
+    supported: partial
+    fallback: "Sequential rule activation per ciascun sub-task"
+
+templates:
+  agents:
+    - { name: orchestrator,       required: true,  path: .cursor/rules/orchestrator.mdc }
+    - { name: sync-docs,          required: true,  path: .cursor/rules/sync-docs.mdc }
+    - { name: figma-sync,         required: false, path: .cursor/rules/figma-sync.mdc, condition: "wiki_feed_source == figma OR opt_in" }
+    - { name: repo-sync,          required: false, path: .cursor/rules/repo-sync.mdc, condition: "wiki_feed_source == existing-repo OR opt_in" }
+    - { name: wiki-keeper,        required: true,  path: .cursor/rules/wiki-keeper.mdc }
+    - { name: wiki-keeper-worker, required: true,  path: .cursor/rules/wiki-keeper-worker.mdc }
+    - { name: product-manager,    required: true,  path: .cursor/rules/product-manager.mdc }
+    - { name: lead-architect,     required: true,  path: .cursor/rules/lead-architect.mdc }
+    - { name: tpm,                required: true,  path: .cursor/rules/tpm.mdc }
+    - { name: wiki-query,         required: true,  path: .cursor/rules/wiki-query.mdc }
+    - { name: wiki-lint,          required: true,  path: .cursor/rules/wiki-lint.mdc }
+    - { name: be-dev,             required: false, path: .cursor/rules/be-dev.mdc, condition: "routing.be == agent" }
+    - { name: fe-dev,             required: false, path: .cursor/rules/fe-dev.mdc, condition: "routing.fe == agent" }
+    - { name: db-dev,             required: false, path: .cursor/rules/db-dev.mdc, condition: "routing.db == agent" }
+    - { name: qa-dev,             required: false, path: .cursor/rules/qa-dev.mdc, condition: "routing.qa == agent" }
+    - { name: github-publisher,   required: false, path: .cursor/rules/github-publisher.mdc, condition: "kanban_publish.provider == github" }
+    - { name: code-reviewer,      required: false, path: .cursor/rules/code-reviewer.mdc, condition: "code_quality.enabled == true" }
+
+  skills:
+    - { name: ingest-protocol,        required: true,  path: .cursor/rules/skills/ingest-protocol.mdc }
+    - { name: lint-checks,            required: true,  path: .cursor/rules/skills/lint-checks.mdc }
+    - { name: heal-protocol,          required: true,  path: .cursor/rules/skills/heal-protocol.mdc }
+    - { name: propagate-resolution,   required: true,  path: .cursor/rules/skills/propagate-resolution.mdc }
+    - { name: parallel-scheduling,    required: true,  path: .cursor/rules/skills/parallel-scheduling.mdc, condition: "scheduler.enabled == true" }
+    - { name: dev-protocol,           required: false, path: .cursor/rules/skills/dev-protocol.mdc, condition: "has_dev_agents" }
+    - { name: dev-handoff,            required: false, path: .cursor/rules/skills/dev-handoff.mdc, condition: "has_dev_agents" }
+    - { name: tech-scout,             required: false, path: .cursor/rules/skills/tech-scout.mdc, condition: "has_dev_agents OR stack_mode == auto" }
+    - { name: vcs-handoff,            required: false, path: .cursor/rules/skills/vcs-handoff.mdc, condition: "has_dev_agents AND any_vcs_mode_not_none" }
+    - { name: figma-extraction-protocol, required: false, path: .cursor/rules/skills/figma-extraction-protocol.mdc, condition: "has_figma_sync" }
+    - { name: repo-extraction-protocol,  required: false, path: .cursor/rules/skills/repo-extraction-protocol.mdc, condition: "has_repo_sync" }
+    - { name: stack-detector,         required: false, path: .cursor/rules/skills/stack-detector.mdc, condition: "has_code_reviewer OR has_repo_sync" }
+    - { name: code-review-protocol,   required: false, path: .cursor/rules/skills/code-review-protocol.mdc, condition: "code_quality.enabled == true" }
+    - { name: feedback-router,        required: false, path: .cursor/rules/skills/feedback-router.mdc, condition: "code_quality.enabled == true" }
+    - { name: publisher-protocol,     required: false, path: .cursor/rules/skills/publisher-protocol.mdc, condition: "kanban_publish.provider != none" }
+    - { name: github-mapping,         required: false, path: .cursor/rules/skills/github-mapping.mdc, condition: "kanban_publish.provider == github" }
+
+  commands:
+    - { name: run,            required: true,  path: .cursor/commands/run.md }
+    - { name: sync-docs,      required: true,  path: .cursor/commands/sync-docs.md }
+    - { name: query,          required: true,  path: .cursor/commands/query.md }
+    - { name: lint,           required: true,  path: .cursor/commands/lint.md }
+    - { name: promote,        required: true,  path: .cursor/commands/promote.md }
+    - { name: heal,           required: true,  path: .cursor/commands/heal.md }
+    - { name: dev,            required: false, path: .cursor/commands/dev.md, condition: "has_dev_agents" }
+    - { name: topology,       required: false, path: .cursor/commands/topology.md, condition: "has_dev_agents" }
+    - { name: figma-sync,     required: false, path: .cursor/commands/figma-sync.md, condition: "has_figma_sync" }
+    - { name: repo-sync,      required: false, path: .cursor/commands/repo-sync.md, condition: "has_repo_sync" }
+    - { name: kanban-publish, required: false, path: .cursor/commands/kanban-publish.md, condition: "kanban_publish.provider != none" }
+    - { name: review,         required: false, path: .cursor/commands/review.md, condition: "code_quality.enabled == true" }
+
+runtime_overrides:
+  parallel_dispatch:
+    supported: partial
+    note: "Cursor 'Compose' supporta parallel actions ma non multi-tool-call in unica response come Claude Code. Wave plan §18 esegue sequenziale con UI di review batch."
+  subagent_fanout:
+    supported: partial
+    fallback: "Sequential rule activation per ciascun sub-task. Wave plan presentato a chat per conferma manuale."
+  append_only_log:
+    supported: true
+    note: "Read+Edit cycle per append a wiki/log.md; Cursor agent mode lo gestisce nativamente."
+
+template_translation:
+  approach: |
+    Per ogni rule .mdc, il template parte dal .claude/<file>.md corrispondente del
+    meta-framework (`.claude/agents/orchestrator.md`), lo riformula sostituendo:
+    - tool name (Read/Write/Edit → @-mention/Edit/Apply)
+    - frontmatter "tools:" → frontmatter "globs:" o "description:"
+    - skill invocation "vedi `<skill>`" → "vedi `[<skill>](mdc:.cursor/rules/skills/<skill>.mdc)`"
+  preservation: |
+    Il CONTENUTO del ruolo (responsabilità, scope di scrittura, gate, regole §2/§7)
+    è IDENTICO al .claude/. Cambia solo l'invocazione tool e il path di riferimento.
+
+notes: |
+  Cursor (≥0.45) supporta .cursor/rules/*.mdc con frontmatter:
+    ---
+    description: <quando attivare>
+    globs: <pattern file che triggera la rule>
+    alwaysApply: false
+    ---
+
+  Sub-agent (Claude Code Agent tool) NON hanno equivalente diretto in Cursor.
+  Emulati come "rules condizionali" + Compose agent (parallel) o sequential
+  invocation manuale. Per fan-out parallelo (wiki-keeper-worker), l'utente
+  invoca esplicitamente più sessioni Cursor o usa Compose.
+
+  Tutti i template .mdc inizianoo con un blocco identità che riferisce il pattern:
+    `> Adapter Cursor del ruolo <X> definito in PATTERN.md §2.`

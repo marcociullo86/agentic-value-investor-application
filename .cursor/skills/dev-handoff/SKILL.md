@@ -1,49 +1,81 @@
 ---
 name: dev-handoff
-description: Entry append-only su wiki/log.md a chiusura di un TSK consumato da dev-agent. Formato canonico develop (v2.7).
+description: Entry per wiki/log.md a chiusura di un TSK consumato da dev-agent (operazione Develop, PATTERN §3).
 ---
-# Dev Handoff (v2.7)
+# Procedura — handoff dev-agent → wiki/log.md
 
-Riferimenti: `wiki-log-entry` (template `develop`), `dev-protocol` (Fase 5), `vcs-handoff` (v2.8 per commit).
-
-## Chi può eseguirla
-
-Tutti i 4 dev-agent (`be-dev`, `fe-dev`, `db-dev`, `qa-dev`) a chiusura del proprio TSK.
-
-## Trigger
-
-Fase 5 di `dev-protocol`: DoD verificata + TSK passato a `done` (o partial).
+Append-only su `wiki/log.md` quando un dev-agent completa un TSK
+(status `in-progress` → `done`).
 
 ## Formato entry
-
-Append a `wiki/log.md`:
 
 ```markdown
 ## YYYY-MM-DD HH:MM — develop TSK-ZZZ
 **Agente:** <be-dev|fe-dev|db-dev|qa-dev>
 **TSK:** [[../management/kanban/EP-XXX-<slug>/US-YYY-<slug>/TSK-ZZZ]]
 **Layer:** <be|fe|db|qa|infra>
-**Code path:** <code_path>
-**Files touched:** <count> (lista se ≤ 5, altrimenti "vedi commit")
-**Commit:** <hash short se code_path git tracciato; oppure "n/a">
-**DoD:** <pass | partial — descrivi>
-**Note:** <free-form max 2-3 righe>
+**Code path:** <code_path da factory.config.yaml — relativo o assoluto>
+**Files touched:** <count> (lista compatta solo se ≤ 5; altrimenti "vedi commit")
+**Commit:** <hash short se code_path è git tracciato; oppure "n/a">
+**DoD:** <pass | partial — descrivi> 
+**Note:** <free-form, max 2-3 righe; segnala blocker non-bloccanti rilevati>
+```
+
+## Esempi
+
+### Caso normale (DoD pass, code_path interno al repo)
+
+```markdown
+## 2026-05-20 14:32 — develop TSK-042
+**Agente:** be-dev
+**TSK:** [[../management/kanban/EP-003-auth/US-012-login/TSK-042]]
+**Layer:** be
+**Code path:** ./src/
+**Files touched:** 3 (src/auth/login.py, src/auth/router.py, src/tests/test_login.py)
+**Commit:** a1b2c3d
+**DoD:** pass
+**Note:** Implementato OIDC verbatim per coerenza con raw/tech_stack.md.
+```
+
+### Caso code_path esterno
+
+```markdown
+## 2026-05-20 16:10 — develop TSK-043
+**Agente:** fe-dev
+**TSK:** [[../management/kanban/EP-003-auth/US-012-login/TSK-043]]
+**Layer:** fe
+**Code path:** /Users/me/Repos/customer-portal/
+**Files touched:** vedi commit
+**Commit:** e4f5g6h (su repo esterno customer-portal)
+**DoD:** pass
+**Note:** —
+```
+
+### Caso DoD parziale (blocker)
+
+```markdown
+## 2026-05-20 18:00 — develop TSK-044 (PARTIAL)
+**Agente:** db-dev
+**TSK:** [[../management/kanban/EP-003-auth/US-012-login/TSK-044]]
+**Layer:** db
+**Code path:** ./src/
+**Files touched:** 1 (migrations/004_add_session_table.sql)
+**Commit:** —
+**DoD:** partial — test integration non disponibile (db test fixture mancante)
+**Note:** Status TSK resta `in-progress`. Apro gap "missing-db-test-fixture" in wiki/gaps.md.
 ```
 
 ## Regole
 
-- **Append-only**: mai overwrite, mai editare entry passate.
-- **Timestamp obbligatorio**: `YYYY-MM-DD HH:MM` Europe/Rome.
-- **Commit hash**: se `vcs.mode` permette tracking git, includi short hash (7 char). Se `vcs.mode: none` o `external` → `n/a`.
-- **DoD partial**: se non tutti i DoD passano, dichiarare quali mancano. Il TSK resta `in-progress` (non `done`).
-- **Note**: solo informazioni non deducibili dal commit/codice (es. "ho usato bcrypt come da OWASP citato in raw/2026-...", "scelta libreria X confermata via gap chiuso da wiki-keeper"). No what (visibile nel diff).
+- **Append-only**: mai editare entry passate (PATTERN §7 r.5).
+- **Una entry per TSK chiuso**. Se serve correggere, append nuova entry con marker
+  `## YYYY-MM-DD HH:MM — develop TSK-ZZZ (correction)`.
+- **Mai citare il codice prodotto direttamente in wiki/log.md** (rumore). Cita
+  TSK; chi vuole il codice apre il commit / il file.
+- **Coerenza con `dev-protocol`**: l'entry si scrive SOLO se `status: done` o
+  `status: in-progress (partial)`. Mai per TSK in fase di gate.
 
-## Anti-pattern
+## Cross-reference
 
-| Anti-pattern | Correzione |
-|---|---|
-| Entry senza `Layer:` o `Code path:` | Campi obbligatori |
-| Chiudere TSK come `done` con DoD partial | Vietato: lascia `in-progress` |
-| Commit hash inventato | Usa `n/a` se non disponibile |
-| Note che ripete il diff | Solo why non-ovvio |
-| Editare entry di un altro dev-agent | Append-only, mai modificare |
+- Cita: `wiki-log-entry` (formato generale log entries)
+- Invocata da: `dev-protocol` (Fase 5)

@@ -5,7 +5,7 @@ description: Mostra dashboard di stato e suggerisce il prossimo agente.
 Invoca l'agente `orchestrator` via `Agent`. Passa eventuale argomento come "focus"
 (es. `/run l3` per focus L3). L'orchestrator:
 
-1. Scansiona lo stato del filesystem per i 5 layer (vedi skill `state-scan`).
+1. Scansiona lo stato del filesystem per i 4 layer.
 2. Legge l'ultima entry di `memory/episodic/` per continuità.
 3. Emette un dashboard tabellare.
 4. Suggerisce il prossimo agente da invocare (mai delega automatica).

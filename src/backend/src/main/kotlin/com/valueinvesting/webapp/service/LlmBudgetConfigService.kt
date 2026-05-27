@@ -3,7 +3,6 @@ package com.valueinvesting.webapp.service
 import com.valueinvesting.webapp.persistence.entity.LlmBudgetConfigEntity
 import com.valueinvesting.webapp.persistence.repository.LlmBudgetConfigRepository
 import com.valueinvesting.webapp.persistence.repository.LlmCostCounterRepository
-import com.valueinvesting.webapp.persistence.repository.LlmCallLogRepository
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
@@ -13,11 +12,18 @@ import java.time.Instant
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 
+// ADR-019 §4.bis — admin-controlled runtime configuration for LLM budget.
+//
+// Responsibilities (post-TSK-156 wire):
+//  - Read/update the singleton `llm_budget_config` row (monthly cap), with an
+//    in-memory cache invalidated on update + budget-cap-change event.
+//  - Read the current month cost from `llm_cost_counter` (read-only; writes
+//    happen in [com.valueinvesting.webapp.llm.LlmCostCounterService]).
+//  - Track admin freeze flag consumed by [com.valueinvesting.webapp.llm.LlmBudgetGuard].
 @Service
 class LlmBudgetConfigService(
     private val budgetConfigRepo: LlmBudgetConfigRepository,
     private val costCounterRepo: LlmCostCounterRepository,
-    private val callLogRepo: LlmCallLogRepository,
     private val eventPublisher: ApplicationEventPublisher,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)

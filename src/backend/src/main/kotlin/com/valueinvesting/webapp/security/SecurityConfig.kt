@@ -1,16 +1,19 @@
 package com.valueinvesting.webapp.security
 
+import com.valueinvesting.webapp.api.error.ProblemDetailsMapper
 import com.valueinvesting.webapp.config.CsrfTokenConfig
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.valueinvesting.webapp.config.FlatteningProblemDetailHttpMessageConverter
 import com.valueinvesting.webapp.config.SecurityHeadersConfig
 import com.valueinvesting.webapp.security.filter.RateLimitingFilter
 import com.valueinvesting.webapp.service.AuthRateLimitService
-import jakarta.servlet.http.HttpServletResponse
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.http.server.ServletServerHttpResponse
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
@@ -109,29 +112,52 @@ class SecurityConfig(
 
     // Returns 401 (not the Spring Security default 403) for unauthenticated
     // requests against protected endpoints — REST-friendly per ADR-006.
+    //
+    // The body is built via [ProblemDetailsMapper] and serialized via
+    // [FlatteningProblemDetailHttpMessageConverter] so the payload is
+    // byte-identical to the ones produced by [GlobalExceptionHandler] for
+    // controller-level AuthenticationException: same RFC 9457 shape, same
+    // top-level extension flattening (ADR-012), same timestamp / requestId /
+    // correlationId carried from MDC (TSK-033 finding iter-1).
     @Bean
-    fun authenticationEntryPoint(): AuthenticationEntryPoint =
-        AuthenticationEntryPoint { _, response, _ ->
-            response.status = HttpServletResponse.SC_UNAUTHORIZED
-            response.contentType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
-            response.writer.write(
-                "{\"type\":\"https://api/errors/unauthorized\"," +
-                    "\"title\":\"Unauthorized\"," +
-                    "\"status\":401," +
-                    "\"detail\":\"Authentication required or invalid\"}",
+    fun authenticationEntryPoint(
+        problemDetailsMapper: ProblemDetailsMapper,
+        problemDetailWriter: FlatteningProblemDetailHttpMessageConverter,
+    ): AuthenticationEntryPoint =
+        AuthenticationEntryPoint { request, response, _ ->
+            val problem = problemDetailsMapper.build(
+                status = HttpStatus.UNAUTHORIZED,
+                type = "https://api/errors/unauthorized",
+                title = "Unauthorized",
+                detail = "Authentication required or invalid",
+                request = request,
+            )
+            response.status = HttpStatus.UNAUTHORIZED.value()
+            problemDetailWriter.write(
+                problem,
+                MediaType.APPLICATION_PROBLEM_JSON,
+                ServletServerHttpResponse(response),
             )
         }
 
     @Bean
-    fun accessDeniedHandler(): AccessDeniedHandler =
-        AccessDeniedHandler { _, response, _ ->
-            response.status = HttpServletResponse.SC_FORBIDDEN
-            response.contentType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
-            response.writer.write(
-                "{\"type\":\"https://api/errors/forbidden\"," +
-                    "\"title\":\"Forbidden\"," +
-                    "\"status\":403," +
-                    "\"detail\":\"Access denied\"}",
+    fun accessDeniedHandler(
+        problemDetailsMapper: ProblemDetailsMapper,
+        problemDetailWriter: FlatteningProblemDetailHttpMessageConverter,
+    ): AccessDeniedHandler =
+        AccessDeniedHandler { request, response, _ ->
+            val problem = problemDetailsMapper.build(
+                status = HttpStatus.FORBIDDEN,
+                type = "https://api/errors/forbidden",
+                title = "Forbidden",
+                detail = "Access denied",
+                request = request,
+            )
+            response.status = HttpStatus.FORBIDDEN.value()
+            problemDetailWriter.write(
+                problem,
+                MediaType.APPLICATION_PROBLEM_JSON,
+                ServletServerHttpResponse(response),
             )
         }
 

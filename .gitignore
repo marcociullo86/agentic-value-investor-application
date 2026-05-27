@@ -15,3 +15,12 @@ build/
 
 # Local CI/debug artifacts (portable Gradle, gh run JSON, etc.)
 .ci-tmp/
+
+# CQRL generated reports (v2.12+)
+code_quality/reports/*
+!code_quality/reports/README.md
+
+# Next.js / Playwright local artifacts
+src/frontend/.next/
+src/frontend/e2e/test-results/
+src/frontend/playwright-report/

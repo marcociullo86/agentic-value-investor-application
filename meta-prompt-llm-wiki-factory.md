@@ -1,9 +1,18 @@
-# BOOTSTRAP PROMPT — Agentic Factory `llm-wiki++` (v2.8)
+# BOOTSTRAP PROMPT — Agentic Factory `llm-wiki++` (v2.11)
 
 > Sei l'agente di scaffolding di una **knowledge-base eseguibile** per un progetto software.
 > Il pattern di riferimento è **llm-wiki di Andrej Karpathy** (`Ingest / Query / Lint`)
 > esteso con due layer di project management, un layer di esecuzione opzionale (v2.7)
-> e un tree di memoria cross-conversazione.
+> e un tree di memoria cross-conversazione. **(v2.9)** L'ingestione L1 supporta
+> **sorgenti multiple** tramite sub-agent Sync dedicati (PDF di default; Figma opt-in).
+> **(v2.10)** Il kanban (EP/US/TSK/sprint) può essere pubblicato come **mirror push-only**
+> su tool esterni di project tracking (GitHub Issues di default; GitLab/Jira/Linear via
+> adapter aggiuntivi) tramite sub-agent Publisher provider-specific.
+> **(v2.11)** Le operazioni e i sub-agent indipendenti sono dispatchati in **parallelo**
+> da uno scheduler DAG-driven (PATTERN §18) che legge le dipendenze causali dichiarate
+> nei frontmatter (`depends_on`/`blocked_by`) e le aree di scrittura su L5 (`code_path`)
+> per costruire antichain conflict-free a runtime. Single-committer su `wiki/` e gate
+> umano sopra `parallel_gate_threshold` preservati.
 > La factory **può produrre codice sorgente** se la topologia scelta include dev-agent
 > (v2.7); altrimenti produce documentazione contractuale che un team umano esegue.
 >
@@ -31,6 +40,40 @@
 > `factory.config.yaml.vcs.mode` come una di `monorepo | submodule | sibling | external | none`.
 > La skill `vcs-handoff` propone i commit cross-repo, l'umano resta il gate per
 > ogni `git commit`/`push`/`clone`/`submodule add` (PATTERN §7 r.14).
+>
+> **Principio v2.9 — Sync adapters multi-sorgente.** Il ruolo *Sync* (§2) è
+> pluralizzabile per sorgente: oltre a `sync-docs` (PDF), può esistere
+> `figma-sync` (Figma via Anthropic API + Figma MCP) e futuri
+> `notion-sync`/`confluence-sync`. Ogni sub-agent scrive solo nel proprio scope
+> di naming in `raw/`; condividono `.extraction-manifest.json`. L'*Analyst*
+> (`wiki-keeper`) resta agnostico alla sorgente: legge `.txt` (PDF), `.kb.json`
+> (Figma), o futuri shape. Contratto formale: PATTERN.md §16.
+>
+> **Principio v2.10 — Publisher adapters multi-target.** Simmetrico ai sync
+> adapters: se §16 ingerisce L1 da fonti eterogenee, **§17 pubblica L3/L4 verso
+> tool esterni** come mirror push-only (GitHub Issues/Milestones, GitLab,
+> Jira, Linear, …). Nuovo ruolo *Publisher* (§2) pluralizzabile per provider.
+> `management/kanban/**` resta **canonico** (PATTERN §8): il provider esterno
+> è solo un mirror — modifiche fatte direttamente sul tool verranno
+> sovrascritte al prossimo `/kanban-publish run`. Idempotenza via campo
+> frontmatter opzionale `external_id: <provider>:<id>`. Gate umano sempre
+> obbligatorio (§7 r.15): nessun CREATE/UPDATE batch senza conferma esplicita;
+> mai DELETE/CLOSE automatici. Token solo da variabile d'ambiente.
+>
+> **Principio v2.11 — Parallel scheduler DAG-driven.** La factory **per default**
+> esegue ogni operazione in serie (preservando gli invarianti §7 r.5/r.12/r.15).
+> Lo **scheduler** vive nell'Orchestrator (§2) e, a runtime, riconosce le
+> finestre in cui più sub-agent possono essere dispatchati in parallelo senza
+> race su file o violazioni di single-committer. Input: campi frontmatter
+> `depends_on` (EP→EP, US→US, TSK→TSK), `blocked_by` (Q_NNN hard aperte —
+> esteso da US a TSK), `code_path` (glob L5 toccati in scrittura, solo TSK).
+> Algoritmo: build DAG `E_dep ∪ E_conf` → toposort + level grouping →
+> graph-coloring partition per conflict detection su `code_path` → wave dispatch
+> via multi-tool-call. Otto regole inviolabili (R.S1–R.S8 in §18.4) garantiscono
+> safety-by-default: cap di fan-out (`max_parallel`, default 4), gate umano
+> sopra threshold (`parallel_gate_threshold`, default 3), VCS sempre
+> serializzato, no rollback collaterale al fallimento di un sub-agent.
+> Configurato in `factory.config.yaml.scheduler:`.
 >
 > La fonte di verità della configurazione vive in `factory.config.yaml` al root.
 
@@ -65,6 +108,12 @@ Prima di scrivere qualsiasi file, raccogli:
    - `manual` — l'umano popola `raw/tech_stack.md` a mano (default)
    - `guided` — bootstrap mostra opzioni curate al volo (vedi §8)
    - `auto` — skill `tech-scout` propone (gate umano per applicare)
+6-bis. **Kanban publish target** (v2.10) — opzionale:
+   - `none` — niente publish (default)
+   - `github` — pubblica EP/US/TSK come GitHub Issues/Milestones (richiede `gh` CLI + `gh auth login`)
+   - `gitlab` / `jira` / `linear` — placeholder v2.10 (contratto pronto, agent non scaffoldato)
+   - `custom` — adapter custom da scaffoldare
+   Se != `none`: chiedi `target` (es. `org/repo` per GH), `auth_env` (es. `GH_TOKEN`), e conferma il `mapping` di default.
 7. **Vincoli tecnologici espliciti** — se ne esistono, vanno in `raw/tech_stack.md`
    (standards normativi: trattati verbatim, PATTERN.md §11)
 8. **Lista PDF iniziali** (opzionale — possono arrivare dopo)
@@ -154,9 +203,10 @@ Per topologie ridotte, omettere i file dev-* corrispondenti.
 ├── .gitignore                         (.claude/settings.local.json, .idea/, ecc.)
 ├── .claude/
 │   ├── settings.json                  (env vars; niente hook deterministici)
-│   ├── agents/                        (8 core + 0..4 dev-agent secondo topologia, vedi §6)
+│   ├── agents/                        (8 core + 0..4 dev-agent + 0..N sync sub-agent, vedi §6)
 │   │   ├── orchestrator.md
-│   │   ├── sync-docs.md
+│   │   ├── sync-docs.md                   (sub-agent Sync per PDF — sempre presente)
+│   │   ├── figma-sync.md                  ★ v2.9 — solo se l'utente abilita ingest Figma
 │   │   ├── wiki-keeper.md
 │   │   ├── wiki-keeper-worker.md          (subagent per ingest parallelo, v2.4)
 │   │   ├── product-manager.md
@@ -167,17 +217,20 @@ Per topologie ridotte, omettere i file dev-* corrispondenti.
 │   │   ├── be-dev.md                      ★ v2.7 — solo se topology include BE-dev
 │   │   ├── fe-dev.md                      ★ v2.7 — solo se topology include FE-dev
 │   │   ├── db-dev.md                      ★ v2.7 — solo se topology include DB-dev
-│   │   └── qa-dev.md                      ★ v2.7 — solo se topology include QA-dev
-│   ├── commands/                      (6 core + 0..2 v2.7, vedi §10)
+│   │   ├── qa-dev.md                      ★ v2.7 — solo se topology include QA-dev
+│   │   └── github-publisher.md            ★ v2.10 — solo se kanban_publish.provider=github
+│   ├── commands/                      (6 core + 0..3 opzionali, vedi §10)
 │   │   ├── run.md
 │   │   ├── sync-docs.md
+│   │   ├── figma-sync.md                  ★ v2.9 — solo se figma-sync.md presente
 │   │   ├── query.md
 │   │   ├── lint.md
 │   │   ├── promote.md
 │   │   ├── heal.md                        (v2.5)
 │   │   ├── dev.md                         ★ v2.7 — solo se topology include dev-agent
-│   │   └── topology.md                    ★ v2.7 — solo se topology include dev-agent
-│   └── skills/                        (15 core + 0..3 v2.7, vedi §7)
+│   │   ├── topology.md                    ★ v2.7 — solo se topology include dev-agent
+│   │   └── kanban-publish.md              ★ v2.10 — solo se kanban_publish.provider != none
+│   └── skills/                        (15 core + 0..4 opzionali, vedi §7)
 │       │ ── canoniche read-only (single source of truth) ──
 │       ├── citation-rules.md             (grammatica [^src:] e [[…]])
 │       ├── wiki-log-entry.md             (template log per tipo operazione)
@@ -193,6 +246,10 @@ Per topologie ridotte, omettere i file dev-* corrispondenti.
 │       ├── dev-protocol.md               ★ v2.7 — procedura Develop (L4→L5)
 │       ├── dev-handoff.md                ★ v2.7 — entry log su Develop done
 │       ├── tech-scout.md                 ★ v2.7 — stack proposal (solo se stack_mode=auto)
+│       ├── vcs-handoff.md                 ★ v2.8 — procedura VCS per mode dichiarato
+│       ├── figma-extraction-protocol.md   ★ v2.9 — procedura 5-fase per figma-sync (solo se figma-sync.md presente)
+│       ├── publisher-protocol.md           ★ v2.10 — procedura 5-fase Publisher (provider-agnostic)
+│       ├── github-mapping.md               ★ v2.10 — mapping GitHub (solo se github-publisher presente)
 │       │ ── template di scrittura (artefatti) ──
 │       ├── scrivi-wiki-page.md           (pagina karpathy-style)
 │       ├── scrivi-epica.md               (EP-XXX.md)
@@ -274,13 +331,13 @@ XXX/YYY/ZZZ/NNN = 3 cifre zero-padded, ID globali sequenziali.
 
 ---
 
-## §5 — `PATTERN.md` — contratto UNIVERSALE agent-agnostic (v2.7)
+## §5 — `PATTERN.md` — contratto UNIVERSALE agent-agnostic (v2.9)
 
 > Questo file è il *contratto* che qualsiasi agent runtime deve rispettare per operare sul repo.
 > Niente riferimenti a tool specifici (Read/Write/Glob), modelli (Sonnet/Opus/Haiku/GPT) o slash command.
-> Solo: layer (L1-L5), ruoli per responsabilità, naming, frontmatter, citazioni, gate, operazioni, memoria, manutenzione wiki, topology & stack modes.
+> Solo: layer (L1-L5), ruoli per responsabilità, naming, frontmatter, citazioni, gate, operazioni, memoria, manutenzione wiki, topology & stack modes, VCS integration, sync adapters multi-sorgente.
 
-**Fonte di verità v2.7**: il file `PATTERN.md` vive al root del repo
+**Fonte di verità v2.9**: il file `PATTERN.md` vive al root del repo
 `soli-multi-agents-factory` (questa stessa repo) ed è la versione canonica
 da copiare verbatim al bootstrap. Per progetti standalone (senza accesso al
 meta-framework), tenere alla mano una copia di `PATTERN.md` accanto al
@@ -296,23 +353,40 @@ meta-prompt.
 - **Frontmatter TSK** (§5): `team` deprecato → `layer:` + `consumer:` (v2.7).
 - **§8 State derivation**: `factory.config.yaml` esplicitamente ammesso come CONFIG (non stato).
 
+**Differenze v2.7 → v2.8 (VCS integration)**:
+- Blocco `vcs:` in `factory.config.yaml`: `mode: monorepo|submodule|sibling|external|none`, + opzionali `submodule_path`, `remote_url`, `branch_strategy`, `commit_coupling`.
+- Nuova skill `vcs-handoff` invocata da `dev-protocol` Fase 5; gate umano sempre obbligatorio per scritture VCS distruttive/cross-repo (§7 r.14 nuova).
+- Nuovo lint Check 4d (coerenza VCS).
+- Citazione codice prodotto estesa con un terzo formato (`[^src5-sub:`).
+- File `.factory-lock` opzionale (`commit_coupling: pin`) per reproducibilità.
+
+**Differenze v2.8 → v2.9 (Sync adapters multi-sorgente)**:
+- Ruolo *Sync* pluralizzato (§2): un sub-agent per famiglia di input L1. `sync-docs` resta per PDF; aggiunto `figma-sync` per Figma; futuri adapter (Notion/Confluence) seguono lo stesso contratto.
+- Nuovo shape L1 `.kb.json` (artefatto strutturato KB Figma) accanto a `.txt`.
+- Nuova grammatica citazione `[^src: <path>.kb.json §<dotted-path>]` (§6) con convenzioni leggibili a mano (dotted, `[idx]`, `[chiave=valore]`).
+- Nuova sezione §16 «Sync adapters»: contratto per nuovi adapter (agent thin + skill fat + naming + manifest entry + lint).
+- `.extraction-manifest.json` esteso (v2.9): `source` + `primary_artifact` + `secondary_artifacts` + `extractor_version` + `extraction_metadata`. Retrocompat: entries pre-v2.9 senza `source` interpretate come `source: pdf`.
+- `ingest-protocol` esteso: Fase 1 ramo `source: figma` (mappa schema-driven: `screens[]` → `wiki/entities/screen-*`, `components[]` → `wiki/entities/component-*`, `flows[]` → `wiki/concepts/flow-*`, `features[]` → `wiki/concepts/feature-*`).
+- `lint-checks` Check 4e (coerenza manifest ↔ raw filesystem + isolamento sub-agent + validazione KB JSON).
+- §15 Versioning rinumerata a §17.
+
 **Template inline (riassuntivo, vedere `PATTERN.md` per il testo verbatim)**:
 
 ```markdown
-# PATTERN — Agentic Factory `llm-wiki++` v2.7
+# PATTERN — Agentic Factory `llm-wiki++` v2.10
 
 > Contratto universale agent-agnostic. Qualsiasi runtime (Claude Code, OpenAI Assistants,
 > Cursor, Aider, …) che rispetti questo file può operare sul repo. Gli adapter di runtime
 > vivono in cartelle dedicate (`.claude/`, `.cursor/`, …) e implementano i ruoli §2.
 
 ## §0 — Identità & versione
-Pattern version: **2.7**.
-Origine: llm-wiki (Karpathy) + estensione PM/Arch + memory tree cross-conversazione + adapter `thin agents, fat skills` + execution layer L5 + topology selection + stack modes.
-Scope: knowledge-base eseguibile **e** (opzionale) produzione codice via dev-agent o consumo umano.
-Progetto host: **<Nome Progetto>** (`owner: <owner>`, `language: <it|en>`).
+Pattern version: **2.10**.
+Origine: llm-wiki (Karpathy) + estensione PM/Arch + memory tree cross-conversazione + adapter `thin agents, fat skills` + execution layer L5 + topology selection + stack modes + VCS integration (v2.8) + sync adapters multi-sorgente (v2.9) + publisher adapters multi-target (GitHub, GitLab, Jira, Linear, …).
+Scope: knowledge-base eseguibile **e** (opzionale) produzione codice via dev-agent o consumo umano; ingestione L1 da fonti eterogenee (PDF, Figma, futuri Notion/Confluence) tramite sub-agent Sync dedicati; pubblicazione opzionale di L3/L4 su tool esterni di project tracking (GitHub Issues/Projects, GitLab, Jira, Linear, …) tramite sub-agent Publisher dedicati.
+Progetto host: **App Template Demo** (`owner: marco.ciullo`, `language: <it|en>`).
 
 ## §1 — Modello a layer
-- **L1 `raw/`** — PDF + estrazioni `.txt` + immagini. **Immutabile** (solo il ruolo *Sync* scrive `.txt`/`images/`).
+- **L1 `raw/`** — input multi-sorgente. PDF → `.txt` + `images/` da `sync-docs`; KB JSON strutturate (`.kb.json`) da `figma-sync` (v2.9); futuri adapter (Notion/Confluence) seguono lo stesso contratto. **Immutabile** (solo il ruolo *Sync*, nei suoi N sub-agent per sorgente, scrive in `raw/` — §16).
 - **L2 `wiki/`** — wiki llm-style con `log.md` append-only. Unico autore: ruolo *Analyst* (`wiki-keeper`).
 - **L3 `management/`** — `kanban/EP-*/`, `roadmap.md`, `questions.md`. Autore: ruolo *PM*.
 - **L4 `design_&_architecture/` + `management/kanban/**/TSK-*.md`** — autore: *Arch* + *TPM*.
@@ -329,17 +403,18 @@ Ogni runtime mappa questi ruoli ai propri costrutti (agenti, assistant, modes, �
 | Ruolo | Legge | Scrive | Trigger |
 |---|---|---|---|
 | **Orchestrator** | tutto (read-only) | `memory/episodic/**`, `wiki/log.md`, **eccezione**: modifica `status:`/`updated:` frontmatter di `wiki/**/*.md` via operazione `promote` (§3) | richiesta dashboard di stato; operazione `promote` |
-| **Sync** | `raw/*.pdf` | `raw/*.txt`, `raw/images/`, `raw/.extraction-manifest.json` | nuovi PDF |
-| **Analyst** (`wiki-keeper`) | `raw/**`, `raw/tech_stack.md`, `memory/**`, `wiki/**` + obbligatorio `wiki/gaps.md` ad ogni run | `wiki/**` (escluso `query/`, `lint/`) + append `wiki/log.md` + append `wiki/gaps.md` (chiusura gap) | L1 aggiornato OR gap aperti |
+| **Sync** (`sync-docs`, `figma-sync`, …) — un sub-agent per sorgente (§16) | input di propria competenza (PDF locali, URL/`file_key` Figma, …) | `raw/**` nel proprio scope di naming (§4): `sync-docs` → `*.txt` + `images/*-fig-NN.md`; `figma-sync` → `*.kb.json` + `images/*-frame-NN.{png,md}`. Tutti scrivono `raw/.extraction-manifest.json` (append-only per chiave) | nuovo input nella sorgente del sub-agent |
+| **Analyst** (`wiki-keeper`) | `raw/**` (`.txt`, `.kb.json`, `images/**/*.md`), `raw/tech_stack.md`, `memory/**`, `wiki/**` + obbligatorio `wiki/gaps.md` ad ogni run | `wiki/**` (escluso `query/`, `lint/`) + append `wiki/log.md` + append `wiki/gaps.md` (chiusura gap) | L1 aggiornato OR gap aperti |
 | **PM** | `wiki/**`, `memory/**` | `management/kanban/EP-*/**`, `management/{roadmap,questions}.md`, **append-only**: `wiki/gaps.md` + sezione `## Storie collegate` di pagine wiki | L2 aggiornato |
 | **Arch** (`lead-architect`) | `management/kanban/**`, `management/questions.md`, `raw/tech_stack.md`, `memory/**`, **`wiki/**`** (contesto) | `design_&_architecture/**`, **append-only**: `wiki/gaps.md` | L3 OK + gate questions resolved |
 | **TPM** (`tpm`) | `design_&_architecture/**`, `management/kanban/**`, `raw/tech_stack.md`, `memory/**`, **`wiki/**`** (contesto) | `management/kanban/**/TSK-*.md`, `management/kanban/sprint.md`, **append-only**: `wiki/gaps.md` | L4 architettura OK |
 | **Query** (`wiki-query`) | `wiki/**` (esclusivo) | `wiki/query/` (opt-out con `--ephemeral`) + append `wiki/log.md` + append `wiki/gaps.md` | domanda NL |
 | **Lint** (`wiki-lint`) | `wiki/**`, `management/kanban/**`, `design_&_architecture/**`, `factory.config.yaml` | `wiki/lint/` + append `wiki/log.md` | richiesta health check |
 | **Dev** (`be-dev`/`fe-dev`/`db-dev`/`qa-dev`) — v2.7, opzionali | `management/kanban/**/TSK-*.md` (filtrato per `layer:` proprio + `consumer: agent`), `design_&_architecture/**`, `raw/tech_stack.md`, `factory.config.yaml`, `<code_path>/**`, `wiki/**` (contesto) | `<code_path>/**` (può essere esterno al repo), append-only: `wiki/log.md`, `wiki/gaps.md`, edit `status:`/`updated:` del proprio TSK | TSK ready (layer match + consumer=agent + status=todo + deps ok); OR comando `/dev <TSK-id>` |
+| **Publisher** (`github-publisher`, `gitlab-publisher`, ...) — opzionali (§17) | `management/kanban/EP-*/**`, `management/kanban/sprint.md`, `management/{roadmap,questions}.md`, `factory.config.yaml`, `memory/**` | append-only: `wiki/log.md` (entry `publish`); modifica del SOLO `external_id:` frontmatter di EP/US/TSK; chiamate read+write verso provider esterno via CLI/API dedicate | comando esplicito `/kanban-publish run` |
 
 ## §3 — Operazioni canoniche (verbi)
-- **Ingest** = transizione L1 → L2 eseguita da *Sync* + *Analyst*. Per batch ≥ 3 nuovi raw, l'*Analyst* delega l'analisi a sub-agent paralleli; scrittura serializzata (single-committer). Append a `wiki/log.md`.
+- **Ingest** = transizione L1 → L2 eseguita da *Sync* (uno o più sub-agent, §16) + *Analyst*. L'*Analyst* legge artefatti `.txt` (PDF), `.kb.json` (Figma), o futuri shape registrati nel manifest. Per batch ≥ 3 nuovi raw, l'*Analyst* delega l'analisi a sub-agent paralleli; scrittura serializzata (single-committer). Append a `wiki/log.md`.
 - **Query** = domanda NL → risposta sintetizzata leggendo solo `wiki/`. Append a `wiki/log.md`.
 - **Lint** = health check strutturale di L2+L3+L4. Append a `wiki/log.md`.
 - **Plan** = transizione L2 → L3 eseguita dal *PM*.
@@ -349,12 +424,15 @@ Ogni runtime mappa questi ruoli ai propri costrutti (agenti, assistant, modes, �
 - **Propagate** (v2.6) = riconciliazione downstream quando l'*Analyst* chiude un gap che cita una `Q_NNN`. Skill `propagate-resolution`. Mai scrittura su `management/kanban/**` (proprietà PM). L'*Orchestrator* surfaceizza il marker in `/run`.
 - **Develop** (v2.7) = transizione L4 → L5 eseguita da un ruolo Dev. Consuma un singolo TSK con `consumer: agent` + `layer:` corrispondente. Scrittura su `<code_path>/**`. Append a `wiki/log.md` (marker `develop TSK-ZZZ → <commit-hash o path>`). Mai edit del corpo del TSK; solo `status:` (`todo → in-progress → done`).
 - **Tech-scout** (v2.7) = proposta automatica di stack via skill omonima. Output: `raw/tech_stack.md.proposal` con citazioni a fonti web datate. Mai auto-applicato: gate umano per promuovere `.proposal` → `raw/tech_stack.md`.
+- **Publish** (v2.10) = transizione L3/L4 → tool esterno di project tracking. Mirror push-only di EP/US/TSK/sprint via sub-agent Publisher (§17). Idempotente via `external_id:` frontmatter. Mai bidirectional in v2.10. Append a `wiki/log.md` (marker `publish <provider> ...`). Mai modifica del corpo dei TSK.
 
 ## §4 — Naming conventions
 | Artefatto | Pattern |
 |---|---|
 | PDF | `YYYY-MM-DD-<nome>.pdf` (e `.txt` corrispondente) |
 | Figura | `YYYY-MM-DD-<nome>-fig-NN.md` |
+| KB Figma | `raw/YYYY-MM-DD-figma-<file-key>.kb.json` (prodotto da `figma-sync`, §16) |
+| Frame Figma | `raw/images/YYYY-MM-DD-figma-<file-key>-frame-NN.md` |
 | Source page | `wiki/sources/<kebab-slug>.md` |
 | Concept page | `wiki/concepts/<kebab-slug>.md` |
 | Entity page | `wiki/entities/<kebab-slug>.md` |
@@ -373,23 +451,27 @@ Slug: lowercase, spazi→`-`, rimuovi `()/'`, max 40 char. XXX/YYY/ZZZ/NNN = 3 c
 
 ## §5 — Frontmatter (minimo necessario, deduci dal path quando possibile)
 - **Wiki page:** `type`, `sources` (array), `status` (`draft|review|approved`)
-- **Epica:** `id`, `title`, `status`, `priority`, `confidence`, `confidence_rationale`, `wiki_pages`, `created`
-- **User Story:** `id`, `title`, `role`, `priority`, `status`, `wiki_page`, `blocked_by` (`epic` deducibile dal path)
-- **Task (v2.7):** `id`, `sprint`, `layer` (`be|fe|db|qa|infra`), `consumer` (`agent|human`), `priority`, `estimate`, `status` (`story`/`epic` deducibili dal path; `team` deprecato dalla v2.7)
+- **Epica:** `id`, `title`, `status`, `priority`, `confidence`, `confidence_rationale`, `wiki_pages`, `created`, **opzionale (v2.11)**: `depends_on` (lista EP prerequisite)
+- **User Story:** `id`, `title`, `role`, `priority`, `status`, `wiki_page`, `blocked_by` (`epic` deducibile dal path), **opzionale (v2.11)**: `depends_on` (lista US prerequisite)
+- **Task (v2.7):** `id`, `sprint`, `layer` (`be|fe|db|qa|infra`), `consumer` (`agent|human`), `priority`, `estimate`, `status` (`story`/`epic` deducibili dal path; `team` deprecato dalla v2.7), **opzionali (v2.11)**: `depends_on` (lista TSK prerequisiti), `blocked_by` (lista Q_NNN hard aperte, esteso da US), `code_path` (lista glob L5 toccati in scrittura — input per conflict detection §18)
 - **ADR:** `id`, `title`, `status` (`proposed|accepted|superseded|deprecated`), `created`, `deciders`
 - **Figura:** `source_pdf`, `page`, `figure_number`, `type`
 - **Memoria:** `type` (`episodic`/`semantic`/`procedural`), `created`, `tags`
+- **Campo opzionale `external_id:` (v2.10)** in EP/US/TSK: forma `<provider>:<id>` scritta SOLO dal sub-agent Publisher corrispondente (§17). Esempi: `github:1234`, `jira:PROJ-89`, `linear:abc-uuid`. PM/TPM/Dev non scrivono mai questo campo.
 
 Regola: `id` e `status` (dove applicabile) sono **sempre obbligatori**; tutto il resto deducibile dal path va rimosso.
 
+**Campi v2.11 — input per il parallel scheduler (§18)**. `depends_on: [<id>, ...]` = lista di artefatti dello stesso tipo che devono essere in stato avanzato (`done` per TSK; `ready`/`done` per US; `in-progress`/`done` per EP) prima di procedere; hard dependency. `blocked_by: [Q_NNN, ...]` su TSK = simmetrico a US, blocca il dispatch finché la Q non è in `[RISOLTE]`. `code_path: ["<glob>", ...]` solo TSK = glob in `<code_path>/**` toccati in scrittura; lo scheduler partiziona i TSK candidate per evitare race su file (`empty_code_path_policy: serial` per default → glob vuoto = serializzante). Solo PM/Arch/TPM scrivono questi campi; i dev-agent li leggono ma non li modificano. Drift `## Dependencies` body ↔ `depends_on` frontmatter → warning di `wiki-lint`.
+
 ## §6 — Grammatica delle citazioni
-- Citazione fonte: `[^src: <path-relativo>.md §<sezione>]` su ogni claim ≥ 20 parole.
+- Citazione fonte: `[^src: <path-relativo>.{md,txt} §<sezione>]` su ogni claim ≥ 20 parole.
+- Citazione fonte strutturata (JSON, v2.9): `[^src: <path>.kb.json §<dotted-path>]` con convenzioni: chiavi punto-separate (`§project.name`), indice positivo per array (`§screens[0]`), selettore per chiave (`§components[name=Button]`). Vietato JSONPath complesso o JMESPath.
 - Link interno wiki: `[[nome-pagina-senza-estensione]]`, **mai** path relativi `../../`.
 - Citazione codice (factory): `[^code: <path>:<line>]`.
 - Claim senza citazione = claim invalido (segnalato dal *Lint*, mai bloccato deterministicamente — il framework opera in regime LLM-trust).
 
-## §7 — Regole inviolabili (13, v2.7)
-1. **L1 read-only** (eccetto *Sync*).
+## §7 — Regole inviolabili (15 hard + 8 scheduler, v2.11+)
+1. **L1 read-only** (eccetto *Sync* — nei suoi N sub-agent per sorgente, §16).
 2. **Zero invenzione.** Info assente → `wiki/gaps.md` o `management/questions.md`.
 3. **Citazione obbligatoria** su ogni claim non triviale.
 4. **Wikilink** per link interni, mai path relativi.
@@ -402,6 +484,10 @@ Regola: `id` e `status` (dove applicabile) sono **sempre obbligatori**; tutto il
 11. **`memory/` non è `wiki/`.**
 12. **`wiki/` è read-universal**, **single-committer** (§10). Eccezioni: PM su `## Storie collegate`, orchestrator su `status:` via `promote`, append-only di L3+ su `wiki/gaps.md`, entry `develop` di dev-agent su `wiki/log.md`.
 13. **Topology e routing dichiarati (v2.7).** Se esistono dev-agent in `.claude/agents/`, deve esistere `factory.config.yaml` con `topology:`, `code_path:`, `routing:` coerenti. Un dev-agent può rifiutarsi di operare se il TSK non ha `layer:` + `consumer:` espliciti.
+14. **VCS dichiarato (v2.8).** Se `code_path:` è valorizzato, DEVE esistere `vcs.mode:` in `factory.config.yaml` (`monorepo | submodule | sibling | external | none`). Nessuna operazione `git submodule add|update`, `git clone`, `git push`, `git commit --amend`, o force-push viene MAI eseguita automaticamente: la skill `vcs-handoff` propone, l'umano conferma (gate non bypassabile per scritture VCS distruttive o cross-repo).
+15. **Cross-tool publish gate umano (v2.10).** Se `kanban_publish.provider ≠ none` in `factory.config.yaml`, il sub-agent Publisher deve mostrare il piano di publish e attendere conferma esplicita prima di chiamate write sul provider esterno. Mai `delete`/`close` automatici. Mai pubblicare > `batch_limit` (default 10) artefatti per run senza secondo gate. Token solo da env var dichiarata in `kanban_publish.auth_env`.
+
+**Regole inviolabili dello scheduler (v2.11, R.S1–R.S8 — formalizzate in §18.4)**: estensione runtime del §7 quando `scheduler.enabled: true`. **R.S1** single-committer su `wiki/log.md` e `wiki/gaps.md` preservato anche con N dev-agent in parallelo (l'orchestrator serializza le append). **R.S2** conflict-free su `code_path`: `intersect(u.code_path, v.code_path) ≠ ∅` → mai stesso group. **R.S3** cap `max_parallel` (default 4) sul fan-out per turno. **R.S4** gate umano per group con ≥ `parallel_gate_threshold` sub-agent (default 3): mostra wave plan, attendi `y/N`. **R.S5** ciclo in `depends_on` → ABORT, no auto-fix. **R.S6** re-scheduling idempotente: DAG ricostruito da zero ogni `/run`. **R.S7** fallimento di un sub-agent non rollba gli altri (convergenza opportunistica). **R.S8** `vcs-handoff` (§15) sempre serializzato: la coda di commit/branch ops è eseguita una alla volta a fine wave.
 
 ## §8 — State derivation (single source of truth)
 Lo stato del progetto si deduce SOLO da:
@@ -488,9 +574,9 @@ La topologia è codificata da: (a) presenza dei file dev-agent in `.claude/agent
 Topologie: `knowledge-only` | `plan-only` | `full-stack-agents` |
 `hybrid-be-agents` | `hybrid-fe-agents` | `custom`.
 
-`factory.config.yaml` (schema minimo):
+`factory.config.yaml` (schema minimo, v2.11):
 ```yaml
-pattern_version: "2.7"
+pattern_version: "2.11"
 topology: <una delle sei sopra>
 code_path: "./src/" | "/abs/path/outside-repo/" | ""
 stack_mode: manual | guided | auto
@@ -505,6 +591,22 @@ stack:
   frontend: "..."
   database: "..."
   qa: "..."
+# Parallel scheduler (v2.11, §18) — opzionale; default sicuri
+scheduler:
+  enabled: true
+  max_parallel: 4
+  parallel_gate_threshold: 3
+  code_path_conflict: strict     # strict | warn | off
+  empty_code_path_policy: serial # serial | parallel
+  domains:
+    ingest: true
+    develop: true
+    lint: true
+    query: true
+    plan: false
+    design: false
+    publish: false
+    sync: true
 ```
 
 TPM applica `consumer: <routing[layer]>` come default ai TSK; override puntuale
@@ -517,8 +619,149 @@ ammesso. Comando `/dev <TSK-id>` forza dev-agent one-shot anche su TSK con
 - **`guided`**: bootstrap mostra opzioni curate per layer (FastAPI/Express/Spring; React/Vue/Svelte; PostgreSQL/MongoDB/SQLite; ...) e l'utente sceglie.
 - **`auto`**: skill `tech-scout` legge wiki + WebSearch fonti 2026 → `raw/tech_stack.md.proposal` (mai overwrite, gate umano). Standards normativi sempre verbatim.
 
-## §15 — Versioning
-- **v2.7** (questa): execution layer L5, 4 dev-agent opzionali (be/fe/db/qa), operazioni `Develop` + `Tech-scout`, topologie esplicite, `factory.config.yaml`, frontmatter TSK con `layer:`+`consumer:`. Regola §7 r.13 nuova. Vedi [[migration-v27]] + [[topology-and-dev-agents]].
+## §15 — VCS integration (v2.8)
+
+La relazione fra factory repo e L5 è dichiarata in `factory.config.yaml.vcs.mode`.
+La skill `vcs-handoff` (Fase 5 di `dev-protocol`) applica procedure diverse per
+ciascun mode; gate umano sempre obbligatorio per operazioni distruttive o
+cross-repo (§7 r.14).
+
+| Mode | Significato | Quando |
+|---|---|---|
+| `none` | Nessun L5 | `topology ∈ {knowledge-only, plan-only}` |
+| `monorepo` | L5 dentro al factory repo, un solo commit chain | `code_path` relativo al repo |
+| `submodule` | L5 come git submodule | `code_path` relativo + `vcs.submodule_path` + `.gitmodules` |
+| `sibling` | L5 in altro clone | `code_path` assoluto (o relativo fuori dal repo) |
+| `external` | Path opaco, factory non coordina git | `code_path` qualsiasi |
+
+Opzionali: `branch_strategy` (`shared`/`per-tsk`/`per-sprint`, default `shared`),
+`commit_coupling` (`pin` con `.factory-lock` / `float` solo log entry, default `float`).
+
+Citazione codice prodotto (estensione §6, v2.8):
+- `monorepo` → `[^src5: <code_path>/<path>:<line>]`
+- `submodule` → `[^src5-sub: <submodule_path>/<path>:<line> @ <commit-hash>]`
+- `sibling` o `external` → `[^src5-ext: <abs-path>:<line> @ <commit-hash>]`
+
+Vincoli (estensione §7 r.14): mai `git push`, `git submodule add|update --remote`,
+`git clone` automatico al bootstrap per `sibling`, `--force`, `--no-verify`;
+mai modificare `.gitmodules` o `.factory-lock` fuori da `vcs-handoff`.
+
+## §16 — Sync adapters (multi-source L1, v2.9)
+
+Il ruolo *Sync* (§2) è pluralizzabile per sorgente. Sub-agent supportati v2.9:
+
+| Sub-agent | Input | Output L1 | Trigger |
+|---|---|---|---|
+| `sync-docs` | `raw/*.pdf` | `raw/*.txt`, `raw/images/*-fig-NN.md` | nuovi PDF in `raw/` |
+| `figma-sync` | URL Figma o `file_key` | `raw/YYYY-MM-DD-figma-<file-key>.kb.json` + opzionali frame stub | comando `/figma-sync <url>` |
+
+Contratto per un nuovo sync adapter: (1) agente thin in `.claude/agents/<name>.md`; (2) skill fat in `.claude/skills/<name>-protocol.md`; (3) comando in `.claude/commands/<name>.md`; (4) naming dichiarato in §4 con namespace univoco; (5) entry in `raw/.extraction-manifest.json`; (6) eventuale grammatica citazione in §6 se shape ≠ `.txt`; (7) update di `ingest-protocol`; (8) update di `lint-checks` Check 4e.
+
+Invariante di isolamento: ogni sub-agent scrive SOLO nel proprio scope di naming. Mai sovrapposizioni. Solo `.extraction-manifest.json` è condiviso, append-only per chiave (mai overwrite di entries altrui).
+
+`.extraction-manifest.json` esteso v2.9 — entry form:
+
+{ "<key>": { "source": "pdf|figma|...", "extracted_at": "ISO-8601", "primary_artifact": "raw/<path>", "secondary_artifacts": [...], "extractor_version": "<sub-agent>@<semver>", "extraction_metadata": {...} } }
+
+Retrocompat: entries pre-v2.9 senza `source` interpretate come `source: pdf`.
+
+## §17 — Publisher adapters (multi-target L3/L4, v2.10)
+
+Simmetrico ai sync adapters (§16). Mirror push-only di management/kanban/** su tool esterni di project tracking.
+
+**Invariante di direzione**: management/kanban/** resta canonico (§8). Modifiche fatte sul provider esterno verranno sovrascritte al prossimo publish. Bidirectional `status:` candidato v2.11.
+
+**Provider supportati v2.10**:
+
+| Provider | Sub-agent | Implementazione | Auth env (default) |
+|---|---|---|---|
+| `github` | `github-publisher` | `gh` CLI | `GH_TOKEN` |
+| `gitlab` | `gitlab-publisher` | placeholder (contratto pronto) | `GL_TOKEN` |
+| `jira` | `jira-publisher` | placeholder | `JIRA_TOKEN` |
+| `linear` | `linear-publisher` | placeholder | `LINEAR_TOKEN` |
+| `none` | — | publishing disabilitato | — |
+
+**`factory.config.yaml.kanban_publish` schema** (v2.10):
+
+```yaml
+kanban_publish:
+  provider: github                # none | github | gitlab | jira | linear | custom
+  target: "<org>/<repo>"          # provider-specific
+  auth_env: GH_TOKEN              # nome var ambiente del token
+  mode: push-only                 # v2.10 unica modalità (bidirectional candidato v2.11)
+  batch_limit: 10                 # §7 r.15: max CREATE+UPDATE per run senza secondo gate
+  mapping:
+    epic_to: milestone | issue-label | project-column
+    story_to: issue-label | issue-type-story
+    task_to: issue-label
+    sprint_to: milestone | project-iteration | cycle
+  labels:
+    epic: "kanban:epic"
+    story: "kanban:story"
+    task: "kanban:task"
+    layer_prefix: "layer:"
+  filter:
+    only_consumer: any | agent | human
+    only_status: any | todo | in-progress | done
+```
+
+**Contratto per nuovo Publisher**:
+(1) agente thin `.claude/agents/<provider>-publisher.md`; (2) skill provider-specific `.claude/skills/<provider>-mapping.md`; (3) NIENTE nuovo comando (`/kanban-publish` agnostico legge `kanban_publish.provider`); (4) NIENTE modifica a PATTERN — contratto §17 copre tutti; (5) aggiornamento `lint-checks` Check 4f (whitelist provider).
+
+**Invariante di isolamento**: ogni Publisher scrive solo nel proprio scope. Mai sovrapposizioni di `external_id:` cross-provider. Mai DELETE/CLOSE.
+
+**Procedura `publisher-protocol` (5 fasi)**: Bootstrap (verifica auth + config) → Discovery (Glob EP/US/TSK + filter) → Plan & Gate (mostra piano, attendi conferma esplicita §7 r.15) → Publish (CREATE/UPDATE, aggiorna `external_id:` locale) → Log (append a `wiki/log.md`, template `publish`).
+
+## §18 — Parallel scheduling (DAG-driven, v2.11)
+
+L'Orchestrator (§2) costruisce a runtime un DAG `G = (V, E)` dove `V` = artefatti azionabili (EP/US/TSK con `status: todo|ready`, `consumer: agent`, agente disponibile) + operazioni one-shot in coda; `E = E_dep ∪ E_conf`. **E_dep** (causal, oriented): `v → u` se `u.depends_on ∋ v` (cascade) o se `u.blocked_by` contiene una `Q_NNN` non chiusa. **E_conf** (file-conflict, unoriented, solo TSK): `u — v` se `glob_intersect(u.code_path, v.code_path)` non vuota. `glob_intersect` riconosce overlap di prefisso (es. `src/auth/**` vs `src/auth/handlers/**` → overlap).
+
+**Algoritmo (3 step)**:
+1. **Build DAG** sui candidati filtrati per topologia/routing.
+2. **Toposort + level grouping** (algoritmo di Kahn modificato): assegna `level[v] = 1 + max(level(parents))`; cycle in `E_dep` → ABORT (R.S5).
+3. **Partition** di ogni level con **graph-coloring greedy** su `E_conf` (priority DESC, estimate ASC): produce gruppi di TSK senza overlap, eseguibili in parallelo.
+
+**Domini di parallelismo (§18.3)** opt-in/out per dominio in `factory.config.yaml.scheduler.domains`:
+- `ingest` ✓ (già v2.4 via `wiki-keeper-worker`)
+- `develop` ✓ nuovo v2.11 (dev-agent paralleli su antichain)
+- `lint` ✓ (read-only)
+- `query` ✓ (read-only)
+- `sync` ✓ (sorgenti distinte, mai stessa sorgente)
+- `plan` ✗ (single-committer; candidato v2.12)
+- `design` ✗ (coerenza globale)
+- `publish` ✗ (gate batch §7 r.15)
+
+**`factory.config.yaml.scheduler` (schema)**:
+```yaml
+scheduler:
+  enabled: true                    # false → comportamento pre-v2.11 (seriale)
+  max_parallel: 4                  # cap fan-out per turno (R.S3)
+  parallel_gate_threshold: 3       # ≥ N parallel → gate umano (R.S4)
+  code_path_conflict: strict       # strict | warn | off
+  empty_code_path_policy: serial   # serial (default) | parallel
+  domains:
+    ingest: true
+    develop: true
+    lint: true
+    query: true
+    plan: false
+    design: false
+    publish: false
+    sync: true
+```
+
+**Output osservabile (wave plan, §18.6)**: alla `/run`, l'orchestrator stampa il piano in chat (level → group → TSK con `[layer, estimate, priority]` + `code_path`), accodando `vcs-handoff` (§15) serializzato a fine wave. Sopra `parallel_gate_threshold` → attendi `y/N`.
+
+**Anti-pattern (§18.7)**: lo scheduler NON si sostituisce all'Arch; NON parallelizza `consumer: human`; NON deduce dipendenze da `wiki_page:` o `related:` (soft references); NON parallelizza la scrittura su `wiki/` (single-committer §7 r.12 invariato); NON auto-merge su conflict.
+
+**Skill provider-agnostic**: `parallel-scheduling` (5 fasi: Discovery → Build DAG → Toposort/Partition → Gate → Dispatch + Log). Lint Check 4g (cycle detection, drift body↔frontmatter, validation `code_path`/`blocked_by`/`scheduler:`).
+
+## §19 — Versioning
+- **v2.11** (questa): Parallel scheduler agent-agnostic basato su DAG di dipendenze dichiarate nei frontmatter (§18). Nuovi campi opzionali: `depends_on` (EP/US/TSK), `blocked_by` esteso a TSK, `code_path` (TSK, glob L5) — §5. Nuovo §18 «Parallel scheduling»: modello `E_dep ∪ E_conf`, algoritmo 3-step, 8 domini (3 attivi default: ingest/develop/lint/query/sync; design/plan/publish off). Otto regole inviolabili R.S1–R.S8 (estensione §7 al runtime). Nuovo blocco `scheduler:` in `factory.config.yaml`. Orchestrator esteso con dispatch parallelo (multi-`Agent` call nello stesso turno) + wave-plan output. Skill `parallel-scheduling` (5 fasi). Lint Check 4g (cycle + drift + validation). Retrocompat: artefatti senza `depends_on` → level 0; senza `code_path` → serializzanti (`empty_code_path_policy: serial`).
+- **v2.10**: Publisher adapters multi-target. Nuovo ruolo *Publisher* (§2), nuovo verbo `Publish` (§3), nuovo frontmatter opzionale `external_id:` su EP/US/TSK (§5), nuova regola §7 r.15, nuovo §17 «Publisher adapters», blocco `kanban_publish:` in `factory.config.yaml`. `github-publisher` implementato via `gh` CLI; `gitlab`/`jira`/`linear` placeholder (contratto pronto). Skill: `publisher-protocol` (provider-agnostic, 5 fasi) + `<provider>-mapping` (provider-specific). Lint Check 4f. Push-only in v2.10; bidirectional rimandato a v2.12 (slot v2.11 preso dal parallel scheduler).
+- **v2.9**: Sync role pluralizzato (multi-source L1). Nuovo sub-agent `figma-sync` per estrazione Figma via Anthropic API + Figma MCP. Nuovo shape `.kb.json`. Nuova grammatica citazione `[^src: <path>.kb.json §<dotted-path>]` (§6). Nuovo §16 «Sync adapters» con contratto per nuovi adapter. `ingest-protocol` esteso (Fase 1 ramo strutturato). `lint-checks` Check 4e. `.extraction-manifest.json` esteso. Retrocompat: entries pre-v2.9 senza `source` interpretate come `source: pdf`.
+- v2.8: VCS integration esplicita. Blocco `vcs:` in `factory.config.yaml` (`mode: monorepo|submodule|sibling|external|none`). Skill `vcs-handoff` invocata da `dev-protocol` Fase 5. Lint check 4d. Regola §7 r.14. `.factory-lock` opzionale.
+- v2.7: execution layer L5, 4 dev-agent opzionali (be/fe/db/qa), operazioni `Develop` + `Tech-scout`, topologie esplicite, `factory.config.yaml`, frontmatter TSK con `layer:`+`consumer:`. Regola §7 r.13 nuova. Vedi [[migration-v27]] + [[topology-and-dev-agents]].
 - v2.6: Gate L4 graduato (`blocking_level: hard|soft`), operazione `Propagate`, auto-promotion suggerita.
 - v2.5: operazione `Heal` (evaluator-optimizer).
 - v2.4: ingest parallelo (batch ≥ 3), single-committer.
@@ -645,35 +888,134 @@ Dashboard + episodic memory + operazione `/promote`.
 ```
 
 ### `.claude/agents/sync-docs.md`
-```markdown
+````markdown
 ---
 name: sync-docs
-description: Estrae testo + immagini dai PDF in raw/. Unico agente che scrive in raw/.
+description: Sub-agent Sync per la sorgente PDF (PATTERN §2 + §16). Estrae testo + immagini dai PDF in raw/.
 model: claude-haiku-4-5
 tools: [Read, Write, Edit, Glob, Bash]
 ---
-# ROLE: Sync (raw extraction)
+# ROLE: Sync — sub-agent PDF (PATTERN §2 + §16)
 
-Legge `raw/*.pdf`, scrive `raw/*.txt` e `raw/images/`.
+Legge `raw/*.pdf`, scrive `raw/*.txt` e `raw/images/*-fig-NN.md`.
+Sub-agent del ruolo *Sync* dedicato alla sorgente PDF. Gemello: `figma-sync` per Figma.
 
 ## Scope
 - Legge: `raw/**/*.pdf`
-- Scrive: `raw/**/*.txt`, `raw/images/**/*.{md,png,jpg}`, `raw/.extraction-manifest.json`
-- **Non scrive mai in:** `wiki/`, `management/`, `design_&_architecture/`, `memory/`
+- Scrive **solo** nel proprio scope (invariante §16 «Isolamento»):
+  - `raw/**/*.txt`
+  - `raw/images/**/*-fig-NN.{md,png,jpg}`
+  - `raw/.extraction-manifest.json` (append della propria entry; mai overwrite di entries con `source ≠ pdf`)
+- **Non scrive mai in:** `wiki/`, `management/`, `design_&_architecture/`, `memory/`,
+  `raw/*.kb.json` (scope di `figma-sync`).
 
 ## Regole
 - Mai modificare i PDF originali.
 - Naming: `YYYY-MM-DD-<nome>.txt` corrisponde a `YYYY-MM-DD-<nome>.pdf`.
 - Figure: `YYYY-MM-DD-<nome>-fig-NN.md` (un file `.md` per figura con `source_pdf`, `page`, `figure_number`).
-- Aggiorna `.extraction-manifest.json` con: `{<nome>: {extracted_at, txt_path, figures: N, pages: N}}`.
+- Aggiorna `.extraction-manifest.json` con la forma estesa v2.9:
+
+  ```json
+  {
+    "<data>-<nome>": {
+      "source": "pdf",
+      "extracted_at": "<ISO-8601>",
+      "primary_artifact": "raw/<data>-<nome>.txt",
+      "secondary_artifacts": ["raw/images/<data>-<nome>-fig-01.md", "..."],
+      "extractor_version": "sync-docs@2.9.0",
+      "extraction_metadata": { "pages": N, "figures": M }
+    }
+  }
+  ```
+
+  Entries pre-v2.9 (chiave-piatta `{<nome>: {extracted_at, txt_path, figures, pages}}`)
+  sono accettate dal wiki-keeper e dal lint (retrocompat). Quando re-ingerisci un PDF
+  già presente in forma pre-v2.9, **migra** l'entry al nuovo formato.
 
 ## Procedura
 1. `Glob raw/*.pdf` → per ogni PDF non ancora nel manifest:
 2. Estrai testo → `Write raw/<data>-<nome>.txt`
 3. Estrai figure → `Write raw/images/<data>-<nome>-fig-NN.md` + binari
-4. Aggiorna `.extraction-manifest.json`
+4. Aggiorna `.extraction-manifest.json` (forma estesa v2.9, sezione sopra)
 5. Suggerisci di invocare `wiki-keeper` per l'ingest.
+````
+
+### `.claude/agents/figma-sync.md` (★ v2.9, opzionale)
+````markdown
+---
+name: figma-sync
+description: Estrae KB strutturata da un file Figma (Anthropic API + Figma MCP). Sub-agent Sync per la sorgente Figma. Scrive solo nel proprio scope di raw/.
+model: claude-sonnet-4-6
+tools: [Read, Write, Edit, Glob, Bash]
+---
+# ROLE: Figma Sync (sub-agent del ruolo Sync, PATTERN §2 + §16)
+
+Legge un file Figma via URL o `file_key`, scrive una KB JSON strutturata in `raw/`.
+Unico autore del proprio scope di naming Figma in `raw/`.
+
+## Scope
+
+- Legge:
+  - Input passato al comando `/figma-sync <url|file_key>` (NON vive in `raw/`).
+  - `raw/.extraction-manifest.json` (per dedup e append della propria entry).
+  - `raw/tech_stack.md` (read-only, contesto opzionale).
+- Scrive **solo** nel proprio scope (invariante §16 «Isolamento»):
+  - `raw/YYYY-MM-DD-figma-<file-key>.kb.json` (artefatto primario)
+  - `raw/images/YYYY-MM-DD-figma-<file-key>-frame-NN.md` (companion stub per ogni frame
+    significativo; binario `.png` opzionale stesso slug)
+  - `raw/.extraction-manifest.json` (append della propria entry; mai overwrite di entries altrui)
+- **Non scrive mai in:** `wiki/`, `management/`, `design_&_architecture/`, `memory/`,
+  `raw/*.txt`, `raw/images/*-fig-NN.md` (scope di `sync-docs`).
+
+## Trigger
+
+- Comando esplicito `/figma-sync <figma-url>` (mai automatico).
+- Mai invocato in catena da altri ruoli: gli altri agenti possono solo segnalare
+  un gap «manca estrazione Figma per X» in `wiki/gaps.md`; l'umano decide se invocare.
+
+## Procedura
+
+- Vedi `figma-extraction-protocol`. 5 fasi:
+  1. Bootstrap (parse URL → `file_key`; dedup contro manifest).
+  2. Discovery (singola chiamata LLM con `DISCOVERY_PROMPT` + Figma MCP `get_metadata`/`get_variable_defs`).
+  3. Chunked extraction (frame raggruppati a 3, chiamate parallele con limite di concorrenza).
+  4. Proposta (STOP, attendi conferma esplicita prima di scrivere).
+  5. Scrittura `.kb.json` + companion stub + entry in manifest. Suggerisci `wiki-keeper`.
+
+## Regole
+
+- **Mai inventare**: se l'API ritorna vuoto o errore non recuperabile dopo retry,
+  registra l'estrazione come `status: partial` nel manifest e segnala in chat.
+  Non scrivere dati sintetizzati. PATTERN §7 r.2 («zero invenzione»).
+- **Mai chiamate API senza gate iniziale**: la skill mostra in chat il piano di
+  estrazione (file_key, numero frame stimato, costo approssimativo in chunk) e
+  attende conferma prima della Fase 3 (parallel extraction).
+- **Naming inviolabile**: ogni file prodotto deve iniziare con il prefisso
+  `<data>-figma-<file-key>-` (regola di namespace §16 isolamento).
+- **Secret hygiene**: `ANTHROPIC_API_KEY` e eventuali token Figma vivono in
+  variabili d'ambiente o `.env` (mai committate). La skill legge da env, mai da
+  prompt utente in chat.
+- **Standards verbatim**: se durante l'estrazione emergono riferimenti a standard
+  (WCAG, ARIA, GDPR), trascrivili verbatim — l'Arch li tratterà come vincoli (§11).
+
+## Output schema (KB Figma)
+
+Vedi `figma-extraction-protocol §Schema KB`. Conferme rapidamente:
+
+```json
+{
+  "project": { "name", "description", "domain", "pages_count", "screens_count" },
+  "screens":    [{ "id", "name", "type", "description", "components", "actions", "data", "links_to" }],
+  "components": [{ "name", "category", "description", "props", "screens" }],
+  "flows":      [{ "name", "description", "trigger", "steps", "screens" }],
+  "features":   [{ "name", "description", "priority", "screens", "stories" }],
+  "tokens":     { "colors", "typography", "spacing" }
+}
 ```
+
+Citazione downstream: `[^src: raw/YYYY-MM-DD-figma-<key>.kb.json §screens[0]]` (vedi
+PATTERN §6, grammatica JSON v2.9).
+````
 
 ### `.claude/agents/wiki-keeper.md`
 ```markdown
@@ -689,10 +1031,11 @@ Legge `raw/`, scrive `wiki/`. Mai modifiche al di fuori.
 
 ## Scope
 
-- Legge: `raw/**/*.txt`, `raw/images/**/*.md`, `raw/.extraction-manifest.json`,
+- Legge: `raw/**/*.txt`, `raw/**/*.kb.json` (v2.9, prodotti da `figma-sync`),
+  `raw/images/**/*.md`, `raw/.extraction-manifest.json`,
   `raw/tech_stack.md`, `memory/**`, `wiki/**` (rilegge per cross-link)
 - **Legge SEMPRE all'inizio di ogni run**: `wiki/gaps.md` (gap aperti segnalati
-  da PM/Arch/TPM/query)
+  da PM/Arch/TPM/query/dev)
 - Scrive: `wiki/**` **escluso** `query/`, `lint/`, e le sezioni
   `## Storie collegate` (proprietà PM)
 - Append: `wiki/log.md`, `wiki/gaps.md` (per chiudere i gap con `**Risolto:**`)
@@ -701,25 +1044,32 @@ Legge `raw/`, scrive `wiki/`. Mai modifiche al di fuori.
 
 - L1 aggiornato (nuovi `.txt` in `raw/` dopo `/sync-docs`)
 - Gap aperti in `wiki/gaps.md`
+- Operazione `Heal` (PATTERN.md §3): l'umano invoca `/heal` su un lint report
+  con `heal_eligible_count > 0`. Esegue `heal-protocol`, non `ingest-protocol`.
 
 ## Procedura
 
-- Bootstrap → analisi → proposta → scrittura: vedi `ingest-protocol`. Su N ≥ 3 nuovi `.txt`, delega Fase 1 a worker paralleli (`wiki-keeper-worker`) e applica Fase 1.bis di merge prima della proposta (v2.4).
+- Bootstrap → analisi → proposta → scrittura: vedi `ingest-protocol`. Su N ≥ 3 nuovi `.txt`, delega Fase 1 a worker paralleli (`wiki-keeper-worker`) e applica Fase 1.bis di merge prima della proposta.
 - Per ogni pagina: vedi `scrivi-wiki-page`
 - Citazioni e wikilink: vedi `citation-rules`
 - Gestione gap: vedi `wiki-gap-protocol`. Quando un gap chiuso cita una `Q_NNN`
   risolta contestualmente, esegui `propagate-resolution` prima della log-entry
   di ingest (v2.6, operazione `Propagate`).
-- Modalità Heal (v2.5, evaluator-optimizer su lint report): vedi `heal-protocol`
+- Modalità Heal (loop evaluator-optimizer su lint report): vedi `heal-protocol`
 - Log entry: vedi `wiki-log-entry`
 
 ## Regole
 
 - Mai leggere i PDF direttamente (solo i `.txt` estratti).
+- Mai chiamare API esterne (Figma MCP, Anthropic): l'estrazione vive nei sub-agent Sync.
+  Per la sorgente Figma il wiki-keeper legge **solo** `raw/*.kb.json` già prodotto da `figma-sync`.
 - Informazione mancante → `wiki-gap-protocol` (mai inventare).
 - Update non distruttivo: aggiungi `## Aggiornamenti (vYYYY-MM-DD)` su pagine
   `review`/`approved`.
 - Layout: karpathy-style (`sources/concepts/entities/syntheses/runbooks/incidents/`).
+- Citazione fonte (v2.9): testo (`.txt`) → `[^src: <path>.txt §<header>]`;
+  JSON strutturato (`.kb.json`) → `[^src: <path>.kb.json §<dotted-path>]` (vedi
+  `citation-rules` e PATTERN §6).
 ```
 
 ### `.claude/agents/product-manager.md`
@@ -1011,14 +1361,112 @@ Vedi `dev-protocol` (skill canonica) + `dev-handoff` (skill canonica).
 - `db-dev.md`: stessa forma. Scope: migration/schema (sotto `<code_path>/migrations/` o `<code_path>/db/`). Regola extra: migration reversibili (up+down), STOP su DROP irreversibili.
 - `qa-dev.md`: model `claude-sonnet-4-6`. Scope: test (sotto `<code_path>/tests/` o accanto al codice testato). Gate extra: il TSK target deve essere `done` o `in-progress` con codice già committato.
 
+### `.claude/agents/github-publisher.md` (★ v2.10, opzionale)
+````markdown
+---
+name: github-publisher
+description: Sub-agent Publisher per GitHub (PATTERN §2 + §17, v2.10). Pubblica EP/US/TSK/sprint su GitHub Issues/Milestones come mirror push-only. Provider-agnostic: invoca publisher-protocol + github-mapping.
+model: claude-sonnet-4-6
+tools: [Read, Write, Edit, Glob, Bash]
+---
+# ROLE: GitHub Publisher (sub-agent del ruolo Publisher, PATTERN §2 + §17)
+
+Legge `management/kanban/**`, pubblica su GitHub Issues/Milestones. Unico autore
+del campo frontmatter `external_id: github:<num>` su EP/US/TSK locali; mai del
+corpo.
+
+## Scope
+
+- Legge: `management/kanban/EP-*/**`, `management/kanban/sprint.md`,
+  `management/{roadmap,questions}.md`, `factory.config.yaml`, `memory/**`.
+- Scrive **solo** nel proprio scope (invariante §17 «Isolamento»):
+  - Frontmatter `external_id:` di `management/kanban/EP-*/EP-*.md`,
+    `US-*/US-*.md`, `**/TSK-*.md` — **solo** se assente, o se contiene già un
+    valore con prefisso `github:` (mai overwrite di `external_id: gitlab:...`
+    o altri provider).
+  - Frontmatter `updated:` dei file pubblicati (ISO-8601 timestamp).
+  - Append a `wiki/log.md` (template `publish`).
+  - Operazioni REST su GitHub via `gh` CLI (CREATE + UPDATE; mai DELETE/CLOSE).
+- **Non scrive mai in:** corpo dei file kanban (PM/TPM ownership), `wiki/**`
+  (a parte log append), `design_&_architecture/**`, `<code_path>/**`, `raw/**`.
+
+## Trigger
+
+- Comando esplicito `/kanban-publish run` (mai automatico).
+- Mai invocato in catena da altri ruoli: il flusso PM → TPM → Publisher è
+  esplicito (umano decide quando pubblicare).
+
+## Prerequisiti
+
+- `gh` CLI installato (https://cli.github.com/) e autenticato (`gh auth login` fatto prima).
+- `factory.config.yaml.kanban_publish.provider: github` + `target: "<org>/<repo>"` valorizzato.
+- Variabile d'ambiente `<auth_env>` (default `GH_TOKEN`) settata (oppure `gh`
+  ha già le sue credenziali in `~/.config/gh/`).
+- L'utente ha access scope `repo:issues:write` + `repo:metadata:read` (per
+  milestone) sul target. Token con scope `delete` o `admin` è eccessivo: la
+  skill non li usa.
+
+## Procedura
+
+- Procedura agnostic: vedi `publisher-protocol` (5 fasi).
+- Provider-specific mapping: vedi `github-mapping` (come EP/US/TSK diventano
+  Issue/Milestone/Label).
+- Citazioni e wikilink nel body delle issue: il body è il contenuto markdown
+  verbatim del TSK locale; GitHub renderizza i `[^src:]` come testo (non
+  navigabile, ma preservato). Per i `[[wikilink]]` aggiungere nota in fondo
+  «Riferimenti relativi al repo factory <link>», vedi `github-mapping §Body`.
+
+## Regole
+
+- **Mai inventare**: se l'API ritorna errore non recuperabile, ABORT con messaggio
+  chiaro. Non scrivere `external_id` finto. PATTERN §7 r.2.
+- **Mai chiamare API senza gate iniziale**: la procedura mostra il piano e
+  attende conferma esplicita prima della Fase 4 (Publish). PATTERN §7 r.15.
+- **Naming inviolabile**: ogni `external_id:` scritto inizia con prefisso
+  `github:` (regola di namespace §17 isolamento). Mai prefissi diversi.
+- **Secret hygiene**: il token vive in env var (`<auth_env>`). Mai logging del
+  token. Mai committarlo. La skill verifica via `gh auth status` invece di
+  manipolare il token direttamente.
+- **Mai DELETE/CLOSE automatici**: se un TSK viene rimosso da `management/`,
+  l'issue esterna **resta aperta**. Sarà l'umano a chiuderla (o un'altra
+  operazione esplicita, fuori dallo scope di v2.10).
+- **Mai sovrascrivere `external_id:` di altri provider**: se un EP ha già
+  `external_id: jira:PROJ-123`, github-publisher lo SKIP e segnala in chat
+  «conflitto cross-provider su <id>».
+- **Mai modificare il corpo dei file kanban**: solo frontmatter `external_id:`
+  e `updated:`. PM/TPM restano i soli autori del corpo (§7 r.8).
+
+## Output schema (entry frontmatter aggiornata)
+
+Esempio post-publish su TSK-014:
+
+```yaml
+---
+id: TSK-014
+sprint: 03
+layer: be
+consumer: agent
+priority: high
+estimate: 3
+status: todo
+external_id: github:1247                 # <-- aggiunto dal github-publisher
+updated: 2026-05-22T14:32:00Z            # <-- aggiornato dal github-publisher
+---
+```
+
+Citazione downstream (se mai serve riferire un'issue da una pagina wiki):
+`[^src: management/kanban/EP-001/US-015/TSK-014.md §external_id]` (la citazione
+resta verso il file locale; l'`external_id` è il pointer al provider).
+````
+
 ---
 
-## §7 — Template delle 18 skill (15 core + 3 v2.7)
+## §7 — Template delle 21 skill (15 core + 3 v2.7 + 1 v2.8 + 1 v2.9 + 2 v2.10 + 1 v2.11)
 
 Le skill sono organizzate in **tre tier**:
 
 - **Canoniche** (3): single source of truth di grammatica, formati, protocolli. Referenziate da tutto.
-- **Procedurali** (7+3 v2.7): playbook autonomi che descrivono "come fare X". Ogni agente referenzia 1-3 di queste. v2.5 ha aggiunto `heal-protocol`; v2.6 `propagate-resolution`; **v2.7 aggiunge `dev-protocol`, `dev-handoff`, `tech-scout`** (gli ultimi due solo se topologia include dev-agent o `stack_mode: auto`).
+- **Procedurali** (7+3 v2.7+1 v2.8+1 v2.9+2 v2.10+1 v2.11): playbook autonomi che descrivono "come fare X". Ogni agente referenzia 1-3 di queste. v2.5 ha aggiunto `heal-protocol`; v2.6 `propagate-resolution`; **v2.7 aggiunge `dev-protocol`, `dev-handoff`, `tech-scout`** (gli ultimi due solo se topologia include dev-agent o `stack_mode: auto`); **v2.8 aggiunge `vcs-handoff`** (condizionale a `vcs.mode != none`); **v2.9 aggiunge `figma-extraction-protocol`** (condizionale a presenza di `figma-sync`); **v2.10 aggiunge `publisher-protocol` + `<provider>-mapping`** (condizionale a `kanban_publish.provider != none`); **v2.11 aggiunge `parallel-scheduling`** (condizionale a `scheduler.enabled: true`, default).
 - **Template di scrittura** (5): forma + regole per ciascun artefatto producibile.
 
 ### Tier 1 — Canoniche
@@ -2048,6 +2496,637 @@ con fonti datate 2026 → scrittura proposta con citazioni `[^web: <url>]
 (accessed YYYY-MM-DD)` → handoff con log entry. Vincolo §11: standards
 normativi citati nei raw sono adottati verbatim, mai sostituiti.
 
+#### `.claude/skills/figma-extraction-protocol.md` (★ v2.9, opzionale)
+````markdown
+---
+name: figma-extraction-protocol
+description: Protocollo di estrazione Figma per il figma-sync. 5 fasi (Bootstrap → Discovery → Chunked Extraction → Proposta → Scrittura). Implementa il pattern chunked-extraction-pipeline.
+---
+# Protocollo di estrazione Figma
+
+Riferimenti: PATTERN §16 (sync adapters), §6 (citazioni JSON), §7 r.1 (L1
+read-only), `citation-rules`, `wiki-log-entry`. Implementa in headless il pattern
+documentato in [[chunked-extraction-pipeline]] (concept derivato da `raw/figma-extraction-agent.jsx`).
+
+## Prerequisiti
+
+- **`ANTHROPIC_API_KEY`** in env (o `.env` non committato). La skill verifica la
+  presenza e ABORTISCE se assente.
+- **Accesso Figma MCP** (`https://mcp.figma.com/mcp`). Header beta
+  `anthropic-beta: mcp-client-2025-04-04`. Richiede che il file Figma sia visibile
+  alle credenziali del MCP server (l'utente deve aver configurato l'auth Figma in
+  precedenza, fuori dallo scope di questa skill).
+- **(Opzionale)** `FIGMA_TOKEN` se si vogliono scaricare anche i thumbnail dei
+  frame via Figma REST (`/v1/images/:key`).
+
+## Schema KB (single source of truth)
+
+```json
+{
+  "project": {
+    "name": "string",
+    "description": "string",
+    "domain": "string",
+    "pages_count": "integer",
+    "screens_count": "integer"
+  },
+  "screens": [
+    { "id": "string", "name": "string", "type": "dashboard|list|detail|form|modal|auth|settings|other",
+      "description": "string", "components": ["string"], "actions": ["string"],
+      "data": ["string"], "links_to": ["string"] }
+  ],
+  "components": [
+    { "name": "string", "category": "layout|navigation|form|display|feedback|other",
+      "description": "string", "props": ["string"], "screens": ["string"] }
+  ],
+  "flows": [
+    { "name": "string", "description": "string", "trigger": "string",
+      "steps": ["string"], "screens": ["string"] }
+  ],
+  "features": [
+    { "name": "string", "description": "string", "priority": "high|medium|low",
+      "screens": ["string"], "stories": ["string"] }
+  ],
+  "tokens": {
+    "colors":     [{ "name": "string", "value": "string" }],
+    "typography": [{ "name": "string", "value": "string" }],
+    "spacing":    [{ "name": "string", "value": "string" }]
+  }
+}
+```
+
+Costanti (allineate al pattern [[chunked-extraction-pipeline]]):
+
+```
+MODEL            = "claude-sonnet-4-6"        # o successivo, parametrizzabile
+MAX_CONCURRENCY  = 3                          # chunk in parallelo
+MAX_RETRIES      = 2                          # tentativi per chunk in errore
+RETRY_BASE_DELAY = 1500 ms                    # base exponential backoff
+FRAMES_PER_CHUNK = 3                          # frame per gruppo
+```
+
+## Fase 0 — Bootstrap
+
+- Verifica `ANTHROPIC_API_KEY` in env. Assente → ABORT con messaggio chiaro.
+- Parsing input: estrai `file_key` da URL Figma. Pattern supportati:
+  `/file/KEY/`, `/design/KEY/`, `/proto/KEY/`. Se l'utente passa già il `file_key`
+  alfanumerico, accettalo direttamente.
+- Read `raw/.extraction-manifest.json`. Genera chiave manifest: `<data>-figma-<file_key>`.
+  - Se la chiave esiste già con `status: success` → mostra in chat l'entry
+    esistente e chiedi: «Re-extract (overwrite con `## Aggiornamenti` semantics
+    nella Fase 5)? [y/N]».
+  - Se esiste con `status: partial` o `error` → procedi (retry trasparente).
+- Read `raw/tech_stack.md` (se esiste) per contesto eventuale (non altera il
+  prompt, ma viene incluso come hint nel `DISCOVERY_PROMPT`).
+
+## Fase 1 — Piano di estrazione (STOP iniziale)
+
+Mostra in chat:
+
+```
+PIANO ESTRAZIONE FIGMA
+======================
+File: <url o file_key>
+Output primario: raw/YYYY-MM-DD-figma-<file_key>.kb.json
+Manifest key:    <data>-figma-<file_key>
+Costo stimato:   1 chiamata Discovery + N chiamate chunk (stima da affinare in Fase 2)
+Thumbnail:       <on|off in base a FIGMA_TOKEN>
+Procedo con Discovery?
+```
+
+**Attendi conferma esplicita.** Se l'utente nega → ABORT pulito (nessuno scrittura).
+
+## Fase 2 — Discovery (singola chiamata)
+
+Prompt `DISCOVERY_PROMPT` (testo guida, citazione `[[chunked-extraction-pipeline]]`):
+
+> Tu sei un knowledge extractor su un file Figma. Usa i tool MCP `get_metadata` e
+> `get_variable_defs` per mappare la struttura del file. Restituisci JSON con:
+> - `project`: name, description, domain, pages_count, screens_count
+> - `frames`: lista di `{id, name, page}` (TUTTI i frame del file, anche se molti)
+> - `tokens`: colors / typography / spacing globali
+> **DO NOT extract details yet — only discover.** Niente componenti, niente flussi.
+
+Chiamata Anthropic API con `mcp_servers` payload registrato verso
+`https://mcp.figma.com/mcp` + header `anthropic-beta: mcp-client-2025-04-04`.
+
+Output atteso: blocco JSON valido contro lo schema (sezione `project` + `frames[]` +
+`tokens`). Se il modello produce JSON malformato → 1 retry con prompt rinforzato
+(«Output deve essere SOLO JSON valido, niente prosa»). Secondo fallimento → ABORT,
+manifest entry `status: error`, log a chat.
+
+Mostra in chat:
+
+```
+DISCOVERY COMPLETED
+===================
+Project:  <name> (domain: <domain>)
+Pages:    <pages_count>
+Frames:   <N> totali
+Tokens:   <C> colors, <T> typography, <S> spacing
+Chunks da estrarre: ceil(N / FRAMES_PER_CHUNK) = <C>
+Procedo con extraction parallela? (worker pool max 3)
+```
+
+**Attendi conferma.** Se l'utente vuole filtrare frame (es. «solo le pagine
+Mobile»), accetta una lista di id da escludere prima di procedere.
+
+## Fase 3 — Chunked extraction (parallela)
+
+- Chunk = `frames[]` partizionato in gruppi di `FRAMES_PER_CHUNK = 3`.
+- Per ogni chunk, lancia un task asincrono. Limite globale `MAX_CONCURRENCY = 3`
+  (worker pool). Vedi [[worker-pool-concurrency-limiter]].
+- Prompt `CHUNK_PROMPT_TEMPLATE`: enumera esplicitamente gli id dei frame del
+  chunk e chiede al modello di chiamare `get_design_context` su ciascuno;
+  restituire JSON con `screens[]`, `components[]`, `flows[]`, `features[]`
+  popolati **solo dai frame elencati** (mai inventare frame non in lista).
+- Retry: ogni chunk usa [[exponential-backoff-retry]] (`MAX_RETRIES = 2`, base
+  `RETRY_BASE_DELAY = 1500 ms`). Errori 429/5xx → retry; errori 4xx (≠429) → no
+  retry, marca chunk `status: error`.
+- Aggiornamento progressivo: dopo ogni chunk concluso, aggiorna in memoria la KB
+  con `mergeKB(discovery, chunkResults)`. Non scrivere ancora su disco.
+
+Durante l'esecuzione, log a chat ogni 5 secondi (o per evento):
+
+```
+[14:32:01] chunk 1/8 done    (3 screens, 5 components extracted)
+[14:32:03] chunk 2/8 done    (2 screens, 1 component extracted)
+[14:32:05] chunk 3/8 retry   (HTTP 429, backoff 1500ms)
+...
+```
+
+Al termine: stampa riepilogo (chunk done / retry / error).
+
+## Fase 4 — Proposta (STOP, PATTERN §7 r.6)
+
+Mostra in chat la sintesi della KB:
+
+```
+KB FIGMA PRONTA
+===============
+project:    <name>
+screens:    <N>  (tipi: dashboard×2, form×3, modal×1, ...)
+components: <M>  (categorie: layout×3, form×4, ...)
+flows:      <F>  (priority high: P, medium: M)
+features:   <K>
+tokens:     <C> colors, <T> typography, <S> spacing
+chunk falliti dopo retry: <X>  (lista se >0)
+Procedo a scrivere raw/<data>-figma-<file_key>.kb.json?
+```
+
+**Attendi conferma esplicita.**
+
+Se chunk falliti > 0 → mostra quali frame mancano. L'utente decide:
+- procedere comunque (manifest `status: partial`, lista frame mancanti in `extraction_metadata`)
+- ritentare solo i chunk falliti (nuova Fase 3 limitata)
+
+## Fase 5 — Scrittura
+
+1. **Write** `raw/YYYY-MM-DD-figma-<file_key>.kb.json` con la KB completa.
+2. Per ogni screen significativo (criterio: `type ∈ {dashboard, form, list, detail}`
+   o se referenziato da ≥ 1 flow), **Write** un companion stub `raw/images/YYYY-MM-DD-figma-<file_key>-frame-NN.md`:
+
+   ```markdown
+   ---
+   source_figma: <file_key>
+   frame_id: <id>
+   frame_name: <name>
+   frame_index: NN
+   type: figma-frame
+   thumbnail: <path .png se presente, altrimenti "" >
+   ---
+   # Frame NN — <name>
+
+   Tipo: <type>. Companion stub generato da figma-sync. Vedi descrizione strutturata
+   in `raw/YYYY-MM-DD-figma-<file_key>.kb.json §screens[id=<id>]`.
+   ```
+
+3. **(Opzionale, se `FIGMA_TOKEN` env)** scarica i thumbnail PNG via Figma REST
+   `/v1/images/<file_key>?ids=<frame_id>&format=png&scale=2` → salva accanto al
+   companion stub con stesso slug.
+4. **Edit** `raw/.extraction-manifest.json`: appendi (o aggiorna in-place per
+   re-extract) la entry:
+
+   ```json
+   {
+     "<data>-figma-<file_key>": {
+       "source": "figma",
+       "extracted_at": "<ISO-8601>",
+       "primary_artifact": "raw/<data>-figma-<file_key>.kb.json",
+       "secondary_artifacts": ["raw/images/<data>-figma-<file_key>-frame-NN.md", "..."],
+       "extractor_version": "figma-sync@2.9.0",
+       "extraction_metadata": {
+         "file_key": "<key>",
+         "project_name": "<name>",
+         "screens_count": <N>,
+         "chunks_total": <C>,
+         "chunks_failed": <X>,
+         "frames_missing": [<id>, ...],
+         "status": "success | partial | error"
+       }
+     }
+   }
+   ```
+
+5. **Suggerisci esplicitamente** in chat: «Estrazione completata. Invoca
+   `wiki-keeper` per l'ingest L1→L2.» Mai chiamare wiki-keeper automaticamente
+   (orchestrazione cross-ruolo è responsabilità dell'utente o dell'orchestrator,
+   §7 r.12).
+
+## Regole anti-corner-case
+
+- **Frame senza id**: scartabili. Annota in `extraction_metadata.frames_skipped`.
+- **File Figma protetto / 403**: ABORT Fase 1 con istruzione: «Configura
+  l'accesso Figma MCP per il file <url> e riprova».
+- **Rate limit globale Anthropic**: backoff esponenziale; se 3+ retry consecutivi
+  falliscono → ABORT con messaggio chiaro («Riprova fra 5 min»).
+- **File enorme (>200 frame)**: avvisa in Fase 2 e chiedi conferma esplicita
+  («Estrazione stimata in ~M chunk, ~Y minuti, ~Z chiamate API. Procedo?»).
+- **Re-extract**: il file `.kb.json` viene riscritto in toto (no merge
+  incrementale a livello di file; il merge progressivo vive solo in memoria
+  durante una singola estrazione). La storia delle estrazioni vive nel
+  manifest (`extracted_at` aggiornato) e in `wiki/log.md` (entry future del
+  wiki-keeper).
+
+## Non in scope per figma-sync
+
+- Scrivere in `wiki/`, `management/`, `design_&_architecture/` (scope di altri ruoli).
+- Decidere quali screen/component diventano pagine wiki: questo è giudizio
+  dell'*Analyst* (wiki-keeper) in `ingest-protocol` Fase 1.
+- Generare wikilink `[[...]]` nel companion stub: il companion è solo metadati
+  L1; i wikilink vivono in L2.
+- Aprire gap o storie: la skill è puramente L1.
+````
+
+#### `.claude/skills/publisher-protocol.md` (★ v2.10, opzionale)
+`````markdown
+---
+name: publisher-protocol
+description: Protocollo provider-agnostic per i Publisher (PATTERN §17, v2.10). 5 fasi (Bootstrap → Discovery → Plan/Gate → Publish → Log). Invoca una skill <provider>-mapping per la traduzione concreta.
+---
+# Protocollo Publisher (provider-agnostic)
+
+Riferimenti: PATTERN §17 (Publisher adapters), §8 (single source of truth),
+§7 r.15 (gate cross-tool), `citation-rules`, `wiki-log-entry`.
+
+Questa skill è **provider-agnostic**: definisce le 5 fasi che ogni
+`<provider>-publisher` deve seguire. La traduzione concreta (EP→Milestone,
+US→Issue, …) vive in una skill provider-specific `<provider>-mapping`
+(es. `github-mapping`).
+
+## Prerequisiti
+
+- `factory.config.yaml.kanban_publish.provider` valorizzato (≠ `none`).
+- `target`, `auth_env`, `mapping`, `labels`, `filter` valorizzati.
+- Variabile d'ambiente `<auth_env>` settata oppure l'autenticazione del
+  provider è già configurata (es. `gh auth status` ritorna OK).
+- Il sub-agent invocante (`<provider>-publisher`) DEVE corrispondere a
+  `kanban_publish.provider`. Mismatch → ABORT in Fase 1.
+
+## Fase 1 — Bootstrap
+
+- Read `factory.config.yaml.kanban_publish` completo.
+- Verifica:
+  - `provider` ≠ `none` e ∈ providers supportati (lista in `lint-checks` Check 4f).
+  - `target` non vuoto.
+  - `auth_env` definita; variabile d'ambiente presente (test via env shell).
+    Se assente, ABORT con messaggio: «Setta `<auth_env>` e riprova».
+  - Mapping coerente (es. per GitHub: `epic_to ∈ {milestone, issue-label, project-column}`).
+- Invoca la sub-skill `<provider>-mapping §Auth check` (es. `gh auth status`
+  per GitHub) per verifica end-to-end. ABORT se l'auth fallisce.
+- Read ultimo `memory/episodic/*.md` per continuità con run precedente
+  (eventuale state di publishing parziale, e.g. interrotto).
+
+## Fase 2 — Discovery
+
+- `Glob management/kanban/EP-*/EP-*.md` → lista epiche.
+- `Glob management/kanban/EP-*/US-*/US-*.md` → lista storie.
+- `Glob management/kanban/EP-*/US-*/TSK-*.md` → lista task.
+- (Opzionale) Read `management/kanban/sprint.md` per mapping `sprint_to`.
+- Applica `kanban_publish.filter`:
+  - `only_consumer`: skip TSK con `consumer` non corrispondente.
+  - `only_status`: skip artefatti con `status` non corrispondente.
+- Per ogni artefatto: estrai frontmatter + body. Determina **azione**:
+  - `external_id:` assente o vuoto → **CREATE**.
+  - `external_id:` con prefisso `<provider>:` → **UPDATE**.
+  - `external_id:` con prefisso diverso (altro provider) → **SKIP**
+    (conflitto cross-provider; segnala in chat).
+
+## Fase 3 — Plan & Gate (STOP, PATTERN §7 r.15)
+
+Mostra in chat:
+
+```
+PIANO PUBBLICAZIONE (provider: <name>, target: <target>)
+========================================================
+CREATE:
+  - EP×<N1>  (esempi: EP-001 "Auth", EP-005 "Reporting")
+  - US×<N2>
+  - TSK×<N3>
+UPDATE:
+  - EP×<M1>  (ri-publish per cambio body/label/milestone)
+  - US×<M2>
+  - TSK×<M3>
+SKIP (conflitto cross-provider):
+  - <N4>  (lista <file>: <external_id esistente>)
+SKIP (filter):
+  - <N5>  (lista <file>: <reason>)
+
+Totale operazioni: <N1+N2+N3+M1+M2+M3>
+Batch limit (factory.config): <batch_limit>
+
+Procedo? [y/N]
+```
+
+**Attendi conferma esplicita** (§7 r.15).
+
+Se `totale > batch_limit`:
+
+```
+ATTENZIONE: totale operazioni (<X>) > batch_limit (<batch_limit>).
+Conferma SECONDARIA richiesta (digita "publish <X>" per procedere).
+```
+
+**Attendi conferma secondaria letterale**. Se assente → ABORT.
+
+Se l'utente vuole filtrare (es. «solo EP, niente TSK»), accetta un override
+puntuale prima di procedere.
+
+## Fase 4 — Publish
+
+Per ogni artefatto nel piano confermato:
+
+1. Invoca la sub-skill `<provider>-mapping §Build payload` per produrre il
+   payload provider-specific (es. `gh issue create --title ... --body ...`
+   per GitHub).
+2. Invoca `<provider>-mapping §Execute` per CREATE/UPDATE concreto.
+3. Cattura l'identifier ritornato dal provider (issue number, key, UUID, …).
+4. **Edit** del frontmatter locale dell'artefatto:
+   - Aggiorna `external_id: <provider>:<id>` (mai del corpo).
+   - Aggiorna `updated:` con ISO-8601 timestamp corrente.
+   - Mai modificare altri campi del frontmatter (`id`, `status`, `layer`,
+     `consumer`, `priority`, `estimate`, ecc. restano di proprietà PM/TPM/Dev).
+5. Log a chat (1 riga per artefatto):
+   ```
+   [14:32:01] CREATE EP-001 → <provider>:<id> <url>
+   [14:32:03] UPDATE TSK-014 → <provider>:<id> (already linked)
+   [14:32:05] SKIP   EP-007  (external_id: jira:PROJ-89 — conflitto cross-provider)
+   ```
+
+Errori transitori (network, rate limit): retry max 2 con backoff esponenziale
+(base 1500ms). Errore non recuperabile → mark `status: error` nel piano in
+memoria, NON cambia il frontmatter locale, continua con il prossimo artefatto.
+
+## Fase 5 — Log entry (OBBLIGATORIA)
+
+Append una sola entry a `wiki/log.md` (template `publish`, vedi `wiki-log-entry`):
+
+```markdown
+## 2026-05-22 14:35 — publish github (created=5, updated=12)
+**Operatore:** github-publisher
+**Provider:** github @ soli92/customer-portal
+**Operazioni:**
+- CREATE: EP-001, EP-005, US-010, US-011, TSK-014
+- UPDATE: EP-002, EP-003, EP-004, US-001..US-009, TSK-001..TSK-003
+- SKIP cross-provider: EP-007 (jira:PROJ-89)
+- ERROR: TSK-020 (HTTP 422 — title vuoto, da indagare)
+**Link al provider:** https://github.com/soli92/customer-portal/issues
+```
+
+Riepilogo finale a chat: count operazioni + link al provider + suggerimento
+prossimo step («Verifica gli issue creati sul provider; aggiorna `status:`
+locale quando li sposti su in-progress/done»).
+
+## Regole anti-corner-case
+
+- **File kanban senza frontmatter completo**: SKIP con WARNING (richiede lint
+  pre-publish, vedi `lint-checks` Check 3).
+- **Provider down / 5xx persistente**: ABORT dopo 3 retry consecutivi falliti.
+  Stato parziale già committato sui frontmatter è OK (idempotente: re-run
+  ripartirà da dove si è fermato grazie a `external_id:` già scritto sui
+  successful CREATE).
+- **Token scaduto / 401**: ABORT immediato Fase 1 (auth check). Suggerisci di
+  rinnovare il token.
+- **Target inesistente / 404**: ABORT Fase 1. Suggerisci di verificare
+  `factory.config.yaml.kanban_publish.target`.
+- **Body troppo lungo per il provider** (es. GitHub limit ~65k caratteri):
+  troncamento con marker `\n\n---\n[Body troncato — vedi file locale]\n` +
+  WARNING in log. **Mai** silenziosamente perdere informazione.
+- **Re-publish di un artefatto già pubblicato con `external_id:` mancante sul
+  provider** (es. issue cancellata a mano): rileva il 404 sull'UPDATE,
+  cancella `external_id:` locale, ricade in CREATE al prossimo run (e segnala
+  in chat).
+
+## Non in scope per publisher-protocol
+
+- Decidere quali EP/US/TSK creare a livello di prodotto: questo è scope PM/TPM.
+- Modificare il body dei file locali per allinearli a quello che vorresti sul
+  provider: il body locale è source-of-truth (§8). Se non ti piace come si
+  vede su GitHub, riscrivi il file locale; il prossimo publish lo
+  sincronizzerà.
+- Sincronizzare commenti, reaction, assignee, project board column,
+  custom field: out-of-scope di v2.10 (solo body, label, milestone, title).
+- Bidirectional `status:` (issue chiusa → TSK done): candidato v2.11.
+`````
+
+#### `.claude/skills/github-mapping.md` (★ v2.10, opzionale)
+`````markdown
+---
+name: github-mapping
+description: Mapping provider-specific GitHub per il github-publisher (PATTERN §17, v2.10). Definisce come EP/US/TSK/sprint diventano Issue/Milestone/Label e i comandi gh CLI esatti.
+---
+# Mapping GitHub (provider-specific per github-publisher)
+
+Riferimenti: PATTERN §17 (Publisher adapters), `publisher-protocol` (5 fasi
+agnostic), `citation-rules`.
+
+Questa skill è invocata da `publisher-protocol` Fase 4 (Build payload + Execute).
+Definisce **come** un artefatto locale diventa un artefatto GitHub.
+
+## Auth check (Fase 1 di publisher-protocol)
+
+```bash
+gh auth status
+```
+
+Atteso: exit 0 + utente loggato sul target. Se exit ≠ 0 → ABORT con messaggio
+«Esegui `gh auth login` e riprova».
+
+Verifica anche permessi su `target`:
+
+```bash
+gh repo view <target> --json viewerPermission
+```
+
+Atteso: `viewerPermission` ∈ {`ADMIN`, `MAINTAIN`, `WRITE`}. Altrimenti
+WARNING «Permessi insufficienti su <target>, le operazioni di CREATE/UPDATE
+potrebbero fallire».
+
+## Mapping artefatti
+
+### Epica (`EP-XXX-<slug>/EP-XXX.md`)
+
+Default (`mapping.epic_to: milestone`):
+
+- **Milestone GitHub**: titolo `EP-XXX: <title>`, descrizione = body markdown del file (troncato a ~10k chars se necessario).
+- Stato: `open` se `status: in-progress` o `todo`; `closed` se `status: done`.
+- Due date: se `EP-*.md` ha campo `due_date:` nel frontmatter (opzionale), passato come `--due-date`. Altrimenti omesso.
+
+Alternativa (`mapping.epic_to: issue-label`):
+
+- **Issue GitHub**: titolo `EP-XXX: <title>`, body markdown, label `kanban:epic` + label specifiche.
+
+### User Story (`US-YYY/US-YYY.md`)
+
+Default (`mapping.story_to: issue-label`):
+
+- **Issue GitHub**: titolo `US-YYY: <title>`, body markdown (vedi §Body sotto).
+- Label: `kanban:story` + `role:<role>` (es. `role:cittadino`) + eventuale `priority:<level>` (es. `priority:high`).
+- Milestone: link alla milestone dell'epica genitore (lookup via `external_id` dell'EP).
+- Stato: `open` (story aperte) / `closed` (story con `status: done`).
+
+### Task (`TSK-ZZZ.md`)
+
+Default (`mapping.task_to: issue-label`):
+
+- **Issue GitHub**: titolo `TSK-ZZZ: <title>`, body markdown.
+- Label: `kanban:task` + `layer:<layer>` (es. `layer:be`) + `consumer:<consumer>` + `priority:<level>` + `estimate:<n>`.
+- Milestone: come per US (epica genitore).
+- Assignee: skip in v2.10 (out-of-scope). Default unassigned.
+
+### Sprint (`sprint.md`)
+
+Default (`mapping.sprint_to: milestone`):
+
+- **Milestone GitHub** dedicata: `Sprint <NN>` con descrizione = sezione del sprint corrente in `sprint.md`.
+- Link cross-reference: i TSK appartenenti al sprint sono linkati alla milestone in Fase 4 (oltre a quella dell'epica). Se GitHub permette solo una milestone per issue: priorità all'**epica** (la sprint milestone sarà popolata via Project iteration in una v2.11+).
+
+## §Body — template del body Markdown
+
+Per Epica/Story/Task il body GitHub è il file locale verbatim **eccetto**:
+
+1. **Header in cima**: aggiungi un blockquote di metadati Factory:
+
+   ```
+   > **Factory:** llm-wiki++ v2.10 · **Artefatto:** management/kanban/<path>
+   > **Layer:** <layer> · **Consumer:** <consumer> · **Priority:** <priority> · **Estimate:** <estimate>
+   > **Citazione:** [^src: <relative path nel factory repo>]
+   ```
+
+2. **Footer**:
+
+   ```
+   ---
+   _Mirror push-only generato da `github-publisher` (PATTERN.md §17). Source of truth: `management/kanban/<path>` nel factory repo._
+   ```
+
+3. **Wikilink `[[slug]]`**: lasciati testuali (non renderizzati da GitHub). Aggiungi nota al primo wikilink: `<!-- I link [[...]] sono wikilink della knowledge base; risolverli nel factory repo. -->`
+
+4. **Citazioni `[^src: ...]`**: lasciate testuali (non renderizzate da GitHub). Preserva la sintassi originale.
+
+## §Build payload + Execute (Fase 4 di publisher-protocol)
+
+### CREATE — Epica come Milestone
+
+```bash
+gh api repos/<target>/milestones --method POST \
+   --field title="EP-XXX: <title>" \
+   --field description="$(cat /tmp/factory-publish-EP-XXX.md)" \
+   --field state="open"
+```
+
+Parse della risposta JSON → `number` (es. `5`) → `external_id: github:5`
+(prefisso `m` interno per distinguere da issue: in pratica salviamo
+`external_id: github:milestone-5` quando l'artefatto è Milestone, e
+`external_id: github:1247` quando è Issue. Lint Check 4f valida il prefisso.)
+
+### CREATE — Story/Task come Issue
+
+```bash
+gh issue create --repo <target> \
+   --title "US-YYY: <title>" \
+   --body-file /tmp/factory-publish-US-YYY.md \
+   --label "kanban:story,role:cittadino,priority:high" \
+   --milestone "<milestone-title>"
+```
+
+Parse output → URL formato `https://github.com/<target>/issues/<num>` →
+`external_id: github:<num>`.
+
+### UPDATE — Story/Task
+
+```bash
+gh issue edit <num> --repo <target> \
+   --body-file /tmp/factory-publish-US-YYY.md \
+   --add-label "..." --remove-label "..."
+```
+
+### UPDATE — Milestone
+
+```bash
+gh api repos/<target>/milestones/<num> --method PATCH \
+   --field title="EP-XXX: <updated title>" \
+   --field description="$(cat /tmp/factory-publish-EP-XXX.md)" \
+   --field state="open|closed"
+```
+
+### State sync (close on done)
+
+Se `status: done` localmente:
+
+```bash
+gh issue close <num> --repo <target> --reason completed
+```
+
+```bash
+# Per milestone:
+gh api repos/<target>/milestones/<num> --method PATCH --field state="closed"
+```
+
+**Mai** `close` con `reason: not planned` automaticamente (ambiguo
+semanticamente; out-of-scope).
+
+## Idempotenza & corner case
+
+- **Re-publish di un artefatto già `closed` sul provider con `status: todo` locale**: rilancio in `state: open` (re-open). Caso d'uso: l'umano ha chiuso a mano, la factory dice ancora todo. Privilegia il locale.
+- **Issue esterna cancellata a mano**: GET `gh issue view <num>` ritorna 404 → cancella `external_id:` locale, ricade in CREATE al prossimo run.
+- **Milestone già con stesso titolo ma external_id diverso**: WARNING in chat, SKIP. Risoluzione: l'umano cancella la milestone duplicata o aggiorna manualmente `external_id:`.
+- **Label inesistente sul repo**: `gh issue create` con label non esistente fallisce. La skill, prima della prima Fase 4, esegue un pre-flight:
+  ```bash
+  gh label create "kanban:epic" --color "B60205" --description "Mirror Factory EP-*" --force
+  gh label create "kanban:story" --color "0E8A16" --description "Mirror Factory US-*" --force
+  gh label create "kanban:task" --color "1D76DB" --description "Mirror Factory TSK-*" --force
+  gh label create "layer:be" --color "5319E7" --force
+  gh label create "layer:fe" --color "5319E7" --force
+  gh label create "layer:db" --color "5319E7" --force
+  gh label create "layer:qa" --color "5319E7" --force
+  gh label create "layer:infra" --color "5319E7" --force
+  ```
+  (Solo CREATE; `--force` evita errori su label già esistenti.)
+
+## Rate limit
+
+GitHub REST API: 5000 req/h con token utente. La skill rate-limita a 1 req/s
+soft (sleep 1 fra operazioni successive). Su 429 → backoff esponenziale
+(base 1500ms, max 3 retry, poi ABORT).
+
+## Sicurezza
+
+- Token (`GH_TOKEN`) **mai loggato** in chat, mai scritto in file.
+- Body files temporanei in `/tmp/factory-publish-*.md` cancellati alla fine
+  della Fase 4.
+- Scope token minimo: `repo:issues:write` + `repo:metadata:read`. Token con
+  scope `admin` o `delete` è eccessivo e segnalato come WARNING.
+
+## Non in scope per github-mapping (v2.10)
+
+- GitHub Projects v2 (board column, custom fields): out-of-scope.
+- Comment sync, reaction sync: out-of-scope.
+- Assignee/Reviewer auto-assignment: out-of-scope.
+- Bidirectional `status:`: candidato v2.11.
+- Multi-repo target (più target per provider): out-of-scope.
+`````
+
 ---
 
 ## §8 — Procedura di scaffolding (checklist agente)
@@ -2117,9 +3196,9 @@ Quando l'umano conferma gli input §0:
 
 Al termine, verifica:
 
-- [ ] `PATTERN.md` esiste, dichiara `v2.7` in §0
-- [ ] `CLAUDE.md` esiste, `wc -l CLAUDE.md` ≤ 60 (pointer + sezione factory.config v2.7)
-- [ ] `factory.config.yaml` esiste con `pattern_version: "2.7"`, `topology:`, `code_path:`, `stack_mode:`, `routing:` valorizzati
+- [ ] `PATTERN.md` esiste, dichiara `v2.11` in §0
+- [ ] `CLAUDE.md` esiste, `wc -l CLAUDE.md` ≤ 70 (pointer + sezioni factory.config v2.7+v2.8+v2.9+v2.10+v2.11)
+- [ ] `factory.config.yaml` esiste con `pattern_version: "2.11"`, `topology:`, `code_path:`, `stack_mode:`, `routing:`, `vcs:` (v2.8), `kanban_publish:` (v2.10), `scheduler:` (v2.11) valorizzati o esplicitamente disabilitati con default sicuri
 - [ ] `PATTERN.md` non contiene riferimenti a tool runtime-specifici (`Read`, `Write`, `Glob`), modelli (`Sonnet`, `Opus`, `Haiku`, `GPT`), o slash command
 - [ ] Ogni file in `.claude/agents/*.md` ≤ 70 righe (forma thin; dev-agent v2.7 ammettono leggera deroga per gerarchia delle fonti)
 - [ ] Ogni file in `.claude/skills/*.md` ≤ 200 righe (procedurali estese possono essere più lunghe; template di scrittura ≤ 80)
@@ -2183,6 +3262,41 @@ Invoca l'agente `sync-docs` via `Agent`. L'agente:
 
 Prerequisito per `wiki-keeper`: `wiki-keeper` legge i `.txt` estratti, mai i PDF direttamente.
 ```
+
+### `.claude/commands/figma-sync.md` (★ v2.9, opzionale)
+````markdown
+---
+description: Estrae KB JSON da un file Figma e la scrive in raw/ (sub-agent Sync v2.9, PATTERN §16).
+---
+
+Argomento richiesto: `<figma-url>` oppure `<file_key>` (alfanumerico). Esempi:
+
+```
+/figma-sync https://www.figma.com/design/ABC123/customer-portal
+/figma-sync ABC123
+```
+
+Invoca l'agente `figma-sync` via `Agent`. L'agente:
+
+1. Verifica `ANTHROPIC_API_KEY` in env (ABORT se assente).
+2. Mostra in chat il piano di estrazione (file_key, manifest key, output path)
+   e attende conferma.
+3. Esegue **Discovery** (singola chiamata Anthropic + Figma MCP) per mappare i
+   frame e i token globali. Mostra riepilogo e attende conferma per Fase 3.
+4. Esegue **Chunked Extraction** parallela (max 3 chunk concorrenti, retry
+   esponenziale su 429/5xx) — vedi [[chunked-extraction-pipeline]] e
+   [[worker-pool-concurrency-limiter]].
+5. Propone la KB finale e attende conferma esplicita prima di scrivere.
+6. Scrive `raw/<data>-figma-<file_key>.kb.json` + companion stub per ogni frame
+   significativo in `raw/images/` + entry in `raw/.extraction-manifest.json`.
+7. Suggerisce di invocare `wiki-keeper` per l'ingest L1→L2 (mai automatico).
+
+Prerequisito: l'utente deve aver configurato l'accesso Figma MCP (auth lato
+server `https://mcp.figma.com/mcp`) prima di invocare il comando.
+
+Vedi `figma-extraction-protocol` per la procedura completa, PATTERN §16 per il
+contratto «sync adapters».
+````
 
 ### `.claude/commands/query.md`
 ```markdown
@@ -2288,6 +3402,116 @@ Mai ri-route automatico di TSK esistenti: il TPM applica il nuovo routing
 solo ai TSK nuovi; quelli esistenti restano con il loro `consumer:`.
 ```
 
+### `.claude/commands/kanban-publish.md` (★ v2.10, opzionale)
+````markdown
+---
+description: Pubblica il kanban (EP/US/TSK/sprint) su un tool esterno di project tracking come mirror push-only. Provider-agnostic, configurato in factory.config.yaml.kanban_publish (PATTERN §17, v2.10).
+---
+
+Sintassi:
+
+```
+/kanban-publish              → equivalente a `/kanban-publish run`
+/kanban-publish show         → mostra config kanban_publish corrente + ultimo run
+/kanban-publish set <provider> → cambia provider (richiede target/auth_env successivamente)
+/kanban-publish run [filter] → esegue Publish (publisher-protocol §3 chiede conferma)
+/kanban-publish dry-run      → esegue Fasi 1-3 (no chiamate al provider, solo piano)
+```
+
+## Comportamento per sub-comando
+
+### `show`
+
+Legge `factory.config.yaml.kanban_publish` e mostra in chat:
+
+```
+PUBLISH CONFIG
+==============
+Provider:    <name>           (o "none" se disabilitato)
+Target:      <target>
+Auth env:    <var-name>       (settata: yes/no)
+Mode:        push-only
+Batch limit: <n>
+Mapping:     epic→<...>, story→<...>, task→<...>, sprint→<...>
+Filter:      consumer=<...>, status=<...>
+
+ULTIMO RUN (da wiki/log.md, marker `publish <provider>`):
+  Data: <data>
+  Operazioni: created=<N>, updated=<M>, skipped=<K>
+  Link: <url-provider>
+```
+
+Read-only: nessuna modifica.
+
+### `set <provider>`
+
+Esempi: `/kanban-publish set github`, `/kanban-publish set none`.
+
+Modifica `factory.config.yaml.kanban_publish.provider`. Se il nuovo provider
+richiede campi obbligatori non valorizzati (target, auth_env, mapping), chiede
+in chat in modalità conversazionale e li scrive nel file. **Mai** scrive il
+token: solo il **nome** della variabile d'ambiente.
+
+Coerenza: se il sub-agent `<provider>-publisher` non esiste in `.claude/agents/`,
+emit ERROR «Provider <provider> non scaffoldato in questo adapter. Esegui
+factory-bootstrap con `kanban_publish.provider=<provider>` oppure scaffolda
+manualmente seguendo PATTERN §17 §Contratto».
+
+### `run [filter]`
+
+Invoca il sub-agent `<provider>-publisher` letto da config. L'agente esegue
+`publisher-protocol` 5 fasi:
+
+1. **Bootstrap** — verifica auth, config, prerequisiti CLI.
+2. **Discovery** — `Glob` di EP/US/TSK/sprint da `management/kanban/`.
+3. **Plan & Gate** — mostra il piano (CREATE/UPDATE/SKIP per tipo) e
+   **attende conferma esplicita** (PATTERN §7 r.15). Se totale > `batch_limit`,
+   secondo gate obbligatorio.
+4. **Publish** — esegue CREATE/UPDATE sul provider, aggiorna `external_id:`
+   nei frontmatter locali.
+5. **Log** — append marker `publish <provider> ...` a `wiki/log.md`.
+
+Filter opzionale (override una-tantum del `kanban_publish.filter`):
+
+```
+/kanban-publish run --only-consumer=agent --only-status=todo
+/kanban-publish run --epic=EP-001         (solo EP-001 + i suoi US/TSK)
+/kanban-publish run --task=TSK-014        (solo questo TSK)
+```
+
+### `dry-run`
+
+Identico a `run`, ma alla Fase 3 (Plan) NON chiede conferma: stampa il piano e
+ABORT pulito senza chiamate al provider. Utile per verificare cosa farebbe il
+publisher prima di committarsi.
+
+## Prerequisiti
+
+- `factory.config.yaml.kanban_publish.provider ≠ none`.
+- Variabile d'ambiente `<auth_env>` settata.
+- Sub-agent `<provider>-publisher.md` presente in `.claude/agents/`.
+- Provider-specific CLI installato e autenticato:
+  - GitHub: `gh` (https://cli.github.com/) + `gh auth login` fatto.
+  - GitLab: `glab` (placeholder v2.10, non implementato).
+  - Jira/Linear: out-of-scope v2.10.
+
+## Idempotenza
+
+Il publisher è **idempotente per artefatto**: ri-eseguire `run` non duplica.
+Ogni EP/US/TSK con `external_id: <provider>:<id>` viene UPDATE; senza
+`external_id` viene CREATE. La fonte di verità è il file locale.
+
+## Vincoli (PATTERN §7 r.15)
+
+- Mai CREATE/UPDATE su provider senza conferma esplicita.
+- Mai DELETE/CLOSE automatici di artefatti esterni.
+- Mai pubblicare > `batch_limit` (default 10) senza secondo gate.
+- Token solo da variabile d'ambiente; mai committato.
+
+Vedi `publisher-protocol` per la procedura completa, PATTERN §17 per il
+contratto «Publisher adapters».
+````
+
 ---
 
 ## §11 — Memoria cross-conversazione (linee guida)
@@ -2310,6 +3534,9 @@ Pickup da parte degli agenti:
 
 | Versione | Data | Cambio principale |
 |---|---|---|
+| **v2.11** | **2026-05-22** | **Parallel scheduler DAG-driven**. Nuova §18 «Parallel scheduling» nel PATTERN: modello `E_dep ∪ E_conf`, algoritmo 3-step (toposort + level grouping + graph-coloring partition per conflict detection su `code_path`), 8 domini di parallelismo (ingest/develop/lint/query/sync attivi default; plan/design/publish off), 8 regole inviolabili **R.S1–R.S8** (single-committer preservato, conflict-free su file, cap fan-out, gate umano sopra threshold, ciclo=ABORT, idempotenza, no rollback collaterale, VCS sempre serializzato). **Nuovi campi frontmatter opzionali**: `depends_on` (EP/US/TSK, hard dependency causale), `blocked_by` esteso a TSK (simmetrico a US), `code_path` (TSK, lista glob L5 per conflict detection). **Nuovo blocco `scheduler:` in `factory.config.yaml`** (`enabled`/`max_parallel`/`parallel_gate_threshold`/`code_path_conflict`/`empty_code_path_policy`/`domains`). **Orchestrator esteso** con wave dispatch (multi-`Agent` call nello stesso turno) + wave-plan output in chat. **Nuova skill `parallel-scheduling`** (5 fasi: Discovery → Build DAG → Toposort/Partition → Gate → Dispatch). **Lint Check 4g** (cycle detection, drift body↔frontmatter, validation `code_path`/`blocked_by`/`scheduler:` block). **Default sicuri**: `scheduler.enabled: true`, `max_parallel: 4`, `parallel_gate_threshold: 3`, `code_path_conflict: strict`, `empty_code_path_policy: serial`. Retrocompat: artefatti senza `depends_on` → level 0; senza `code_path` → serializzanti. **Skill count**: 20 → 21 (`+parallel-scheduling`). Vedi `wiki/runbooks/migration-v211.md` + `wiki/concepts/parallel-scheduler.md`. |
+| v2.10 | 2026-05-22 | **Publisher adapters multi-target**. Nuovo ruolo *Publisher* (§2) pluralizzabile per provider (GitHub/GitLab/Jira/Linear/custom). Nuovo verbo `Publish` (§3). Nuovo frontmatter opzionale `external_id:` su EP/US/TSK (§5). Nuova regola §7 r.15. Nuovo §17 «Publisher adapters». Blocco `kanban_publish:` in `factory.config.yaml`. `github-publisher` via `gh` CLI. Skill `publisher-protocol` (provider-agnostic, 5 fasi) + `github-mapping` (provider-specific). Lint Check 4f. Push-only in v2.10. Comando `/kanban-publish`. Vedi `wiki/runbooks/migration-v210.md` + `wiki/concepts/publisher-adapters.md`. |
+| v2.9 | 2026-05-22 | **Sync adapters multi-sorgente**. Ruolo *Sync* pluralizzabile per sorgente. Nuovo sub-agent `figma-sync` (Anthropic API + Figma MCP). Nuovo shape `.kb.json`. Grammatica citazione JSON `[^src: <path>.kb.json §<dotted-path>]`. Nuovo §16 «Sync adapters». `ingest-protocol` esteso (ramo Figma schema-driven). Lint Check 4e. `.extraction-manifest.json` esteso. |
 | v2.8 | 2026-05-20 | **VCS integration esplicita**. Blocco `vcs:` in `factory.config.yaml` con `mode: monorepo \| submodule \| sibling \| external \| none` + opzionali `submodule_path`, `remote_url`, `branch_strategy` (`shared`/`per-tsk`/`per-sprint`), `commit_coupling` (`pin`/`float`). **Nuova skill `vcs-handoff`** invocata dal `dev-protocol` Fase 5, procedura per-mode (commit nel monorepo / bump submodule ref / commit nel sibling con avviso PR / no-op per external). **Nuovo lint check 4d** (coerenza VCS: `mode` ↔ `code_path`, `.gitmodules` per submodule, `.factory-lock` per pin). **Citazione codice prodotto** estesa con `[^src5-sub:` per il caso submodule. **Regola §7 r.14 nuova** (gate umano obbligatorio per scritture VCS distruttive/cross-repo, mai `push`/`clone`/`submodule add` automatici). **File `.factory-lock` opzionale** (solo se `commit_coupling: pin`) per reproducibilità factory↔code. **Skill count**: 18 → 19 (`+vcs-handoff`, condizionale a `vcs.mode != none`). Vedi `wiki/runbooks/migration-v28.md` + `wiki/syntheses/vcs-and-code-path.md`. |
 | v2.7 | 2026-05-20 | **Execution layer L5** + **topology selection** + **stack modes**. L5 (`<code_path>/`) opzionale, configurabile e potenzialmente esterno al repo. **4 dev-agent opzionali** per layer: `be-dev`, `fe-dev`, `db-dev`, `qa-dev`. **Operazioni canoniche nuove**: `Develop` (L4 → L5) e `Tech-scout`. **Topologie esplicite** + **routing** TSK→consumer per layer. **Tre stack mode** (`manual`, `guided`, `auto`). **Frontmatter TSK** esteso: `team` → `layer:`+`consumer:`. **Regola §7 r.13** nuova. **`factory.config.yaml`** al root. **Skill nuove**: `dev-protocol`, `dev-handoff`, `tech-scout`. **Commands nuovi**: `/dev`, `/topology`. **Lint check 4c**. Vedi `wiki/runbooks/migration-v27.md` + `wiki/syntheses/topology-and-dev-agents.md`. |
 | v2.6 | 2026-05-20 | Tre fix mirati emersi dal test empirico su `fsc-trasf-demo` (2026-05-19). **N1 — Gate L4 graduato**: ogni `Q_NNN` ha `blocking_level: hard \| soft` (default `hard`, retroattivo). Q hard aperta blocca Arch+TPM sulle US dipendenti; Q soft lascia procedere annotando `pending_clarification: [Q_NNN]` su ADR/US. **N2 — Operazione canonica `Propagate`**: nuova skill `propagate-resolution`. **N4 — Auto-promotion suggerita**. Vedi `wiki/runbooks/migration-v26.md` + `wiki/syntheses/patch-v26-soft-gate-state-propagation.md`. |

@@ -190,15 +190,16 @@ price-action:
 
 # UniverseScreenerService — Top Value Picks batch (US-047, EP-012, TSK-126)
 # Default: NASDAQ + NYSE, marketCap > 3B USD, US country, cap 500 candidati.
-# NB: cache-ttl-hours documenta l'intento (6h) ma FmpCacheService.getOrFetch
-# applica TTL fisso 24h. Override TTL = future scope.
+# NB: nessun `cache-ttl-hours` qui — `FmpCacheService.getOrFetch` applica un
+# TTL globale fisso 24h (ADR-004 §Cache layer 24h) e non accetta override
+# per-endpoint. Un TTL ridotto per `company-screener` richiede prima
+# l'estensione del contratto di FmpCacheService (out-of-scope TSK-126/TSK-256).
 universe:
   market-cap-more-than: 3000000000
   exchanges: "NASDAQ,NYSE"
   country: "US"
   fmp-max-results: 1000
   cap-candidates: 500
-  cache-ttl-hours: 6
   news-scout-seed-top: 200
   # InstitutionalHoldingsService (TSK-127) — overlay 13-F SEC EDGAR.
   # Lista top value fund CIK SEC 10-digit zero-padded.

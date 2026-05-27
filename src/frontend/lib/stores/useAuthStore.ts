@@ -20,6 +20,12 @@ import {
  * (TSK-206) to gate protected routes without accessing the httpOnly
  * refresh token.
  *
+ * A non-httpOnly `sessionExpired` cookie is written/cleared in sync with
+ * the `sessionExpired` flag (TSK-043 / wave A6 fix): the middleware
+ * (`middleware.ts §1`) reads it to redirect to `/login?expired=true` and
+ * deletes it in the same response. Without this cookie hint the middleware
+ * branch is unreachable from a client-side 401 interceptor.
+ *
  * Reference: design_&_architecture/components/frontend-components.md §useAuthStore.
  */
 
@@ -65,6 +71,23 @@ function clearAuthHintCookie(): void {
   }
 }
 
+/**
+ * Hint cookie consumato dal middleware Edge (`middleware.ts §1`): se presente
+ * il middleware redirige a `/login?expired=true` ed elimina il cookie nella
+ * stessa response (TSK-043).
+ */
+function setSessionExpiredCookie(): void {
+  if (typeof document !== 'undefined') {
+    document.cookie = 'sessionExpired=true; path=/; SameSite=Strict';
+  }
+}
+
+function clearSessionExpiredCookie(): void {
+  if (typeof document !== 'undefined') {
+    document.cookie = 'sessionExpired=; path=/; max-age=0';
+  }
+}
+
 export const useAuthStore = create<AuthState>((set, get) => ({
   accessToken: null,
   expiresAt: null,
@@ -74,7 +97,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   setUser: (user: UserProfile | null): void => set({ user }),
 
-  setSessionExpired: (value: boolean): void => set({ sessionExpired: value }),
+  setSessionExpired: (value: boolean): void => {
+    if (value) {
+      setSessionExpiredCookie();
+    } else {
+      clearSessionExpiredCookie();
+    }
+    set({ sessionExpired: value });
+  },
 
   clearSession: (): void => {
     clearAuthHintCookie();
@@ -87,6 +117,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   login: async (email: string, password: string): Promise<void> => {
     const response = await apiLogin({ email, password });
+    // Pulisce prima il marker di sessione scaduta (TSK-043 fix), poi imposta
+    // il hint di sessione attiva. L'ordine è rilevante solo per ambienti
+    // di test con shim string del document.cookie; in browser reali i due
+    // cookie coesistono indipendentemente.
+    clearSessionExpiredCookie();
     setAuthHintCookie();
     set({
       accessToken: response.accessToken,

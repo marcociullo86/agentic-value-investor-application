@@ -4,7 +4,9 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.valueinvesting.webapp.fmp.FmpAdapter
 import com.valueinvesting.webapp.fmp.FmpCacheService
 import com.valueinvesting.webapp.fmp.dto.ScreenedStockDto
+import io.github.resilience4j.ratelimiter.RateLimiter
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
@@ -27,18 +29,28 @@ import java.time.LocalDate
 //   durationMs.
 //
 // CACHE — Step 1 e' wrappato in `FmpCacheService.getOrFetch` con endpoint
-// "company-screener" e pseudo-ticker "ALL" come cache key. TTL target = 6h
-// (universe.cache-ttl-hours) ma `getOrFetch` corrente applica TTL fisso 24h:
-// limitazione documentata + log warning a startup. Future scope:
-// estendere `FmpCacheService.getOrFetch` con parametro TTL opzionale.
+// "company-screener" e pseudo-ticker "ALL" come cache key. NB: la versione
+// corrente di `FmpCacheService.getOrFetch` applica un TTL GLOBALE fisso 24h
+// (constante `FINANCIAL_TTL`, ADR-004 §Cache layer 24h) e non accetta TTL
+// per-endpoint. Non si parametrizza qui un TTL custom — un TTL ridotto per
+// `company-screener` richiederebbe l'estensione di `FmpCacheService` con
+// override per-endpoint, che e' un cambio di contratto cross-service e
+// quindi tracciato come task separato (out-of-scope di TSK-126 / TSK-256).
 //
-// RATE LIMITER — Il TSK richiede l'uso del limiter `fmp-batch` separato da
-// `fmp-online`. Attualmente esiste solo l'istanza `fmp` in FmpResilienceConfig.
-// La chiamata passa attraverso `ResilientFmpAdapter` che gia' applica il
-// limiter `fmp` su tutti gli endpoint. Creazione `fmp-batch` rimandata a
-// future task (estensione FmpResilienceConfig).
+// RATE LIMITER — Le chiamate FMP del path batch passano attraverso un
+// RateLimiter SEPARATO da quello online (`fmpRateLimiter`, FmpResilienceConfig,
+// cap 30 req/min condiviso con UI/REST controllers). Iniettiamo il bean
+// `fmpBatchRateLimiter` (BatchResilienceConfig.INSTANCE_NAME = "fmp-batch",
+// cap 300 req/min, timeout 30s) e gate-iamo la chiamata `fmpAdapter.screen(...)`
+// con `RateLimiter.decorateSupplier(limiter, ...).get()` PRIMA del cache layer.
+// Cosi' il batch puo' satturare il proprio bucket durante la finestra notturna
+// senza intaccare il limiter online (TSK-132 §Motivazione). Stesso pattern e'
+// previsto per gli altri consumer batch (es. TopValuePicksJob) — vedi
+// BatchResilienceConfig §Servizi consumer.
 //
-// [^src: management/kanban/EP-012-batch-top-value-picks/US-047-universe-screener-service/TSK-126.md]
+// [^src: management/kanban/EP-012-batch-top-value-picks/US-047-universe-screener-service/TSK-126.md §Acceptance Criteria]
+// [^src: management/kanban/EP-012-batch-top-value-picks/US-048-job-notturno-top-picks/TSK-132.md §fmp-batch limiter]
+// [^src: design_&_architecture/decisions/ADR-016-fmp-operations-throttling.md §4. Throttling backend]
 // [^src: wiki/runbooks/defensive-investor-checklist.md §Universe screening]
 @Service
 class UniverseScreenerService(
@@ -47,20 +59,11 @@ class UniverseScreenerService(
     private val holdingsProvider: InstitutionalHoldingsProvider,
     private val newsScoutProvider: NewsScoutProvider,
     private val universeProperties: UniverseProperties,
+    @Qualifier("fmpBatchRateLimiter")
+    private val fmpBatchRateLimiter: RateLimiter,
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
-
-    init {
-        if (universeProperties.cacheTtlHours != 24L) {
-            log.warn(
-                "UniverseScreenerService: universe.cache-ttl-hours={} but FmpCacheService.getOrFetch " +
-                    "applies a fixed 24h TTL (FINANCIAL_TTL). Custom TTL requires extending FmpCacheService " +
-                    "(future scope). The screener will run with effective 24h TTL.",
-                universeProperties.cacheTtlHours,
-            )
-        }
-    }
 
     /**
      * Esegue la pipeline universe screener e ritorna la lista finale di
@@ -78,17 +81,24 @@ class UniverseScreenerService(
         val startMs = System.currentTimeMillis()
 
         // Step 1 — FMP base screener, cache-aside via FmpCacheService.
+        // La chiamata HTTP a FMP e' gate-iata dal RateLimiter `fmp-batch`
+        // (bucket dedicato al batch, isolato dal `fmp` online): il wrap
+        // avviene DENTRO il fetchFn cosi' che il limiter venga acquisito SOLO
+        // su cache miss (i cache hit non consumano token).
         val fmpRaw: List<ScreenedStockDto> = fmpCacheService.getOrFetch(
             ticker = "ALL",
             endpoint = "company-screener",
             typeRef = object : TypeReference<List<ScreenedStockDto>>() {},
             fetchFn = {
-                fmpAdapter.screen(
-                    marketCapMoreThan = universeProperties.marketCapMoreThan,
-                    exchange = universeProperties.exchanges,
-                    country = universeProperties.country,
-                    limit = universeProperties.fmpMaxResults,
-                )
+                val supplier = RateLimiter.decorateSupplier(fmpBatchRateLimiter) {
+                    fmpAdapter.screen(
+                        marketCapMoreThan = universeProperties.marketCapMoreThan,
+                        exchange = universeProperties.exchanges,
+                        country = universeProperties.country,
+                        limit = universeProperties.fmpMaxResults,
+                    )
+                }
+                supplier.get()
             },
         ).value
 

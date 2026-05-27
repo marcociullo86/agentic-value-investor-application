@@ -37,6 +37,17 @@ function isAuthPage(pathname: string): boolean {
 /**
  * Attach per-request CSP + nonce request header (TSK-222 / US-080).
  * Propagates nonce to App Router via `x-nonce` for inline scripts in layout.
+ *
+ * STATIC EXPORT LIMITATION (TSK-257 / wave A6, finding TSK-222 #1).
+ * `next.config.js` impone `output: 'export'`: il bundle prod servito dal
+ * backend Spring Boot non passa da questo middleware, quindi l'header
+ * `Content-Security-Policy` con nonce è attivo SOLO in `next dev`.
+ * In prod la CSP è applicata via `SecurityHeadersConfig` lato BE
+ * (TSK-221) con policy statica equivalente (senza nonce per-request:
+ * gli script inline non sono usati nel layout — vedi `app/layout.tsx`
+ * §`/theme-init.js` esterno).
+ * Risoluzione completa del nonce per-request richiede un ADR: vedere
+ * `wiki/gaps.md §fe-middleware-static-export-conflict`.
  */
 function withCspHeaders(
   request: NextRequest,

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/lib/stores/useAuthStore';
 import { useWatchlistStore } from '@/lib/stores/useWatchlistStore';
+import { toUserMessage } from '@/lib/to-user-message';
 
 /**
  * AddToWatchlistButton (TSK-035). Mounted on the analysis page; only visible
@@ -33,7 +34,15 @@ export function AddToWatchlistButton({
     try {
       await add(ticker);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Errore aggiunta');
+      setError(
+        toUserMessage(err, {
+          fallback: 'Aggiunta alla watchlist non riuscita. Riprova.',
+          statusOverrides: {
+            409: 'Ticker già presente in watchlist.',
+            404: 'Ticker non trovato.',
+          },
+        }),
+      );
     } finally {
       setSubmitting(false);
     }

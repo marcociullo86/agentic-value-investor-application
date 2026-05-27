@@ -47,6 +47,7 @@ data class AppProperties(
     data class Security(
         val hibp: Hibp = Hibp(),
         val mfa: Mfa = Mfa(),
+        val csp: Csp = Csp(),
     ) {
         data class Hibp(
             val enabled: Boolean = true,
@@ -60,6 +61,27 @@ data class AppProperties(
             val recoveryCodesCount: Int = 8,
             /** AES-256-GCM key material for `totp_secret_encrypted` (env MFA_ENCRYPTION_KEY in prod). */
             val encryptionKey: String = "",
+        )
+
+        /**
+         * Content-Security-Policy posture controls (TSK-221 / ADR-025 §2,
+         * findings iter-1).
+         *
+         * `strictScriptSrc=false` (default) keeps `'unsafe-inline'` in
+         * `script-src` because Spring serves the Next.js `output: 'export'`
+         * HTML whose inline bootstrap scripts cannot be noncified at build
+         * time (the Next middleware nonce only runs in `next dev` /
+         * `next start`).
+         *
+         * Set `strictScriptSrc=true` in deployments fronted by a nonce-
+         * injecting middleware (e.g. an edge worker rewriting served HTML
+         * to inject a per-request nonce into every <script> tag) — see
+         * wiki/gaps.md §fe-middleware-static-export-conflict. Until that
+         * gap is closed the production default remains `false`, matching
+         * the security posture of every CDN-served static SPA.
+         */
+        data class Csp(
+            val strictScriptSrc: Boolean = false,
         )
     }
 }

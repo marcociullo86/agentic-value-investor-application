@@ -12,6 +12,7 @@ import { WatchlistTable } from '@/components/watchlist/WatchlistTable';
 import { FormErrorSummary } from '@/components/forms/form-error-summary';
 import { FormField } from '@/components/forms/form-field';
 import { useWatchlistStore } from '@/lib/stores/useWatchlistStore';
+import { toUserMessage } from '@/lib/to-user-message';
 
 const tickerSchema = z.object({
   ticker: z
@@ -88,7 +89,15 @@ function WatchlistInner(): React.ReactElement {
       await add(data.ticker);
       reset();
     } catch (err) {
-      setAddError(err instanceof Error ? err.message : 'Aggiunta fallita');
+      setAddError(
+        toUserMessage(err, {
+          fallback: 'Aggiunta alla watchlist non riuscita. Riprova.',
+          statusOverrides: {
+            409: 'Ticker già presente in watchlist.',
+            404: 'Ticker non trovato.',
+          },
+        }),
+      );
     }
   }
 

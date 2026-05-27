@@ -1,6 +1,20 @@
-pattern_version: "2.8"
+pattern_version: "2.13"
 topology: full-stack-agents
+
+# v2.12 multi-repo: legacy code_path auto-promosso se code_paths assente
+code_paths:
+  - name: default
+    path: ./src/
+    layers: [be, fe, db, qa, infra]
+    tags: [monorepo, value-investing-app]
+    vcs:
+      mode: monorepo
+      branch_strategy: shared
+      commit_coupling: float
+
+# Backward compat v2.11
 code_path: ./src/
+
 stack_mode: auto
 
 routing:
@@ -20,3 +34,58 @@ vcs:
   mode: monorepo
   branch_strategy: shared
   commit_coupling: float
+
+adapters:
+  - name: claude
+    folder: .claude
+    maturity: full
+  - name: cursor
+    folder: .cursor
+    maturity: full
+
+kanban_publish:
+  provider: none
+
+scheduler:
+  enabled: true
+  max_parallel: 4
+  parallel_gate_threshold: 3
+  code_path_conflict: strict
+  empty_code_path_policy: serial
+  domains:
+    ingest: true
+    develop: true
+    lint: true
+    query: true
+    plan: false
+    design: false
+    publish: false
+    sync: true
+    review: true
+
+code_quality:
+  enabled: true
+  max_iterations: 3
+  thresholds:
+    confidence_min: 0.6
+    batching_split: 7
+    pass_rate_warn: 0.05
+    false_positive_warn: 0.30
+  passes:
+    idiomaticity: true
+    design: true
+    robustness: true
+  router:
+    strategy: severity-tiered
+    max_diff_lines: 80
+    ordering: severity_then_complexity
+  ruleset:
+    path: ./code_quality/rules/
+    tiers: [canonical, emergent, team-specific]
+    evolve:
+      enabled: false
+      cadence_days: 7
+  reports:
+    path: ./code_quality/reports/
+    retain_iterations: 5
+    digest_cadence: weekly

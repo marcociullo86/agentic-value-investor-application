@@ -1,16 +1,17 @@
 <!-- generated, do not edit — rigenerato da tpm ad ogni run -->
 ---
 id: sprint
-title: Sprint Plan — R1.0 MVP + R1.1 + R1.1.x + R2.0 + R2.1 + R3.0 Fintech Hardening
+title: Sprint Plan — R1.0 MVP + R1.1 + R1.1.x + R2.0 + R2.1 + R3.0 + CQRL Bonifica
 generated: 2026-05-27
 tpm: tpm
-release: R3.0 (EP-014..018 — fintech hardening, logging, notifications, design tokens, auth, security)
+release: R3.1 (EP-019 CQRL bonifica, in corso) + R3.0 chiusura EP-018 (Sprint 15)
 r10_closed: 2026-05-22
 r11_closed: 2026-05-23
 r11x_closed: 2026-05-26
 r20_closed: 2026-05-26
 r21_closed: 2026-05-26
 r30_target: TBD
+r31_cqrl_target: TBD
 ---
 # Sprint Plan
 
@@ -19,7 +20,68 @@ r30_target: TBD
 > **R1.1.x hotfix chiuso:** Sprint 5.5 — 12/12 TSK `done`. US-052, US-053, US-054 completate.
 > **R2.0 chiuso:** Sprint 6–9 completati — 79/79 TSK `done`, 21/21 US, 3/3 EP (EP-010, EP-011, EP-012).
 > **R2.1 chiuso:** Sprint 10 — EP-013 Mr. Market Context Flags — 6/6 TSK `done`, 2/2 US (US-056, US-057).
-> **R3.0 in corso:** Sprint 11–15 + 15.5 hotfix — 10 TSK `todo`, 55 `done`, 26 US (22 done, 4 todo), 5 EP (4 done, 1 in-progress). EP-014, EP-015, EP-016, EP-017 `done`; EP-018 `in-progress`. ADR-021, ADR-022, ADR-023 `accepted`; ADR-024, ADR-025 status: `proposed`.
+> **R3.0 in corso:** Sprint 15 — 10 TSK `todo` (EP-018). Sprint 15.5 chiuso (TSK-239). EP-014..017 `done`; EP-018 `in-progress`.
+> **R3.1 in corso:** Sprint 16 (EP-019 CQRL) — **20/25 TSK `done`** (Fase A 14/14; Fase B 6/10 + 4 no-op `todo`; Fase C 0/1). US-084/085 `done`; US-086 `in-progress`.
+
+---
+
+## Sprint 16 — CQRL Bonifica Generale (EP-019) — IN CORSO
+
+**Obiettivo:** Retro-review CQRL su 224 TSK storici `done` (R1.0→15.5, esclusi TSK-224..238),
+digest per wave, refactor da finding `conditional`/`high`, consolidamento ruleset canonical.
+
+**Stato:** IN PROGRESS — **20/25 TSK `done`**. EP-019 `in-progress`. US-084 `done` (14/14 Fase A);
+US-085 `done` (slot 1+2 refactor + iter-2 re-review; slot 3 no-op pendente su TSK-253/259/260/261);
+US-086 `in-progress` (TSK-265).
+
+**Parallelismo (scheduler v2.11):** Fase A completata. Fase B slot 1+2 chiusi; slot 3 = 4 TSK no-op
+(zero task_package dai digest). Level 2 = TSK-265 (gate: no-op close slot 3 o waiver PM).
+
+### Fase A — Retro-review (`/review`, layer qa) — COMPLETATA
+
+| TSK | Titolo | Est. | #review | `code_path` (glob) | Status |
+|-----|--------|------|---------|-------------------|--------|
+| TSK-240 | Wave A1 — BE auth & security | S | 8 | `security/**` | done |
+| TSK-241 | Wave A2 — BE FMP adapter | S | 9 | `fmp/**` | done |
+| TSK-242 | Wave A3 — BE rule engine (1/2) | M | 16 | `ruleengine/**` | done |
+| TSK-263 | Wave A3b — BE rule engine (2/2) | M | 16 | `ruleengine/**` | done |
+| TSK-243 | Wave A4 — BE deep analysis (1/2) | M | 18 | `secedgar/**` | done |
+| TSK-264 | Wave A4b — BE deep LLM (2/2) | M | 17 | `llm/**` | done |
+| TSK-244 | Wave A5 — BE screener & top-picks | M | 21 | `universe/**` | done |
+| TSK-245 | Wave A6 — FE auth & session | S | 3 | `app/(auth)/**` | done |
+| TSK-246 | Wave A7 — FE analysis & core pages | S | 13 | `app/analysis/**` | done |
+| TSK-247 | Wave A8 — FE shared UI & lib | M | 24 | `components/**` | done |
+| TSK-248 | Wave A9 — E2E Playwright | S | 9 | `frontend/e2e/**` | done |
+| TSK-249 | Wave A10–11 — DB Flyway & Infra CI | M | 24 | `db/migration/**`, `.github/**` | done |
+| TSK-251 | Wave A12a — BE platform services | M | 23 | `config/**` | done |
+| TSK-262 | Wave A12b — QA contract & integration | M | 23 | `backend/src/test/**` | done |
+
+### Fase B — Refactor (dev-agent per layer)
+
+| TSK | Titolo | Layer | Est. | `depends_on` | Status |
+|-----|--------|-------|------|--------------|--------|
+| TSK-252 | Refactor BE auth & security | be | M | 240 | done |
+| TSK-253 | Refactor BE FMP adapter (no-op slot 3) | be | M | 241 | todo |
+| TSK-254 | Refactor BE rule engine & valuation | be | L | 242, 263 | done |
+| TSK-255 | Refactor BE deep analysis pipeline | be | L | 243, 264 | done |
+| TSK-256 | Refactor BE screener & top-picks | be | M | 244 | done |
+| TSK-257 | Refactor FE auth & session | fe | M | 245 | done |
+| TSK-258 | Refactor FE pages & shared UI | fe | L | 246, 247 | done |
+| TSK-259 | Refactor DB Flyway & infra CI (no-op slot 3) | db | M | 249 | todo |
+| TSK-260 | Refactor QA E2E & contract tests (no-op slot 3) | qa | M | 248, 262 | todo |
+| TSK-261 | Refactor BE platform & observability (no-op slot 3) | be | M | 251 | todo |
+
+### Fase C — Ruleset & chiusura
+
+| TSK | Titolo | Layer | Est. | `depends_on` | Status |
+|-----|--------|-------|------|--------------|--------|
+| TSK-265 | Ruleset canonical + `/review summary` | qa | M | 252..261 | todo |
+
+**Totale Sprint 16:** 25 TSK (14 qa review + 6 be + 2 fe + 1 db + 2 qa refactor + 1 qa ruleset)
+
+**Slot 1+2 (completati 2026-05-27):** TSK-252,254,255,256,257,258 + iter-2 re-review.
+
+**Prossimo:** no-op close TSK-253,259,260,261 (zero finding high/conditional) → TSK-265 ruleset (US-086).
 
 ---
 
@@ -500,7 +562,7 @@ dichiarazione formale PCI-DSS non applicabile. ADR-025. DB: mfa_secrets + login_
 funzionali (keyboard a11y ×3, deep-analysis flake ×1). Vitest invariato; cutover-smoke skip
 fuori scope. CI #131 resta riferimento.
 
-**Stato:** IN PROGRESS — 0/1 TSK `done`. US-083 `ready`. EP-016 riaperta `in-progress`.
+**Stato:** COMPLETATO — 1/1 TSK `done`. US-083 `done`. EP-016 `done` (hotfix convalidato).
 
 | TSK | Titolo | Layer | Consumer | Est. | US | Status |
 |-----|--------|-------|----------|------|----|--------|
@@ -530,7 +592,8 @@ fuori scope. CI #131 resta riferimento.
 | R3.0 | 14 | 0 | 0 | 2 | 7 | 5 | **14** | done |
 | R3.0 | 15 | 0 | 2 | 8 | 3 | 7 | **20** | 10 done, 10 todo |
 | R3.0 | 15.5 | 0 | 0 | 0 | 0 | 1 | **1** | 1 done, 0 todo |
-| | **TOTALE** | **10** | **16** | **84** | **48** | **81** | **239** | 228 done, 11 todo (R3.0) |
+| R3.1 | 16 | 0 | 1 | 7 | 3 | 15 | **25** | 20 done, 5 todo (EP-019 CQRL) |
+| | **TOTALE** | **10** | **17** | **91** | **51** | **96** | **264** | 249 done, 15 todo |
 
 ---
 
@@ -546,7 +609,10 @@ Sprint 12 (EP-016) ✅ ═══╝        │
                                    ▼
                            Sprint 15 (EP-018) ◄── CORRENTE
                                    │
-                                   ├──► Sprint 15.5 (EP-016 hotfix TSK-239) — parallelo QA
+                                   ├──► Sprint 15.5 (EP-016 hotfix TSK-239) ✅
+                                   │
+                                   ▼
+                           Sprint 16 (EP-019 CQRL) ◄── IN CORSO (Fase B, parallelo a Sprint 15 su path disgiunti)
 ```
 
 **Sprint 11, 12, 13, 14** completati. Dipendenze cross-sprint soddisfatte.
@@ -573,7 +639,10 @@ Sprint 14 → Sprint 15: ✅ SODDISFATTA
 
 ## Prossimo /dev suggerito
 
-**Sprint corrente:** Sprint 15 (EP-018 Hardening Sicurezza e Compliance).
+**Sprint 16 (EP-019 CQRL):** Fase A + slot 1+2 Fase B chiusi. **Slot 3 no-op (4×):** TSK-253/259/260/261 —
+digest senza task_package; orchestrator può chiuderli `done` senza `/dev`. **Fase C:** TSK-265 (ruleset + `/review summary`, US-086).
+
+**Sprint corrente:** Sprint 15 (EP-018 Hardening Sicurezza e Compliance) — 10 TSK `todo`.
 
 **Wave 1 (completata ✅):** TSK-219, TSK-221, TSK-225 (V026), TSK-226 (V025), TSK-231 — CI verde; code review umana pendente.
 

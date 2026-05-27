@@ -75,12 +75,73 @@ class DcfCalculatorTest {
         assertThat(result.sharesUsed).isEqualTo(50_000_000.0)
     }
 
+    // TSK-254 / TSK-018-iter-1 — strict forced-method honor. When the user
+    // forces GREENWALD via DcfMethodOverride but the dataset does not support
+    // it (no PP&E history → Greenwald.usable=false), the calculator MUST NOT
+    // silently fall back to FCF_FALLBACK. AnalyzeTickerService exposes
+    // `dcfMethod=forcedMethod` for USER_OVERRIDE, so a silent swap would
+    // publish dcfMethod=GREENWALD over an FCF-computed value. Expected
+    // contract: method=NOT_APPLICABLE, intrinsicValue=null, rationale cites
+    // the forced method and explicitly disclaims fallback.
+    @Test
+    fun `forced GREENWALD with no PPE returns NOT_APPLICABLE not silent FCF fallback`() {
+        val dataset = syntheticDataset(
+            years = 10,
+            baseFcf = 100.0,
+            growth = 0.06,
+            includePpe = false,
+        )
+
+        val result = calculator.calculate(dataset, forcedMethod = DcfMethod.GREENWALD)
+
+        assertThat(result.method).isEqualTo(DcfMethod.NOT_APPLICABLE)
+        assertThat(result.intrinsicValue).isNull()
+        assertThat(result.intrinsicValueTotal).isNull()
+        assertThat(result.rationale)
+            .contains("forcedMethod=GREENWALD")
+            .contains("non utilizzabile")
+            .contains("Nessun fallback")
+    }
+
+    // TSK-254 / TSK-018-iter-1 — symmetric strict-honor for FCF_FALLBACK.
+    // When FCF history is insufficient (< MIN_HISTORICAL_YEARS=5) but the
+    // user forces FCF_FALLBACK, the calculator must refuse explicitly
+    // instead of falling through to the generic NOT_APPLICABLE path, so the
+    // rationale tells the consumer that the *forced* method (not the
+    // default policy) failed.
+    @Test
+    fun `forced FCF_FALLBACK with insufficient FCF history returns NOT_APPLICABLE with forced rationale`() {
+        val dataset = syntheticDataset(years = 3, baseFcf = 50.0, growth = 0.05)
+
+        val result = calculator.calculate(dataset, forcedMethod = DcfMethod.FCF_FALLBACK)
+
+        assertThat(result.method).isEqualTo(DcfMethod.NOT_APPLICABLE)
+        assertThat(result.intrinsicValue).isNull()
+        assertThat(result.rationale)
+            .contains("forcedMethod=FCF_FALLBACK")
+            .contains("non utilizzabile")
+    }
+
+    // TSK-254 — control case: when forced GREENWALD IS usable, the
+    // calculator honors it and produces a valid result (no spurious refusal
+    // introduced by the strict guard).
+    @Test
+    fun `forced GREENWALD with sufficient data is honored`() {
+        val dataset = syntheticDataset(years = 10, baseFcf = 100.0, growth = 0.06)
+
+        val result = calculator.calculate(dataset, forcedMethod = DcfMethod.GREENWALD)
+
+        assertThat(result.method).isEqualTo(DcfMethod.GREENWALD)
+        assertThat(result.intrinsicValue).isNotNull().isPositive()
+    }
+
     private fun syntheticDataset(
         years: Int,
         baseFcf: Double,
         growth: Double,
         shares: Double? = 100_000_000.0,
         basicShares: Double? = null,
+        includePpe: Boolean = true,
     ): FinancialDataset {
         val income = mutableListOf<IncomeStatementDto>()
         val balance = mutableListOf<BalanceSheetDto>()
@@ -99,8 +160,8 @@ class DcfCalculatorTest {
             )
             balance += BalanceSheetDto(
                 calendarYear = year.toString(),
-                grossPpe = revenue * 0.4,
-                propertyPlantEquipmentNet = revenue * 0.35,
+                grossPpe = if (includePpe) revenue * 0.4 else null,
+                propertyPlantEquipmentNet = if (includePpe) revenue * 0.35 else null,
             )
             cashFlow += CashFlowDto(
                 calendarYear = year.toString(),

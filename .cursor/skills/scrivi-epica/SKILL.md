@@ -4,15 +4,15 @@ description: Template e regole per scrivere una EP-XXX.md.
 ---
 # Procedura per scrivere un'epica
 
-Riferimenti: `citation-rules` (cascade L3 → wiki).
+Riferimenti: `citation-rules` (cascade: l'epica cita la wiki).
 
 ## Path
 
 `management/kanban/EP-XXX-<slug>/EP-XXX.md`
 
-Slug: lowercase, spazi→`-`, max 40 char.
+Slug: lowercase, spazi→`-`, rimuovi `()/'`, max 40 char.
 
-## Frontmatter
+## Frontmatter (minimal — ID e stato sempre, v2.11)
 
 ```yaml
 ---
@@ -24,10 +24,20 @@ confidence: XX%
 confidence_rationale: <1-2 frasi>
 wiki_pages: [wiki/<file>.md]
 created: YYYY-MM-DD
+depends_on: []   # v2.11: lista EP prerequisite (es. [EP-001, EP-003])
 ---
 ```
 
-Note: `stories` non va — deducibile dalle sotto-cartelle.
+Note: `stories` non va nel frontmatter — si deduce dalle sotto-cartelle `US-*/`.
+
+### `depends_on` (v2.11)
+
+- **`depends_on: [EP-XXX, ...]`** — Epiche prerequisite: input per il parallel
+  scheduler a livello roadmap (PATTERN §18). Due epiche con `depends_on`
+  disgiunti possono essere lavorate da team/agenti diversi in parallelo.
+  Una epica con `depends_on` non vuoto e qualche EP referenziata `defined` o
+  `in-progress` resta `defined`; transita a `in-progress` quando le sue
+  prerequisite sono almeno `in-progress`.
 
 ## Corpo
 
@@ -44,9 +54,10 @@ Note: `stories` non va — deducibile dalle sotto-cartelle.
 
 ## Storie incluse
 - [US-YYY](US-YYY-<slug>/US-YYY.md) — <titolo>
+- ...
 
 ## Confidence: XX%
-<Razionale>
+<Razionale: cosa abbiamo, cosa ci manca, perché lo score>
 
 ## Dipendenze
 <EP-/US- bloccanti, gap aperti>
@@ -54,6 +65,7 @@ Note: `stories` non va — deducibile dalle sotto-cartelle.
 
 ## Regole
 
-- Confidence obbligatorio. Score < 50% → epica in roadmap come Release 1.1+.
-- Nessun tech detail.
-- Citazioni: vedi `citation-rules`.
+- Confidence è obbligatorio. Score < 50% → epica in `roadmap.md` come Release 1.1+.
+- Nessun tech detail: niente "Spring Boot", "PostgreSQL". Quella è materia di
+  `lead-architect`.
+- Citazioni: vedi `citation-rules` (cascade L3 → wiki).

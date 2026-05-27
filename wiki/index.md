@@ -11,6 +11,8 @@ updated: 2026-05-25 (gap-close massivo 9 gap + ingest fmp_mcp-server.txt: +1 con
 updated: 2026-05-26 (indice riallineato: +6 concept agent.py, +1 synthesis, fix conteggi, dedup runbook)
 updated: 2026-05-26 (ingest requisiti-funzionali-fintech.md: +1 source, +6 concept, +1 synthesis, +1 runbook)
 updated: 2026-05-27 (+1 incident run test FE locale)
+updated: 2026-05-27 (doc-sync factory v2.13 + CQRL enabled: +1 concept agentic-factory-v213, +1 sezione Factory/Tooling)
+updated: 2026-05-28 (reconcile L1-L4 post EP-019 CQRL bonifica: update agentic-factory-v213 outcome 224/224 pass, incident allineato TSK-239 done)
 tags: [navigation]
 ---
 # Wiki Index — App Template Demo
@@ -79,7 +81,7 @@ tags: [navigation]
 |--------|--------------------|-----|
 | [[requisiti-funzionali-fintech]] | requisiti-funzionali-fintech.md | fintech, hardening, logging, accessibility, security, auth-guard, material-design-3 |
 
-### Concepts (46)
+### Concepts (47)
 
 #### FMP API stable (14)
 
@@ -136,6 +138,13 @@ tags: [navigation]
 | [[arctic-embed-l-v2]] | Modello embedding EP-011: `Qwen/Qwen3-Embedding-0.6B` (1024-dim, 32K ctx, MTEB ~64.6); A/B test via `embeddings.model.name`; Arctic Embed L v2.0 come fallback |
 | [[value-investor-bot-architecture]] | Agent.py v2.6.1: architettura LangGraph multi-agente (screener → SEC RAG → news sentiment → DCF → verdetto), prototipo Python delle funzionalità EP-010/011/012 |
 
+#### Factory / Tooling (2)
+
+| Pagina | Descrizione |
+|--------|-------------|
+| [[agentic-factory-v213]] | Factory llm-wiki++ v2.13: layer L1-L5 + CQRL, multi-adapter (claude+cursor), `/review`, `/repo-sync`, `factory.config.yaml` annotato. CQRL abilitato 2026-05-27. EP-019 bonifica Sprint 16: 224/224 TSK pass, 0 reject. |
+| [[parallel-scheduler]] | DAG-driven dispatch: `depends_on`, `code_path`, wave parallele (PATTERN §18, v2.11). |
+
 #### Fintech Hardening (6)
 
 | Pagina | Descrizione |
@@ -166,7 +175,7 @@ tags: [navigation]
 | [[graham-modern-bot-methodologies]] | Sintesi cross-domain Graham 1973 ↔ pratiche moderne 2026 ↔ agent.py ↔ Rule Engine Kotlin: convergenze, divergenze, scelte metodologiche |
 | [[fintech-hardening-requirements-map]] | Mappa cross-domain: 5 REQ iterazione fintech, dipendenze inter-REQ, impatto sull'architettura esistente |
 
-### Runbooks (7)
+### Runbooks (8)
 
 | Pagina | Descrizione |
 |--------|-------------|
@@ -177,10 +186,11 @@ tags: [navigation]
 | [[defensive-investor-checklist]] | 7 criteri Graham Cap.14 step-by-step con mapping FMP stable e WebApp signals |
 | [[enterprising-investor-checklist]] | Criteri Graham Cap.15 step-by-step: liquidita', P/E≤9, net-net NCAV con FMP stable |
 | [[pii-redaction-checklist]] | PII redaction step-by-step: pattern centralizzati, PiiRedactionEncoder, leak detection CI, GDPR retention |
+| [[code-quality-review-runbook]] | CQRL operativo: roadmap 9 fasi, loop control (max_iterations=3, no-progress, regression detection), strategie batching (all-in-one / severity-tiered / split-by-area) |
 
 ### Incidents (1)
 
 | Pagina | Descrizione |
 |--------|-------------|
-| [[2026-05-27-local-fe-test-run]] | Run Vitest/Playwright locale: 434/434 unit pass; E2E mocked fail per browser assente; cutover-smoke skip |
+| [[2026-05-27-local-fe-test-run]] | Run Vitest/Playwright locale: 434/434 unit pass; E2E Playwright 30/30 pass post TSK-239 (keyboard seed + deep-analysis assert fix); cutover-smoke skip (no staging creds). |
 

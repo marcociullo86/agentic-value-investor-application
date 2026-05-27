@@ -1,12 +1,15 @@
 ---
 name: state-scan
-description: Scan dei 5 layer + memoria episodica per produrre la dashboard di stato. Riferimento dell'orchestrator.
+description: Scan dei 4 layer + memoria episodica per produrre la dashboard di stato. Riferimento dell'orchestrator.
 ---
 # State scan (canonico)
 
-Riferimenti: `PATTERN.md §8` (state derivation), `wiki-log-entry`.
+Riferimenti: `PATTERN.md §8` (state derivation: filesystem + log + episodic),
+`wiki-log-entry` (per i tipi di operazione loggate).
 
 ## Output atteso
+
+Tabella tabellare dei 4 layer + gate + suggerimento next-step.
 
 ```
 L | Status   | Ultimo update | Conteggio | Note
@@ -15,10 +18,9 @@ L1| green    | YYYY-MM-DD    | N PDF     | manifest sincronizzato
 L2| green    | YYYY-MM-DD    | N pagine  | (eventuale "📌 K gap aperti", "✨ M promotion candidates")
 L3| amber    | YYYY-MM-DD    | N epiche  | gate: ⛔ hard / ⚠️ soft / ✅ clean (v2.6 graduato)
 L4| green    | YYYY-MM-DD    | N task    | sprint corrente: SS (eventuale "🔁 R reconcile-needed")
-L5| amber    | YYYY-MM-DD    | N file    | topology=full-stack-agents, code_path=./src/, VCS=monorepo
 ```
 
-## Procedura (9 passi, v2.7+v2.8)
+## Procedura (6 passi)
 
 ### 1. L1 status
 
@@ -26,96 +28,139 @@ L5| amber    | YYYY-MM-DD    | N file    | topology=full-stack-agents, code_path
 Glob raw/*.pdf
 Read raw/.extraction-manifest.json
 ```
+
 - `green` se ogni PDF ha entry nel manifest.
-- `amber` se PDF non estratti.
+- `amber` se ci sono PDF non ancora estratti (suggerisci `/sync-docs`).
 - `red` se il manifest manca.
 
 ### 2. L2 status
 
 ```
-Read wiki/log.md  (ultime entry per tipo)
-Glob wiki/**/*.md  (escludi log/gaps/query/lint)
+Read wiki/log.md  (ultime entry per tipo: ingest, lint)
+Glob wiki/**/*.md  (escludi log.md, gaps.md, query/, lint/)
 ```
-Conteggio per sezione (concepts/entities/...).
 
-### 3. Gap pendenti
+- Conteggio pagine totali, raggruppate per sezione (concepts/entities/...).
+- Ultimo ingest e ultimo lint dal log.
+- `green` se ingest ha coperto tutti i PDF estratti.
+- `amber` se ci sono PDF estratti ma non ingeriti.
+
+### 3. Gap pendenti (segnale per `wiki-keeper`)
 
 ```
 Read wiki/gaps.md
 ```
-Conta sezioni senza riga `**Risolto:**`. Se > 0 → "📌 N gap pendenti — suggerisci wiki-keeper".
+
+- Conta sezioni `## YYYY-MM-DD HH:MM — <slug>` **senza** riga `**Risolto:**`.
+- Se > 0 → aggiungi nota "📌 N gap pendenti — suggerisci wiki-keeper".
 
 ### 4. L3 status + gate (graduato, v2.6)
 
 ```
 Glob management/kanban/EP-*/EP-*.md
-Read management/questions.md  (parse blocking_level di ogni Q in [APERTE])
+Read management/questions.md  (frontmatter status + parse [APERTE])
 ```
-**Gate graduato (PATTERN.md §7 r.9):**
-- `hard_open > 0` → ⛔ "L4 hard-bloccato su US dipendenti (Q hard: <lista>)"
-- `soft_open > 0 && hard_open == 0` → ⚠️ "L4 parziale — N Q soft, Arch+TPM possono procedere con `pending_clarification`"
-- Tutte chiuse → ✅ "L4 gate clean"
+
+- Conteggio epiche per status (`defined`/`in-progress`/`done`).
+- **Gate graduato** (v2.6, vedi `PATTERN.md §7 r.9`): parse di ogni Q in `[APERTE]`
+  per il campo `**Bloccante:** hard | soft` (default `hard` se omesso).
+  - `hard_open > 0` → segnala in rosso "⛔ L4 hard-bloccato su US dipendenti
+    (Q hard: <lista>)". Identifica US impattate via `blocked_by`.
+  - `soft_open > 0 && hard_open == 0` → segnala in giallo "⚠️ L4 parziale —
+    N Q soft aperte, Arch+TPM possono procedere con `pending_clarification`".
+  - Tutte chiuse → segnala in verde "✅ L4 gate clean".
 
 ### 5. L4 status
 
 ```
-Read design_&_architecture/be_architecture.md
+Read design_&_architecture/be_architecture.md   (se esiste)
+Read design_&_architecture/fe_architecture.md   (se esiste)
 Glob management/kanban/**/TSK-*.md
-Read management/kanban/sprint.md
+Read management/kanban/sprint.md                (se esiste)
 ```
 
-### 6. L5 status (v2.7)
+- Conteggio task totali e per sprint.
+- `green` se architettura + sprint.md presenti e questions chiuse.
+- `amber` se architettura presente ma sprint.md non ancora generato.
+- `red` se gate questions ancora aperto.
+
+### 6. Reconcile-needed pendenti (v2.6, da operazione `Propagate`)
 
 ```
-Read factory.config.yaml  (topology, code_path, routing, vcs.mode)
-Glob <code_path>/**  (se interno al repo)
-Grep "develop TSK-" wiki/log.md
+Read wiki/log.md  (filtra entry con "reconcile-needed")
 ```
-- `green` se ci sono `develop` entry recenti e TSK done coerenti.
-- `amber` se code_path valorizzato ma vuoto.
-- `red` se code_path mancante con dev-agent presenti.
 
-### 7. Reconcile-needed pendenti (v2.6, da operazione `Propagate`)
+- Conta marker `reconcile-needed: US-YYY → Q_NNN closed` ancora attivi.
+- Un marker è **attivo** se la US citata ha ancora `Q_NNN` in `blocked_by` o
+  `pending_clarification` (read del file US per verifica).
+- Se > 0 → aggiungi nota "🔁 N reconcile-needed pendenti (US: <lista>)" come
+  **prima** riga della sezione note del dashboard. È il segnale più urgente
+  dopo gate hard aperto: indica stato kanban stale rispetto a Q risolte.
 
-```
-Grep "reconcile-needed" wiki/log.md
-```
-Conta marker ancora attivi (Read della US referenziata: `Q_NNN` ancora in
-`blocked_by` o `pending_clarification`). Se > 0 → "🔁 N reconcile-needed
-pendenti (US: <lista>)" come **prima** riga note.
-
-### 8. Auto-promotion candidates (v2.6)
+### 7. Auto-promotion candidates (v2.6, N4)
 
 ```
-Glob wiki/{concepts,entities,syntheses}/*.md
-Grep "wiki_page:" management/kanban/EP-*/US-*/US-*.md
+Glob wiki/concepts/*.md, wiki/entities/*.md, wiki/syntheses/*.md
+Grep "wiki_page:" in management/kanban/EP-*/US-*/US-*.md
 ```
-Per ogni pagina wiki `status: draft`: conta US `committed|in-progress|done`
-che la citano. Se ≥ 2 → promotion candidate. Max 5 in dashboard.
 
-### 9. Continuità
+- Per ogni pagina wiki con `status: draft`: conta quante US la citano in
+  `wiki_page:` **e** sono in `status: committed | in-progress | done`.
+- Se count ≥ 2 → la pagina è **promotion candidate** per `review`.
+- Limita la lista a max 5 candidate per dashboard (le altre sono ripetibili
+  al run successivo).
+
+### 8.bis Parallel scheduler probe (v2.11)
+
+```
+Read factory.config.yaml  (sezione scheduler:)
+```
+
+- Se `scheduler.enabled: false` o assente → skip questo step (modalità seriale legacy).
+- Se `scheduler.enabled: true` (default in nuovi progetti):
+  - `Glob management/kanban/**/TSK-*.md` filtrato per `status: todo` + `consumer: agent`
+  - Se conteggio ≥ 2 → segnala in dashboard una nota "⚡ N TSK candidate per wave dispatch — invoca `parallel-scheduling`".
+  - Se conteggio < 2 → nessun parallelismo da proporre, fallback alla heuristica next-step single-step (regole 1–9 sotto).
+
+### 9. Continuità (episodic memory)
 
 ```
 Read memory/episodic/<ultimo>.md
 ```
 
+- Confronta lo stato osservato con la decisione precedente.
+- Se è cambiato qualcosa di significativo, evidenzialo.
+
 ## Suggerimento next-step
 
-Heuristica (priorità decrescente, v2.7):
+Heuristica (in ordine di priorità — v2.11):
 
-1. **🔁 Reconcile-needed pendenti > 0** → `product-manager` per riconciliare le US elencate.
-2. Gate `hard` aperto → rispondi alle Q hard in `management/questions.md`.
-3. Gap pendenti > 0 → `wiki-keeper`.
-4. L1 ha PDF non estratti → `/sync-docs`.
-5. L2 stale rispetto a L1 → `wiki-keeper`.
-6. **Auto-promotion candidates > 0** → considera `/promote <path> review`.
-7. L3 vuoto → `product-manager`.
-8. L4 vuoto + nessuna Q hard sulle US target → `lead-architect`.
-9. L4 architettura ma no task → `tpm` sulle US sbloccate.
-10. **L4 con TSK `consumer: agent, status: todo` ready** → `/dev <TSK-id>` (v2.7).
-11. **Stack `auto` ma `raw/tech_stack.md` non popolato** → invoca `tech-scout`.
+0. **⚡ Wave dispatch (v2.11)** → se `scheduler.enabled: true` e ci sono ≥ 2 TSK
+   candidati (`status: todo`, `consumer: agent`, dipendenze risolte), invoca
+   `parallel-scheduling` per costruire il DAG e mostrare il wave plan in chat,
+   **prima** delle heuristiche single-step sotto. Se il piano contiene > 1
+   group parallelo, applica gate §18.4 R.S4 (default ≥ 3 sub-agent).
 
-**Mai delegare automaticamente.** Solo suggerire. Auto-promotion (regola 6) è **solo suggerimento** — l'orchestrator può modificare `status:` solo via `/promote` esplicito.
+Heuristiche single-step (fallback se nessun wave dispatch possibile, v2.6):
+
+1. **🔁 Reconcile-needed pendenti > 0** → "Invoca `product-manager` per
+   riconciliare le US elencate (Q risolte ma `blocked_by` stale), oppure
+   correggi a mano."
+2. Gate `hard` aperto → "Rispondi alle Q hard in `management/questions.md`
+   (L4 bloccato sulle US dipendenti)."
+3. Gap pendenti > 0 → "Invoca `wiki-keeper` per affrontare i gap aperti."
+4. L1 ha PDF non estratti → "Invoca `/sync-docs`."
+5. L2 stale rispetto a L1 → "Invoca `wiki-keeper` per ingest."
+6. **Auto-promotion candidates > 0** → "Considera `/promote <path> review`
+   per le pagine citate da ≥ 2 US (lista mostrata sopra)."
+7. L3 vuoto → "Invoca `product-manager`."
+8. L4 vuoto e L3 OK + nessuna Q hard sulle US target → "Invoca `lead-architect`
+   sulle US sbloccate (eventuali Q soft → `pending_clarification` nell'ADR)."
+9. L4 ha architettura ma no task → "Invoca `tpm` sulle US sbloccate."
+
+**Mai delegare automaticamente.** Solo suggerire — l'umano decide. In particolare,
+auto-promotion (regola 6) è **solo suggerimento**, mai esecuzione: l'orchestrator
+può modificare `status:` solo via `/promote` esplicito (§2).
 
 ## Episodic memory (output collaterale)
 
@@ -127,6 +172,7 @@ type: episodic
 created: YYYY-MM-DD HH:MM
 tags: [run, state-scan]
 ---
+
 # Run del YYYY-MM-DD HH:MM
 
 ## Stato osservato
@@ -134,11 +180,11 @@ tags: [run, state-scan]
 - L2: <status> (<conteggio>, gap=<N>, promotion-candidates=<M>)
 - L3: <status> (<conteggio>, gate=<hard|soft|clean>, hard_open=<H>, soft_open=<S>)
 - L4: <status> (<conteggio>, reconcile-needed=<R>)
-- L5: <status> (<conteggio>, topology=<...>, code_path=<...>, vcs.mode=<...>)
 
 ## Decisione presa
 Next-step suggerito: <agente> per <motivo>.
 
 ## Riferimenti
 - Run precedente: memory/episodic/<file>.md
+- Continuità: <eventuali differenze rilevanti>
 ```

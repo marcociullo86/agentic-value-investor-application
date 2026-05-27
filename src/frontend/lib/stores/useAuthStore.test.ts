@@ -16,6 +16,7 @@ const mockedRefresh = authApi.refreshTokens as ReturnType<typeof vi.fn>;
 
 function mockDocumentCookie(): void {
   Object.defineProperty(document, 'cookie', {
+    configurable: true,
     writable: true,
     value: '',
   });
@@ -144,6 +145,48 @@ describe('useAuthStore', () => {
     expect(useAuthStore.getState().sessionExpired).toBe(true);
     useAuthStore.getState().setSessionExpired(false);
     expect(useAuthStore.getState().sessionExpired).toBe(false);
+  });
+
+  it('setSessionExpired(true) writes the sessionExpired cookie hint for the middleware', () => {
+    useAuthStore.getState().setSessionExpired(true);
+    expect(document.cookie).toContain('sessionExpired=true');
+  });
+
+  it('setSessionExpired(false) clears the sessionExpired cookie hint', () => {
+    document.cookie = 'sessionExpired=true; path=/; SameSite=Strict';
+    useAuthStore.getState().setSessionExpired(false);
+    expect(document.cookie).toContain('max-age=0');
+  });
+
+  it('login clears the sessionExpired cookie hint and sets the auth hint', async () => {
+    const writes: string[] = [];
+    const previous = Object.getOwnPropertyDescriptor(document, 'cookie');
+    Object.defineProperty(document, 'cookie', {
+      configurable: true,
+      get: () => writes[writes.length - 1] ?? '',
+      set: (raw: string) => {
+        writes.push(raw);
+      },
+    });
+    try {
+      mockedLogin.mockResolvedValueOnce({
+        accessToken: 'access-1',
+        expiresInSeconds: 900,
+      });
+
+      await useAuthStore.getState().login('alice@example.com', 'pw');
+
+      const cleared = writes.find(
+        (w) => w.startsWith('sessionExpired=') && w.includes('max-age=0'),
+      );
+      const set = writes.find((w) => w.startsWith('isAuthenticated=true'));
+      expect(cleared).toBeTruthy();
+      expect(set).toBeTruthy();
+    } finally {
+      if (previous) {
+        Object.defineProperty(document, 'cookie', previous);
+      }
+    }
   });
 
   it('clearSession wipes token and user but keeps sessionExpired untouched', () => {

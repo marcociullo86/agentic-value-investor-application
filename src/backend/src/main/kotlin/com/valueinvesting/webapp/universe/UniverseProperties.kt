@@ -34,17 +34,16 @@ data class UniverseProperties(
     val capCandidates: Int = 500,
 
     /**
-     * TTL target della cache `/company-screener` (ore). NB: la versione
-     * corrente di `FmpCacheService.getOrFetch` usa TTL fisso 24h (constante
-     * `FINANCIAL_TTL`) e non accetta TTL custom per chiamata; questo valore
-     * documenta l'intento ma non e' wired finche' FmpCacheService non viene
-     * esteso (out-of-scope TSK-126, future scope).
-     */
-    val cacheTtlHours: Long = 6,
-
-    /**
      * Numero di top candidati (per market cap desc) passati a NewsScoutProvider
      * come seed. Default 200.
      */
     val newsScoutSeedTop: Int = 200,
 )
+// Nota TTL — `UniverseScreenerService` invoca `FmpCacheService.getOrFetch` per
+// l'endpoint `company-screener`. Il servizio applica un TTL GLOBALE fisso 24h
+// (constante `FINANCIAL_TTL`, ADR-004 §Cache layer 24h) e non accetta override
+// per-endpoint, quindi NON esponiamo una property `cache-ttl-hours` per non
+// dare l'illusione di un TTL configurabile. Un TTL ridotto per il batch
+// universe richiede prima l'estensione del contratto di `FmpCacheService`
+// (out-of-scope TSK-126 / TSK-256).
+// [^src: src/backend/src/main/kotlin/com/valueinvesting/webapp/fmp/FmpCacheService.kt §FINANCIAL_TTL]

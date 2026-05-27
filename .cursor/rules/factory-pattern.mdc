@@ -1,9 +1,9 @@
 ---
-description: Contratto agentic factory llm-wiki++ v2.8 — layer, scope ruoli, citazioni, gate VCS
+description: Contratto agentic factory llm-wiki++ v2.13 — layer, sync/publish/scheduler/CQRL/multi-adapter
 alwaysApply: true
 ---
 
-# Factory pattern (PATTERN v2.8)
+# Factory pattern (PATTERN v2.13)
 
 Contratto autoritativo: [`PATTERN.md`](../../PATTERN.md). Adapter Cursor: [`CURSOR.md`](../../CURSOR.md).
 
@@ -11,11 +11,12 @@ Contratto autoritativo: [`PATTERN.md`](../../PATTERN.md). Adapter Cursor: [`CURS
 
 | Layer | Path | Scrittura |
 |-------|------|-----------|
-| L1 | `raw/` | Solo ruolo Sync |
+| L1 | `raw/` | Solo sub-agent Sync (`sync-docs`, `figma-sync`, `repo-sync`, …) |
 | L2 | `wiki/` | Solo `wiki-keeper` (single-committer) |
 | L3 | `management/` | Solo PM |
 | L4 | `design_&_architecture/`, `TSK-*.md` | Arch + TPM |
 | L5 | `src/` (da `factory.config.yaml`) | Dev-agent o umani |
+| CQRL | `code_quality/` | Solo `code-reviewer` (opt-in) |
 
 ## Regole inviolabili (sintesi §7)
 
@@ -25,11 +26,13 @@ Contratto autoritativo: [`PATTERN.md`](../../PATTERN.md). Adapter Cursor: [`CURS
 4. Dev-agent: scrivono solo `<code_path>/`; sul TSK solo `status:` e `updated:`.
 5. **Mai commit/push automatici** — gate umano (`vcs-handoff`).
 6. `raw/tech_stack.md` ha priorità assoluta sugli stack.
+7. Sync read-only verso sorgente (`repo-sync` non modifica il repo scansionato).
+8. Publish e VCS: gate umano obbligatorio.
 
 ## Quando delegare
 
-Usa subagent in `.cursor/agents/` per ruoli con scope ristretto (es. `wiki-query` legge solo `wiki/`). Per `/dev <TSK-id>` invoca il dev-agent del `layer:` del TSK (`be-dev`, `fe-dev`, `db-dev`, `qa-dev`) e applica la skill `dev-protocol`.
+Usa subagent in `.cursor/agents/` per ruoli con scope ristretto. Per `/dev <TSK-id>` invoca il dev-agent del `layer:` del TSK. Per review qualitativa post-develop: `/review <TSK-id>` (`code-reviewer`, richiede `code_quality.enabled: true`).
 
 ## Comandi factory
 
-`/run`, `/sync-docs`, `/query`, `/lint`, `/promote`, `/heal`, `/dev`, `/topology` — vedi `.cursor/commands/`.
+`/run`, `/sync-docs`, `/figma-sync`, `/repo-sync`, `/query`, `/lint`, `/promote`, `/heal`, `/dev`, `/review`, `/topology`, `/kanban-publish` — vedi `.cursor/commands/`.

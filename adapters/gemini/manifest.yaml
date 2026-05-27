@@ -1,0 +1,77 @@
+# Gemini Code Assist adapter manifest (PATTERN §12.1)
+# Mappa i costrutti del pattern llm-wiki++ a Gemini Code Assist (Custom Gems).
+
+adapter_name: gemini
+adapter_folder: .gemini
+runtime: gemini-code-assist
+runtime_version_min: "Gemini 1.5 / 2.0 Custom Gems"
+maturity: manifest-only
+contract_version: 2.13
+
+mappings:
+  agent:
+    pattern_concept: "Agente specializzato (PATTERN §2 ruoli)"
+    runtime_construct: "Custom Gem con instructions specifiche per il ruolo"
+    file_path_template: ".gemini/gems/{name}.md"
+    invocation: "Crea un Gem in Gemini Code Assist con instructions = contenuto file"
+  skill:
+    pattern_concept: "Procedura riusabile"
+    runtime_construct: "Sezione delle Gem instructions OR file separato referenced via @ "
+    file_path_template: ".gemini/skills/{name}.md"
+  command:
+    pattern_concept: "Slash command"
+    runtime_construct: "Custom Gem function o invocazione esplicita del Gem appropriato"
+    file_path_template: ".gemini/commands/{name}.md"
+  tool_read:
+    pattern_concept: "Lettura file"
+    runtime_construct: "Gemini Code Assist built-in read_file"
+  tool_write:
+    pattern_concept: "Scrittura file"
+    runtime_construct: "Gemini Code Assist built-in write_file / apply_diff"
+  tool_glob:
+    pattern_concept: "Glob filesystem"
+    runtime_construct: "Built-in workspace search"
+  tool_bash:
+    pattern_concept: "Shell access"
+    runtime_construct: "Code Execution tool (limitato a sandbox)"
+  subagent_fanout:
+    pattern_concept: "Sub-agent fan-out"
+    runtime_construct: "Multi-Gem invocation (sequential) o parallel tool calls"
+    supported: partial
+
+templates: {}  # manifest-only: nessuno scaffolding automatico in v2.13
+
+runtime_overrides:
+  parallel_dispatch:
+    supported: partial
+    note: "Parallel tool calls supportati; multi-Gem orchestration manuale"
+  subagent_fanout:
+    supported: partial
+    fallback: "Sequential Gem switching"
+
+scaffolding_instructions: |
+  Maturity: manifest-only.
+
+  Per scaffoldare manualmente in v2.13:
+
+  1. Crea cartella `.gemini/gems/` nella factory generata.
+  2. Per ciascun ruolo del pattern (orchestrator, wiki-keeper, …), crea un Gem in
+     Gemini Code Assist con instructions copiate dal corrispondente file
+     `.claude/agents/<name>.md` del meta-framework, tradotte seguendo la tool
+     conversion table in `adapters/README.md`.
+  3. Salva una copia delle instructions in `.gemini/gems/<name>.md` per versioning.
+  4. (Opzionale) Crea uno script bash `.gemini/commands/<name>.sh` che apre il Gem
+     appropriato con il messaggio iniziale.
+
+  Per estendere a "full" in una release futura:
+  - Scrivere template `.gemini/gems/<name>.md` tradotti automaticamente da
+    `.claude/agents/<name>.md` (analogo a Cursor/Aider).
+  - Integrare con Gemini Code Assist API (se disponibile) per crear/aggiornare
+    Gems via CLI.
+
+notes: |
+  Gemini Code Assist è disponibile come estensione VSCode / JetBrains.
+  Custom Gems sono in beta (Q2 2025) — verifica disponibilità nella tua region.
+
+  Coesistenza con altri adapter: stesso filesystem `wiki/`, `management/`, ecc.
+  R.A1-R.A6 invarianti enforced globalmente.

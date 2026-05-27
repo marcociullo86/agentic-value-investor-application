@@ -12,6 +12,7 @@ import { Card } from '@/components/ui/Card';
 import { FormErrorSummary } from '@/components/forms/form-error-summary';
 import { FormField } from '@/components/forms/form-field';
 import { useAuthStore } from '@/lib/stores/useAuthStore';
+import { getAuthFormErrorMessage } from '../_lib/form-errors';
 
 const loginSchema = z.object({
   email: z
@@ -68,11 +69,7 @@ function LoginContent(): React.ReactElement {
       await login(data.email, data.password);
       router.push('/');
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Login failed, please try again';
-      setServerError(
-        message.includes('401') ? 'Email o password non validi' : message,
-      );
+      setServerError(getAuthFormErrorMessage(err, 'login'));
     }
   }
 

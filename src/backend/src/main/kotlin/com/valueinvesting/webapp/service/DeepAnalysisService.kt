@@ -103,7 +103,11 @@ class DeepAnalysisService(
 
         if (invokeLlm) {
             try {
-                val report = mungerInversionAnalyzer.analyze(t)
+                val report = mungerInversionAnalyzer.analyze(
+                    ticker = t,
+                    roeFiveYearAvg = roe5y.average,
+                    roeTenYearAvg = roe10y.average,
+                )
                 mungerRiskLevel = report.livelloRischio
                 llmCalls += report.llmCallsCount
                 llmStatus = "INVOKED"

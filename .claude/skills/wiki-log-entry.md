@@ -4,13 +4,16 @@ description: Template canonici per gli append a wiki/log.md. Riferimento unico p
 ---
 # Template di log entry (canonici)
 
-`wiki/log.md` è **append-only** (vedi `PATTERN.md §7 r.5`).
+`wiki/log.md` è **append-only** (vedi `PATTERN.md §7 r.5`). Questa skill è la
+single source of truth dei formati di entry per tipo di operazione.
 
 ## Formato generale
 
 ```
 [YYYY-MM-DD HH:MM] <operation> — <one-line summary> — files touched: <N>
 ```
+
+Una riga per operazione. Mai editare entry passate. Mai cancellare.
 
 ## Template per operazione
 
@@ -21,7 +24,8 @@ description: Template canonici per gli append a wiki/log.md. Riferimento unico p
 Pagine create: N | Figure: N | Aggiornamenti: N | Gap nuovi: N | Gap chiusi: N
 ```
 
-Per ogni gap chiuso:
+Una riga aggiuntiva per ogni gap chiuso durante l'ingest:
+
 ```
 [YYYY-MM-DD HH:MM] gap-closed — <slug> via [[<pagina>]] — files touched: 1
 ```
@@ -32,11 +36,23 @@ Per ogni gap chiuso:
 ## [YYYY-MM-DD] query | <prime parole della domanda>
 ```
 
+Se la query è stata salvata come synthesis:
+
+```
+[YYYY-MM-DD HH:MM] synthesis-promoted — wiki/query/<file>.md → wiki/syntheses/<question>.md — files touched: 2
+```
+
 ### `lint` (wiki-lint)
 
 ```
 ## [YYYY-MM-DD] lint | check completo
-Orphan: N | Broken: N | Unsourced: N | Kanban: N err | Coerenza: N err | Topology: N err | VCS: N err
+Orphan: N | Broken: N | Unsourced: N | Kanban: N err | Coerenza: N err
+```
+
+Per il citation audit periodico:
+
+```
+[YYYY-MM-DD HH:MM] citation-audit — <total claims> verified, <N> broken — files touched: 1
 ```
 
 ### `promote` (orchestrator)
@@ -71,47 +87,46 @@ Orphan: N | Broken: N | Unsourced: N | Kanban: N err | Coerenza: N err | Topolog
 
 ### `reconcile-needed` (wiki-keeper via `propagate-resolution`, v2.6)
 
-Marker emesso quando il keeper chiude un gap che cita una `Q_NNN` risolta
-contestualmente, ma una o più US dipendenti hanno ancora `Q_NNN` in
-`blocked_by` / `pending_clarification`. Una riga per US stale:
+Marker emesso dalla skill `propagate-resolution` quando il keeper chiude un
+gap che cita una `Q_NNN` risolta contestualmente, ma una o più US dipendenti
+hanno ancora `Q_NNN` in `blocked_by` o `pending_clarification`. Una riga
+per US stale:
 
 ```
 [YYYY-MM-DD HH:MM] reconcile-needed — US-YYY → Q_NNN closed (gap [[<slug>]]) — files touched: 0
 ```
 
-`files touched: 0` perché il keeper non scrive sul kanban (proprietà PM, §2).
-L'orchestrator lo surfaceizza in dashboard come "🔁 N reconcile-needed pendenti".
-Chiusura del marker: implicita (`state-scan` ricalcola da filesystem).
+`files touched: 0` perché il keeper non scrive sul kanban (proprietà PM,
+§2). Il marker è surfaced dall'orchestrator in `/run` come "🔁 N reconcile-needed
+pendenti" (vedi `state-scan`).
 
-### `develop` (dev-agent v2.7)
+Chiusura del marker: implicita. Quando il PM (o l'umano) riconcilia la US,
+non si appende nulla — la prossima esecuzione di `state-scan` ricalcola da
+filesystem e il conteggio scende.
 
-Vedi skill canonica `dev-handoff` per il formato esteso. Sintesi:
-```
-## [YYYY-MM-DD HH:MM] develop TSK-ZZZ
-Agente: <be|fe|db|qa>-dev | Layer: <be|fe|db|qa|infra> | Files: N | Commit: <hash|n/a> | DoD: <pass|partial>
-```
+### `migration` / `policy` / `docs` (eventi meta)
 
-### `tech-scout` (skill omonima, v2.7)
+Per cambi di policy, refactor del framework, o aggiornamenti meta:
 
 ```
-[YYYY-MM-DD HH:MM] tech-scout — raw/tech_stack.md.proposal generated (N alternative) — files touched: 1
+[YYYY-MM-DD HH:MM] <tipo> — <descrizione concisa> — files touched: <N>
 ```
 
-### `vcs-handoff` (skill omonima, v2.8)
-
-```
-[YYYY-MM-DD HH:MM] vcs-handoff — proposed <action> on <repo|submodule> — gate: <approved|pending|rejected>
-```
-
-### `policy` / `docs` / `migration` (meta-eventi)
-
-```
-[YYYY-MM-DD HH:MM] policy — <descrizione concisa> — files touched: <N>
-```
+Esempi reali in `wiki/log.md`:
+- `[2026-05-18 13:30] migration — v2.x → v2.2 ...`
+- `[2026-05-18 15:30] policy — model tuning per agente ...`
 
 ## Regole
 
-- **Mai overwrite**: append-only è inviolabile.
+- **Mai overwrite**: append-only è inviolabile (`PATTERN.md §7 r.5`).
+- **Mai entry vuote**: se l'operazione non ha prodotto file modificati, non logga.
 - **Sempre `files touched`**: numero intero, anche `0` se l'operazione è abortita.
 - **Timestamp obbligatorio**: `YYYY-MM-DD HH:MM` in italiano (Europe/Rome).
-- **One-line summary < 120 caratteri**: se serve dettaglio, va nella pagina dedicata (synthesis, runbook, incident).
+- **One-line summary < 120 caratteri**: se serve dettaglio, va nella pagina dedicata
+  (synthesis, runbook, incident), non nel log.
+
+## Verifica
+
+Il `wiki-lint` non controlla `log.md` perché append-only (controllo strutturale
+sarebbe rumore). Eventuali entry malformate emergono manualmente al review
+periodico.

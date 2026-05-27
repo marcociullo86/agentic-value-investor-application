@@ -23,7 +23,7 @@ import org.springframework.web.client.RestClient
 // [^src: design_&_architecture/decisions/ADR-017-anthropic-sdk-jvm.md §3]
 // [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-041-munger-inversion-llm/TSK-104.md §2]
 @Configuration
-@EnableConfigurationProperties(AnthropicProperties::class)
+@EnableConfigurationProperties(AnthropicProperties::class, LlmPricingProperties::class)
 class AnthropicConfig {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -37,6 +37,8 @@ class AnthropicConfig {
         @Qualifier("llmCircuitBreaker") circuitBreaker: CircuitBreaker,
         @Qualifier("llmRateLimiter") rateLimiter: RateLimiter,
         @Qualifier("llmRetry") retry: Retry,
+        budgetGuard: LlmBudgetGuard,
+        costCounterService: LlmCostCounterService,
     ): AnthropicClient {
         if (properties.apiKey.isBlank()) {
             log.warn(
@@ -46,13 +48,15 @@ class AnthropicConfig {
             return AnthropicClientStub()
         }
         log.info(
-            "Anthropic client configured: model={}, baseUrl={}",
+            "Anthropic client configured: model={}, baseUrl={}, timeoutSeconds={}",
             properties.model,
             properties.baseUrl,
+            properties.timeoutSeconds,
         )
         return AnthropicRestClient(
             restClientBuilder, properties, objectMapper,
             circuitBreaker, rateLimiter, retry,
+            budgetGuard, costCounterService,
         )
     }
 }

@@ -2,6 +2,7 @@ package com.valueinvesting.webapp.api.error
 
 import com.valueinvesting.webapp.fmp.FmpTickerNotFoundException
 import com.valueinvesting.webapp.fmp.FmpUnavailableException
+import com.valueinvesting.webapp.llm.LlmFrozenException
 import com.valueinvesting.webapp.service.CompromisedPasswordException
 import com.valueinvesting.webapp.service.EmailAlreadyRegisteredException
 import com.valueinvesting.webapp.service.InvalidRefreshTokenException
@@ -97,18 +98,30 @@ class GlobalExceptionHandler(
     // Refresh-token specific 401 (ADR-010 §3): catena rifiutata per expiry,
     // revoca o cap assoluto raggiunto. Tipo distinto da invalid-credentials
     // così il FE può differenziare "ri-login" da "credenziali errate".
-    // L'eccezione vive in service/exception/InvalidRefreshTokenException.kt
-    // e viene sollevata da AuthService.refresh() (vedi TSK-041).
+    // L'eccezione vive in service/InvalidRefreshTokenException.kt e viene
+    // sollevata da AuthService.refresh() (vedi TSK-041).
+    //
+    // Anti-enum-attack (TSK-041 finding iter-1): la `detail` esposta al
+    // client è il valore uniforme [InvalidRefreshTokenException.CLIENT_DETAIL]
+    // — mai `ex.reason`. La causa specifica (revoked / sliding_expired /
+    // absolute_cap / not_found / user_unknown) finisce solo nel log
+    // server-side, così un attaccante non può discriminare via response.
     @ExceptionHandler(InvalidRefreshTokenException::class)
     fun handleInvalidRefreshToken(
         ex: InvalidRefreshTokenException,
         req: HttpServletRequest,
     ): ResponseEntity<ProblemDetail> {
+        log.warn(
+            "Invalid refresh token: reason={} on {} {}",
+            ex.reason,
+            req.method,
+            req.requestURI,
+        )
         val problem = mapper.build(
             status = HttpStatus.UNAUTHORIZED,
             type = "https://api/errors/invalid-refresh",
             title = "Unauthorized",
-            detail = ex.message ?: "Invalid refresh token",
+            detail = InvalidRefreshTokenException.CLIENT_DETAIL,
             request = req,
         )
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem)
@@ -388,6 +401,28 @@ class GlobalExceptionHandler(
             extensions = mapOf("ticker" to ex.ticker, "reason" to "no_sec_filings"),
         )
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(problem)
+    }
+
+    // ADR-019 §6 — explicit handler for the admin-driven freeze. Distinct from
+    // generic LlmUnavailable (network/Anthropic outage) because:
+    //   - distinct problem type so the FE can surface a "frozen by admin" banner;
+    //   - "reason" stays human-readable for ops dashboards;
+    //   - 503 is the appropriate status (service intentionally unavailable).
+    @ExceptionHandler(LlmFrozenException::class)
+    fun handleLlmFrozen(
+        ex: LlmFrozenException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        log.warn("LLM frozen by admin on {} {}", req.method, req.requestURI)
+        val problem = mapper.build(
+            status = HttpStatus.SERVICE_UNAVAILABLE,
+            type = "https://api/errors/llm-frozen-by-admin",
+            title = "LLM frozen by admin",
+            detail = "LLM traffic is currently frozen by an administrator",
+            request = req,
+            extensions = mapOf("reason" to "llm_frozen_by_admin"),
+        )
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(problem)
     }
 
     @ExceptionHandler(LlmUnavailableException::class)

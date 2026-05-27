@@ -16,8 +16,34 @@ class DcfCalculator(
         val greenwald = greenwaldEstimator.estimate(dataset)
         val fcf = fcfFallbackEstimator.estimate(dataset)
 
+        // TSK-254 / TSK-018-iter-1 (CQRL Wave A3): the upstream caller
+        // (AnalyzeTickerService) exposes `dcfMethod = forcedMethod` whenever
+        // `dcfMethodSource = USER_OVERRIDE`, so silently degrading a forced
+        // method to a different one would publish `dcfMethod=GREENWALD` over
+        // a value computed via FCF (and vice versa) — a misleading
+        // misalignment for downstream consumers. We refuse instead: when the
+        // user's forced method is not usable, return NOT_APPLICABLE with an
+        // explicit rationale and let the caller surface
+        // mosSignal=NOT_CALCULABLE. No silent cross-method fallback.
+        if (forcedMethod == DcfMethod.GREENWALD && !greenwald.usable) {
+            return DcfResult(
+                intrinsicValue = null,
+                method = DcfMethod.NOT_APPLICABLE,
+                rationale = "forcedMethod=GREENWALD non utilizzabile: ${greenwald.rationale} " +
+                    "Nessun fallback automatico a FCF_FALLBACK (override utente rispettato).",
+            )
+        }
+        if (forcedMethod == DcfMethod.FCF_FALLBACK && !fcf.usable) {
+            return DcfResult(
+                intrinsicValue = null,
+                method = DcfMethod.NOT_APPLICABLE,
+                rationale = "forcedMethod=FCF_FALLBACK non utilizzabile: ${fcf.rationale} " +
+                    "Override utente rispettato.",
+            )
+        }
+
         val method = when (forcedMethod) {
-            DcfMethod.GREENWALD -> if (greenwald.usable) DcfMethod.GREENWALD else DcfMethod.FCF_FALLBACK
+            DcfMethod.GREENWALD -> DcfMethod.GREENWALD
             DcfMethod.FCF_FALLBACK -> DcfMethod.FCF_FALLBACK
             null -> when {
                 greenwald.usable -> DcfMethod.GREENWALD

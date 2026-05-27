@@ -3,15 +3,23 @@ package com.valueinvesting.webapp.service
 import com.valueinvesting.webapp.config.EmbeddingsProperties
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
+import org.springframework.http.client.JdkClientHttpRequestFactory
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientException
+import java.net.http.HttpClient
 import java.time.Duration
 
 /**
  * HTTP client to the Python embeddings sidecar (TSK-099).
  * Batches requests and converts response to FloatArray vectors.
+ *
+ * The sidecar embed call is wrapped in connect/read timeouts driven by
+ * `embeddings.sidecar.timeout-seconds` (TSK-100 hardening — wave-04 review):
+ * absent timeouts let a stalled sidecar pin RAG indexing threads indefinitely.
+ *
  * [^src: design_&_architecture/decisions/ADR-018]
+ * [^src: code_quality/reports/TSK-100-iter-1.md §Finding 1]
  */
 @Service
 class EmbeddingService(
@@ -22,7 +30,18 @@ class EmbeddingService(
 
     private val client: RestClient = restClientBuilder
         .baseUrl(props.sidecar.url)
+        .requestFactory(buildRequestFactory(props.sidecar.timeoutSeconds))
         .build()
+
+    private fun buildRequestFactory(timeoutSeconds: Long): JdkClientHttpRequestFactory {
+        val timeout = Duration.ofSeconds(timeoutSeconds)
+        val httpClient = HttpClient.newBuilder()
+            .connectTimeout(timeout)
+            .build()
+        val factory = JdkClientHttpRequestFactory(httpClient)
+        factory.setReadTimeout(timeout)
+        return factory
+    }
 
     fun embed(texts: List<String>): List<FloatArray> {
         if (texts.isEmpty()) return emptyList()

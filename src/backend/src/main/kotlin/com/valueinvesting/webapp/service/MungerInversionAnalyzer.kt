@@ -36,7 +36,11 @@ class MungerInversionAnalyzer(
     }
 
     @Transactional
-    fun analyze(ticker: String): MungerInversionReport {
+    fun analyze(
+        ticker: String,
+        roeFiveYearAvg: Double? = null,
+        roeTenYearAvg: Double? = null,
+    ): MungerInversionReport {
         val normalizedTicker = ticker.uppercase()
 
         val filings = filingBlobRepository.findByTickerAndExpiresAtAfterOrderByFilingDateDesc(
@@ -64,16 +68,23 @@ class MungerInversionAnalyzer(
             normalizedTicker, comboHash, MungerQueries.ALL.size,
         )
 
+        // ADR-020 — pre-RAG structured context block with dual-lookback ROE
+        // commentary. The same block is prepended to every query prompt AND to
+        // the synthesis input so the LLM can comment on a 5y/10y divergence
+        // wherever it surfaces (TSK-162 wave-04b finding: builder existed but
+        // was never wired into the prompts).
+        val roeContext = MungerPromptContextBuilder.buildRoeContext(roeFiveYearAvg, roeTenYearAvg)
+
         var llmCalls = 0
         val queryResults = MungerQueries.ALL.map { query ->
             val chunks = filingRagService.similaritySearch(query, normalizedTicker, RAG_TOP_K)
             val context = buildContext(chunks)
-            val response = callLlm(query, context, normalizedTicker, MAX_TOKENS_PER_QUERY)
+            val response = callLlm(query, context, roeContext, normalizedTicker, MAX_TOKENS_PER_QUERY)
             llmCalls++
             parseQueryResponse(response, chunks)
         }
 
-        val synthesisInput = buildSynthesisInput(queryResults, normalizedTicker)
+        val synthesisInput = buildSynthesisInput(queryResults, roeContext, normalizedTicker)
         val synthesisResponse = callLlmSynthesis(synthesisInput, normalizedTicker, MAX_TOKENS_SYNTHESIS)
         llmCalls++
 
@@ -105,6 +116,7 @@ class MungerInversionAnalyzer(
     private fun callLlm(
         query: String,
         context: String,
+        roeContext: String,
         ticker: String,
         maxTokens: Int,
     ): String {
@@ -117,12 +129,18 @@ class MungerInversionAnalyzer(
             Include 2-5 items maximum. Be specific and cite evidence from the filings.
         """.trimIndent()
 
-        val userPrompt = """
-            Question: $query
-            
-            Context from SEC filings for $ticker:
-            $context
-        """.trimIndent()
+        // ADR-020 — prepend dual-lookback ROE block so query-level findings can
+        // weight risks/strengths against the company's 5y vs 10y profitability.
+        val userPrompt = buildString {
+            if (roeContext.isNotBlank()) {
+                appendLine(roeContext)
+                appendLine()
+            }
+            appendLine("Question: $query")
+            appendLine()
+            appendLine("Context from SEC filings for $ticker:")
+            append(context)
+        }
 
         val request = LlmRequest(
             systemPrompt = systemPrompt,
@@ -179,9 +197,14 @@ class MungerInversionAnalyzer(
 
     private fun buildSynthesisInput(
         queryResults: List<List<QueryItem>>,
+        roeContext: String,
         ticker: String,
     ): String {
         val sb = StringBuilder()
+        if (roeContext.isNotBlank()) {
+            sb.appendLine(roeContext)
+            sb.appendLine()
+        }
         sb.appendLine("Synthesis of 10 Munger inversion queries for $ticker:")
         sb.appendLine()
         MungerQueries.ALL.forEachIndexed { idx, query ->

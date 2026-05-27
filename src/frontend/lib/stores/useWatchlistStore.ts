@@ -6,6 +6,7 @@ import {
   type Watchlist,
   type WatchlistItem,
 } from '@/lib/api/watchlist';
+import { toUserMessage } from '@/lib/to-user-message';
 
 /**
  * Watchlist store (TSK-035, US-017).
@@ -39,8 +40,12 @@ export const useWatchlistStore = create<WatchlistState>((set, get) => ({
       const watchlist = await fetchWatchlist();
       set({ watchlist, items: watchlist.items, loading: false });
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'fetch failed';
-      set({ loading: false, error: message });
+      set({
+        loading: false,
+        error: toUserMessage(err, {
+          fallback: 'Impossibile caricare la watchlist. Riprova.',
+        }),
+      });
     }
   },
 
@@ -52,8 +57,15 @@ export const useWatchlistStore = create<WatchlistState>((set, get) => ({
         set({ items: [item, ...current] });
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'add failed';
-      set({ error: message });
+      set({
+        error: toUserMessage(err, {
+          fallback: 'Aggiunta alla watchlist non riuscita. Riprova.',
+          statusOverrides: {
+            409: 'Ticker già presente in watchlist.',
+            404: 'Ticker non trovato.',
+          },
+        }),
+      });
       throw err;
     }
   },
@@ -63,8 +75,11 @@ export const useWatchlistStore = create<WatchlistState>((set, get) => ({
       await removeWatchlistItem(ticker);
       set({ items: get().items.filter((it) => it.ticker !== ticker) });
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'remove failed';
-      set({ error: message });
+      set({
+        error: toUserMessage(err, {
+          fallback: 'Rimozione dalla watchlist non riuscita. Riprova.',
+        }),
+      });
       throw err;
     }
   },

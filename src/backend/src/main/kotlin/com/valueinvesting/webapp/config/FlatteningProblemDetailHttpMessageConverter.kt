@@ -7,11 +7,17 @@ import org.springframework.http.MediaType
 import org.springframework.http.ProblemDetail
 import org.springframework.http.converter.AbstractHttpMessageConverter
 import org.springframework.http.converter.HttpMessageNotReadableException
+import org.springframework.stereotype.Component
 
 // RFC 9457 Problem Details with extension members at top-level (ADR-012).
 // Spring 6.x default nests extensions under `properties`; this converter
-// flattens them for `application/problem+json` responses.
+// flattens them for `application/problem+json` responses. Registered both
+// as an MVC HttpMessageConverter (ProblemDetailMvcConfig) and as a Spring
+// bean injectable by servlet-chain handlers — see SecurityConfig entry
+// points (TSK-033) that need byte-identical bodies for 401/403 emitted
+// outside the MVC dispatcher.
 // [^src: design_&_architecture/decisions/ADR-012-problemdetail-rfc9457-flatten.md §1]
+@Component
 class FlatteningProblemDetailHttpMessageConverter(
     private val objectMapper: ObjectMapper,
 ) : AbstractHttpMessageConverter<ProblemDetail>(MediaType.APPLICATION_PROBLEM_JSON) {

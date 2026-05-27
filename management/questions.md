@@ -20,7 +20,7 @@ indipendentemente dal `blocking_level`. Diventa `resolved` quando `[APERTE]` è 
 **Bloccante:** soft
 **Domanda:** REQ-05 §5.4 richiede una dichiarazione esplicita dello scope PCI-DSS: se l'applicazione tratta dati di carta di pagamento si applicano vincoli stringenti (tokenization, iframe provider certificato, flusso dati carta documentato); altrimenti, la non-applicabilità deve essere dichiarata esplicitamente in un ADR di sicurezza. L'applicazione è un tool di screening azionario value investing e non tratta pagamenti — serve un ADR formale che dichiari "PCI-DSS: non applicabile" con le motivazioni.
 **Epiche bloccate:** EP-018 (parziale)
-**Storie bloccate:** US-082
+**Storie impattate (soft, non blocked):** US-082 (`pending_clarification: [Q_005]`, `status: ready`)
 [^src: wiki/concepts/fintech-security-compliance.md §5.4 — Scope PCI-DSS (condizionale)]
 [^src: wiki/gaps.md §fintech-pci-dss-scope]
 

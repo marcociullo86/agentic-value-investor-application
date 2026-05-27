@@ -11,8 +11,11 @@ import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
+import org.springframework.http.client.JdkClientHttpRequestFactory
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientResponseException
+import java.net.http.HttpClient
+import java.time.Duration
 
 // HTTP implementation of AnthropicClient using Spring RestClient 6.1+.
 //
@@ -35,6 +38,8 @@ class AnthropicRestClient(
     private val circuitBreaker: CircuitBreaker,
     private val rateLimiter: RateLimiter,
     private val retry: Retry,
+    private val budgetGuard: LlmBudgetGuard,
+    private val costCounterService: LlmCostCounterService,
 ) : AnthropicClient {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -50,9 +55,13 @@ class AnthropicRestClient(
         .defaultHeader(HEADER_API_KEY, properties.apiKey)
         .defaultHeader(HEADER_API_VERSION, API_VERSION)
         .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+        .requestFactory(buildRequestFactory(properties.timeoutSeconds))
         .build()
 
     override fun complete(request: LlmRequest): LlmResponse {
+        // ADR-019 §6 — pre-chain guard: short-circuit when admin froze LLM traffic.
+        // Runs OUTSIDE the Resilience4j chain so it does not move the circuit-breaker.
+        budgetGuard.checkOrThrow()
         return rateLimiter.executeSupplier {
             circuitBreaker.executeSupplier {
                 retry.executeSupplier {
@@ -63,6 +72,7 @@ class AnthropicRestClient(
     }
 
     private fun executeHttpCall(request: LlmRequest): LlmResponse {
+        val startMs = System.currentTimeMillis()
         val model = request.model.ifBlank { properties.model }
 
         val apiRequest = ApiRequest(
@@ -105,7 +115,40 @@ class AnthropicRestClient(
             throw LlmException.Timeout(cause = ex)
         }
 
-        return parseResponse(responseBody)
+        val parsed = parseResponse(responseBody)
+        recordTelemetry(parsed, startMs)
+        return parsed
+    }
+
+    // ADR-019 §2 — post-call telemetry (llm_call_log insert + llm_cost_counter UPSERT).
+    // Wrapped: a telemetry hiccup must never break a paying LLM request.
+    private fun recordTelemetry(response: LlmResponse, startMs: Long) {
+        val latencyMs = (System.currentTimeMillis() - startMs).toInt()
+        try {
+            costCounterService.recordCall(
+                model = response.model,
+                endpoint = ENDPOINT_LABEL,
+                purpose = PURPOSE_LABEL,
+                inputTokens = response.inputTokens,
+                outputTokens = response.outputTokens,
+                latencyMs = latencyMs,
+            )
+        } catch (ex: Exception) {
+            log.warn("LLM telemetry recording failed for model={}: {}", response.model, ex.message)
+        }
+    }
+
+    // ADR-019 §1 — apply Anthropic per-call HTTP timeout (review TSK-156 finding 3).
+    // Connect timeout matches read timeout: an unreachable Anthropic endpoint must
+    // not pin the calling thread past the expected per-call budget.
+    private fun buildRequestFactory(timeoutSeconds: Long): JdkClientHttpRequestFactory {
+        val timeout = Duration.ofSeconds(timeoutSeconds)
+        val httpClient = HttpClient.newBuilder()
+            .connectTimeout(timeout)
+            .build()
+        val factory = JdkClientHttpRequestFactory(httpClient)
+        factory.setReadTimeout(timeout)
+        return factory
     }
 
     private fun throwForClientError(
@@ -178,6 +221,11 @@ class AnthropicRestClient(
         const val HEADER_API_KEY = "x-api-key"
         const val HEADER_API_VERSION = "anthropic-version"
         private const val ANTHROPIC_OVERLOADED_STATUS = 529
+        // Endpoint/purpose tags for `llm_call_log`. Single value here is acceptable
+        // because every AnthropicRestClient call serves the Munger deep-analysis
+        // pipeline today (US-041); other purposes get their own client wrappers.
+        private const val ENDPOINT_LABEL = "anthropic-messages"
+        private const val PURPOSE_LABEL = "munger"
     }
 
     // -------------------------------------------------------------------------

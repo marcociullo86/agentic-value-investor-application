@@ -103,6 +103,12 @@ class AuthServiceTest {
         assertThat(newRefresh.expiresAt).isEqualTo(now.plusSeconds(7L * 86_400))
     }
 
+    // TSK-041 anti-enum (iter-2): the runtime [message] is uniform
+    // ([InvalidRefreshTokenException.CLIENT_DETAIL]) across every cause; the
+    // differentiating signal lives in [reason], which never reaches the wire.
+    // Tests assert against `reason` so a regression that leaks cause-specific
+    // text into `message` is caught.
+
     @Test
     fun `refresh fails with 401 invalid-refresh when sliding TTL expired`() {
         val userId = UUID.randomUUID()
@@ -116,7 +122,9 @@ class AuthServiceTest {
 
         assertThatThrownBy { service.refresh("stale-refresh") }
             .isInstanceOf(InvalidRefreshTokenException::class.java)
-            .hasMessageContaining("expired")
+            .hasMessage(InvalidRefreshTokenException.CLIENT_DETAIL)
+            .extracting { (it as InvalidRefreshTokenException).reason }
+            .isEqualTo("sliding_expired")
     }
 
     @Test
@@ -134,7 +142,9 @@ class AuthServiceTest {
 
         assertThatThrownBy { service.refresh("capped-refresh") }
             .isInstanceOf(InvalidRefreshTokenException::class.java)
-            .hasMessageContaining("cap")
+            .hasMessage(InvalidRefreshTokenException.CLIENT_DETAIL)
+            .extracting { (it as InvalidRefreshTokenException).reason }
+            .isEqualTo("absolute_cap")
     }
 
     @Test
@@ -151,7 +161,9 @@ class AuthServiceTest {
 
         assertThatThrownBy { service.refresh("revoked-refresh") }
             .isInstanceOf(InvalidRefreshTokenException::class.java)
-            .hasMessageContaining("revoked")
+            .hasMessage(InvalidRefreshTokenException.CLIENT_DETAIL)
+            .extracting { (it as InvalidRefreshTokenException).reason }
+            .isEqualTo("revoked")
     }
 
     @Test
@@ -160,5 +172,8 @@ class AuthServiceTest {
 
         assertThatThrownBy { service.refresh("ghost") }
             .isInstanceOf(InvalidRefreshTokenException::class.java)
+            .hasMessage(InvalidRefreshTokenException.CLIENT_DETAIL)
+            .extracting { (it as InvalidRefreshTokenException).reason }
+            .isEqualTo("not_found")
     }
 }

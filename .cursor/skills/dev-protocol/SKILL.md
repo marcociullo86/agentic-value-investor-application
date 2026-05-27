@@ -1,73 +1,133 @@
 ---
 name: dev-protocol
-description: Spina dorsale dell'operazione Develop (L4 → L5). 5 fasi gate → context → handoff iniziale → implementazione → DoD/handoff finale. Skill canonica di tutti i dev-agent (v2.7).
+description: Procedura per un dev-agent che consuma un TSK e produce codice in code_path. Single source of truth per Develop (PATTERN §3).
 ---
-# Protocollo Develop (v2.7)
+# Procedura — consumare un TSK (Develop, L4 → L5)
 
-Riferimenti: `dev-handoff`, `vcs-handoff` (v2.8), `citation-rules`, `wiki-log-entry`, `wiki-gap-protocol`.
-Operazione canonica `Develop` (PATTERN.md §3).
+Skill condivisa fra `be-dev`, `fe-dev`, `db-dev`, `qa-dev`. La specializzazione
+per layer vive nell'agente; questa skill è la spina dorsale comune.
 
-## Fase 1 — Gate
+## Fase 0 — Gate preliminare + target resolution (v2.12 multi-repo)
 
-Verifica pre-condizioni; se una fallisce → **STOP** con messaggio specifico.
+Prima di qualsiasi scrittura:
 
-1. **Config**: `factory.config.yaml` presente con `code_path:` valorizzato, `routing.<layer>: agent`, `vcs.mode:` valorizzato (v2.8). Se `code_path` esterno al repo: documentato, accessibile.
-2. **TSK**: `id` valido, frontmatter v2.7 valido (`layer:` + `consumer:` espliciti), `consumer: agent` (o override one-shot via comando), `status: todo`, dipendenze (`Dependencies` nel corpo) tutte `done`.
-3. **Stack**: `raw/tech_stack.md` esiste e copre il layer corrente (es. `## Backend` per `be-dev`). Se mancante → apri gap, STOP.
-4. **Architettura**: per layer non-QA, `design_&_architecture/<layer>_architecture.md` o `api_specs/openapi_schema.yaml` o `db_schemas/` coprono il TSK. Mancanza → apri gap o Q, STOP.
-5. **Standards**: standards normativi citati nei raw sono presenti nell'architettura corrispondente (PATTERN §11).
+1. **Leggi `factory.config.yaml`** (root del repo).
+2. Verifica:
+   - `topology` ammette il tuo layer (es. per `be-dev`: topologia ∈
+     {`full-stack-agents`, `hybrid-be-agents`, `custom` con `be-dev` listato}).
+   - `routing.<tuo-layer> == agent` (oppure override esplicito via `/dev`).
+   - Esiste un percorso L5 risolvibile (vedi step 2-bis: target resolution).
+3. **Leggi il TSK**: deve avere `layer: <tuo>`, `consumer: agent`, `status: todo`,
+   dipendenze chiuse. Se manca anche solo un campo o un gate, **STOP** e
+   segnala in chat (non procedere "in modalità best-effort").
 
-## Fase 2 — Preparazione contesto
+### Step 2-bis — Target resolution (v2.12 multi-repo, PATTERN §5 + §13)
 
-Read order:
+Determina il `code_path` effettivo (`resolved_code_path`) e la `resolved_vcs` da usare:
 
-1. `factory.config.yaml` (code_path, stack, vcs)
-2. `raw/tech_stack.md` (vincoli)
-3. TSK corrente (cosa fare)
-4. US riferita (perché farlo, AC)
-5. ADR rilevanti
-6. Architettura layer
-7. `wiki/**` solo per concept/synthesis citati (contesto, mai produrre design)
-8. `<code_path>/**` per stato del codice esistente (esplorazione mirata)
+**Caso A — Legacy single-repo** (`code_path:` valorizzato, `code_paths: []` o assente):
+- `resolved_code_path = factory.config.yaml.code_path`
+- `resolved_vcs = factory.config.yaml.vcs` (top-level)
+- `resolved_target_name = "default"` (per logging)
+- Procedi.
 
-## Fase 3 — Handoff iniziale
+**Caso B — Multi-repo** (`code_paths: [<entry>, ...]` non vuoto):
 
-Edit `status: todo → in-progress` del TSK + `updated: YYYY-MM-DD`. **Solo questi 2 campi**; mai toccare il corpo.
+1. Read TSK `target:` frontmatter.
+2. Se `target:` valorizzato:
+   - Cerca `entry = code_paths[name == target]`.
+   - Se non trovato → **ERROR** «TSK <id> ha `target: <X>` ma nessuna entry in `code_paths` con quel nome». STOP.
+   - Se trovato ma `<tuo-layer>` non in `entry.layers` → **ERROR** «TSK <id> ha layer <Y> e target <X>, ma entry <X> non lista <Y> in `layers`». STOP.
+   - `resolved_code_path = entry.path`; `resolved_vcs = entry.vcs`; `resolved_target_name = entry.name`. Procedi.
+3. Se `target:` assente:
+   - Filtra `candidates = [e for e in code_paths if <tuo-layer> in e.layers]`.
+   - Se `len(candidates) == 0` → **ERROR** di config «Nessuna entry in `code_paths` lista <tuo-layer>; routing.<layer>: agent richiede almeno una entry. Lint Check 4c violato». STOP.
+   - Se `len(candidates) == 1` → auto-derive: `entry = candidates[0]`. Procedi con `resolved_*` da quell'entry.
+   - Se `len(candidates) >= 2` → **ERROR** «TSK <id> layer <Y> ambiguo: ≥ 2 entry in `code_paths` listano <Y> (`<n1>`, `<n2>`, ...). Il TPM doveva valorizzare `target:`. Lint Check 4j violato». STOP. Mai indovinare.
 
-## Fase 4 — Implementazione
+4. Verifica accessibilità di `resolved_code_path`:
+   - Esiste sul filesystem oppure è creabile (es. submodule path con `git submodule init` ancora da fare).
+   - Se non esiste e non creabile → **ERROR** «code_path <path> per target <name> non accessibile». STOP.
 
-- Scrivi codice solo in `<code_path>/` (sub-scope per layer: `frontend/`, `migrations/`, `tests/`, …).
-- **Atomicità**: il TSK definisce lo scope; mai fix opportunistici fuori scope.
-- **Standards verbatim**: PATTERN §11.
-- **Gap detection**: se scopri un'ambiguità (es. quale validator usare, quale header HTTP, format JSON):
-  - Risolvibile via lettura di raw/wiki esistenti → procedi citando.
-  - Non risolvibile → apri gap (`wiki-gap-protocol`) o Q hard (`apri-question`). STOP se Q hard.
-- **STOP su scelte architetturali**: se il TSK ti chiede implicitamente di disegnare (es. "scegli pattern", "definisci schema"), STOP: è del `lead-architect`. Apri gap.
+5. Log a chat:
+   ```
+   Target resolved: <name> → <resolved_code_path> (vcs: <mode>)
+   ```
 
-## Fase 5 — DoD verification + handoff finale
+Tutto il resto del protocollo (Fasi 1-5) usa `resolved_code_path` e `resolved_vcs` al
+posto del legacy `code_path` + `vcs`. La citazione codice nei dev-agent (§6) usa il
+prefisso appropriato in base a `resolved_vcs.mode`.
 
-1. Verifica i punti della sezione `## Definition of Done` del TSK uno per uno.
-2. Se tutti pass → segna in `dev-handoff` `DoD: pass`.
-3. Se alcuni fallisce → `DoD: partial — <descrivi cosa manca>`. **Non chiudere il TSK** se i DoD critici fallisco; lascia `in-progress` o riapri.
-4. **VCS handoff (v2.8)**: invoca `vcs-handoff` per proporre il commit. Gate umano obbligatorio.
-5. Edit `status: in-progress → done` (solo se DoD pass) + `updated:` del TSK.
-6. Append a `wiki/log.md` secondo `dev-handoff`.
+## Fase 1 — Preparazione contesto
+
+1. Leggi la US riferita dal TSK (path deducibile: `EP-XXX-*/US-YYY-*/US-YYY.md`).
+2. Leggi l'ADR / sezione di `design_&_architecture/` citato.
+3. Apri le pagine `wiki/` citate transitivamente dalla US (concept/entity/synthesis).
+   Non citarle direttamente nel codice — citazione cascade: il codice cita TSK/ADR.
+4. Leggi `raw/tech_stack.md` per vincoli (versioni, standards).
+5. Esplora `<code_path>/**` per capire layout esistente.
+
+## Fase 2 — Handoff iniziale
+
+1. Edit del TSK: `status: in-progress`, aggiungi `updated: YYYY-MM-DD HH:MM`.
+2. Non toccare il corpo del TSK.
+
+## Fase 3 — Implementazione
+
+1. Implementa secondo:
+   - Implementation Steps del TSK (ordine indicativo, non vincolante)
+   - Technical Specs del TSK
+   - Standards verbatim citati nei raw (PATTERN §11)
+2. Atomicità: tutto il cambiamento per **un singolo TSK** deve essere
+   coerente (un commit logico, anche se il VCS lo separa in più commit).
+3. Se durante l'implementazione scopri che il TSK è **sotto-specificato**:
+   - Gap di knowledge base → append `wiki/gaps.md` (vedi `wiki-gap-protocol`)
+   - Decisione architetturale mancante → STOP e segnala in chat (`tpm` o
+     `lead-architect` la prenderanno; non improvvisare design)
+   - Bug pre-esistente fuori scope → segnala in chat (TPM aprirà TSK separato),
+     non fixare opportunisticamente (PATTERN §7 r.8)
+
+## Fase 4 — Definition of Done
+
+Verifica la DoD del TSK punto per punto:
+- [ ] Codice compila / build passa
+- [ ] Test unitari relativi passano
+- [ ] (Se applicabile) Test integrazione passano
+- [ ] Documentazione inline minima (docstring, README locale solo se richiesto)
+- [ ] Niente file fuori scope toccati
+
+Se anche un solo punto fallisce e non puoi risolverlo nel TSK corrente:
+- Rollback delle modifiche già fatte (preferibile) o segnala chiaramente in chat
+  lo stato parziale.
+- Edit `status: in-progress` (NON `done`), e descrivi il blocker in chat.
+
+## Fase 5 — Handoff finale (Develop completato)
+
+1. Edit del TSK: `status: done`, `updated: YYYY-MM-DD HH:MM`.
+2. Invoca `dev-handoff` (skill) per scrivere l'entry su `wiki/log.md`.
+3. **Invoca `vcs-handoff`** (skill, v2.8 esteso multi-repo v2.12) passando
+   `resolved_vcs` + `resolved_target_name` (da Fase 0 step 2-bis). La skill coordina
+   i commit per la topologia VCS del **target risolto**, non per la factory globale:
+   - `monorepo` → propone commit nel factory repo (path = `resolved_code_path` sotto factory root).
+   - `submodule` → propone commit nel submodule referenziato da `resolved_vcs.submodule_path`, poi bump del ref nel factory.
+   - `sibling` → propone commit nel repo esterno (`resolved_code_path`) + avviso PR.
+   - `external` → solo log, nessuna operazione VCS.
+   - `none` → STOP (incoerenza: develop su mode `none` non dovrebbe accadere).
+
+   In multi-repo, **ogni vcs-handoff è per-target**: mai operazioni coordinate
+   cross-target automaticamente. Se un TSK richiede modifiche cross-repo, si scompone
+   in N TSK con target distinti (responsabilità del TPM).
+
+   Gate umano obbligatorio per ogni `git commit` (vedi PATTERN §7 r.14).
 
 ## Vincoli inviolabili
 
-- **Mai editare il corpo del TSK** (solo `status:`/`updated:` frontmatter).
-- **Mai scrivere su `wiki/**`** fuori `wiki/log.md` + `wiki/gaps.md` (append-only).
-- **Mai scrivere su `design_&_architecture/`**.
-- **Mai eseguire operazioni VCS distruttive automatiche** (PATTERN §7 r.14). Tutto via `vcs-handoff` con gate umano.
-- **STOP** se `code_path` non valorizzato o se topology incoerente.
-- **Standards verbatim** (PATTERN §11): mai sostituire con equivalenti.
-
-## Anti-pattern
-
-| Anti-pattern | Correzione |
-|---|---|
-| Disegnare architettura nel codice | STOP, apri gap per `lead-architect` |
-| Aggiungere endpoint non in OpenAPI | Apri gap, mai inventare |
-| Fix di bug fuori scope TSK | Apri TSK nuovo via PM/TPM |
-| Commit automatico senza `vcs-handoff` | Vietato (PATTERN §7 r.14) |
-| Editare il corpo del TSK | Vietato — solo `status:`/`updated:` |
+- **Mai editare il corpo del TSK** (solo `status:` e `updated:`).
+- **Mai scrivere su `wiki/**`** se non append a `wiki/log.md` e `wiki/gaps.md`.
+- **Mai scrivere su `design_&_architecture/`** (è proprietà di Arch).
+- **Mai scrivere su `management/kanban/**`** fuori dal proprio TSK (la
+  generazione TSK è proprietà del TPM).
+- **Mai inventare endpoint, tabelle, classi** non specificati nel design.
+- **Standards verbatim** (PATTERN §11): se SAML/OIDC/FHIR citati, implementa
+  esattamente quelli.
+- **Stop se code_path non è valorizzato.** Mai scrivere "a indovinare" in `./src/`.

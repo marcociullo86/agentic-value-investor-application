@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { useAuthStore } from '@/lib/stores/useAuthStore';
+import { toUserMessage } from '@/lib/to-user-message';
 import {
   MOAT_STATUS_LABELS,
   MOAT_TYPE_DESCRIPTIONS,
@@ -91,8 +92,11 @@ export function MoatChecklist({
       })
       .catch((err: unknown) => {
         if (cancelled) return;
-        const message = err instanceof Error ? err.message : 'fetch failed';
-        setLoadError(message);
+        setLoadError(
+          toUserMessage(err, {
+            fallback: 'Impossibile caricare la checklist moat. Riprova.',
+          }),
+        );
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -122,13 +126,19 @@ export function MoatChecklist({
     } catch (err) {
       updateRow(type, {
         saving: false,
-        error: err instanceof Error ? err.message : 'save failed',
+        error: toUserMessage(err, {
+          fallback: 'Salvataggio non riuscito. Riprova.',
+        }),
       });
     }
   }
 
   return (
-    <Card className="p-4" data-testid="moat-checklist">
+    <Card
+      className="p-4"
+      data-testid="moat-checklist"
+      aria-busy={loading}
+    >
       <h2 className="mb-2 text-lg font-semibold">Checklist Moat</h2>
       <p className="mb-4 text-xs text-slate-500">
         Annotazione qualitativa personale: non altera i semafori dell&apos;analisi.
@@ -137,6 +147,27 @@ export function MoatChecklist({
         <p role="alert" className="mb-3 text-sm text-red-600">
           {loadError}
         </p>
+      )}
+      {loading && !loadError && (
+        <div
+          className="mb-3 grid gap-4 sm:grid-cols-2"
+          data-testid="moat-checklist-skeleton"
+          role="status"
+        >
+          {MOAT_ORDER.map((type) => (
+            <div
+              key={`skeleton-${type}`}
+              className="animate-pulse rounded-md border border-slate-200 p-3 dark:border-slate-700"
+              aria-hidden="true"
+            >
+              <div className="mb-2 h-4 w-32 rounded bg-slate-200 dark:bg-slate-700" />
+              <div className="mb-3 h-3 w-full rounded bg-slate-100 dark:bg-slate-800" />
+              <div className="mb-2 h-9 w-full rounded bg-slate-100 dark:bg-slate-800" />
+              <div className="h-16 w-full rounded bg-slate-100 dark:bg-slate-800" />
+            </div>
+          ))}
+          <span className="sr-only">Caricamento checklist moat…</span>
+        </div>
       )}
       <div className="grid gap-4 sm:grid-cols-2">
         {MOAT_ORDER.map((type) => {

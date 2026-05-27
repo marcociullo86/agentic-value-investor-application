@@ -1,0 +1,89 @@
+# OpenAI Assistants adapter manifest (PATTERN §12.1)
+# Mappa i costrutti del pattern llm-wiki++ all'OpenAI Assistants API.
+
+adapter_name: openai
+adapter_folder: .openai
+runtime: openai-assistants
+runtime_version_min: "v2 (2024)"
+maturity: partial
+contract_version: 2.13
+
+mappings:
+  agent:
+    pattern_concept: "Agente specializzato (PATTERN §2 ruoli)"
+    runtime_construct: "OpenAI Assistant via API (assistants.create con instructions)"
+    file_path_template: ".openai/assistants/{name}.json"
+    invocation: "Created on OpenAI side; invoke via thread + run API"
+  skill:
+    pattern_concept: "Procedura riusabile (PATTERN v2.3 'fat skills')"
+    runtime_construct: "Function tool definition (instructions + JSON schema) o embedded in Assistant instructions"
+    file_path_template: ".openai/skills/{name}.json"
+  command:
+    pattern_concept: "Slash command per invocazione esplicita"
+    runtime_construct: "Custom action / API endpoint che orchestrazione"
+    file_path_template: ".openai/commands/{name}.py"
+  tool_read:
+    pattern_concept: "Lettura file"
+    runtime_construct: "code_interpreter (sandbox) o file_search (vector store)"
+  tool_write:
+    pattern_concept: "Scrittura file"
+    runtime_construct: "code_interpreter (esegue Python che scrive file, restituiti come outputs)"
+    note: "Per scritture persistenti sul filesystem locale, serve un layer di orchestrazione (es. setup.py + script wrapper) che scarica gli outputs dall'API"
+  tool_glob:
+    pattern_concept: "Glob filesystem"
+    runtime_construct: "code_interpreter Python glob.glob() — ma solo su file nel sandbox"
+  tool_bash:
+    pattern_concept: "Shell access"
+    runtime_construct: "code_interpreter Python subprocess — sandbox limitato"
+  subagent_fanout:
+    pattern_concept: "Sub-agent fan-out"
+    runtime_construct: "Parallel function calls in singolo run OR multi-thread invocation via API"
+    supported: partial
+    note: "OpenAI Assistants supporta parallel tool calls in singolo run, ma multi-assistant orchestration richiede orchestrazione esterna"
+
+templates:
+  setup_script:
+    - { name: setup, required: true, path: .openai/setup.py, description: "Crea tutti gli Assistant via API (richiede OPENAI_API_KEY)" }
+  assistants_definitions:
+    - { name: orchestrator,    required: true,  path: .openai/assistants/orchestrator.json }
+    - { name: wiki-keeper,     required: true,  path: .openai/assistants/wiki-keeper.json }
+    # (altri per ruolo, condizionali — vedi setup.py per i dettagli)
+  config:
+    - { name: assistants_config, required: true, path: .openai/config.yaml }
+
+runtime_overrides:
+  parallel_dispatch:
+    supported: partial
+    note: "Parallel function calls in singolo run. Multi-assistant orchestration richiede script Python."
+  subagent_fanout:
+    supported: partial
+    note: "Via parallel function calls O multi-thread API"
+  filesystem_persistence:
+    supported: false
+    fallback: "code_interpreter scrive nel sandbox; setup.py scarica e persiste sul filesystem locale"
+  multi_tool_call_per_response:
+    supported: true
+    note: "OpenAI Assistants v2 supporta parallel tool calls in singolo run"
+
+caveats: |
+  L'integrazione OpenAI Assistants richiede orchestrazione lato Python:
+  - setup.py crea gli Assistant via API
+  - Un wrapper Python (es. .openai/run.py) gestisce thread + runs + file persistence
+  - Il sandbox di code_interpreter non ha accesso al filesystem locale: serve sync
+    bidirezionale (upload pre-run, download post-run)
+
+  Per questo motivo, la maturity è "partial" e l'adapter scaffolda solo:
+  - setup.py (crea Assistants via API)
+  - assistants/<name>.json (definizioni)
+  - config.yaml (mappature)
+  - README con istruzioni di run
+
+  Run reale richiede l'utente esegue Python scripts che orchestrano l'API.
+
+notes: |
+  Costi: gli Assistant OpenAI hanno pricing per token + per code_interpreter / file_search use.
+  Verifica i costi prima di scaffoldare in produzione.
+
+  Alternativa più leggera: usa il Chat Completions API direttamente con tool calls
+  per ogni "agent" (no Assistants API). Più semplice ma perdi thread persistence +
+  file_search/vector store.
