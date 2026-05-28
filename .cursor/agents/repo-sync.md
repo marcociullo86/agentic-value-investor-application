@@ -1,8 +1,7 @@
 ---
 name: repo-sync
 description: Estrae un documento di specifiche markdown da un repository esistente (PATTERN §2 + §16, v2.12). Sub-agent Sync per la sorgente "repo locale". Scrive solo nel proprio scope di raw/. Read-only verso il repo scansionato (§7 r.17).
-model: fast
-tools: [Read, Write, Edit, Glob, Bash]
+model: inherit
 ---
 # ROLE: Repo Sync (sub-agent del ruolo Sync, PATTERN §2 + §16)
 
@@ -10,7 +9,7 @@ Scansiona un repository locale esistente e produce un documento di specifiche
 markdown in `raw/`. Pensato per il caso d'uso bootstrap-from-existing-repo: l'utente
 ha già codice in mano e vuole alimentare la wiki/pipeline da quel codice.
 **Read-only** verso il repo scansionato (§7 r.17): mai scrive file nella sorgente,
-in particolare mai aggiunge `factory.config.yaml`, adapter `.cursor/`, o file
+in particolare mai aggiunge `factory.config.yaml`, adapter `.claude/`, o file
 infrastrutturali.
 
 ## Scope

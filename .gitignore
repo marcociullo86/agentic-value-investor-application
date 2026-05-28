@@ -20,6 +20,9 @@ build/
 code_quality/reports/*
 !code_quality/reports/README.md
 
+# Graphify side-channel (v2.14 Fase 2, R.G5 — mai versionato)
+.graphify-state/
+
 # Next.js / Playwright local artifacts
 src/frontend/.next/
 src/frontend/e2e/test-results/

@@ -1,4 +1,4 @@
-pattern_version: "2.13"
+pattern_version: "2.14"
 topology: full-stack-agents
 
 # v2.12 multi-repo: legacy code_path auto-promosso se code_paths assente
@@ -89,3 +89,69 @@ code_quality:
     path: ./code_quality/reports/
     retain_iterations: 5
     digest_cadence: weekly
+
+# Compression layer (v2.14, PATTERN §20) — opt-in, default OFF (R.C6 / R.G6)
+compression:
+  output:
+    provider: caveman
+    enabled: false
+    install_command: "curl -fsSL https://raw.githubusercontent.com/JuliusBrussee/caveman/main/install.sh | bash"
+    policy_profile: conservative
+    invariants:
+      to_user: off
+      to_artifact: off
+      propagate_resolution: off
+    channels:
+      orchestrator_to_subagent: full
+      subagent_to_tool: ultra
+      tool_to_subagent: lite
+      subagent_to_orchestrator: full
+      sibling_to_sibling: full
+      feedback_router_to_devagent: full
+    chain_depth_downgrade: true
+    chain_depth_threshold: 3
+    cross_factory: off
+    drift_fallback:
+      enabled: true
+      markers: [AMBIGUOUS_HANDOFF, REQUEST_CLARIFY]
+    audit_trail_for:
+      - propagate-resolution
+      - feedback-router
+  context:
+    provider: none
+    enabled: false
+    package: graphifyy
+    install_command: "pip install graphifyy"
+    ollama:
+      model: llama3.1:8b
+      vram_gb_min: 16
+    targets:
+      - kind: code_path
+        name: default
+        gitignore_patterns:
+          - "*.env"
+          - ".env.*"
+          - "secrets/**"
+          - "node_modules/**"
+          - "dist/**"
+          - "build/**"
+          - ".next/**"
+    update_strategy: incremental
+    full_rebuild_cron: "0 0 * * 0"
+    drift_alert_days: 7
+    full_rebuild_cost_warn: 5
+    ghost_duplicates_warn: 10
+    ci_strategy:
+      mode: cache-with-fallback
+      cache_provider: actions
+      cache_key_prefix: graphify-state
+      stale_threshold_hours: 168
+      full_rebuild_on_demand: true
+    confidence_gating:
+      executor: [EXTRACTED]
+      explorer: [EXTRACTED, INFERRED]
+      reviewer: [EXTRACTED, INFERRED, AMBIGUOUS]
+    mcp_server:
+      enabled: false
+      topology: per-agent
+      crg_tools_max: 8

@@ -52,7 +52,7 @@ Se `adapters_selected` è vuoto o assente, chiedi all'utente:
 SELEZIONA ADAPTER DA SCAFFOLDARE (multi-select):
 
 Disponibili (registry adapters/):
-  [x] claude       (full, reference)          — .cursor/
+  [x] claude       (full, reference)          — .claude/
   [ ] cursor       (full)                     — .cursor/
   [ ] aider        (full)                     — .aider/
   [ ] openai       (partial — setup.py stub)  — .openai/
@@ -94,10 +94,10 @@ Risultato: `active_templates` = lista filtrata di `(name, path, source_path)` pe
 
 Per ciascun adapter, per ciascun `(name, path)` in `active_templates`:
 
-### Caso A — adapter `.cursor/` (reference completo)
+### Caso A — adapter `.claude/` (reference completo)
 
 I file vivono già nel meta-framework repo. Scaffolding = **copia** da
-`<meta-framework>/.cursor/<file>` a `<factory_dest>/.cursor/<file>`.
+`<meta-framework>/.claude/<file>` a `<factory_dest>/.claude/<file>`.
 
 ### Caso B — adapter con templates inline (cursor, aider, openai)
 
@@ -108,7 +108,7 @@ template esiste:
 
 Se il template NON esiste in `adapters/<name>/templates/` (caso comune — solo i pochi
 template "esempio" sono inline):
-- **Traduzione automatica** dal `.cursor/<corrispondente>.md` del meta-framework
+- **Traduzione automatica** dal `.claude/<corrispondente>.md` del meta-framework
   applicando le `manifest.yaml.mappings`:
   - Frontmatter: rimuovi/converti chiavi (es. Claude `tools:` → Cursor `globs:`).
   - Body: sostituisci tool name (Read/Write/Bash) con `runtime_construct` da mappings.
@@ -162,7 +162,7 @@ Adapter scaffoldati: <N>
 
 | Adapter | Folder    | Maturity      | File creati |
 |---------|-----------|---------------|-------------|
-| claude  | .cursor/  | full          | 45          |
+| claude  | .claude/  | full          | 45          |
 | cursor  | .cursor/  | full          | 38          |
 | aider   | .aider/   | full          | 23          |
 | openai  | .openai/  | partial       | 8           |
@@ -208,7 +208,7 @@ La skill:
 - **R.A5**: adapter aggiungibile a runtime invocando la skill standalone.
 - **R.A6**: PATTERN.md / factory.config.yaml / layer L1-L5 mai runtime-specific.
   Verifica: dopo scaffolding, `PATTERN.md` non deve contenere riferimenti a tool
-  Claude-specifici (Read/Write/Glob, ecc.) né a `.cursor/` come unico adapter.
+  Claude-specifici (Read/Write/Glob, ecc.) né a `.claude/` come unico adapter.
 
 ## Non in scope per questa skill
 

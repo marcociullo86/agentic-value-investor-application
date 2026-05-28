@@ -15,7 +15,7 @@ Tutte le altre skill (`scrivi-wiki-page`, `scrivi-epica`, `scrivi-user-story`,
 | `[^src: <path>.{md,txt} §<sez>]` | Citazione fonte testuale (raw o wiki) su claim ≥ 20 parole; `<sez>` è un header markdown del file citato | `[^src: raw/2026-05-15-spid.txt §Autenticazione]` |
 | `[^src: <path>.kb.json §<dotted-path>]` (v2.9) | Citazione fonte strutturata JSON; `<dotted-path>` segue convenzioni v2.9 (vedi sotto) | `[^src: raw/2026-05-21-figma-ABC.kb.json §screens[0]]` |
 | `[[<slug>]]` | Link interno wiki, senza estensione, senza `../` | `[[oidc]]`, `[[circuit-breaker]]` |
-| `[^code: <path>:<line>]` | Citazione codice (solo factory, non progetto host) | `[^code: .cursor/agents/wiki-keeper.md:15]` |
+| `[^code: <path>:<line>]` | Citazione codice (solo factory, non progetto host) | `[^code: .claude/agents/wiki-keeper.md:15]` |
 
 ### Grammatica `<dotted-path>` per JSON (v2.9)
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useCallback, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
@@ -12,7 +12,9 @@ import { Card } from '@/components/ui/Card';
 import { FormErrorSummary } from '@/components/forms/form-error-summary';
 import { FormField } from '@/components/forms/form-field';
 import { MfaChallengeForm } from '@/components/auth/mfa-challenge-form';
+import { TurnstileWidget } from '@/components/auth/turnstile-widget';
 import { useAuthStore } from '@/lib/stores/useAuthStore';
+import { isCaptchaRequiredError } from '@/lib/auth/captcha-error';
 import { getAuthFormErrorMessage } from '../_lib/form-errors';
 
 const loginSchema = z.object({
@@ -34,9 +36,17 @@ const FIELD_LABELS: Record<string, string> = {
 };
 
 /**
- * Login page (TSK-034, TSK-201, TSK-207).
+ * Login page (TSK-034, TSK-201, TSK-207, TSK-238).
  * Posts to `POST /api/auth/login` via useAuthStore.
  * Shows a "session expired" banner when redirected with `?expired=true`.
+ *
+ * TSK-238 (US-081 / ADR-025 §5): when the BE flags the IP with
+ * `captchaRequired: true` (after 10+ login failures from the same
+ * IP in 5 min), the page mounts a Cloudflare Turnstile widget and
+ * blocks resubmission until the user solves it. The Turnstile token
+ * is then forwarded to /login as `captchaToken` so the BE can
+ * verify it via siteverify (TSK-230).
+ *
  * Reference: design_&_architecture/components/frontend-components.md §app/(auth)/login.
  */
 export default function LoginPage(): React.ReactElement {
@@ -61,6 +71,14 @@ function LoginContent(): React.ReactElement {
   const login = useAuthStore((s) => s.login);
   const [serverError, setServerError] = useState<string | null>(null);
   const [mfaChallenge, setMfaChallenge] = useState<MfaChallenge | null>(null);
+  // CAPTCHA gate: the BE never returns `captchaRequired` on the
+  // success path — it can only be discovered by attempting the
+  // request and catching the 401 ProblemDetail (see
+  // `isCaptchaRequiredError`). Once true, it stays true for the
+  // remainder of this page mount so the widget keeps gating
+  // subsequent attempts even after a token has been consumed.
+  const [captchaRequired, setCaptchaRequired] = useState<boolean>(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   const expired = searchParams.get('expired') === 'true';
 
@@ -73,16 +91,40 @@ function LoginContent(): React.ReactElement {
     mode: 'onSubmit',
   });
 
+  // Stable callbacks so TurnstileWidget's effect dependency array
+  // does not retrigger render() on each parent re-render.
+  const handleCaptchaToken = useCallback((token: string): void => {
+    setCaptchaToken(token);
+  }, []);
+  const handleCaptchaInvalidate = useCallback((): void => {
+    setCaptchaToken(null);
+  }, []);
+
   async function onSubmit(data: LoginFormValues): Promise<void> {
     setServerError(null);
     try {
-      const result = await login(data.email, data.password);
+      const result = await login(data.email, data.password, captchaToken);
+      // The captcha token is single-use; whether the call succeeded,
+      // failed for credentials, or pivoted into MFA, the BE has now
+      // consumed (or rejected) it — clear locally so a stale value
+      // never reaches a subsequent attempt.
+      setCaptchaToken(null);
       if (result.type === 'mfa-required') {
         setMfaChallenge({ mfaToken: result.mfaToken, email: data.email });
         return;
       }
       router.push('/');
     } catch (err) {
+      setCaptchaToken(null);
+      if (isCaptchaRequiredError(err)) {
+        // Generic credentials message keeps parity with the regular
+        // 401 path — the only signal the user gets that the gate
+        // tripped is the appearance of the widget itself, mirroring
+        // ADR-025 §5 (no enumeration of brute-force counters).
+        setCaptchaRequired(true);
+        setServerError(getAuthFormErrorMessage(err, 'login'));
+        return;
+      }
       setServerError(getAuthFormErrorMessage(err, 'login'));
     }
   }
@@ -108,6 +150,12 @@ function LoginContent(): React.ReactElement {
       </main>
     );
   }
+
+  // While the captcha gate is active, the submit button must wait
+  // for a fresh token. If the user is mid-submission we keep the
+  // disabled state from `isSubmitting` regardless.
+  const submitDisabled =
+    isSubmitting || (captchaRequired && captchaToken === null);
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-6">
@@ -172,9 +220,22 @@ function LoginContent(): React.ReactElement {
             />
           </FormField>
 
+          {captchaRequired && (
+            <div data-testid="login-captcha" className="flex flex-col gap-2">
+              <p className="text-sm text-slate-600">
+                Per motivi di sicurezza, completa la verifica anti-bot.
+              </p>
+              <TurnstileWidget
+                onToken={handleCaptchaToken}
+                onInvalidate={handleCaptchaInvalidate}
+                action="login"
+              />
+            </div>
+          )}
+
           <Button
             type="submit"
-            disabled={isSubmitting}
+            disabled={submitDisabled}
             data-testid="login-submit"
           >
             {isSubmitting ? 'Accesso in corso…' : 'Accedi'}

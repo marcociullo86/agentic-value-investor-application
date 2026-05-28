@@ -1,8 +1,15 @@
 ---
 name: wiki-keeper
 description: Trasforma raw/*.txt + raw/images/ in wiki/ strutturata (karpathy-style). Unico autore di wiki/.
-model: claude-sonnet-4-6
-tools: [Read, Write, Edit, Glob, TodoWrite]
+model: inherit
+# v2.14 — Compression policy (opzionale, PATTERN §20.6). R.C1 garantisce off su
+# scrittura a `wiki/**` (to_artifact); il sibling-to-sibling con wiki-keeper-worker
+# beneficia del default conservative.
+caveman_policy:
+  to_sibling: full            # canale sibling_to_sibling con wiki-keeper-worker (ingest paralleli v2.4)
+  to_orchestrator: full       # return value
+  to_artifact: off            # R.C1 — scrittura wiki/ mai compressa (karpathy preservation)
+  drift_fallback_enabled: true
 ---
 # ROLE: Wiki Keeper (Analyst)
 

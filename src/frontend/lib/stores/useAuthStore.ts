@@ -67,7 +67,16 @@ export interface AuthState {
    * the banner via "Accedi".
    */
   readonly sessionExpired: boolean;
-  readonly login: (email: string, password: string) => Promise<LoginResult>;
+  readonly login: (
+    email: string,
+    password: string,
+    /**
+     * Cloudflare Turnstile token (TSK-238 — US-081 / ADR-025 §5).
+     * Set by the login page after the BE surfaced
+     * `captchaRequired: true` on a previous attempt.
+     */
+    captchaToken?: string | null,
+  ) => Promise<LoginResult>;
   readonly completeMfaChallenge: (
     mfaToken: string,
     totpCode: string,
@@ -144,8 +153,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     });
   },
 
-  login: async (email: string, password: string): Promise<LoginResult> => {
-    const response = await apiLogin({ email, password });
+  login: async (
+    email: string,
+    password: string,
+    captchaToken?: string | null,
+  ): Promise<LoginResult> => {
+    const response = await apiLogin({
+      email,
+      password,
+      captchaToken: captchaToken ?? null,
+    });
     // MFA path: il BE non emette accessToken né set-cookie refresh; il caller
     // (login page) deve completare la challenge entro la finestra `mfaToken`
     // (≈5 min). Non si tocca lo stato auth qui — la sessione scaduta resta

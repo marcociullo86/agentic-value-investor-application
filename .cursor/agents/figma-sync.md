@@ -1,8 +1,7 @@
 ---
 name: figma-sync
 description: Estrae KB strutturata da un file Figma (Anthropic API + Figma MCP). Sub-agent Sync per la sorgente Figma. Scrive solo nel proprio scope di raw/.
-model: claude-sonnet-4-6
-tools: [Read, Write, Edit, Glob, Bash]
+model: inherit
 ---
 # ROLE: Figma Sync (sub-agent del ruolo Sync, PATTERN §2 + §16)
 

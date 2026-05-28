@@ -444,3 +444,14 @@ ADR-007 §Error format dichiara RFC 9457 §3.2 (extensions al top-level). Quattr
 **Sospetta fonte:** lead-architect — decisione su `output` mode e modello deployment (ADR-009 vs server runtime).
 **Impatto:** Il middleware è UX-only (defense-in-depth), il backend protegge gli endpoint indipendentemente. Non bloccante per sicurezza. Bloccante per UX completa delle redirezioni auth in produzione. In `next dev` il middleware è pienamente funzionante.
 **TSK correlati:** TSK-206 (middleware AuthGuard), TSK-122 (deep analysis route), US-073 (AuthGuard centralizzato).
+
+---
+
+### 2026-05-28 — be-csp-missing-turnstile-allowlist
+
+**Origine:** fe-dev @ TSK-238 implementazione (CAPTCHA Turnstile su /login + /register)
+**Gap:** `SecurityHeadersConfig` (TSK-221) emette una CSP statica con `script-src 'self' [...'unsafe-inline']`, `frame-src 'none'`, `connect-src 'self'`. Cloudflare Turnstile richiede invece `script-src https://challenges.cloudflare.com`, `frame-src https://challenges.cloudflare.com`, `connect-src https://challenges.cloudflare.com`. La CSP del FE Edge middleware (`lib/security/csp.ts`) è stata aggiornata in TSK-238 per allow-listare l'origine Turnstile, ma con `next.config.js` `output: 'export'` (ADR-009) il middleware è attivo solo in `next dev`: in produzione la CSP applicata è quella del BE che continua a bloccare il widget. Senza un follow-up BE che allow-listi la stessa origine in `SecurityHeadersConfig` (sia variante non-strict che strict), Turnstile non può rendersi e l'AC US-081 "CAPTCHA dopo soglia" è effettivamente disabilitato in produzione.
+**Sospetta fonte:** be-dev — patch su `SecurityHeadersConfig.csp()` (entrambe le varianti) per aggiungere `https://challenges.cloudflare.com` a `script-src`/`frame-src`/`connect-src`. Eventuale TSK gemello per il backend (layer=be) sotto US-081.
+**Impatto:** In produzione il widget Turnstile fallisce silenziosamente (CSP block); la verifica server-side (TSK-230 `BruteForceProtectionService.guardLogin`) continua a richiedere il token e ritorna 401 `captchaRequired=true` ma il FE non può fornirlo. Net effect: dopo 10+ failure/IP, l'utente è permanentemente lockato finché il contatore IP non scade (5 min). In `next dev` il flusso funziona perché la CSP del middleware è applicata. Bloccante per AC US-081 in produzione.
+**TSK correlati:** TSK-238 (FE widget + FE CSP), TSK-230 (BE BruteForceProtectionService + Turnstile siteverify), TSK-221 (BE SecurityHeadersConfig).
+

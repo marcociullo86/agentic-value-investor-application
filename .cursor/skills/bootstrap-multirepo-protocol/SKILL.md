@@ -107,7 +107,7 @@ shared-lib | mobile | api-gateway | sidecar | ...`.
 
 Prima di accettare `monorepo`, verifica nel repo sorgente l'**assenza** di:
 `PATTERN.md`, `factory.config.yaml`, `wiki/`, `management/`, `design_&_architecture/`,
-`memory/`, `raw/`, `code_quality/`, `.cursor/` (o altro adapter scelto).
+`memory/`, `raw/`, `code_quality/`, `.claude/` (o altro adapter scelto).
 
 - Se uno qualunque esiste → ABORT: «Repo target contiene già <lista>. Bootstrap monorepo
   richiede assenza. Opzioni: (a) rimuovi manualmente, (b) usa `sibling`/`submodule`».

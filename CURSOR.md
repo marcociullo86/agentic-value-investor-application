@@ -1,51 +1,50 @@
-# CURSOR.md — App Template Demo
+# CURSOR.md — Agentic Value Investor Application
 
-Questo repo segue il pattern definito in [`PATTERN.md`](PATTERN.md) (v2.13, agent-agnostic).
+Questo repo segue il pattern definito in [`PATTERN.md`](PATTERN.md) (v2.14, agent-agnostic).
 
 ## Adapter Cursor
 
 L'adapter Cursor vive in [`.cursor/`](.cursor/):
 
-- **Subagent** ([`.cursor/agents/`](.cursor/agents/)): core — `orchestrator`, `sync-docs`, `figma-sync`, `repo-sync`, `github-publisher`, `wiki-keeper`, `wiki-keeper-worker`, `product-manager`, `lead-architect`, `tpm`, `wiki-query`, `wiki-lint`, `code-reviewer`; dev — `be-dev`, `fe-dev`, `db-dev`, `qa-dev`, `infra-dev`
-- **Skill** ([`.cursor/skills/`](.cursor/skills/)): mirror delle skill canoniche (stesso contenuto di [`.claude/skills/`](.claude/skills/))
-- **Comandi** ([`.cursor/commands/`](.cursor/commands/)): `/run`, `/sync-docs`, `/figma-sync`, `/repo-sync`, `/query`, `/lint`, `/promote`, `/heal`, `/dev`, `/review`, `/topology`, `/kanban-publish`
+- **Subagent** ([`.cursor/agents/`](.cursor/agents/)): core + sync (`sync-docs`, `figma-sync`, `repo-sync`, `graphify-sync`) + `github-publisher` + `code-reviewer` + dev (`be`, `fe`, `db`, `qa`, `infra`)
+- **Skill** ([`.cursor/skills/`](.cursor/skills/)): mirror di [`.claude/skills/`](.claude/skills/) — rigenerare con `./scripts/sync-cursor-adapter.sh`
+- **Comandi** ([`.cursor/commands/`](.cursor/commands/)): `/run`, `/sync-docs`, `/figma-sync`, `/repo-sync`, `/graphify-sync`, `/compression`, `/query`, `/lint`, `/promote`, `/heal`, `/dev`, `/review`, `/topology`, `/kanban-publish`
 - **Regole** ([`.cursor/rules/`](.cursor/rules/)): vincoli factory always-on
 
-Adapter parallelo Claude Code: [`.claude/`](.claude/) + [`CLAUDE.md`](CLAUDE.md). Registry multi-adapter: [`adapters/`](adapters/) + `factory.config.yaml.adapters`.
+Adapter parallelo Claude Code: [`.claude/`](.claude/) + [`CLAUDE.md`](CLAUDE.md).
 
-## Configurazione factory (v2.7–v2.13)
+## Configurazione factory (v2.14)
 
-[`factory.config.yaml`](factory.config.yaml) al root:
+[`factory.config.yaml`](factory.config.yaml):
 
 - **Topologia** `full-stack-agents`
 - **Code paths** `code_paths[default]` → `./src/` (monorepo)
 - **Stack mode** `auto`
-- **Adapters** `claude` + `cursor` installati
+- **Adapters** `claude` + `cursor`
 - **Scheduler** parallelo DAG (develop, ingest, lint, review, sync)
-- **Code quality** `enabled: false` (opt-in — attiva per `/review` post-develop)
-- **Kanban publish** `none` (opt-in GitHub)
+- **Code quality** `enabled: true`
+- **Compression** output + context (default OFF; target `default` preconfigurato per Graphify)
+- **Kanban publish** `none`
 
 ## Quick start (Cursor)
 
 | Comando | Azione |
 |---------|--------|
-| `/run` | Dashboard + wave plan parallelo (`orchestrator`) |
-| `/sync-docs` | PDF → `raw/*.txt` |
-| `/figma-sync <url>` | Figma → `raw/*.kb.json` |
-| `/repo-sync <path>` | Repo esistente → `raw/*-repo-*.md` (read-only sorgente) |
+| `/run` | Dashboard + wave plan (`orchestrator`) |
+| `/graphify-sync default` | Knowledge graph da `./src/` → `.graphify-state/` |
+| `/compression show` | Stato compression layer |
 | `/dev <TSK-id>` | Develop L5 |
-| `/review <TSK-id>` | Code quality review (CQRL, opt-in) |
-| `/kanban-publish` | Mirror kanban → GitHub Issues |
-| `/lint` | Health check (`wiki-lint`) |
+| `/review <TSK-id>` | CQRL post-develop |
+| `/lint` | Health check |
 
-Invocazione esplicita subagent: `/orchestrator`, `/be-dev`, `/code-reviewer`, …
+Dopo modifiche a `.claude/`: `./scripts/sync-cursor-adapter.sh`
 
-## Memoria cross-conversazione
+## Memoria
 
-`memory/{episodic,semantic,procedural}/` persiste tra conversazioni.
+`memory/{episodic,semantic,procedural}/`
 
 ## Migrazioni
 
-- v2.9–v2.11: `wiki/runbooks/migration-v29.md`, `migration-v210.md`, `migration-v211.md`
-- v2.12: `wiki/runbooks/code-quality-review-runbook.md`
-- Contratto completo: `PATTERN.md` §16–§20
+- v2.14: `wiki/runbooks/migration-v214.md`, `migration-v214-fase2.md`
+- v2.12 CQRL: `wiki/runbooks/code-quality-review-runbook.md`
+- Contratto: `PATTERN.md` §16–§20

@@ -86,8 +86,8 @@ Solo se `factory.config.yaml.kanban_publish` esiste:
   - `auth_env` non vuoto. Assenza → **ERROR `missing-publish-auth-env`**.
   - `batch_limit` intero ≥ 1. Altrimenti **WARNING `invalid-batch-limit`** (applica default 10).
   - Mapping coerente: `mapping.epic_to ∈ {milestone, issue-label, project-column}`, `mapping.story_to ∈ {issue-label, issue-type-story}`, `mapping.task_to ∈ {issue-label}`, `mapping.sprint_to ∈ {milestone, project-iteration, cycle}`. Altrimenti **ERROR `invalid-publish-mapping`**.
-  - Esistenza sub-agent corrispondente in `.cursor/agents/<provider>-publisher.md`. Assenza → **ERROR `publisher-agent-missing`**.
-  - Esistenza skill `.cursor/skills/<provider>-mapping.md`. Assenza → **ERROR `publisher-mapping-missing`**.
+  - Esistenza sub-agent corrispondente in `.claude/agents/<provider>-publisher.md`. Assenza → **ERROR `publisher-agent-missing`**.
+  - Esistenza skill `.claude/skills/<provider>-mapping.md`. Assenza → **ERROR `publisher-mapping-missing`**.
 - Per ogni `management/kanban/EP-*/EP-*.md`, `US-*/US-*.md`, `**/TSK-*.md`:
   - Frontmatter `external_id:` valorizzato:
     - Forma `<prefisso>:<id>` con `<prefisso>` ∈ `{github, gitlab, jira, linear}`. Altrimenti **ERROR `invalid-external-id-format`**.
@@ -150,7 +150,7 @@ Solo se `factory.config.yaml` esiste:
 
 - Leggi `factory.config.yaml`: estrai `topology`, `routing`, `code_path`.
 - Per ogni `routing.X: agent` in `{be, fe, db, qa}`: verifica esistenza
-  `.cursor/agents/<X>-dev.md`. Assenza → **ERROR routing-missing-agent**.
+  `.claude/agents/<X>-dev.md`. Assenza → **ERROR routing-missing-agent**.
 - Per ogni `<X>-dev.md` presente: verifica `routing.X: agent`. Mismatch →
   **ERROR orphan-dev-agent**.
 - `topology:` ∈ `{knowledge-only, plan-only, full-stack-agents, hybrid-be-agents, hybrid-fe-agents, custom}`.

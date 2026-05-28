@@ -22,11 +22,28 @@ export interface RegisterRequest {
   readonly email: string;
   readonly password: string;
   readonly displayName?: string | null;
+  /**
+   * Cloudflare Turnstile token (TSK-238 — US-081 / ADR-025 §5).
+   *
+   * Required only when a previous /register response surfaced
+   * `captchaRequired: true` (per-IP threshold tripped server-side).
+   * Omitted on first attempts so the BE can decide whether the IP
+   * is currently gated — sending it unconditionally would force
+   * the widget on every unauthenticated user.
+   */
+  readonly captchaToken?: string | null;
 }
 
 export interface LoginRequest {
   readonly email: string;
   readonly password: string;
+  /**
+   * Cloudflare Turnstile token (TSK-238 — US-081 / ADR-025 §5).
+   * Same semantics as `RegisterRequest.captchaToken`: only sent
+   * after the BE returned `captchaRequired: true` (RFC 9457
+   * extension on a 401 ProblemDetail) for the current IP.
+   */
+  readonly captchaToken?: string | null;
 }
 
 export interface TokenResponse {

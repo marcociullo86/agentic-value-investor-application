@@ -154,13 +154,20 @@ Procedo? [y/N]
 
 Per ogni `level i`:
   Per ogni `group g in level[i]`:
-    1. **Multi-tool-call** nello stesso turno: N invocazioni `Agent` parallele,
+    1. **Context compression resolve (v2.14 Fase 2, opzionale)**: se `factory.config.yaml.compression.context.enabled: true` E esiste `.graphify-state/code_paths/<target>/GRAPH_REPORT.md` per il TSK target, applica **confidence-gated dispatch** (R.G2, §20.10.1):
+       - Determina il ruolo dell'agent destinatario: `executor` (dev-agent `be/fe/db/qa`), `explorer` (lead-architect, wiki-query), o `reviewer` (code-reviewer).
+       - Filtra il `GRAPH_REPORT.md` per i tag confidence consentiti dalla config `compression.context.confidence_gating.<role>` (default: executor → `EXTRACTED` only; explorer → `EXTRACTED + INFERRED`; reviewer → tutto).
+       - Pass il `GRAPH_REPORT.md` filtrato al posto dei file sorgente raw come context dell'`Agent(...)` tool call.
+       - Se `.graphify-state/code_paths/<target>/` assente o stale > `drift_alert_days` → fallback automatico a scansione filesystem standard + log warning `compression-context-fallback target=<name> reason=<stale|missing>`.
+    2. **Compression intercept (v2.14 Fase 1, opzionale)**: se `factory.config.yaml.compression.output.enabled: true`, prima del multi-tool-call invoca `caveman-protocol §Fase 2-3` per ogni payload `Agent(...)` con `channel: orchestrator_to_subagent`, `chain_depth: <depth corrente nella wave>`. Il payload compresso sostituisce quello originale nella tool call. Se `enabled: false` → no-op (skip Fase 2-3 di caveman-protocol).
+    3. **Multi-tool-call** nello stesso turno: N invocazioni `Agent` parallele,
        una per ogni TSK in `g` (adapter Claude Code: subagent_type = `<layer>-dev`).
-    2. Attendi che TUTTI i sub-agent del group terminino (foreground).
-    3. Per ognuno:
+    4. Attendi che TUTTI i sub-agent del group terminino (foreground).
+    5. Per ognuno:
        - Output OK → `dev-handoff` ha già aggiornato `status: done` + appendato `wiki/log.md`.
        - Output FAIL → append `wiki/log.md` entry `develop-failed TSK-ZZZ rationale=...`. Il TSK resta `status: todo`. **Non rollba** gli altri (R.S7).
-    4. **VCS hand-off serializzato** (R.S8): per ogni TSK terminato con successo, invoca `vcs-handoff` **uno alla volta** in coda al group.
+    6. **Compression drift check (v2.14 Fase 1)**: se compression output attivo, invoca `caveman-protocol §Fase 4` per ogni response del sub-agent. Marker di ambiguità → fallback automatico a normal mode + log `compression-drift` (R.C5). Se `drift_count >= 3` nella sessione → switch globale a normal mode + chat warning.
+    7. **VCS hand-off serializzato** (R.S8): per ogni TSK terminato con successo, invoca `vcs-handoff` **uno alla volta** in coda al group.
 
 Quando `level i` è completo (tutti i group dispatched + VCS chiusi), passa a `level i+1`.
 
@@ -174,7 +181,13 @@ Append a `wiki/log.md` (template `wave`):
 **Dispatched:** 5 TSK (4 ok, 1 failed)
 **Failed:** TSK-013 (reason: vcs-handoff abortito da utente)
 **Wall-clock saved:** ~estimated 60% vs serial baseline
+**Compression (v2.14, se attivo):** profile=conservative, tokens_in=15.2k→7.4k, tokens_out=8.3k→3.9k, drift=0
 ```
+
+Se `compression.output.enabled: true`, il `wave_report.md` companion in
+`memory/episodic/` include una sezione `## Compression stats` con la matrice
+`canale × (tokens_in_raw, tokens_in_compressed, tokens_out_raw, tokens_out_compressed,
+ratio, drift_count)`. Vedi `caveman-protocol §Fase 5`.
 
 E un record episodico in `memory/episodic/YYYY-MM-DD-HH-MM-wave-NN.md` con la
 struttura completa del DAG (per audit + retroactive analysis).

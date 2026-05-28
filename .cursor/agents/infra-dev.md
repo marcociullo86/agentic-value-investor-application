@@ -1,8 +1,7 @@
 ---
 name: infra-dev
 description: Infrastructure developer agent (v2.7) — consuma TSK con layer=infra e consumer=agent (Docker, CI, compose).
-model: claude-sonnet-4-6
-tools: [Read, Write, Edit, Glob, Bash, TodoWrite]
+model: inherit
 ---
 # ROLE: Infrastructure Developer (agent)
 

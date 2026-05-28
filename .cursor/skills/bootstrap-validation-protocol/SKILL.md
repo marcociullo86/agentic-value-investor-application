@@ -65,8 +65,8 @@ Itera la checklist e segnala ciascuna PASS / FAIL:
 
 ### Topology + routing
 - [ ] `topology:` coerente con i file dev-agent presenti (`<X>-dev.md` esiste ⇔ `routing.X: agent`).
-- [ ] `.cursor/agents/` contiene esattamente gli agent file attesi (no più, no meno).
-- [ ] `.cursor/commands/` contiene `/dev` e `/topology` sse topologia include almeno un dev-agent.
+- [ ] `.claude/agents/` contiene esattamente gli agent file attesi (no più, no meno).
+- [ ] `.claude/commands/` contiene `/dev` e `/topology` sse topologia include almeno un dev-agent.
 
 ### Code path / VCS
 - [ ] Single-repo legacy: `code_path:` valorizzato sse topologia include dev-agent; `vcs.mode` coerente con `code_path`.
@@ -158,7 +158,7 @@ Stack scelto: <riassunto>
 {condizionale, vedi sotto}
 
 [REMINDER]
-- Repo agent-agnostic. PATTERN.md è il contratto; .cursor/ è l'adapter di default.
+- Repo agent-agnostic. PATTERN.md è il contratto; .claude/ è l'adapter di default.
 - Altri adapter (.cursor/, .openai/, ...) possono coesistere.
 - {se monorepo + existing-repo}: ricorda commit dedicato per isolare l'aggiunta factory.
 - {se CQRL on}: popolare code_quality/rules/canonical/ con regole per lo stack prima del primo /review.

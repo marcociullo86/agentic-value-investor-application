@@ -1,4 +1,4 @@
-# PATTERN — Agentic Factory `llm-wiki++` v2.13
+# PATTERN — Agentic Factory `llm-wiki++` v2.14
 
 > Contratto universale agent-agnostic. Qualsiasi runtime (Claude Code, OpenAI Assistants,
 > Cursor, Aider, Gemini, ChatGPT, …) che rispetti questo file può operare sul repo. Gli
@@ -7,10 +7,10 @@
 > multipli supportato; ogni adapter ha un manifest formale (§12.x).
 
 ## §0 — Identità & versione
-Pattern version: **2.13**.
-Origine: llm-wiki (Karpathy) + estensione PM/Arch + memory tree cross-conversazione + adapter `thin agents, fat skills` + execution layer L5 + topology + stack modes + VCS integration + sync adapters multi-sorgente (PDF, Figma, **repo esistenti**) + publisher adapters multi-target (GitHub, GitLab, Jira, Linear, …) + parallel scheduler basato su DAG di dipendenze frontmatter + code quality review layer post-Develop con ruleset evolutivo stack-aware + **multi-adapter scaffolding parallelo via registry manifest (v2.13)**.
+Pattern version: **2.14**.
+Origine: llm-wiki (Karpathy) + estensione PM/Arch + memory tree cross-conversazione + adapter `thin agents, fat skills` + execution layer L5 + topology + stack modes + VCS integration + sync adapters multi-sorgente (PDF, Figma, **repo esistenti**) + publisher adapters multi-target (GitHub, GitLab, Jira, Linear, …) + parallel scheduler basato su DAG di dipendenze frontmatter + code quality review layer post-Develop con ruleset evolutivo stack-aware + multi-adapter scaffolding parallelo via registry manifest (v2.13) + **output compression layer opt-in via Caveman skill con allow-list channel-aware + policy profile (v2.14)**.
 Scope: knowledge-base eseguibile **e** (opzionale) produzione codice tramite dev-agent o consumo umano dei task; integrazione esplicita con git per layout monorepo/submodule/sibling/external; ingestione L1 da fonti eterogenee tramite sub-agent Sync dedicati (incluso reverse-engineering di repo esistenti via `repo-sync`); pubblicazione opzionale di L3/L4 su tool esterni di project tracking tramite sub-agent Publisher (provider-agnostic); orchestrazione parallela di operazioni indipendenti sui livelli L1→L5 con safety-by-default (single-committer e conflict detection su `code_path`); valutazione qualitativa del codice prodotto a valle di Develop (idiomaticità, design, robustezza) tramite Code Reviewer opzionale con loop evaluator-optimizer bounded.
-Progetto host: **App Template Demo** (`owner: marco.ciullo`, `language: it`).
+Progetto host: **Soli Multi-Agents Factory** (`owner: soli92`, `language: it`).
 
 ## §1 — Modello a layer
 - **L1 `raw/`** — input multi-sorgente. Artefatti tipici: PDF + estrazioni `.txt` + `images/` (da `sync-docs`); KB JSON strutturate (`.kb.json`) da `figma-sync`; futuri sub-agent (Notion, Confluence) seguono lo stesso contratto. **Immutabile** (solo il ruolo *Sync*, nei suoi N sub-agent per sorgente, scrive in `raw/` — §16).
@@ -76,6 +76,8 @@ Ogni runtime mappa questi ruoli ai propri costrutti (agenti, assistant, modes, �
 | Memoria procedurale | `memory/procedural/<slug>.md` |
 | Tech-stack proposal | `raw/tech_stack.md.proposal` (effimero, gate umano per promote → `raw/tech_stack.md`) |
 | Repo spec (v2.12) | `raw/YYYY-MM-DD-repo-<slug>.md` (prodotto da `repo-sync`, §16); opzionale companion `raw/images/YYYY-MM-DD-repo-<slug>-tree.md` |
+| Graph summary (v2.14 Fase 2) | `raw/YYYY-MM-DD-graph-<slug>.md` (prodotto da `graphify-sync`, §16; riepilogo umano-leggibile: god nodes, surprising connections, confidence breakdown) |
+| Graph side-channel (v2.14 Fase 2) | `.graphify-state/code_paths/<slug>/{graph.json,GRAPH_REPORT.md,last_full_rebuild.txt}` (non versionato in git, rebuildable da `<code_path>`) |
 | Code quality rule (v2.12) | `code_quality/rules/<tier>/<rule_id>.md` con `<tier> ∈ {canonical, emergent, team-specific}` e `<rule_id>` in formato dotted `{language}.{framework}.{category}.{specific}` |
 | Code quality report (v2.12) | `code_quality/reports/<TSK-id>-iter-<N>.json` (machine-readable) + `code_quality/reports/<TSK-id>-iter-<N>.md` (digest umano-leggibile) |
 | Factory config | `factory.config.yaml` (singolo file, root del repo) |
@@ -126,7 +128,7 @@ I glob in `code_path` (TSK) sono **relativi al target risolto**: lo scheduler co
   - `vcs.mode: sibling` o `external` → `[^src5-ext: <abs-path>:<line> @ <commit-hash>]` (path assoluto, commit del repo esterno).
 - Claim senza citazione = claim invalido (segnalato dal *Lint*, mai bloccato deterministicamente).
 
-## §7 — Regole inviolabili (17)
+## §7 — Regole inviolabili (18)
 1. **L1 read-only** (eccetto *Sync*).
 2. **Zero invenzione.** Info assente → `wiki/gaps.md` o `management/questions.md`.
 3. **Citazione obbligatoria** su ogni claim non triviale.
@@ -144,6 +146,7 @@ I glob in `code_path` (TSK) sono **relativi al target risolto**: lo scheduler co
 15. **Cross-tool publish gate umano** (v2.10). Se `kanban_publish.provider ≠ none` in `factory.config.yaml`, il sub-agent Publisher (§17) deve mostrare in chat il piano di pubblicazione (lista di CREATE + UPDATE proposti con conteggi per tipo) e **attendere conferma esplicita** prima di qualsiasi chiamata write sul provider esterno. Mai operazioni `delete`/`close` automatiche su issue/milestone esterne: solo `create` e `update`. Mai pubblicare più di `kanban_publish.batch_limit` artefatti in un singolo run senza ulteriore gate (default `batch_limit: 10`). Token di autenticazione **solo da variabile d'ambiente** (mai committati nel repo; nome var dichiarato in `kanban_publish.auth_env`).
 16. **Code review verdict `reject` = gate umano** (v2.12, §19). Mai auto-revert del codice, mai auto-close/auto-merge del TSK, mai riapertura automatica del Develop. Quando il Code Reviewer emette verdict `reject` (o `max_iterations` viene raggiunto senza convergenza), il TSK resta `status: done` ma con `review_status: rejected`: l'umano decide il next step (re-Develop manuale con istruzioni, accept-as-is con override documentato in `wiki/incidents/`, o rollback del codice). `code_quality.max_iterations` (default 3) è invariante non bypassabile a runtime. No-progress detection (due iterazioni con stesso set di `rule_id` violate) e regression detection (finding nuovi in file non toccati dalla fix) accelerano l'escalation **prima** di raggiungere il cap.
 17. **Sync read-only verso la sorgente** (v2.9 generalizzata in v2.12). Nessun sub-agent Sync (§2 + §16) modifica MAI la propria fonte di estrazione: `sync-docs` non riscrive i PDF, `figma-sync` non muta il file Figma (solo lettura via MCP/REST), `repo-sync` **non aggiunge né modifica file nel repo scansionato** — in particolare mai aggiungere `factory.config.yaml`, adapter `.claude/`, o file infrastrutturali al repo esterno. L'output del Sync vive esclusivamente nel proprio scope di `raw/**` + `raw/.extraction-manifest.json` (§16). Una factory esistente che ingerisce sé stessa via `repo-sync` (modalità reflective) resta legittima: la regola distingue la *sorgente di scansione* dall'*output di scansione*.
+18. **Compression layer mai sugli artefatti** (v2.14, §20). Se `compression.output.enabled: true` in `factory.config.yaml`, la compressione (Caveman) si applica **solo** ai canali di messaging agent-to-agent / agent-to-tool / tool-to-agent. **Mai** sugli artefatti scritti su filesystem (`wiki/**`, `management/kanban/**`, `<code_path>/**`, `design_&_architecture/**`, `code_quality/**`, `memory/**`), **mai** sull'output verso l'utente finale, **mai** sul flow di `propagate-resolution` (§3 — coerenza referenze cross-page). Questi invarianti (`to_user`, `to_artifact`, `propagate_resolution` → sempre `off`) non sono mai overridabili neppure in `policy_profile: custom`. Vedi §20.4 R.C1–R.C6 per il dettaglio.
 
 ## §8 — State derivation (single source of truth)
 Lo stato del progetto si deduce SOLO da:
@@ -713,22 +716,24 @@ Solo per `submodule` e `sibling`:
 - **Mai `--force` / `--no-verify`** in nessun caso.
 - **Mai modificare `.gitmodules`** o `.factory-lock` fuori da `vcs-handoff`.
 
-## §16 — Sync adapters (multi-source L1, v2.9)
+## §16 — Sync adapters (multi-source L1, v2.9, esteso v2.14 Fase 2)
 
 Il ruolo *Sync* (§2) è l'unico ruolo della factory **pluralizzabile per sorgente**: per
-ogni famiglia di input L1 (PDF, Figma, futuri Notion/Confluence/…) esiste un sub-agent
-dedicato che scrive il proprio sotto-scope di `raw/`. Tutti i sub-agent condividono
-`raw/.extraction-manifest.json` (append-only per chiave). L'*Analyst* (`wiki-keeper`)
-resta agnostico alla sorgente: legge il manifest, capisce quale shape gestire (`.txt` |
-`.kb.json` | …), applica la grammatica di citazione corrispondente (§6).
+ogni famiglia di input L1 (PDF, Figma, repo locale, **knowledge graph**, futuri
+Notion/Confluence/…) esiste un sub-agent dedicato che scrive il proprio sotto-scope di
+`raw/`. Tutti i sub-agent condividono `raw/.extraction-manifest.json` (append-only per
+chiave). L'*Analyst* (`wiki-keeper`) resta agnostico alla sorgente: legge il manifest,
+capisce quale shape gestire (`.txt` | `.kb.json` | …), applica la grammatica di
+citazione corrispondente (§6).
 
-### Sub-agent supportati (v2.12)
+### Sub-agent supportati (v2.14)
 
 | Sub-agent | Input | Output L1 | Trigger |
 |---|---|---|---|
 | `sync-docs` | `raw/*.pdf` | `raw/*.txt`, `raw/images/*-fig-NN.md` | nuovi PDF in `raw/` |
 | `figma-sync` (v2.9) | URL Figma o `file_key` (passato al comando, non vive in `raw/`) | `raw/YYYY-MM-DD-figma-<file-key>.kb.json`, opzionali `raw/images/*-frame-NN.{md,png}` | comando `/figma-sync <url>` |
 | `repo-sync` (v2.12) | path locale a un repo esistente (passato al comando; mai vive in `raw/`) | `raw/YYYY-MM-DD-repo-<slug>.md` (documento di specifiche umano-leggibile + sezioni strutturate: stack rilevato, struttura, moduli chiave, API surface, dipendenze, vincoli normativi); opzionale companion `raw/images/YYYY-MM-DD-repo-<slug>-tree.md` (albero del filesystem fino a depth configurabile) | comando `/repo-sync <path>`; usato dal bootstrap quando `wiki_feed_source: existing-repo` |
+| **`graphify-sync` (v2.14 Fase 2)** | **`code_path` (entry di `factory.config.yaml.code_paths`) — passato al comando, non vive in `raw/`** | **`raw/YYYY-MM-DD-graph-<slug>.md` (summary umano-leggibile del graph: god nodes, surprising connections, confidence breakdown EXTRACTED/INFERRED/AMBIGUOUS) + side-channel `.graphify-state/code_paths/<slug>/{graph.json, GRAPH_REPORT.md, last_full_rebuild.txt}` (consumato dai dev-agent come context replacement)** | **comando `/graphify-sync <target>`; usato dai dev-agent in modalità context-compression quando `compression.context.enabled: true` (§20.10)** |
 
 ### Contratto per un nuovo sync adapter
 
@@ -746,12 +751,35 @@ Aggiungere un sub-agent (es. ipotetico `notion-sync`) richiede:
 ### Invariante di isolamento
 
 Ogni sub-agent Sync scrive **solo** nel proprio scope di naming. Mai sovrapposizioni:
-`sync-docs` non tocca `*.kb.json` né `*-repo-*.md`; `figma-sync` non tocca `*.txt` né
-`*-repo-*.md`; `repo-sync` non tocca `*.txt` né `*.kb.json` (e mai i file della sorgente
-scansionata, §7 r.17). Se due adapter producono lo stesso slug per fonti diverse →
-ERROR di config (un sync adapter deve scegliere un namespace univoco). Solo
-`.extraction-manifest.json` è condiviso, e ciascun sub-agent vi appende **solo la
-propria entry** (mai overwrite di entries altrui).
+`sync-docs` non tocca `*.kb.json` né `*-repo-*.md` né `*-graph-*.md`; `figma-sync` non
+tocca `*.txt` né `*-repo-*.md` né `*-graph-*.md`; `repo-sync` non tocca `*.txt` né
+`*.kb.json` né `*-graph-*.md` (e mai i file della sorgente scansionata, §7 r.17);
+`graphify-sync` (v2.14) non tocca `*.txt` né `*.kb.json` né `*-repo-*.md` (e mai il
+`<code_path>` analizzato — §7 r.17 esteso a code_path scanning). Se due adapter
+producono lo stesso slug per fonti diverse → ERROR di config (un sync adapter deve
+scegliere un namespace univoco). Solo `.extraction-manifest.json` è condiviso, e
+ciascun sub-agent vi appende **solo la propria entry** (mai overwrite di entries
+altrui).
+
+### Side-channel storage per `graphify-sync` (v2.14 Fase 2)
+
+A differenza degli altri sync adapter, `graphify-sync` produce **due output paralleli**:
+
+1. **`raw/YYYY-MM-DD-graph-<slug>.md`** — riepilogo umano-leggibile del graph,
+   consumabile dal `wiki-keeper` come ingest L1→L2 standard (analogo a `repo-sync`).
+2. **`.graphify-state/code_paths/<slug>/`** — side-channel storage (analogo a
+   `code_quality/`, §19): graph completo machine-readable (`graph.json`,
+   `GRAPH_REPORT.md`, `last_full_rebuild.txt`). **Non versionato in git**
+   (`.gitignore`-d). Consumato a runtime dai dev-agent e dal code-reviewer come
+   **context replacement** dei file sorgente raw (vedi §20.10 Context Compression).
+
+Caratteristiche del side-channel:
+- **Rebuildable**: full rebuild ricostruisce tutto da zero da `<code_path>` (zero
+  perdita di stato, solo costo di rebuild — 2–20 $ token su primo build).
+- **Scritto solo da `graphify-sync`** (analogo a R.Q2 di CQRL — scope di scrittura chiuso).
+- **Letto da molti**: dev-agent, code-reviewer, wiki-query (in v2.15 sperimentale).
+- **Filesystem è single source of truth**: il graph è una *view derivata*, mai
+  authoritative. Se conflitto graph ↔ filesystem → vince filesystem.
 
 ### Riuso dello Stack Detector (v2.12)
 
@@ -1575,8 +1603,428 @@ TSK status:todo  ──Develop──▶  status:done, review_status:pending
                                 (loop bounded R.Q4)
 ```
 
-## §20 — Versioning
-- **v2.13** (questa): Multi-adapter scaffolding parallelo (§12 esteso) — formalizzazione del contratto adapter via `adapters/<name>/manifest.yaml`, registry al root del meta-framework con 5 adapter (`.claude/` reference completo, `.cursor/` + `.aider/` full v2.13, `.openai/` partial con setup.py stub, `.gemini/` + `.chatgpt/` manifest-only). Nuovo blocco `factory.config.yaml.adapters:` per dichiarare gli adapter installati nella factory generata. 6 nuove invarianti R.A1-R.A6 (§12.2 — isolamento cartella, state filesystem condiviso, single-committer preservato, manifest immutabile a runtime, adapter aggiungibile a runtime, agent-agnostic preservato). Nuova skill `bootstrap-multiadapter-protocol` come 6° skill del meta-prompt (selezione adapter + loop scaffolding parallelo). Meta-prompt seed riorganizzato: spostato da `~/.claude/factory-bootstrap/` (user-level) a `<meta-framework>/meta-prompts/{v2-11,v2-12,v2-13}/` (repo, versionato col PATTERN). Nuova folder `adapters/` al root del meta-framework. Backward compat: `factory.config.yaml` senza blocco `adapters:` assume `[{name: claude, folder: .claude, maturity: full}]`. PATTERN.md, layer L1-L5, e contratti di citazione (§6) restano agent-agnostic (R.A6). Vedi [[multi-adapter-scaffolding]] (concept futuro) + [[migration-v213]] (runbook futuro).
+## §20 — Output Compression Layer (v2.14)
+
+L'**Output Compression Layer** (OCL) è il meccanismo agent-agnostic con cui la factory
+**riduce i token generati** dagli agenti applicando una grammatica di compressione
+linguistica ([[caveman]]) ai soli canali di messaging effimero, lasciando intatti gli
+artefatti persistenti (wiki/, management/kanban/, code/, …). È **opt-in**, configurato
+in `factory.config.yaml.compression.output`, default `enabled: false`.
+
+OCL **non sostituisce mai** la leggibilità degli artefatti karpathy-style (§7 r.18). È un
+layer *trasversale* (intercetta i flussi di comunicazione tra agent e tool) e non un
+nuovo verbo di operazione canonica (§3). La compressione è effettuata dal sub-skill
+`caveman-protocol` invocato dall'agente prima di emettere un payload verso un altro
+agente/tool.
+
+Il design di alto livello vive in [[factory-compression-layer]] (concept wiki); questa
+sezione fissa il contratto invariante. Il sotto-asse "context compression" (Graphify) è
+**out-of-scope v2.14**: introduzione pianificata per v2.15 (vedi §21 Versioning).
+
+### §20.1 — Modello a un asse (v2.14: solo output)
+
+Caveman intercetta il **payload generato** da un agente prima che venga emesso al
+destinatario (sub-agent, tool, orchestrator). Quattro operazioni grammaticali (vedi
+[[caveman]] §Logica di funzionamento):
+
+1. Rimozione funzioni grammaticali (articoli, verbi essere, preposizioni deducibili)
+2. Eliminazione padding sociale (hedging, cortesia, preamboli, postamboli)
+3. Abbreviazioni convenzionali (`fn`, `ret`, `→`, simboli quantificatori)
+4. Strutturazione tabellare/lista (prosa non informativa → tabella o lista minimale)
+
+Tre livelli di intensità: `lite` / `full` / `ultra`. L'asse context (Graphify) sarà
+introdotto in v2.15.
+
+### §20.2 — Allow-list per canale e policy profile
+
+Il comportamento è **policy-driven** (configurato esternamente, non hardcoded nel codice
+degli agent). Tre profili selezionabili in `factory.config.yaml.compression.output.policy_profile`:
+
+| Profilo | Risparmio atteso | Caratteristica | Quando usarlo |
+|---|---|---|---|
+| `conservative` (**default**) | 50–70% | Drift minimo, audit trail ricco, chain-depth downgrade attivo | Factory new, primo deployment, topologie con chain lunghe |
+| `aggressive` | 70–85% | Risparmio massimo, accetta drift cumulativo | Factory mature, topologia `knowledge-only`, dopo ≥ 2 settimane di validazione |
+| `custom` | Variabile | Matrice esplicita (override completo dei preset, invarianti restano enforced) | Debugging di un drift specifico, esigenze esotiche |
+
+**Matrice canale × profilo** (R.C2):
+
+| Canale | `conservative` | `aggressive` | Override `custom` |
+|---|---|---|---|
+| Orchestrator → Sub-agent (dispatch) | `full` | `ultra` | ✓ |
+| Sub-agent → Tool (Bash, Read, Grep, …) | `ultra` | `ultra` | ✓ |
+| Tool → Sub-agent (result) | `lite` | `full` | ✓ |
+| Sub-agent → Orchestrator (return) | `full` | `ultra` | ✓ |
+| Sub-agent → Sub-agent (sibling, es. `wiki-keeper-worker` → `wiki-keeper`) | `full` | `ultra` | ✓ |
+| `feedback-router` → dev-agent (task package) | `full` | `ultra` | ✓ |
+| **Qualsiasi → utente finale (`to_user`)** | `off` | `off` | **NO (R.C1)** |
+| **Qualsiasi → file artefatto (`to_artifact`)** | `off` | `off` | **NO (R.C1)** |
+| **`propagate-resolution` → wiki page update** | `off` | `off` | **NO (R.C1)** |
+
+`to_artifact` include: `wiki/**`, `management/kanban/**`, `<code_path>/**`,
+`design_&_architecture/**`, `code_quality/**`, `memory/**`, `raw/**` (output dei Sync).
+
+### §20.3 — Topology-aware default
+
+Il `policy_profile` ha un default per topologia (modificabile dall'utente):
+
+| Topologia (§13) | Default `policy_profile` | Rationale |
+|---|---|---|
+| `knowledge-only` | `aggressive` | Chain corte (ingest paralleli), rischio drift basso, no `code_path` |
+| `plan-only` | `conservative` | Chain medie (PM → TPM), no `code_path` |
+| `full-stack-agents` | `conservative` | Chain lunghe (orch → PM → TPM → dev), `code_path` attivo |
+| `hybrid-be-agents` / `hybrid-fe-agents` | `conservative` | Solo il sotto-grafo agentificato beneficia di Caveman |
+| `custom` | `conservative` | Default sicuro; utente esplicita override |
+
+In topologie federate ([[federated-topology]]), la compressione **non attraversa il
+boundary cross-factory** (R.C4): si applica solo intra-factory.
+
+### §20.4 — Invarianti del Compression Layer (R.C1–R.C6, estensione §7)
+
+Il Compression Layer **deve** rispettare le seguenti invarianti:
+
+- **R.C1 — Invarianti non overridabili.** I canali `to_user`, `to_artifact` (qualsiasi
+  scrittura su filesystem persistente) e `propagate-resolution → wiki page update` sono
+  **sempre `off`** indipendentemente dal `policy_profile`. Anche in `custom`, l'override
+  non può attivare la compressione su questi canali. Vincolato a §7 r.18.
+- **R.C2 — Allow-list channel-aware.** Ogni payload emesso da un agente verso un altro
+  agente/tool deve essere dichiarativamente associato a un *canale* (vedi tabella
+  §20.2). Il `caveman-protocol` applica il livello di compressione configurato per quel
+  canale + profilo. Un payload senza canale identificabile → fallback automatico a
+  `normal mode` (no Caveman) + warning in `wiki/log.md`.
+- **R.C3 — Chain-depth severity ceiling.** Solo nel profilo `conservative` (e in `custom`
+  che lo abilita esplicitamente). Quando la chain di handoff (orchestrator → sub-agent →
+  sub-agent → tool …) supera profondità `3`, il livello di compressione viene
+  auto-degradato di un step (`ultra → full → lite`). Mitigation per drift cumulativo
+  (vedi [[caveman]] §Rischi principali). `aggressive` disabilita questo meccanismo.
+- **R.C4 — Cross-factory boundary OFF.** In topologie federate ([[federated-topology]]),
+  la compressione è **sempre `off`** sull'handoff cross-factory. Modelli o versioni diverse
+  fra factory hanno vocabolari Caveman incoerenti → handoff ellittico ambiguo. Questa
+  regola non è bypassabile via `policy_profile`.
+- **R.C5 — Drift fallback automatico.** Se un sub-agent risponde con marker di ambiguità
+  riconosciuto (`AMBIGUOUS_HANDOFF`, `REQUEST_CLARIFY`, exception interpretativa
+  documentata), l'orchestrator **rinvia la stessa request in normal mode** (no Caveman) e
+  appende a `wiki/log.md` un marker `compression-drift TSK-ZZZ canale=<C> profilo=<P>`.
+  Il fallback non termina il loop ma lo riporta a stato non compresso per quel TSK.
+- **R.C6 — Opt-in totale, backward compatibility.** `compression.output.enabled: false`
+  di default. Factory v2.13- senza il blocco `compression:` in `factory.config.yaml` si
+  comportano identiche a v2.13. Nessuna migrazione obbligatoria del frontmatter agent
+  o skill. Il campo `caveman_policy:` nei frontmatter agent (§20.6) è **opzionale**:
+  agenti senza il campo ricevono il default conservative per il loro canale principale.
+
+### §20.5 — `factory.config.yaml.compression` (schema v2.14)
+
+```yaml
+compression:
+  output:
+    provider: caveman           # caveman | none
+    enabled: false              # default OFF, opt-in (R.C6)
+    install_command: "curl -fsSL https://raw.githubusercontent.com/JuliusBrussee/caveman/main/install.sh | bash"
+    policy_profile: conservative   # conservative | aggressive | custom
+    # Invarianti R.C1 — mai overridabili, presenti per esplicitazione documentale:
+    invariants:
+      to_user: off
+      to_artifact: off
+      propagate_resolution: off
+    # channels: usato SOLO se policy_profile == custom (override completo dei preset)
+    channels:
+      orchestrator_to_subagent: full
+      subagent_to_tool: ultra
+      tool_to_subagent: lite
+      subagent_to_orchestrator: full
+      sibling_to_sibling: full
+      feedback_router_to_devagent: full
+    chain_depth_downgrade: true       # R.C3 — auto-downgrade su chain depth > 3 (solo conservative)
+    chain_depth_threshold: 3
+    cross_factory: off                # R.C4 — sempre off in federated; off significa OFF cross-factory, on intra-factory
+    drift_fallback:
+      enabled: true                   # R.C5 — fallback automatico su marker ambiguità
+      markers: [AMBIGUOUS_HANDOFF, REQUEST_CLARIFY]
+    audit_trail_for:                  # canali sempre in normal mode anche se policy diversa
+      - propagate-resolution
+      - feedback-router               # task package interno: tracciabilità completa
+
+  # Asse context (Graphify) — placeholder v2.14, attivazione v2.15
+  context:
+    provider: none                    # graphify-cloud | graphify-ollama | none (v2.14: solo none)
+    enabled: false
+```
+
+Coerenza inviolabile (segnalata da `wiki-lint`):
+- `compression.output.enabled: true` ⇒ `provider` valorizzato + Caveman installato (test
+  empirico: `caveman --version` ritorna OK) + topology compatibile (qualsiasi tranne
+  `knowledge-only` con `aggressive` di default).
+- `compression.output.policy_profile == custom` ⇒ `channels` block valorizzato
+  completamente (no fallback ai preset).
+- `compression.output.enabled: false` ⇒ il blocco `channels` viene ignorato; nessun
+  agent invoca `caveman-protocol`.
+
+### §20.6 — Frontmatter agent: `caveman_policy:` (opzionale)
+
+Un agent può dichiarare un override locale nel proprio frontmatter:
+
+```yaml
+---
+name: be-dev
+description: Backend developer agent
+caveman_policy:                       # opzionale; se assente, default da factory.config.yaml
+  to_subagent: full
+  to_tool: ultra
+  drift_fallback_enabled: true
+---
+```
+
+Convenzione: il frontmatter agent **non può** mai abilitare un canale che la config
+globale ha `off` (R.C1 enforced — il `caveman-protocol` esegue check pre-invocazione).
+Può solo *abbassare* il livello (es. `ultra → full`) per debugging di drift locale.
+
+### §20.7 — Integrazione con scheduler (§18)
+
+Il dominio scheduler **`compression`** è introdotto come *concetto* ma non è un dominio
+parallelizzabile separato: la compressione è un **intercept inline** nel dispatch della
+wave. Per ogni payload emesso dall'orchestrator verso un sub-agent nella wave:
+
+1. Lo scheduler determina il *canale* (es. `orchestrator_to_subagent`)
+2. Invoca `caveman-protocol §Fase 2` con `payload`, `channel`, `profile`, `chain_depth`
+3. Il payload compresso viene poi passato all'agent come argomento del tool call
+
+Per i `return value` dei sub-agent (sub-agent → orchestrator), la compressione è
+applicata dall'agent emittente prima del return (skill `caveman-protocol` chiamata
+internamente). Il `wave_report.md` (output di `state-scan` esteso) include una colonna
+`tokens_compressed / tokens_raw` per canale per misurare l'efficacia.
+
+`compression.output.enabled: false` → l'intercept è no-op (zero overhead).
+
+### §20.8 — Anti-pattern (cosa OCL NON fa)
+
+- **Compressione su artefatto persistente**: rompe il pattern karpathy-style del wiki/
+  e la struttura dei TSK/EP/US. *Mitigazione*: R.C1 invariante non overridabile + Check
+  4k del lint (verifica enforcement R.C1 in caveman-protocol invocations).
+- **Compressione `ultra` su chain depth > 3 in conservative**: drift cumulativo
+  ambiguità di handoff. *Mitigazione*: R.C3 chain-depth severity ceiling automatico.
+- **Compressione su modelli non testati**: Caveman è progettato per fraseggio
+  Claude/GPT; modelli diversamente fine-tunati possono produrre output ambigui.
+  *Mitigazione*: in `caveman-protocol` Fase 1 (Bootstrap) test empirico su `caveman
+  --version` + matrice di compatibilità documentata; per modelli non testati, fallback
+  conservativo a `lite`.
+- **Allow-list inconsistente fra profilo e custom**: utente attiva `custom` ma dimentica
+  campi → fallback ai preset oscuro. *Mitigazione*: `wiki-lint` Check 4k segnala
+  `channels` block incompleto in `custom` come ERROR (no auto-fallback).
+- **Auto-modifica delle policy a runtime**: nessun agente può scrivere
+  `factory.config.yaml.compression.*` (config è user-controlled, §8). Solo via
+  `/compression set <param> <value>` con gate umano.
+- **Ignorare drift fallback marker**: orchestrator ignora `AMBIGUOUS_HANDOFF` e
+  continua in compressed mode. *Mitigazione*: R.C5 fallback automatico obbligatorio
+  con marker `compression-drift` in `wiki/log.md`.
+
+### §20.9 — Pipeline completa con OCL attivo (riepilogo)
+
+```
+       config: compression.output.enabled: true, policy_profile: conservative
+                                          │
+              Orchestrator emette payload  │  → caveman-protocol intercept
+                                          ▼
+                         ┌────────────────────────────────────┐
+                         │ caveman-protocol (Fase 2)          │
+                         │   - identifica canale              │
+                         │   - applica livello dal profilo    │
+                         │   - check R.C1 invariants          │
+                         │   - check R.C3 chain depth         │
+                         │   - check R.C4 cross-factory       │
+                         └────────────────┬───────────────────┘
+                                          ▼
+                              payload_compressed → sub-agent
+                                          │
+                              sub-agent risposta
+                                          │
+                         ┌────────────────┴───────────────────┐
+                         │ Risposta contiene marker ambiguità?│
+                         └─────┬──────────────────┬───────────┘
+                               ▼ NO              ▼ SÌ (R.C5)
+                       continua wave    ──────► fallback normal mode
+                                                + log compression-drift
+```
+
+### §20.10 — Context Compression Layer (v2.14 Fase 2, Graphify code_path)
+
+Il **secondo asse** del Compression Layer riduce i token **passati come contesto** ai
+dev-agent (al posto dei file sorgente raw del `code_path`). L'implementazione canonica
+è [[graphify]]: trasforma `<code_path>` in un knowledge graph queryabile
+(`.graphify-state/code_paths/<slug>/GRAPH_REPORT.md`) che il dev-agent legge come
+input contestuale. Opt-in, configurato in `factory.config.yaml.compression.context`.
+
+L'asse context è **complementare e ortogonale** all'asse output (§20.1-§20.9):
+Caveman riduce ciò che gli agent *generano*, Graphify riduce ciò che gli agent
+*consumano*. Possono coesistere: una factory può attivare uno, l'altro, o entrambi.
+
+#### §20.10.1 — Confidence-gated dispatch
+
+Graphify produce nodi e archi taggati con tre livelli di confidenza:
+
+| Tag | Origine | Affidabilità | Uso |
+|---|---|---|---|
+| `EXTRACTED` | AST tree-sitter (deterministico) | Alta — riproducibile | Eseguibili: dev-agent in modifica file |
+| `INFERRED` | LLM-driven (semantica) | Media — variabile | Esplorativi: design proposals, query NL |
+| `AMBIGUOUS` | Conflitto fra sorgenti AST/LLM | Bassa — da rivedere | Audit: code-reviewer in modalità review |
+
+Lo scheduler (§18) applica un **gating per ruolo agent** quando dispatcha un TSK in
+modalità context-compression:
+
+| Ruolo agent | Nodi/archi consumati | Esempio operativo |
+|---|---|---|
+| **Executor** (modifica file: `be-dev`, `fe-dev`, `db-dev`, `qa-dev`) | Solo `EXTRACTED` | Task di refactor/fix con base AST garantita |
+| **Explorer** (genera proposte: `lead-architect`, `wiki-query`) | `EXTRACTED` + `INFERRED` | Design ADR, esplorazione codebase per concept proposal |
+| **Reviewer** (audit: `code-reviewer`) | Tutto con flag visibile | Review con blast radius analysis |
+
+Specializzazione del pattern [[verifier-as-gate]] applicata al consumo di contesto.
+
+#### §20.10.2 — `factory.config.yaml.compression.context` (schema v2.14 Fase 2)
+
+```yaml
+compression:
+  context:
+    provider: graphify-cloud        # graphify-cloud (default) | graphify-ollama | none
+    enabled: false                  # default OFF, opt-in (R.G6)
+    package: graphifyy              # safishamsi/graphify (PyPI: doppia y)
+    # Privacy: graphify-cloud manda docs/immagini all'API LLM
+    # graphify-ollama: locale, 16+ GB VRAM, qualità inferiore (enterprise data residency)
+    ollama:
+      model: llama3.1:8b
+      vram_gb_min: 16
+    targets:
+      - kind: code_path
+        name: backend              # match factory.config.yaml.code_paths[].name
+        gitignore_patterns:
+          - "*.env"
+          - "secrets/**"
+      # - kind: wiki                # v2.15 only, gated da PoC karpathy preservation
+      #   path: wiki/
+    update_strategy: incremental    # incremental | manual | always
+    full_rebuild_cron: "0 0 * * 0"  # weekly (R.G4 drift mitigation)
+    drift_alert_days: 7             # alert se delta last_ast vs last_full_rebuild > N gg
+    ci_strategy:
+      mode: cache-with-fallback     # cache-with-fallback (default) | disabled | always-rebuild
+      cache_provider: actions       # actions (GitHub) | gitlab | s3 | local
+      cache_key_prefix: graphify-state
+      stale_threshold_hours: 168    # 7 giorni → fallback scansione filesystem
+      full_rebuild_on_demand: true
+    confidence_gating:
+      executor: [EXTRACTED]
+      explorer: [EXTRACTED, INFERRED]
+      reviewer: [EXTRACTED, INFERRED, AMBIGUOUS]
+    mcp_server:
+      enabled: false                # opt-in con MCP runtime
+      topology: per-agent           # per-agent (isolato) | shared (factory mature)
+      crg_tools_max: 8              # CRG_TOOLS env var (riduce ~25 tool → ~8)
+```
+
+Coerenza inviolabile (segnalata da `wiki-lint`, Check 4l v2.15):
+- `compression.context.enabled: true` ⇒ `provider` valorizzato + Graphify installato
+  (`graphify --version` — binario singola-y, da `pip install graphifyy` doppia-y; o `graphify-ts --version`) + topology include
+  almeno un dev-agent + `code_paths` non vuoto.
+- `targets` non vuoto se `enabled: true`.
+- `targets[i].kind == wiki` ⇒ riservato a v2.15 con PoC karpathy gate (vedi
+  [[factory-compression-layer]] §Fase 3a).
+
+#### §20.10.3 — Integrazione con code-reviewer (CQRL, §19)
+
+Il [[code-quality-review-layer]] beneficia di Graphify come pre-check:
+
+- Prima dell'invocazione del Reviewer su un TSK con `status: done`, lo scheduler
+  invoca `graphify get_impact_radius(<file>)` per ciascun file toccato dalla fix.
+- Output: lista di symbol/file dipendenti (downstream blast radius).
+- Il `task_package` (§19.4) include il blast radius come constraint esplicito:
+  `"non toccare i symbol [...] senza valutarne l'impatto su [downstream files]"`.
+- Riduce il rischio di **regression detection** in iter `N+1` (R.Q4-ter §19.4).
+
+#### §20.10.4 — Drift mitigation
+
+`EXTRACTED` (AST) si aggiorna ad ogni commit via post-commit hook (zero token,
+~0.4s/1k file). `INFERRED` (LLM-semantica) richiede full rebuild (2–20 $ token).
+Questo causa drift asincrono se non gestito.
+
+| Meccanismo | Frequenza | Costo | Mitigation di |
+|---|---|---|---|
+| **Incremental update** (AST only) | Post-commit, on-session-start | Zero token | Disallineamento file ↔ AST nodes |
+| **Full rebuild semantico** | Cron weekly | 2–20 $ | Drift asincrono concept↔code |
+| **Drift monitoring** | Daily check | Zero token | Alert se `delta(last_ast, last_full_rebuild) > drift_alert_days` |
+| **Manual trigger** | Post-refactor maggiori | Su richiesta | `/graphify-sync <target> --force` |
+| **CI cache-with-fallback** | Ogni pipeline | Zero (cache hit) o nessun build (fallback) | Costo CI |
+| **Ghost duplicates dedup** | Post full rebuild | Zero token | Bug noto Graphify (AST↔semantica disagree su ID) |
+
+#### §20.10.5 — Pipeline completa con context compression attiva
+
+```
+       config: compression.context.enabled: true, targets: [code_path=backend]
+                                          │
+                   Dev-agent invocato su TSK (status:todo, target:backend)
+                                          ▼
+                         ┌────────────────────────────────────┐
+                         │ Scheduler context-resolve          │
+                         │  read .graphify-state/code_paths/  │
+                         │  filtra per confidence_gating role │
+                         │  (executor → EXTRACTED only)       │
+                         └────────────────┬───────────────────┘
+                                          ▼
+                              GRAPH_REPORT.md filtered → dev-agent
+                                          │   (al posto dei file sorgente raw)
+                                          ▼
+                              Dev-agent legge contesto compresso
+                                          │   (es. 200k token raw → 3k token graph)
+                                          ▼
+                              Dev-agent scrive file in <code_path>
+                                          │
+                              Post-commit hook: incremental update
+                                          │   (.graphify-state/ aggiornato AST)
+                                          ▼
+                              [opzionale] Code reviewer:
+                                  get_impact_radius(<files>) → blast radius
+                                  task_package include constraint
+```
+
+### §20.11 — Invarianti del Context Compression (R.G1–R.G6, v2.14 Fase 2)
+
+L'asse context **deve** rispettare le seguenti invarianti (parallele a R.C1–R.C6
+dell'asse output):
+
+- **R.G1 — Filesystem è single source of truth.** `.graphify-state/` è una *view
+  derivata*, mai authoritative. In caso di conflitto graph ↔ filesystem (es. node
+  nel graph che non corrisponde a un file reale, o file presente ma assente nel
+  graph) → **vince filesystem**, graph viene rebuiltato. Mai sincronizzazione
+  bidirezionale.
+- **R.G2 — Confidence-gated dispatch obbligatorio.** Lo scheduler DEVE filtrare i
+  nodi del graph per `confidence_gating` in base al ruolo dell'agent destinatario
+  (executor/explorer/reviewer, §20.10.1). Mai consegnare `INFERRED` o `AMBIGUOUS`
+  a un executor agent (R.G2 enforced dal `caveman-protocol §Fase 2` analogo per
+  context). Violazione = chain di modifiche basate su relazioni inferite incerte.
+- **R.G3 — Blast radius pre-check su modifiche.** Se `compression.context.enabled:
+  true`, prima di ogni modifica del codice da parte di un dev-agent, lo scheduler
+  invoca `graphify get_impact_radius(<files_to_modify>)` e include il risultato nel
+  task_package del dev-agent come constraint esplicito (vedi §20.10.3). Il
+  dev-agent può rifiutare la modifica se il blast radius eccede la soglia
+  (`max_diff_lines × downstream_depth`). Mai fix silente con blast radius elevato.
+- **R.G4 — Drift mitigation obbligatoria.** L'asse context DEVE prevedere:
+  - Incremental update post-commit (via git hook o session-start, zero token)
+  - Full rebuild semantico periodico (cron weekly default)
+  - Drift monitoring (daily check di `delta(last_ast, last_full_rebuild)`)
+  - Alert quando delta > `drift_alert_days` (default 7)
+  In assenza di queste 4 protezioni → ERROR di config (segnalato da `wiki-lint`
+  Check 4l).
+- **R.G5 — Side-channel write-restricted.** Solo `graphify-sync` scrive in
+  `.graphify-state/**`. Nessun altro agent (dev, code-reviewer, wiki-keeper, …) ci
+  scrive. Il path è `.gitignore`-d in fase di scaffolding (R.G6 backward compat).
+  Lettura aperta a tutti gli agent che hanno `<code_path>/**` o `wiki/**` nel proprio
+  read scope.
+- **R.G6 — Opt-in totale, backward compatibility.** `compression.context.enabled:
+  false` di default. Factory v2.14 Fase 1-only (solo output axis) senza il blocco
+  `context:` valorizzato si comportano identiche. Migration v2.14 Fase 1 → Fase 2
+  è additiva: nessun cambio breaking del frontmatter agent / skill esistenti.
+  `.graphify-state/` viene aggiunto al `.gitignore` come parte del bootstrap Fase 2
+  (mai versionato).
+
+## §21 — Versioning
+
+- **v2.14** (questa): Compression Layer a due assi (§20) opt-in. **Fase 1 — Output Compression Layer** via [[caveman]] skill (§20.1-§20.9): meccanismo per ridurre i token generati su canali messaging agent-to-agent senza toccare gli artefatti persistenti. Tre `policy_profile` selezionabili: `conservative` (default, drift minimo + chain-depth severity ceiling), `aggressive` (risparmio massimo, factory mature), `custom` (matrice esplicita). Sei invarianti R.C1-R.C6 (§20.4 — invarianti non overridabili `to_user`/`to_artifact`/`propagate-resolution` sempre off, allow-list channel-aware, chain-depth ceiling, cross-factory off, drift fallback automatico su marker ambiguità, opt-in totale). Nuova regola §7 r.18 (compression mai sugli artefatti). Nuovo campo frontmatter agent opzionale `caveman_policy:` (§20.6) per override locale (può solo abbassare, mai abilitare canali R.C1). Nuova skill `caveman-protocol` (5 fasi: Bootstrap → Identify Channel → Apply Compression → Drift Check → Log) + nuovo comando `/compression [show|set|policy|dry-run]`. Hook in `parallel-scheduling` (§20.7): intercept inline nel dispatch della wave, calcolo `tokens_compressed/tokens_raw` per canale nel `wave_report.md`. Topology-aware default (§20.3): `knowledge-only` → `aggressive`, full-stack/hybrid → `conservative`. `wiki-lint` nuovo Check 4k (coerenza `policy_profile == custom` ⇒ `channels` block completo; R.C1 invariants enforced in `caveman-protocol` invocations). Default `compression.output.enabled: false`. **Fase 2 — Context Compression Layer** via [[graphify]] (§20.10-§20.11): quarto sync adapter `graphify-sync` (§16) che estrae knowledge graph da `code_path` (target di `factory.config.yaml.code_paths`) producendo `raw/YYYY-MM-DD-graph-<slug>.md` (summary umano-leggibile) + side-channel `.graphify-state/code_paths/<slug>/` (`graph.json`, `GRAPH_REPORT.md`, `last_full_rebuild.txt`, non versionato in git). Confidence-gated dispatch (§20.10.1): executor agent (dev) ricevono solo `EXTRACTED` (AST deterministico); explorer agent (lead-architect, wiki-query) ricevono `EXTRACTED + INFERRED`; reviewer (code-reviewer) tutto con flag. Sei invarianti R.G1-R.G6 (§20.11 — filesystem single source of truth, confidence-gated dispatch obbligatorio, blast radius pre-check su modifiche, drift mitigation obbligatoria con cron weekly full rebuild + drift monitoring, side-channel write-restricted, opt-in totale). Nuovo agent `graphify-sync` (analogo a `repo-sync` v2.12 + writes side-channel) + nuova skill `graphify-extraction-protocol` (5 fasi: Bootstrap → Discovery → Build Graph → Side-channel write → Log) + nuovo comando `/graphify-sync [<target>|show|status|refresh]`. Integrazione con CQRL (§20.10.3): `get_impact_radius(<file>)` pre-check incluso nel `task_package` come blast radius constraint (R.Q4-ter regression mitigation). Confidence-gated dispatch esteso in `parallel-scheduling` (§20.7 + R.G2). `.graphify-state/` aggiunto al `.gitignore` di bootstrap (R.G6). Default `compression.context.enabled: false`. CI strategy `cache-with-fallback` (zero token su cache hit, fallback scansione filesystem su stale > 7gg, full rebuild solo on-demand). Provider opt-in `graphify-cloud` (default) | `graphify-ollama` (enterprise data residency, 16+ GB VRAM). MCP server `per-agent` (default, isolato) | `shared` (factory mature). Asse `wiki` come target di Graphify (Fase 3, v2.15) gated da PoC karpathy preservation con 4 check non-negoziabili (citation/wikilink/frontmatter/layering); se anche uno fallisce → scartare wiki-as-graph. Fase 1.5 validation on derived factory (gate empirico pre-Fase 2 reale): runbook template [[compression-validation-template]] disponibile per esecuzione su factory derivata v2.14 + Caveman + sprint reale. Backward compat totale verso v2.13 (factory senza i blocchi compression.* si comporta identica). Vedi [[factory-compression-layer]] (design doc + 7 decisioni risolte + aggiornamenti Fase 1 + Fase 1.5) + [[caveman]] + [[graphify]] + [[token-compression]] + [[knowledge-graph-codebase]] + [[migration-v214]] (Fase 1) + [[migration-v214-fase2]] (Fase 2).
+- **v2.13**: Multi-adapter scaffolding parallelo (§12 esteso) — formalizzazione del contratto adapter via `adapters/<name>/manifest.yaml`, registry al root del meta-framework con 5 adapter (`.claude/` reference completo, `.cursor/` + `.aider/` full v2.13, `.openai/` partial con setup.py stub, `.gemini/` + `.chatgpt/` manifest-only). Nuovo blocco `factory.config.yaml.adapters:` per dichiarare gli adapter installati nella factory generata. 6 nuove invarianti R.A1-R.A6 (§12.2 — isolamento cartella, state filesystem condiviso, single-committer preservato, manifest immutabile a runtime, adapter aggiungibile a runtime, agent-agnostic preservato). Nuova skill `bootstrap-multiadapter-protocol` come 6° skill del meta-prompt (selezione adapter + loop scaffolding parallelo). Meta-prompt seed riorganizzato: spostato da `~/.claude/factory-bootstrap/` (user-level) a `<meta-framework>/meta-prompts/{v2-11,v2-12,v2-13}/` (repo, versionato col PATTERN). Nuova folder `adapters/` al root del meta-framework. Backward compat: `factory.config.yaml` senza blocco `adapters:` assume `[{name: claude, folder: .claude, maturity: full}]`. PATTERN.md, layer L1-L5, e contratti di citazione (§6) restano agent-agnostic (R.A6). Vedi [[multi-adapter-scaffolding]] (concept futuro) + [[migration-v213]] (runbook futuro).
 - **v2.12**: Code Quality Review Layer (§19) — nuovo ruolo *Code Reviewer* (`code-reviewer`, §2) opzionale, nuovo verbo `Review` (§3), nuova KB evolutiva `code_quality/rules/` (3 tier: `canonical`/`emergent`/`team-specific` con tassonomia ID gerarchica `{language}.{framework}.{category}.{specific}`), nuovo storage report `code_quality/reports/<TSK-id>-iter-N.{json,md}`. Nuovi campi frontmatter TSK opzionali: `review_status` (`pending|passed|conditional|rejected`), `review_iter`, `review_report` (§5). Nuovo blocco `code_quality:` in `factory.config.yaml` (§19.7) con `max_iterations` (default 3, R.Q4), thresholds (`confidence_min: 0.6`, `batching_split: 7`, `pass_rate_warn: 0.05`), `passes` (idiomaticity/design/robustness, §19.3), `router` (strategy + max_diff_lines, §19.4), `ruleset` + `reports`. Nuovo sync adapter `repo-sync` (§16) per ingerire repo esistenti — output `raw/YYYY-MM-DD-repo-<slug>.md` riusabile dal `wiki-keeper` per kick-off pipeline da codice pre-esistente. Stack Detector (§19.2) riusabile da `repo-sync` per popolare la sezione Stack del documento. Nuova sezione §16 «Bootstrap da repo esistente — coupling modes» con 3 opzioni (`monorepo` | `sibling-new-repo` | `submodule-new-repo`) che determinano deterministicamente `code_paths[i].path` + `vcs.mode`, e 6 invarianti R.B1-R.B6 (no-write a sorgente in modalità decoupling, conferma esplicita in monorepo, repo-sync read-only sempre, coupling immutabile a runtime, agent-agnostic preservato, multi-repo coupling mix con al più una entry monorepo). **Multi-repo (v2.12)**: schema `factory.config.yaml.code_paths:` come lista di entry `{name, path, layers, tags, vcs}` per supportare FE/BE disaccoppiati, microservizi (N BE), micro-frontend (N FE), monorepo logici con pacchetti multipli. Backward compat: `code_path:` singolare (v2.11-) accettato e auto-promosso a singola entry `default`. Nuovo campo TSK frontmatter `target:` (§5) per disambiguare quando ≥ 2 entry coprono lo stesso layer; obbligatorio in caso di ambiguità (segnalato dal lint Check 4j), opzionale altrimenti (auto-derive). `vcs-handoff` opera per-target. Scheduler R.S2 (§18.4) esteso a `(target, code_path)`: TSK con target diversi sono **sempre** conflict-free su file (filesystem disgiunti) — incremento naturale di parallelismo per microservizi/MFE. Nuove regole §7: r.16 (verdict `reject` = gate umano, mai auto-revert/auto-merge) + r.17 (sync read-only generalizzato — `repo-sync` non muta il repo scansionato). Nuove 7 invarianti del Reviewer R.Q1-R.Q7 (§19.6 — single-committer verdict, scope write chiuso, gate umano reject, bounded loop, stack-aware obbligatorio sopra confidence, ruleset write protetto, no security scope). Nuovo dominio scheduler `review` (§18.3) — TSK indipendenti parallelizzabili. Nuovo bootstrap option "wiki feeding source" (factory-bootstrap meta-prompt v2.12): `empty | pdf | figma | existing-repo`. Default `code_quality.enabled: false` (opt-in esplicito anche con topology dev-agent). Retrocompat: TSK pre-v2.12 senza `review_status` trattati come `pending` quando `code_quality.enabled: true`; report assenti per `enabled: false`. Vedi [[code-quality-review-layer]] + [[stack-aware-ruleset]] + [[code-quality-review-runbook]] + [[repo-sync]] (concept futuro) + [[migration-v212]] (runbook futuro).
 - **v2.11**: parallel scheduler agent-agnostic basato su DAG di dipendenze dichiarate nei frontmatter (§18). Nuovi campi frontmatter opzionali: `depends_on` (EP/US/TSK), `blocked_by` esteso a TSK, `code_path` (TSK) — §5. Nuova sezione §18 «Parallel scheduling» con modello (DAG `E_dep ∪ E_conf`), algoritmo a 3 step (toposort + level grouping + graph-coloring partition per conflict detection su `code_path`), domini di parallelismo (§18.3), 8 regole inviolabili dello scheduler (R.S1–R.S8 — single-committer preservato, conflict-free su file, cap di fan-out, gate umano sopra threshold, no rollback collaterale, VCS sempre serializzato), nuovo blocco `scheduler:` in `factory.config.yaml`, output wave-plan in chat. L'Orchestrator espande lo scope con `dispatch` parallelo (multi-`Agent` call nello stesso turno). `wiki-lint` nuovo Check 4g (cicli in `depends_on`, drift `## Dependencies` body ↔ `depends_on` frontmatter). Default `scheduler.enabled: true` con `max_parallel: 4`, `parallel_gate_threshold: 3`. Retrocompat: artefatti senza `depends_on` sono trattati come "nessuna dipendenza" → finiscono al level 0; artefatti senza `code_path` sono trattati conservativamente come serializzanti (politica `empty_code_path_policy: serial`). Vedi [[migration-v211]] (runbook futuro) + [[parallel-scheduling]] (concept futuro) + [[dependency-ordered-dag]] (concept esistente, esteso).
 - **v2.10**: Publisher adapters multi-target (L3/L4). Nuovo ruolo *Publisher* (§2) pluralizzabile per provider. Nuovo verbo `Publish` (§3). Nuovo campo frontmatter opzionale `external_id:` (§5) per EP/US/TSK. Nuova regola §7 r.15 (gate cross-tool: conferma esplicita prima di create/update batch su provider esterno; mai delete/close automatici; auth solo da env var). Nuovo blocco `kanban_publish:` in `factory.config.yaml`. Nuova sezione §17 «Publisher adapters» con contratto per nuovi adapter. `github-publisher` come implementazione di riferimento via `gh` CLI; placeholder per `gitlab|jira|linear`. `lint-checks` nuovo Check 4f (coerenza `external_id:` ↔ provider config; orphan se `provider: none`). `publisher-protocol` provider-agnostic + `<provider>-mapping` skill provider-specific. Push-only in v2.10; bidirectional candidato v2.11. Vedi [[migration-v210]] (runbook futuro) + [[publisher-adapters]] (concept futuro).

@@ -1,8 +1,15 @@
 ---
 name: orchestrator
 description: Direttore. Dashboard di stato, suggerimento next-step, episodic memory, parallel scheduler v2.11. Esegue /promote e /run (con dispatch parallelo opt-in via factory.config.yaml.scheduler).
-model: inherit
+model: claude-haiku-4-5
 tools: [Read, Edit, Glob, Write]
+# v2.14 — Compression policy (opzionale, PATTERN §20.6). Se omessa, eredita dal
+# profile globale `factory.config.yaml.compression.output.policy_profile`.
+# R.C1 invarianti (to_user/to_artifact/propagate_resolution: off) sempre enforced.
+caveman_policy:
+  to_subagent: full           # canale orchestrator_to_subagent — dispatch wave
+  to_user: off                # R.C1 invariante non overridabile
+  drift_fallback_enabled: true
 ---
 # ROLE: Orchestrator
 

@@ -1,8 +1,7 @@
 ---
 name: github-publisher
 description: Sub-agent Publisher per GitHub (PATTERN §2 + §17, v2.10). Pubblica EP/US/TSK/sprint su GitHub Issues/Milestones come mirror push-only. Provider-agnostic: invoca publisher-protocol + github-mapping.
-model: claude-sonnet-4-6
-tools: [Read, Write, Edit, Glob, Bash]
+model: inherit
 ---
 # ROLE: GitHub Publisher (sub-agent del ruolo Publisher, PATTERN §2 + §17)
 

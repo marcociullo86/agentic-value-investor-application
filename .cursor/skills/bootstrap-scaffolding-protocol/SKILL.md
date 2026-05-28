@@ -1,6 +1,6 @@
 ---
 name: bootstrap-scaffolding-protocol
-description: Skill di scaffolding dei file/directory L1-L5 + adapter `.cursor/` (PATTERN §1, §12). Genera root files (PATTERN.md, CLAUDE.md, factory.config.yaml), directory L1-L5 + side-channel (memory, code_quality), copia condizionale di agenti/skill/commands in base a topology/CQRL/multi-repo. Invocata dal meta-prompt factory-bootstrap v2.12 dopo input + multirepo.
+description: Skill di scaffolding dei file/directory L1-L5 + adapter `.claude/` (PATTERN §1, §12). Genera root files (PATTERN.md, CLAUDE.md, factory.config.yaml), directory L1-L5 + side-channel (memory, code_quality), copia condizionale di agenti/skill/commands in base a topology/CQRL/multi-repo. Invocata dal meta-prompt factory-bootstrap v2.12 dopo input + multirepo.
 ---
 # Skill — Bootstrap scaffolding
 
@@ -28,7 +28,7 @@ Tutti i template/agenti/skill vengono copiati da:
 Crea nel `factory_dest_path` (single-repo: stesso di target_path; multi-repo: derivato):
 
 1. **`PATTERN.md`** — copia integrale dalla fonte di verità (v2.12, agent-agnostic).
-2. **`CLAUDE.md`** — pointer all'adapter `.cursor/` (template breve).
+2. **`CLAUDE.md`** — pointer all'adapter `.claude/` (template breve).
 3. **`README.md`** — descrizione progetto (template breve, in lingua scelta).
 4. **`factory.config.yaml`** — generato dai valori raccolti. Schema:
    - `pattern_version: "2.12"`
@@ -62,11 +62,11 @@ Crea sempre (cwd = `factory_dest_path`):
 - `code_quality/rules/README.md` con istruzioni base (tassonomia ID, struttura `.md`
   + frontmatter, riferimento a PATTERN §19.5)
 
-## Fase 3 — Adapter `.cursor/`
+## Fase 3 — Adapter `.claude/`
 
 ### 3.a — Agenti core (sempre)
 
-Copia in `.cursor/agents/`:
+Copia in `.claude/agents/`:
 `orchestrator`, `sync-docs`, `wiki-keeper`, `wiki-keeper-worker`, `product-manager`,
 `lead-architect`, `tpm`, `wiki-query`, `wiki-lint`.
 
@@ -132,7 +132,7 @@ NEVER creare:
 - `reviewer/` directory (defunto)
 - `sprint.md` pre-popolato (è view generata, mai a mano)
 - `code_quality/` se `code_quality.enabled: false`
-- `.cursor/agents/code-reviewer.md` se `code_quality.enabled: false`
+- `.claude/agents/code-reviewer.md` se `code_quality.enabled: false`
 - File per provider non scelti
 
 ## Fase 5 — Coerenza finale

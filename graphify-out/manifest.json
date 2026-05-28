@@ -1,0 +1,3032 @@
+{
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\build.gradle.kts": {
+    "mtime": 1779856743.2487037,
+    "ast_hash": "fb23a3954413fcdb62d0df03db7f768b",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\settings.gradle.kts": {
+    "mtime": 1779475733.4351623,
+    "ast_hash": "761d05ae6cb40dd52b54cdb958229b01",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\scripts\\pseudonymize-user-logs.sh": {
+    "mtime": 1779833968.7164745,
+    "ast_hash": "c5ab714e10a3ad9be4e8192ef529d02c",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ValueInvestingWebappApplication.kt": {
+    "mtime": 1779833968.7164745,
+    "ast_hash": "930dfad0f5015fe4d424267e6fe26701",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\AnalysisController.kt": {
+    "mtime": 1779475733.441718,
+    "ast_hash": "cdc0c2569eed0fe1e2fc021e5df476de",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\AuthController.kt": {
+    "mtime": 1779924293.1764457,
+    "ast_hash": "6c22a746197adc075f0cc1481a72f65a",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\DcfOverrideController.kt": {
+    "mtime": 1779475733.4442146,
+    "ast_hash": "4d270e6254c632ac56d22b7be0d401cb",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\DeepAnalysisController.kt": {
+    "mtime": 1779833968.7184913,
+    "ast_hash": "df76d33b29890c51427d8a30652d33ae",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\FinancialsController.kt": {
+    "mtime": 1779475733.4442146,
+    "ast_hash": "d85cb68a76a769f02d685e49dc03258d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\HistoricalController.kt": {
+    "mtime": 1779475733.4455533,
+    "ast_hash": "cefcb148a008eaedf0a52ab7ece53484",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\LlmBudgetAdminController.kt": {
+    "mtime": 1779855167.930873,
+    "ast_hash": "da0ddf9f0a20d67eca48115919d99caa",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\MfaController.kt": {
+    "mtime": 1779922015.3951435,
+    "ast_hash": "ff364f0b2a6e9e2c66eebf70b8e5709a",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\MoatChecklistController.kt": {
+    "mtime": 1779475733.4455533,
+    "ast_hash": "6e248502b0c5217a951ac8c9a1d228e3",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\RefreshTokenCookieHelper.kt": {
+    "mtime": 1779835322.1671247,
+    "ast_hash": "1fd235df8eca81624ad303898f5f1ef1",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\ScreenerController.kt": {
+    "mtime": 1779475733.446696,
+    "ast_hash": "1ab3cd86f645a5fb71c854e3fea5f7fa",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\SearchController.kt": {
+    "mtime": 1779475733.4476912,
+    "ast_hash": "cc1e856cc7585cccc4fe4977a245c002",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\TopPicksController.kt": {
+    "mtime": 1779833968.7205064,
+    "ast_hash": "c983217b064b1d454d44b6afe124b59f",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\WatchlistController.kt": {
+    "mtime": 1779475733.4486904,
+    "ast_hash": "0923deff9eb0f2d5e3335b5943b7248d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\error\\GlobalExceptionHandler.kt": {
+    "mtime": 1779924329.6269329,
+    "ast_hash": "053776beefe425120697354db3349426",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\error\\ProblemDetailsMapper.kt": {
+    "mtime": 1779833968.7249072,
+    "ast_hash": "19f4a3f3c4eed8a2ca046c8a53588576",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\filter\\CorrelationIdFilter.kt": {
+    "mtime": 1779833968.7249072,
+    "ast_hash": "c620b28f354fade3573b580a49c8a572",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\filter\\RequestIdFilter.kt": {
+    "mtime": 1779475733.4520862,
+    "ast_hash": "63b0ca8aaa00c3ebc3f16dbcd043cdee",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\model\\AuthDtos.kt": {
+    "mtime": 1779924200.6959248,
+    "ast_hash": "c935f05a8c0ec68f8da61e0e91ac330d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\model\\DcfMethodSource.kt": {
+    "mtime": 1779475733.4540873,
+    "ast_hash": "ebf44cd51661d223b3e852c6dac82edd",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\model\\DcfOverrideRequest.kt": {
+    "mtime": 1779855166.2810755,
+    "ast_hash": "c5ff646e79872b909a98674569f7a048",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\model\\DcfOverrideResponse.kt": {
+    "mtime": 1779475733.4560878,
+    "ast_hash": "cdce58b6d0a640a2d501a080cfe94458",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\model\\DeepAnalysisResponse.kt": {
+    "mtime": 1779833968.726923,
+    "ast_hash": "717a4c8873785976c421791e446a7744",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\model\\HistoricalSeries.kt": {
+    "mtime": 1779475733.457087,
+    "ast_hash": "8493552abd489e408a9154e77891dccd",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\model\\HistoricalSeriesPoint.kt": {
+    "mtime": 1779475733.457087,
+    "ast_hash": "ac80f5a016128536e728c07829032869",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\model\\MfaDtos.kt": {
+    "mtime": 1779922126.7150214,
+    "ast_hash": "e8067072637bf368402758d5ded35797",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\model\\MoatDtos.kt": {
+    "mtime": 1779475733.4580855,
+    "ast_hash": "4c404271b3fae9034fe446940eac248e",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\model\\RuleEngineResultResponse.kt": {
+    "mtime": 1779833968.726923,
+    "ast_hash": "3267a26c22ecb97830bfe36f3cfab622",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\model\\ScreenerResultPage.kt": {
+    "mtime": 1779475733.4595952,
+    "ast_hash": "6d294d5e2624d5fd16d9894b85bf5d26",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\model\\SearchResultList.kt": {
+    "mtime": 1779475733.4606383,
+    "ast_hash": "9019cfc6c41e9541e6f74e64862eb7c1",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\model\\StockProfile.kt": {
+    "mtime": 1779475733.4606383,
+    "ast_hash": "f4535a2e3a40d765094d8ea4eecc21cc",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\model\\TopPicksPageResponse.kt": {
+    "mtime": 1779833968.7289388,
+    "ast_hash": "f3d71815dfc56bd89bb00ec1ae8388fc",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\api\\model\\WatchlistDtos.kt": {
+    "mtime": 1779475733.461942,
+    "ast_hash": "86bb887700e9fd51cfcab7731355b486",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\client\\HibpClient.kt": {
+    "mtime": 1779855189.6230774,
+    "ast_hash": "0411cc8fef9980e6ca934100a6518cc8",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\client\\HibpClientRestClient.kt": {
+    "mtime": 1779855194.7866073,
+    "ast_hash": "017062404c4e30cc9c5b428c9d30df43",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\client\\TurnstileClient.kt": {
+    "mtime": 1779923989.3229964,
+    "ast_hash": "0bee9ad80c67fb2737e76ebee23f56fb",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\client\\TurnstileRestClient.kt": {
+    "mtime": 1779925314.9526613,
+    "ast_hash": "3f9ffb8289252c13572ecc22b3095e27",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\config\\AnalysisVaryHeaderFilter.kt": {
+    "mtime": 1779475733.4629543,
+    "ast_hash": "fee7ceefae2ec3ae075533350181bae1",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\config\\AppProperties.kt": {
+    "mtime": 1779996936.342262,
+    "ast_hash": "62e1b9d64c74afeeaac531990f299f5f",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\config\\AsyncConfig.kt": {
+    "mtime": 1779479366.468781,
+    "ast_hash": "a5a3641da829f10c1d4c414dbc3ede05",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\config\\BruteForceProperties.kt": {
+    "mtime": 1779923968.3714745,
+    "ast_hash": "6dc37161a0a08a17fa626bd70912211e",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\config\\ChunkingProperties.kt": {
+    "mtime": 1779833968.7309597,
+    "ast_hash": "05c287ba96511a5ccc1eec5ebc112b07",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\config\\ClockConfig.kt": {
+    "mtime": 1779475733.464954,
+    "ast_hash": "e7da76ff68f0147d84facf5e64f0a1ca",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\config\\CorsConfig.kt": {
+    "mtime": 1779475733.4659553,
+    "ast_hash": "26caa904f7775a11ba8868c86ea5f350",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\config\\CsrfTokenConfig.kt": {
+    "mtime": 1779857792.0851755,
+    "ast_hash": "bf87d1c6ca3e369a72c297b582dab160",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\config\\EmbeddingsProperties.kt": {
+    "mtime": 1779833968.7309597,
+    "ast_hash": "bf5ce089b710c180793274d5c2bc30dc",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\config\\FlatteningProblemDetailHttpMessageConverter.kt": {
+    "mtime": 1779996936.3262627,
+    "ast_hash": "364be8bb9d264e71512794b87a42862e",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\config\\FmpCacheProperties.kt": {
+    "mtime": 1779477465.0154338,
+    "ast_hash": "596cc58c583fe93a95abc1f9d9b16afd",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\config\\FmpEventLogProperties.kt": {
+    "mtime": 1779833968.7330756,
+    "ast_hash": "e09865e8842f6e5502f5303b14a4dc85",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\config\\FmpRateLimitProperties.kt": {
+    "mtime": 1779477495.0290666,
+    "ast_hash": "9f7ed88f5e978f411871657f67b3f848",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\config\\JacksonConfig.kt": {
+    "mtime": 1779477500.925853,
+    "ast_hash": "850bb5d96cd3f03f1fa3e7c7a9cdc998",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\config\\OpenApiConfig.kt": {
+    "mtime": 1779475733.4679582,
+    "ast_hash": "b4c5a7ea388cc6600a62dc35b1bdfb16",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\config\\PiiRedactionConfig.kt": {
+    "mtime": 1779833968.7330756,
+    "ast_hash": "248a94441c340308c57edcdc4d900229",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\config\\ProblemDetailMvcConfig.kt": {
+    "mtime": 1779996936.377076,
+    "ast_hash": "00c997107bafa7d7c0913755b2e346c7",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\config\\RateLimitingProperties.kt": {
+    "mtime": 1779856739.770836,
+    "ast_hash": "a3d8e4da1233b17325cff3d4df0d9d44",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\config\\RestClientConfig.kt": {
+    "mtime": 1779866958.6984036,
+    "ast_hash": "013d789590e817407dbb8bf4ea734ecc",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\config\\SecurityHeadersConfig.kt": {
+    "mtime": 1779916398.7673392,
+    "ast_hash": "e907b036569ed9dbf41546fc59e805f4",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\config\\SpaRoutingConfig.kt": {
+    "mtime": 1779833968.7350912,
+    "ast_hash": "10b935044edb88b0d0030f2622c35ae0",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\config\\TestAsyncConfig.kt": {
+    "mtime": 1779479822.1280499,
+    "ast_hash": "314c0a2f95cee1e979afcfeadcd3716f",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\config\\TurnstileProperties.kt": {
+    "mtime": 1779923975.0772498,
+    "ast_hash": "5ff142446ab3bf7db51dbf8c213b37dd",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\contextflags\\ContextFlags.kt": {
+    "mtime": 1779833968.7371051,
+    "ast_hash": "f58bce902ef8e196edd425d4a4251296",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\contextflags\\LongTermTrendEvaluator.kt": {
+    "mtime": 1779833968.7381191,
+    "ast_hash": "469718ef39b142379e8eefb96d5f110c",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\contextflags\\LongTermTrendFlag.kt": {
+    "mtime": 1779833968.74004,
+    "ast_hash": "cb920afcea03c2265cec8d51ea839648",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\contextflags\\LongTermTrendSignal.kt": {
+    "mtime": 1779833968.74004,
+    "ast_hash": "42ef7d4e51d81485884296fbba38b5ff",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\contextflags\\MrMarketRsiFlag.kt": {
+    "mtime": 1779833968.7415597,
+    "ast_hash": "c75413227b9068408889b9f7c1a4453b",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\contextflags\\MrMarketRsiSignal.kt": {
+    "mtime": 1779833968.7415597,
+    "ast_hash": "b5934c50c1b5a794b342f940cd35e3eb",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\contextflags\\RsiContextEvaluator.kt": {
+    "mtime": 1779833968.7437792,
+    "ast_hash": "d37c3e68ade5de779e921bc1a2145b75",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\domain\\GicsSector.kt": {
+    "mtime": 1779475733.4694676,
+    "ast_hash": "3f966b72253f1fc1c83e4bdf6c01d6ed",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\domain\\MarketCapBand.kt": {
+    "mtime": 1779475733.470477,
+    "ast_hash": "a391e414075279bd044e2dfc5ea835bd",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\fmp\\FmpAdapter.kt": {
+    "mtime": 1779833968.7437792,
+    "ast_hash": "896a4ebb4c3636bc531c02aedb3c4422",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\fmp\\FmpAdapterRestClient.kt": {
+    "mtime": 1779833968.745792,
+    "ast_hash": "7f88bc4ca3bd640309c1b9e128c29d74",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\fmp\\FmpCacheService.kt": {
+    "mtime": 1779477473.4130232,
+    "ast_hash": "58e2d4615ea3c47fe8f5460b1a6b892d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\fmp\\FmpEventLogger.kt": {
+    "mtime": 1779475733.476341,
+    "ast_hash": "30e177edcd8726ea5f2d50f0d9fbd7e1",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\fmp\\FmpEventLogMaintenanceJob.kt": {
+    "mtime": 1779833968.745792,
+    "ast_hash": "6e903714353b48c5e7f8869607b880e6",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\fmp\\FmpExceptions.kt": {
+    "mtime": 1779475733.4773376,
+    "ast_hash": "e84cef4c6fe8039beb3d46797ff4f1be",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\fmp\\FmpHealthIndicator.kt": {
+    "mtime": 1779833968.7483666,
+    "ast_hash": "8c1946fc57d4c10c5f7fe3f0358dddaa",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\fmp\\FmpResilienceConfig.kt": {
+    "mtime": 1779833968.7483666,
+    "ast_hash": "2d420169023ab84a74890c1ba710b13b",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\fmp\\ResilientFmpAdapter.kt": {
+    "mtime": 1779833968.7503815,
+    "ast_hash": "b606c6acbe02c0dde53b309fd29ea1d9",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\fmp\\dto\\BalanceSheetDto.kt": {
+    "mtime": 1779833968.7503815,
+    "ast_hash": "1d30eb61615508b1bfc1d0482c1f7e84",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\fmp\\dto\\CashFlowDto.kt": {
+    "mtime": 1779833968.7523959,
+    "ast_hash": "06abaa9d36403093e6d4881a2829d828",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\fmp\\dto\\DividendRecord.kt": {
+    "mtime": 1779833968.7523959,
+    "ast_hash": "45f8a39a08c254fc35afb202a9ecaaa3",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\fmp\\dto\\EodPriceRecord.kt": {
+    "mtime": 1779833968.7523959,
+    "ast_hash": "b1c093e5c00052f0632faf06ea0069c9",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\fmp\\dto\\IncomeStatementDto.kt": {
+    "mtime": 1779833968.7541537,
+    "ast_hash": "deace4be70dd494cc3f78299ff5f2a7d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\fmp\\dto\\KeyMetricsDto.kt": {
+    "mtime": 1779833968.7541537,
+    "ast_hash": "918d302cd1d17b0222001c8954bd4875",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\fmp\\dto\\ProfileDto.kt": {
+    "mtime": 1779833968.7561677,
+    "ast_hash": "e7f2fb71fb70a3a38e786901395e8b04",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\fmp\\dto\\ScreenedStockDto.kt": {
+    "mtime": 1779475733.4865673,
+    "ast_hash": "3b8a2ae85c28d993855b36c017a28922",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\fmp\\dto\\SearchHitDto.kt": {
+    "mtime": 1779833968.7566605,
+    "ast_hash": "177f5c237c25e42b5d1dfe5866840989",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\fmp\\dto\\SecFilingFmpDto.kt": {
+    "mtime": 1779833968.7566605,
+    "ast_hash": "317814915cf2f3f771e3dd21ea9343c5",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\fmp\\dto\\StockNewsItem.kt": {
+    "mtime": 1779833968.7586799,
+    "ast_hash": "c66c1a5e4d302a35fa26ddf64411b7ee",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\fmp\\dto\\TechnicalIndicatorRecord.kt": {
+    "mtime": 1779833968.7586799,
+    "ast_hash": "8b7ffab24a55ee27e9c4538a92178b03",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\job\\BatchResilienceConfig.kt": {
+    "mtime": 1779833968.7586799,
+    "ast_hash": "009d269a210d0eb4cd73d42b24308ac7",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\job\\TopPicksManualTrigger.kt": {
+    "mtime": 1779833968.7606995,
+    "ast_hash": "69c02b1cd72a5f5b162cb64333b79dd8",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\job\\TopPicksProperties.kt": {
+    "mtime": 1779833968.7606995,
+    "ast_hash": "caacefd5ff98e1e97e34843ea4504c0a",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\job\\TopValuePicksJob.kt": {
+    "mtime": 1779833968.7624617,
+    "ast_hash": "dbdb414d969d29b964a66c7243763b87",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\llm\\AnthropicClient.kt": {
+    "mtime": 1779833968.7624617,
+    "ast_hash": "776d8352e967418ab70ebcec2caaff30",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\llm\\AnthropicClientStub.kt": {
+    "mtime": 1779833968.7624617,
+    "ast_hash": "30e5da2c0ebb9e26aa2eaa596b63644f",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\llm\\AnthropicConfig.kt": {
+    "mtime": 1779916513.7977555,
+    "ast_hash": "28fc93300d28a414c92ef920bc474b5e",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\llm\\AnthropicProperties.kt": {
+    "mtime": 1779833968.7646036,
+    "ast_hash": "a3644fdc368f09a10ad73c53c3cb77ca",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\llm\\AnthropicRestClient.kt": {
+    "mtime": 1779996936.4703856,
+    "ast_hash": "60549d2123711ea10d78fcccd4ff427e",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\llm\\LlmBudgetGuard.kt": {
+    "mtime": 1779916461.8761122,
+    "ast_hash": "3d9c00f094d093856d5b6357b805daf6",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\llm\\LlmCostCalculator.kt": {
+    "mtime": 1779916448.4912431,
+    "ast_hash": "e6d2e5690ce6f6ba126e863e6b88a2f3",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\llm\\LlmCostCounterService.kt": {
+    "mtime": 1779916477.14497,
+    "ast_hash": "bcde55b7bad1983c55848622ce0fb7fc",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\llm\\LlmException.kt": {
+    "mtime": 1779833968.7666242,
+    "ast_hash": "8ee0e31c9986dfcf7c7c8fa429aebca8",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\llm\\LlmFrozenException.kt": {
+    "mtime": 1779916454.428942,
+    "ast_hash": "b88082f3fe1067301877cf1ce4712909",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\llm\\LlmPricingProperties.kt": {
+    "mtime": 1779916441.2562177,
+    "ast_hash": "1c45c958b6739c0fc569e4ea0cfd8705",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\llm\\LlmRequest.kt": {
+    "mtime": 1779833968.7666242,
+    "ast_hash": "9a77115afb81f6f4e47b3ac0dd436dcf",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\llm\\LlmResilienceConfig.kt": {
+    "mtime": 1779833968.768639,
+    "ast_hash": "58ee515e572caf93e7c95cee3be3d7c1",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\llm\\LlmResponse.kt": {
+    "mtime": 1779833968.768639,
+    "ast_hash": "6acb559d3d9825cf035630c26d1774d6",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\logging\\PiiRedactionEncoder.kt": {
+    "mtime": 1779833968.768639,
+    "ast_hash": "cfd87e6756d3f510d5d37892770501ed",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\entity\\DcfMethodOverrideEntity.kt": {
+    "mtime": 1779475733.48951,
+    "ast_hash": "58726ed7d924038b860bd3c76f6a12c2",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\entity\\DeepAnalysisEventLogEntity.kt": {
+    "mtime": 1779833968.7706594,
+    "ast_hash": "6c2e581e35adb7672802137894adebcc",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\entity\\DeepAnalysisReportEntity.kt": {
+    "mtime": 1779833968.7726743,
+    "ast_hash": "a3c703cf50b3d806d8eb01e50e8e1129",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\entity\\FilingBlobEntity.kt": {
+    "mtime": 1779833968.7726743,
+    "ast_hash": "ecc3e5e4967297d7ba135328b37c0bfd",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\entity\\FilingChunkEntity.kt": {
+    "mtime": 1779833968.773631,
+    "ast_hash": "21235c427de48a6a24b0d3075ad89a23",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\entity\\FmpApiEventLog.kt": {
+    "mtime": 1779475733.4909353,
+    "ast_hash": "b8e6418a4a9a1e5fe87551ab05f3e694",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\entity\\FmpFinancialSnapshot.kt": {
+    "mtime": 1779475733.4919486,
+    "ast_hash": "2c9942cfd0b3cc204cd37bf5628f2f15",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\entity\\FmpProfileSnapshot.kt": {
+    "mtime": 1779475733.4930723,
+    "ast_hash": "d36191bdb9cc1491cc60bde7572de283",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\entity\\LlmBudgetConfigEntity.kt": {
+    "mtime": 1779833968.773631,
+    "ast_hash": "90a94214816d12ade27f5352ab884056",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\entity\\LlmCallLogEntity.kt": {
+    "mtime": 1779833968.775772,
+    "ast_hash": "2311542379c69bca73e37c906b63a074",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\entity\\LlmCostCounterEntity.kt": {
+    "mtime": 1779833968.775772,
+    "ast_hash": "1549ad71bc0ba14d0dce5086f8abb012",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\entity\\LoginAttemptEntity.kt": {
+    "mtime": 1779856728.3143718,
+    "ast_hash": "052f0ba411279a892d30d9178cb544da",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\entity\\MfaSecretEntity.kt": {
+    "mtime": 1779921756.971836,
+    "ast_hash": "febdd680d207d6c597e5272a9294d3c5",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\entity\\MoatChecklistEntry.kt": {
+    "mtime": 1779475733.4940822,
+    "ast_hash": "1377fe8f162751b8b312d097b386ca21",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\entity\\NewsClassificationEntity.kt": {
+    "mtime": 1779833968.7772882,
+    "ast_hash": "76839ab727eb67d88c99fa0a8cf24dda",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\entity\\PriceActionSnapshotEntity.kt": {
+    "mtime": 1779833968.7772882,
+    "ast_hash": "ccf397ffcadf6baa43fc9b89f5eaddcf",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\entity\\RefreshToken.kt": {
+    "mtime": 1779475733.4950857,
+    "ast_hash": "e316d015f4838976aadf4ba68fc8d8ea",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\entity\\RuleEngineResultEntity.kt": {
+    "mtime": 1779475733.4950857,
+    "ast_hash": "bf2daf30f121b7f1ccfdcdeef22deac1",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\entity\\Stock.kt": {
+    "mtime": 1779475733.4960935,
+    "ast_hash": "f0e1d5a2abb7e893e9d80819c2d650ae",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\entity\\TopPicksRunLogEntity.kt": {
+    "mtime": 1779833968.7790456,
+    "ast_hash": "3d158bfbff7f9fffad68a14dc2ffaf0c",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\entity\\TopValuePickEntity.kt": {
+    "mtime": 1779833968.7790456,
+    "ast_hash": "6616ab5f91032a05d1c507d35b15de01",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\entity\\User.kt": {
+    "mtime": 1779475733.497086,
+    "ast_hash": "6df6e1bc2e32190646b6ea4eaa5525b3",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\entity\\Watchlist.kt": {
+    "mtime": 1779475733.4980836,
+    "ast_hash": "6e8b9a4223a43a85a11a2d46223c1c7a",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\entity\\WatchlistItem.kt": {
+    "mtime": 1779475733.4980836,
+    "ast_hash": "92117b9eee1e923eddb87f792ae96bff",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\repository\\DcfMethodOverrideRepository.kt": {
+    "mtime": 1779475733.49953,
+    "ast_hash": "85050ac044ece2b53fd2a5f9ca64e37f",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\repository\\DeepAnalysisEventLogRepository.kt": {
+    "mtime": 1779833968.781061,
+    "ast_hash": "2243d128bf407944f77889e86f13efaa",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\repository\\DeepAnalysisReportRepository.kt": {
+    "mtime": 1779833968.781061,
+    "ast_hash": "c4b761507e50317b1445d014796a1371",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\repository\\FilingBlobRepository.kt": {
+    "mtime": 1779833968.783074,
+    "ast_hash": "f9acb79c76e60e14280b718edc7794a8",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\repository\\FilingChunkRepository.kt": {
+    "mtime": 1779833968.784592,
+    "ast_hash": "96fdb87440dc56934718120aac6aead5",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\repository\\FmpApiEventLogRepository.kt": {
+    "mtime": 1779477577.4780996,
+    "ast_hash": "b1dc67db745b789b3fa572745b50ca17",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\repository\\FmpFinancialSnapshotRepository.kt": {
+    "mtime": 1779475733.5005448,
+    "ast_hash": "2005dde01e00a774769aaed8d331bd96",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\repository\\FmpProfileSnapshotRepository.kt": {
+    "mtime": 1779475733.501543,
+    "ast_hash": "dd20de1d226012de55c03d93d08e2ca0",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\repository\\LlmBudgetConfigRepository.kt": {
+    "mtime": 1779833968.784592,
+    "ast_hash": "903ffa4b286bce2eea6f0bc7dee5c867",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\repository\\LlmCallLogRepository.kt": {
+    "mtime": 1779833968.7865913,
+    "ast_hash": "939058e9dba27660ccc950204d229beb",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\repository\\LlmCostCounterRepository.kt": {
+    "mtime": 1779996936.342262,
+    "ast_hash": "94fa81547f809652c342c7e5cf1ff617",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\repository\\LoginAttemptRepository.kt": {
+    "mtime": 1779924038.0417552,
+    "ast_hash": "25b7d169be81e95f84706d15492624d5",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\repository\\MfaSecretRepository.kt": {
+    "mtime": 1779921759.7850008,
+    "ast_hash": "a74e9984ea45d0213c07cf3c071f0d23",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\repository\\MoatChecklistRepository.kt": {
+    "mtime": 1779475733.501543,
+    "ast_hash": "8f165a29461a723452e2269675ef6b3f",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\repository\\NewsClassificationRepository.kt": {
+    "mtime": 1779833968.7865913,
+    "ast_hash": "30b62f5d0c2225ad92d045d5389886c6",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\repository\\PriceActionSnapshotRepository.kt": {
+    "mtime": 1779833968.788613,
+    "ast_hash": "c66249e95e03b8f6578f75479a3d64d9",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\repository\\RefreshTokenRepository.kt": {
+    "mtime": 1779475733.502578,
+    "ast_hash": "f0d4b01fe1975ceec6dddcd5c4502cca",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\repository\\RuleEngineResultRepository.kt": {
+    "mtime": 1779475733.502578,
+    "ast_hash": "6a7f3a4283e001388a22a61b24bb906e",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\repository\\StockRepository.kt": {
+    "mtime": 1779475733.502578,
+    "ast_hash": "61634b13f2ed150e74afb8eda63849d2",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\repository\\TopPicksRunLogRepository.kt": {
+    "mtime": 1779833968.793279,
+    "ast_hash": "959bb947d03c774f0f9003cc3f55e23b",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\repository\\TopValuePickRepository.kt": {
+    "mtime": 1779833968.7950408,
+    "ast_hash": "e55d78315dcbd6d192b29c8e6ff1c569",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\repository\\UserRepository.kt": {
+    "mtime": 1779475733.5035732,
+    "ast_hash": "e72b35d3f2c63c47e2e04328d28baa35",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\repository\\WatchlistItemRepository.kt": {
+    "mtime": 1779475733.5035732,
+    "ast_hash": "937086c686f070cd8aded759421a05a0",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\persistence\\repository\\WatchlistRepository.kt": {
+    "mtime": 1779475733.504644,
+    "ast_hash": "cb32749f4f6208e050b6a8635814b680",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\RuleEngineService.kt": {
+    "mtime": 1779475733.5066566,
+    "ast_hash": "08ad4ac39e9b3c80262bfd2d3d5073fd",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\RuleSignal.kt": {
+    "mtime": 1779475733.507657,
+    "ast_hash": "6c2f379936ffa51b1b44d399e456b92d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\Signal.kt": {
+    "mtime": 1779475733.507657,
+    "ast_hash": "c4d403d57585283039ac51058c2b7b95",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\ValuationRule.kt": {
+    "mtime": 1779475733.5100162,
+    "ast_hash": "c171386fa61fdba9adbff49a12530b1a",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\calculators\\DcfCalculator.kt": {
+    "mtime": 1779996936.4314096,
+    "ast_hash": "af9e7754d3655ca999e6b04b38acb82e",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\calculators\\DcfMethod.kt": {
+    "mtime": 1779475733.513032,
+    "ast_hash": "1b905d217076f8f24401e8ff927ed8a9",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\calculators\\DcfResult.kt": {
+    "mtime": 1779833968.7976725,
+    "ast_hash": "725acc138ddb509aff36aeb557711e4c",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\calculators\\FcfFallbackEstimator.kt": {
+    "mtime": 1779475733.5150342,
+    "ast_hash": "2dce261d921b98d3c4bb676359d6dbc6",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\calculators\\FinancialYearAligner.kt": {
+    "mtime": 1779475733.517034,
+    "ast_hash": "761492c6022d4991ea02a2a540d459a1",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\calculators\\GrahamNumberCalculator.kt": {
+    "mtime": 1779833968.7996895,
+    "ast_hash": "cb78d3ec5c677fea293ce00493970e85",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\calculators\\GrahamResult.kt": {
+    "mtime": 1779475733.5187478,
+    "ast_hash": "2a640b2382f616a408686e18653e12e5",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\calculators\\GreenwaldMaintenanceCapexEstimator.kt": {
+    "mtime": 1779475733.5197558,
+    "ast_hash": "ce28678fd337021ff954e048a398fa47",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\calculators\\MarginOfSafetyEvaluator.kt": {
+    "mtime": 1779833968.8017044,
+    "ast_hash": "68d13ef80bfd118f1b4040219fd3abd9",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\calculators\\RoeCalculator.kt": {
+    "mtime": 1779833968.8017044,
+    "ast_hash": "c813cddc3eab1652a56902deb92dd321",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\feasibility\\DcfFeasibilityCheck.kt": {
+    "mtime": 1779475733.523135,
+    "ast_hash": "3b8a6f0e93376eded790d4303d074357",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\feasibility\\FeasibilityResult.kt": {
+    "mtime": 1779475733.5241365,
+    "ast_hash": "6753502b4bf5f844c1c69991b2ce67b0",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\rules\\CapexIntensityRule.kt": {
+    "mtime": 1779475733.526136,
+    "ast_hash": "e33621f42e3cbc14ad64b342aac0bac4",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\rules\\CurrentRatioRule.kt": {
+    "mtime": 1779475733.526136,
+    "ast_hash": "9492ab7175b8fa904d61b4a5c8497944",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\rules\\DebtToIncomeRule.kt": {
+    "mtime": 1779475733.526136,
+    "ast_hash": "817327325f6dcc764b6815e46a35aec6",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\rules\\DividendContinuityRule.kt": {
+    "mtime": 1779833968.8017044,
+    "ast_hash": "a7cd5a04cf4a2f1d51cc814565cdc7b5",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\rules\\EarningsStabilityRule.kt": {
+    "mtime": 1779833968.803719,
+    "ast_hash": "48799c42c6a8bec5a2d709f1241b18f3",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\rules\\EpsGrowthRule.kt": {
+    "mtime": 1779833968.803719,
+    "ast_hash": "5da40267b5aaf5c114aab553a8a3b16b",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\rules\\GrossMarginRule.kt": {
+    "mtime": 1779475733.538719,
+    "ast_hash": "6c4814c6c452b29a5b660698b7041cf1",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\rules\\NetMarginRule.kt": {
+    "mtime": 1779475733.539727,
+    "ast_hash": "eae328e6d025ad867beeb2e59f017ec3",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\rules\\PbLatestRule.kt": {
+    "mtime": 1779833968.8080423,
+    "ast_hash": "70692c2951118967509b439f49b44cc7",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\rules\\Pe3yAvgRule.kt": {
+    "mtime": 1779833968.8080423,
+    "ast_hash": "9e45b16f548f40a5b10584267954fb4d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\rules\\RoeRule.kt": {
+    "mtime": 1779475733.5407693,
+    "ast_hash": "919c40e2d9f2e91b31f5f95b6d0c79ca",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\rules\\RoicRule.kt": {
+    "mtime": 1779475733.54177,
+    "ast_hash": "1d7615d14dd5934c1409693e57210fc0",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\rules\\SizeRule.kt": {
+    "mtime": 1779833968.8100574,
+    "ast_hash": "c9c18bd79b93702e006dd5b4757c4f4f",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\rules\\TenYearAverage.kt": {
+    "mtime": 1779475733.54228,
+    "ast_hash": "0b93e22903fdd3b4136a4ad83ee56261",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\secedgar\\ResilientSecEdgarAdapter.kt": {
+    "mtime": 1779833968.8108623,
+    "ast_hash": "dc5a4f48e33afe975d65a0940a729ba6",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\secedgar\\SecEdgarAdapter.kt": {
+    "mtime": 1779833968.812878,
+    "ast_hash": "51bfbb559f04424e60dd2f5e2d15f23d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\secedgar\\SecEdgarCacheConfig.kt": {
+    "mtime": 1779833968.8148909,
+    "ast_hash": "a45ad58ef7e7ad29d97d89ec483c99c2",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\secedgar\\SecEdgarExceptions.kt": {
+    "mtime": 1779833968.8148909,
+    "ast_hash": "358470c5cc4845f2be159350c633a1c2",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\secedgar\\SecEdgarProperties.kt": {
+    "mtime": 1779833968.8169055,
+    "ast_hash": "13b8d1f617008803c03c117fcb50465d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\secedgar\\SecEdgarResilienceConfig.kt": {
+    "mtime": 1779833968.8169055,
+    "ast_hash": "83bea8a285682abc9fa558b88abd0471",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\secedgar\\SecEdgarRestClient.kt": {
+    "mtime": 1779833968.8189187,
+    "ast_hash": "66c462ae5f25916a243114a79ce817ff",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\secedgar\\dto\\SecFilingMetadata.kt": {
+    "mtime": 1779833968.822636,
+    "ast_hash": "ea07b0d4ca61943578a66f641159704f",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\security\\JwtAuthenticationFilter.kt": {
+    "mtime": 1779475733.543296,
+    "ast_hash": "a6060c0977c7d28d8a0a0afec2d3cc96",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\security\\JwtService.kt": {
+    "mtime": 1779921787.066934,
+    "ast_hash": "8a2f920b868b32fc9148c19239dc4b8e",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\security\\SecurityConfig.kt": {
+    "mtime": 1779996936.4734042,
+    "ast_hash": "2f7636f85e162cd0cf9f3466e2ebeeee",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\security\\UserDetailsServiceImpl.kt": {
+    "mtime": 1779475733.545671,
+    "ast_hash": "71184dc3e402b448be9150105f67383f",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\security\\UserPrincipal.kt": {
+    "mtime": 1779475733.5466838,
+    "ast_hash": "dc01fa334659901b3c7b7874172f890c",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\security\\filter\\RateLimitingFilter.kt": {
+    "mtime": 1779858921.8629403,
+    "ast_hash": "8c9ecba001517976944c22e23c164a30",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\security\\filter\\RepeatableReadHttpServletRequest.kt": {
+    "mtime": 1779858917.7018125,
+    "ast_hash": "6c45d31d427c0d540556308e3e93b75e",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\AnalyzeTickerService.kt": {
+    "mtime": 1779833968.8261595,
+    "ast_hash": "19ae8179ed1e49b839bc1cdeacf4eeee",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\AuthRateLimitService.kt": {
+    "mtime": 1779859675.7729726,
+    "ast_hash": "291bc707fdc950355dd49893ea6dbeda",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\AuthService.kt": {
+    "mtime": 1779996936.3383994,
+    "ast_hash": "076088ed4a688d7466d49e9afaf9e82e",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\BruteForceExceptions.kt": {
+    "mtime": 1779924052.8181791,
+    "ast_hash": "d96322159f71de4f1677f187902533a3",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\BruteForceProtectionService.kt": {
+    "mtime": 1779925315.9739008,
+    "ast_hash": "190a0686ca019834a83dfda1425ccba6",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\CompromisedPasswordException.kt": {
+    "mtime": 1779855195.3226807,
+    "ast_hash": "94729317d85984c024c73425733e8a8a",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\CompromisedPasswordGuard.kt": {
+    "mtime": 1779855196.336251,
+    "ast_hash": "ec53550df141daca73407b220c4eda6a",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\DcfOverrideService.kt": {
+    "mtime": 1779475733.5522163,
+    "ast_hash": "5f834d9de8a77154fc13dd0591e401a2",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\DeepAnalysisExceptions.kt": {
+    "mtime": 1779833968.8261595,
+    "ast_hash": "0bcbc4c5b77f413ba0e683de942a56b9",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\DeepAnalysisService.kt": {
+    "mtime": 1779996936.3383994,
+    "ast_hash": "acf143d8edce48b3c6d2257656fbddf5",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\EmbeddingService.kt": {
+    "mtime": 1779996936.3262627,
+    "ast_hash": "10bf17e69c55e4c7dabef02d41fa7bf1",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\Filing10KQDownloaderService.kt": {
+    "mtime": 1779833968.8322146,
+    "ast_hash": "416d1d6b2184bb166fb8da9c006b468a",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\FilingChunkingService.kt": {
+    "mtime": 1779833968.8327272,
+    "ast_hash": "21f8e67be6cedd90b101f6c75e087abe",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\FilingRagService.kt": {
+    "mtime": 1779833968.8347132,
+    "ast_hash": "b1e8ad7a95c38bcde12e98e021ad20cc",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\FinancialDataService.kt": {
+    "mtime": 1779475733.5535848,
+    "ast_hash": "cc9f6dfbc8e1ff9e273ae341b6e446af",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\FinancialDataset.kt": {
+    "mtime": 1779833968.8367314,
+    "ast_hash": "0cd3b891578f01e65a4bf16d73672e9f",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\HistoricalSeriesService.kt": {
+    "mtime": 1779475733.5556028,
+    "ast_hash": "284bd038f692cf6d09da5de9a4ddc50c",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\InvalidRefreshTokenException.kt": {
+    "mtime": 1779996936.3262627,
+    "ast_hash": "c7b05c7c58c35302e8cd181515075388",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\LlmBudgetConfigService.kt": {
+    "mtime": 1779916364.6324413,
+    "ast_hash": "85d8b17687ff59832787421fbc68d5bd",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\MfaExceptions.kt": {
+    "mtime": 1779921810.956983,
+    "ast_hash": "fabdcbcadc204528a974f9e437408f2a",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\MfaService.kt": {
+    "mtime": 1779921831.2270617,
+    "ast_hash": "19956cefa97f58e34039d54ca5c226a9",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\MoatChecklistService.kt": {
+    "mtime": 1779475733.558071,
+    "ast_hash": "04fa36423d61edac96cebdb613f762cf",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\MungerDecisionService.kt": {
+    "mtime": 1779833968.838491,
+    "ast_hash": "d6a208504e5d4d14746024dd2e0cd55f",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\MungerInversionAnalyzer.kt": {
+    "mtime": 1779996936.4314096,
+    "ast_hash": "8c7f216e0cd504094358e7f3442a0c9b",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\MungerInversionReport.kt": {
+    "mtime": 1779833968.8401873,
+    "ast_hash": "3b43faaebde230890289b1704c3e3d4e",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\MungerPromptContextBuilder.kt": {
+    "mtime": 1779840529.8233163,
+    "ast_hash": "3c62501601135b7d58a47fe2d091afe2",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\MungerQueries.kt": {
+    "mtime": 1779833968.842368,
+    "ast_hash": "aaf854f6398f430e98678fe44a7eb3a0",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\NewsSentimentService.kt": {
+    "mtime": 1779833968.842368,
+    "ast_hash": "98959873f398c93acd42233aacc3b8ba",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\PositionSizeCalculator.kt": {
+    "mtime": 1779833968.844383,
+    "ast_hash": "205cb8ebdccc29eb8010ddd16162d0b6",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\PositionSizeResult.kt": {
+    "mtime": 1779833968.8448958,
+    "ast_hash": "f6cbaa4843f8903f02b021c4d851a9d2",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\PriceActionAnalyzer.kt": {
+    "mtime": 1779833968.8448958,
+    "ast_hash": "51b0cc9b91528e887aff478d22bc4ea1",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\ScreenerCriteria.kt": {
+    "mtime": 1779475733.558071,
+    "ast_hash": "0a17dfb6564c6fc594fea39a95ac0d9b",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\SearchService.kt": {
+    "mtime": 1779475733.5595953,
+    "ast_hash": "119d7d94f7f960e3f04a930b9a339857",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\SecurityEventLogger.kt": {
+    "mtime": 1779833968.8448958,
+    "ast_hash": "49a7a1fed4b75fae6a953579df56ca7d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\TopPicksQueryService.kt": {
+    "mtime": 1779833968.847103,
+    "ast_hash": "9ee088dcce465e7b7439cbea90d14654",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\TotpService.kt": {
+    "mtime": 1779856778.6573677,
+    "ast_hash": "409aa4dc3e0c71a2022272cfb9f7365c",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\VerdictClass.kt": {
+    "mtime": 1779833968.847103,
+    "ast_hash": "4e5d6cdd7e03994914fcbe9a8153b33c",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\WatchlistService.kt": {
+    "mtime": 1779475733.5608494,
+    "ast_hash": "7047c66dc494ff2961334d5b66c6379b",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\exception\\DcfMethodUnfeasibleException.kt": {
+    "mtime": 1779475733.5622685,
+    "ast_hash": "8a08a66aaf1215b7032872dba3ef2cd1",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\service\\exception\\DcfOverrideNotFoundException.kt": {
+    "mtime": 1779475733.5632825,
+    "ast_hash": "a4b654c8f41af894fb67a0e7c9a2070b",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\universe\\InstitutionalHoldingsProperties.kt": {
+    "mtime": 1779833968.849126,
+    "ast_hash": "f97a287bbd5194c75a4f08464e6556fc",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\universe\\InstitutionalHoldingsProvider.kt": {
+    "mtime": 1779833968.849126,
+    "ast_hash": "7c548804f32d0f8d23adc1898166762e",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\universe\\InstitutionalHoldingsService.kt": {
+    "mtime": 1779833968.8531551,
+    "ast_hash": "d4e637a911ae77a7cffcc7df58f843c6",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\universe\\NewsScoutProperties.kt": {
+    "mtime": 1779833968.8549125,
+    "ast_hash": "bd1a5e868707a37c11207a8bf8f7f00a",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\universe\\NewsScoutProvider.kt": {
+    "mtime": 1779833968.8565397,
+    "ast_hash": "51dfd50f678cfed03b7ee9c53ce719bd",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\universe\\NewsScoutService.kt": {
+    "mtime": 1779833968.8577864,
+    "ast_hash": "91df5b483995e9f79f09b33ec1761887",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\universe\\NoopInstitutionalHoldingsProvider.kt": {
+    "mtime": 1779833968.858809,
+    "ast_hash": "32d7c3e43f8d7b4bc984fb828aa383e2",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\universe\\NoopNewsScoutProvider.kt": {
+    "mtime": 1779833968.8608205,
+    "ast_hash": "cc51ef6d5b85349e0ae73c66813bf22d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\universe\\SectorConstants.kt": {
+    "mtime": 1779833968.8608205,
+    "ast_hash": "67f94308f09588a47a7cc0bca0292e04",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\universe\\UniverseCacheConfig.kt": {
+    "mtime": 1779833968.8628354,
+    "ast_hash": "10b6122118f72c5998b03ea6a56276d5",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\universe\\UniverseCandidate.kt": {
+    "mtime": 1779833968.8649075,
+    "ast_hash": "46d5749a1a946c6d2100f171479e791a",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\universe\\UniverseProperties.kt": {
+    "mtime": 1779918156.8748071,
+    "ast_hash": "5722621c9eab5ca584694fa0fa48a9d5",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\kotlin\\com\\valueinvesting\\webapp\\universe\\UniverseScreenerService.kt": {
+    "mtime": 1779918137.2071464,
+    "ast_hash": "86f64eba3c18e98f5cd2bd5510bafcbc",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\resources\\db\\migration\\V001__create_users_and_auth.sql": {
+    "mtime": 1779475733.568313,
+    "ast_hash": "af129e02a61d002efcde126c9f2b1237",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\resources\\db\\migration\\V002__create_stocks.sql": {
+    "mtime": 1779475733.5693128,
+    "ast_hash": "89bda52fd6728eb9ca6694c0e57d9b5b",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\resources\\db\\migration\\V003__create_fmp_cache.sql": {
+    "mtime": 1779475733.5718367,
+    "ast_hash": "8097a753e0818c1d64dc1dcb39e5149b",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\resources\\db\\migration\\V004__create_rule_engine_result.sql": {
+    "mtime": 1779475733.5730464,
+    "ast_hash": "caf114bae0f98f37bbd2dadf2ea18c4a",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\resources\\db\\migration\\V005__create_watchlists.sql": {
+    "mtime": 1779475733.5730464,
+    "ast_hash": "04fe899653d500c49f2e0630848dd3af",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\resources\\db\\migration\\V006__create_moat_checklist.sql": {
+    "mtime": 1779475733.5740604,
+    "ast_hash": "2a0c177f3317ef44ba0386e98b5e0753",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\resources\\db\\migration\\V007__create_dcf_overrides.sql": {
+    "mtime": 1779475733.5750594,
+    "ast_hash": "d759b37cbf0eac8dd4365c0658bb95b7",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\resources\\db\\migration\\V008__create_fmp_event_log.sql": {
+    "mtime": 1779475733.5760598,
+    "ast_hash": "8d0f24f379a977ac76502f584a6c92c5",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\resources\\db\\migration\\V010__fmp_dividend_history_snapshot.sql": {
+    "mtime": 1779833968.8689373,
+    "ast_hash": "ce6e4cedcf762cbd790afb47a5fa0bee",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\resources\\db\\migration\\V011__fmp_cache_add_dividends_endpoint.sql": {
+    "mtime": 1779833968.8689373,
+    "ast_hash": "30b609e829ee443eb06e8647e2dcca12",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\resources\\db\\migration\\V012__fmp_cache_add_sec_filings_endpoint.sql": {
+    "mtime": 1779833968.8706968,
+    "ast_hash": "cb50a6975982aeee1d50303f61bba5c7",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\resources\\db\\migration\\V013__filing_blob.sql": {
+    "mtime": 1779833968.8706968,
+    "ast_hash": "86d4829f61490b82966e6d0dd045acb7",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\resources\\db\\migration\\V014__pgvector_enable_filing_chunks.sql": {
+    "mtime": 1779833968.8727126,
+    "ast_hash": "3a3705a02e29cc1bc9d87857c87e0376",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\resources\\db\\migration\\V015__llm_cost_tracking.sql": {
+    "mtime": 1779833968.8733394,
+    "ast_hash": "e210d984ecb6730f5e01a93f04a680f1",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\resources\\db\\migration\\V016__news_sentiment_analysis.sql": {
+    "mtime": 1779833968.8750212,
+    "ast_hash": "f97ebde5ce877edd007672ce0df57715",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\resources\\db\\migration\\V017__price_action_snapshot.sql": {
+    "mtime": 1779833968.8750212,
+    "ast_hash": "6d135e51fd67a298e8a28563c3ce81d0",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\resources\\db\\migration\\V018__filing_analysis.sql": {
+    "mtime": 1779833968.877537,
+    "ast_hash": "24b2ce518d65a4df871d6e2b0d9b495a",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\resources\\db\\migration\\V019__deep_analysis_event_log.sql": {
+    "mtime": 1779833968.877537,
+    "ast_hash": "9f8d940df7d54e978b0d4d659759bfa3",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\resources\\db\\migration\\V020__fmp_cache_add_company_screener_endpoint.sql": {
+    "mtime": 1779833968.8795865,
+    "ast_hash": "fe96359e25d555ec445b32c6f7cdb142",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\resources\\db\\migration\\V021__fmp_cache_add_search_cusip_endpoint.sql": {
+    "mtime": 1779833968.8805993,
+    "ast_hash": "51bb0d8fce608efc5ee3cf9f18133ee0",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\resources\\db\\migration\\V022__top_value_picks.sql": {
+    "mtime": 1779833968.8805993,
+    "ast_hash": "12f192da5eb079ae62dfa93c4fa30e1f",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\resources\\db\\migration\\V023__top_picks_run_log.sql": {
+    "mtime": 1779833968.8826134,
+    "ast_hash": "86b6258928ffb358d171d77dce9f3405",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\resources\\db\\migration\\V024__fmp_cache_add_technical_indicators_endpoints.sql": {
+    "mtime": 1779833968.8826134,
+    "ast_hash": "d922db9d4c5ada780b8849af9fb5f8fc",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\resources\\db\\migration\\V025__create_login_attempts.sql": {
+    "mtime": 1779855154.4720545,
+    "ast_hash": "3986b601c5179e84dda5325c5c64adea",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\ContextLoadsTest.kt": {
+    "mtime": 1779475733.5795693,
+    "ast_hash": "ec7191d0ea6f51311011ae6117806300",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\api\\AnalysisControllerIT.kt": {
+    "mtime": 1779833968.8847992,
+    "ast_hash": "5c8343e31abf067660e336da3e974b64",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\api\\AnalysisControllerWebMvcTest.kt": {
+    "mtime": 1779477802.5016265,
+    "ast_hash": "54d2dc67f63b5cc39de735e333955183",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\api\\AuthControllerContractTest.kt": {
+    "mtime": 1779857689.2994208,
+    "ast_hash": "d2d552a08e3f605de007f4496f70bf5e",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\api\\AuthControllerIT.kt": {
+    "mtime": 1779857683.883351,
+    "ast_hash": "2615f43bc5ad96177c8eae5e596c5fca",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\api\\AuthOpenApiSchemaContractTest.kt": {
+    "mtime": 1779845633.191996,
+    "ast_hash": "4ff17d1f1f5e8996c60259cf707d5f0e",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\api\\AuthStorageSecurityIT.kt": {
+    "mtime": 1779857686.4966629,
+    "ast_hash": "91c430530496bbf9f1e21b1042e44110",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\api\\CspCsrfSecurityIT.kt": {
+    "mtime": 1779923694.5951934,
+    "ast_hash": "36be1b7c76a691632d33741e4a99cb48",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\api\\DcfOverrideContractTest.kt": {
+    "mtime": 1779857696.8293245,
+    "ast_hash": "0682afbc6cb8f6032f1a4f6426216906",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\api\\DeepAnalysisContractTest.kt": {
+    "mtime": 1779833968.8900855,
+    "ast_hash": "357f711144a6ed759aace13ec9146484",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\api\\DeepAnalysisE2eTest.kt": {
+    "mtime": 1779833968.8900855,
+    "ast_hash": "77bd6005675aa37de62cf1fe7bc8ed58",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\api\\DeepAnalysisIntegrationTest.kt": {
+    "mtime": 1779833968.892139,
+    "ast_hash": "c7c4e870eec60d7b80b79c3525311c6e",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\api\\DefenseInDepthIT.kt": {
+    "mtime": 1779857845.7389536,
+    "ast_hash": "6f6cf129d57b34ba13292059167ad177",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\api\\GrahamRulesIntegrationTest.kt": {
+    "mtime": 1779833968.8931515,
+    "ast_hash": "da6ccaeca34b053175dfd40ff7ef5310",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\api\\HistoricalControllerWebMvcTest.kt": {
+    "mtime": 1779481489.2462306,
+    "ast_hash": "41a7be538b9320bd0f3b8f2b6f70dfe6",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\api\\LlmBudgetAdminIT.kt": {
+    "mtime": 1779916866.1053896,
+    "ast_hash": "59350c6095ce05ae3d9b74329ca99042",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\api\\MfaControllerIT.kt": {
+    "mtime": 1779998953.567889,
+    "ast_hash": "18f1912d221b097efc84fcb8117db3ab",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\api\\MoatChecklistControllerIT.kt": {
+    "mtime": 1779857702.3487148,
+    "ast_hash": "787bbdafb912ef3ac43e4fe634626b74",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\api\\ScreenerControllerWebMvcTest.kt": {
+    "mtime": 1779477807.44434,
+    "ast_hash": "f3dfe2a07ed658eeeddcadb76c927501",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\api\\SearchControllerIT.kt": {
+    "mtime": 1779833968.8972864,
+    "ast_hash": "12263568b3522ec706d832f8253f77e6",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\api\\SearchControllerWebMvcTest.kt": {
+    "mtime": 1779481487.527031,
+    "ast_hash": "13791c1bcd359e70b8c89c90370e924f",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\api\\TopPicksControllerIntegrationTest.kt": {
+    "mtime": 1779833968.8972864,
+    "ast_hash": "3bcd9e2cc431f47cf32f8b93a1538a87",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\api\\WatchlistControllerIT.kt": {
+    "mtime": 1779857699.0114331,
+    "ast_hash": "d3581426966f072b237256600691457b",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\api\\filter\\CorrelationIdFilterIT.kt": {
+    "mtime": 1779833968.8992958,
+    "ast_hash": "384227f2dba27145ae18bce98690a1d4",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\client\\HibpClientRestClientTest.kt": {
+    "mtime": 1779866613.7830365,
+    "ast_hash": "712f9e674c2f1bcc70f6018ff24c2f36",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\client\\HibpWireMockIT.kt": {
+    "mtime": 1779923712.2911274,
+    "ast_hash": "be3f1b90e8be44d4270fc17ee786d670",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\config\\FlatteningProblemDetailHttpMessageConverterTest.kt": {
+    "mtime": 1779481495.417223,
+    "ast_hash": "27d99e182373162be663816ddc73b391",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\config\\FmpRateLimitPropertiesTest.kt": {
+    "mtime": 1779477512.66355,
+    "ast_hash": "8144d04f887ec1805979eae6c8ce2112",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\config\\SecurityHeadersConfigTest.kt": {
+    "mtime": 1779916415.679631,
+    "ast_hash": "ee9a2675a11b59e08e31c22c74b4c8c9",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\config\\SecurityHeadersIT.kt": {
+    "mtime": 1779855171.113099,
+    "ast_hash": "f2b714b153032771d39b2e29fd304d7d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\contextflags\\LongTermTrendEvaluatorTest.kt": {
+    "mtime": 1779833968.9013107,
+    "ast_hash": "3f93b0304a69e9fd1fc47db68dc4c35d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\contextflags\\RsiContextEvaluatorTest.kt": {
+    "mtime": 1779833968.90307,
+    "ast_hash": "e4b301d23e9a7079aeb99f5218e6678f",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\contract\\OpenApiContractIT.kt": {
+    "mtime": 1779833968.90307,
+    "ast_hash": "aca9bcfbbb0452690ab5493e6cf6d3a8",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\contract\\OpenApiContractSupport.kt": {
+    "mtime": 1779475733.593516,
+    "ast_hash": "2a93b919c761042cd169e38e88cd9a8a",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\contract\\OpenApiContractSupportTest.kt": {
+    "mtime": 1779475733.594517,
+    "ast_hash": "fc96daab6663863c641ed908efd1f1b7",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\contract\\OpenApiContractValidator.kt": {
+    "mtime": 1779475733.595564,
+    "ast_hash": "79c87bcb12ef0b48785b7f7efc9dac19",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\contract\\OpenApiContractValidatorTest.kt": {
+    "mtime": 1779475733.595564,
+    "ast_hash": "b939cb74ad2a9f4eb9100939ff2338e3",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\contract\\RuleSignalEnumContractTest.kt": {
+    "mtime": 1779833968.9056091,
+    "ast_hash": "80da813ff6c2cf2c5ad5d85108344dc9",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\fmp\\Fmp429RetryWireMockIT.kt": {
+    "mtime": 1779833968.906981,
+    "ast_hash": "0a742bfcc6a883a9f050bd75562e3d29",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\fmp\\FmpAdapterDividendHistoryTest.kt": {
+    "mtime": 1779833968.906981,
+    "ast_hash": "8f0ea173ab0f50e15e1a78f36616c237",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\fmp\\FmpAdapterRestClientTest.kt": {
+    "mtime": 1779833968.908718,
+    "ast_hash": "2c56cc98e9310f550e3196718eb31404",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\fmp\\FmpAdapterTechnicalIndicatorTest.kt": {
+    "mtime": 1779833968.9107838,
+    "ast_hash": "a2cb4d5db956fc61d0f27eb483fd1390",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\fmp\\FmpCacheServiceTest.kt": {
+    "mtime": 1779477640.7298043,
+    "ast_hash": "33727b7ebde75df60c6dba174c8d6350",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\fmp\\FmpEventLogMaintenanceJobTest.kt": {
+    "mtime": 1779477585.2502532,
+    "ast_hash": "29e2d4241f94196930a124dd0c027df6",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\fmp\\FmpFixtureFactory.kt": {
+    "mtime": 1779833968.9107838,
+    "ast_hash": "8196699cca8fff66e0446c955e41479d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\fmp\\FmpFixtureLoader.kt": {
+    "mtime": 1779475733.6005757,
+    "ast_hash": "9fa8e0edada3bfe2d5366d17ea728d34",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\fmp\\FmpResilienceConfigTest.kt": {
+    "mtime": 1779477509.5295255,
+    "ast_hash": "8dfc826895cd2b10dac04a8167f6e20f",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\fmp\\GrahamFixtureLoader.kt": {
+    "mtime": 1779833968.9127998,
+    "ast_hash": "2c8f703812eda706becf77ecf45f9c4f",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\job\\TopValuePicksJobTest.kt": {
+    "mtime": 1779833968.9148712,
+    "ast_hash": "89507505ff3866c7ea6f06bc99f1d0bd",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\logging\\GdprRetentionTest.kt": {
+    "mtime": 1779833968.9148712,
+    "ast_hash": "9b9794e5b1eb65e506f396922512ad0e",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\logging\\PiiLeakDetectionTest.kt": {
+    "mtime": 1779833968.9168856,
+    "ast_hash": "772e5bf5ca82de0f2c9b14dd5accaf26",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\logging\\PiiRedactionEncoderTest.kt": {
+    "mtime": 1779833968.9168856,
+    "ast_hash": "7b1ff9c34c28980ed263c5e3f440a98b",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\logging\\StructuredLoggingTest.kt": {
+    "mtime": 1779833968.9189,
+    "ast_hash": "5cbe8758c0974b167ab7ac0be651fcfd",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\persistence\\TopValuePickRepositoryTest.kt": {
+    "mtime": 1779833968.9209175,
+    "ast_hash": "1980ea383092fd5a2139ef471d61c422",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\RuleEngineServiceTest.kt": {
+    "mtime": 1779475733.603579,
+    "ast_hash": "2822daa6396de76a0ec9c8810efa63c8",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\calculators\\DcfCalculatorTest.kt": {
+    "mtime": 1779996936.342262,
+    "ast_hash": "e8e2c40281cdb19eb320e64047ce77f0",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\calculators\\GrahamNumberCalculatorTest.kt": {
+    "mtime": 1779833968.9229672,
+    "ast_hash": "9ca676332acaf769bf6693060f96b08c",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\calculators\\MarginOfSafetyEvaluatorTest.kt": {
+    "mtime": 1779475733.6071022,
+    "ast_hash": "47366dc1070a45f5cfd77bf357ec1acc",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\calculators\\RoeCalculatorTest.kt": {
+    "mtime": 1779833968.9229672,
+    "ast_hash": "55eb5f81e16ee92e6d26b98209dcfe48",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\feasibility\\DcfFeasibilityCheckTest.kt": {
+    "mtime": 1779475733.6081033,
+    "ast_hash": "4c736c92c4a1f2d121f92eada2724be8",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\rules\\CapexIntensityRuleTest.kt": {
+    "mtime": 1779475733.6096115,
+    "ast_hash": "8ab6d87070fb545d2616662d67239ef5",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\rules\\CurrentRatioRuleTest.kt": {
+    "mtime": 1779475733.6117134,
+    "ast_hash": "fd467a391caca9e90abe8d2db021cb53",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\rules\\DebtToIncomeRuleTest.kt": {
+    "mtime": 1779475733.6127248,
+    "ast_hash": "f86e63252241dad61c5add5aa37b9eba",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\rules\\DividendContinuityRuleTest.kt": {
+    "mtime": 1779833968.9252193,
+    "ast_hash": "5a257c428bd8de74ae4c44a6acbbd277",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\rules\\EarningsStabilityRuleTest.kt": {
+    "mtime": 1779833968.9252193,
+    "ast_hash": "0e3038a115cd8132e3099ec8aeb810a6",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\rules\\EpsGrowthRuleTest.kt": {
+    "mtime": 1779833968.9272356,
+    "ast_hash": "f53a1a376eed162a03f95cb0e869f5bb",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\rules\\GrossMarginRuleTest.kt": {
+    "mtime": 1779475733.6137252,
+    "ast_hash": "6807227ca4de737c7999520f7bfe5d3a",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\rules\\NetMarginRuleTest.kt": {
+    "mtime": 1779475733.614724,
+    "ast_hash": "a658ad2059d7fd189e1e1d6bf4ee4a1b",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\rules\\PbLatestRuleTest.kt": {
+    "mtime": 1779833968.9272356,
+    "ast_hash": "42285d19249662a4c1e2ce39262d2061",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\rules\\Pe3yAvgRuleTest.kt": {
+    "mtime": 1779833968.9292517,
+    "ast_hash": "318950041fd7814b31edd627179bf2ae",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\rules\\RoeRuleTest.kt": {
+    "mtime": 1779475733.6157506,
+    "ast_hash": "32d9b00dd0c79153c0d898b3ac405c09",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\rules\\RoicRuleTest.kt": {
+    "mtime": 1779475733.6167622,
+    "ast_hash": "a68a584d77d962c67e120fa3bc810456",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\ruleengine\\rules\\SizeRuleTest.kt": {
+    "mtime": 1779833968.9292517,
+    "ast_hash": "2a1fc2e80666e2d156ce5c8639d6c780",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\secedgar\\SecEdgarRestClientIntegrationTest.kt": {
+    "mtime": 1779833968.9312725,
+    "ast_hash": "0a6576d97e0701f7e1b16d5d2a59ed89",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\security\\filter\\RateLimitingFilterIT.kt": {
+    "mtime": 1779858494.581222,
+    "ast_hash": "98905031fc57fe61ab0910b9b41025a3",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\service\\AuthRateLimitServiceTest.kt": {
+    "mtime": 1779859682.4891095,
+    "ast_hash": "6c4826b85b21074ff2dc7d8254ff7744",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\service\\AuthServiceTest.kt": {
+    "mtime": 1779996936.342262,
+    "ast_hash": "81c304c5333438819bcb2720eaa63cde",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\service\\BruteForceProtectionServiceTest.kt": {
+    "mtime": 1779924454.1873791,
+    "ast_hash": "63d0ba55e5c702bbaaf51e73b2ef37ca",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\service\\CompromisedPasswordGuardTest.kt": {
+    "mtime": 1779855215.821676,
+    "ast_hash": "6edff80248c8fc29cfb96717ce929eac",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\service\\Filing10KQDownloaderServiceTest.kt": {
+    "mtime": 1779833968.9332101,
+    "ast_hash": "c13b1ad7c6089000a9650bd402b03f7d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\service\\FilingChunkingServiceTest.kt": {
+    "mtime": 1779833968.9332101,
+    "ast_hash": "c68f472ed0e2b3fd9e4999d9ee5f25c7",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\service\\FilingRagServiceIntegrationTest.kt": {
+    "mtime": 1779833968.9349751,
+    "ast_hash": "e4df874a46e33a620176846313386a40",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\service\\FinancialDataServiceTest.kt": {
+    "mtime": 1779475733.6197767,
+    "ast_hash": "413011fc4181c5c8fbb366d6d93157f8",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\service\\HistoricalSeriesServiceTest.kt": {
+    "mtime": 1779475733.6208324,
+    "ast_hash": "d9e50a4049ec46335237e59c0c7e0ffd",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\service\\MfaServiceTest.kt": {
+    "mtime": 1779922661.3652673,
+    "ast_hash": "ecc3721f82610fa15fda12a98fd0a125",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\service\\MungerDecisionServiceTest.kt": {
+    "mtime": 1779833968.9349751,
+    "ast_hash": "2aea7b058be3eb99d7289d454f508bb1",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\service\\MungerInversionAnalyzerTest.kt": {
+    "mtime": 1779833968.936991,
+    "ast_hash": "2658f1c716dad1b718bf15975e65f1ed",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\service\\MungerPromptContextBuilderTest.kt": {
+    "mtime": 1779833968.9390068,
+    "ast_hash": "1d3983e404ff807fa9606432048cb914",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\service\\MungerPromptGoldenTest.kt": {
+    "mtime": 1779833968.9400885,
+    "ast_hash": "c84cf683a19b9213f338068fc599cecc",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\service\\NewsSentimentServiceTest.kt": {
+    "mtime": 1779833968.9417083,
+    "ast_hash": "188442f2fa1f33526a6169c96d57365d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\service\\PositionSizeCalculatorTest.kt": {
+    "mtime": 1779833968.9432235,
+    "ast_hash": "d437f708ef56c8bb56bb8570ad981032",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\service\\PriceActionAnalyzerTest.kt": {
+    "mtime": 1779833968.9432235,
+    "ast_hash": "bc66c75b3dc0785af982c5db99fe8128",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\service\\SearchServiceTest.kt": {
+    "mtime": 1779833968.9451828,
+    "ast_hash": "791eb0981c4ae38e2c88387d7690ce0f",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\service\\SecurityEventLoggerTest.kt": {
+    "mtime": 1779833968.9451828,
+    "ast_hash": "8f380bd29d8f1a8e70fdaa7134da724d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\service\\TotpServiceTest.kt": {
+    "mtime": 1779856795.0597458,
+    "ast_hash": "d65a0a369d49d3467746178c2d8f7638",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\service\\VerdictCascadeIntegrationTest.kt": {
+    "mtime": 1779833968.9472032,
+    "ast_hash": "1bd1ce0fdb187906922c96d986ad9854",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\kotlin\\com\\valueinvesting\\webapp\\universe\\UniverseScreenerServiceTest.kt": {
+    "mtime": 1779918237.5177457,
+    "ast_hash": "e9d7b15d385265d7a0f63d87a46c6c78",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fixtures\\munger-golden-response.json": {
+    "mtime": 1779833968.9492188,
+    "ast_hash": "9b4116f5ae2c090ad5e8cd7089debc77",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\balance-sheet-aapl.json": {
+    "mtime": 1779833968.9509785,
+    "ast_hash": "7884b8e66da0a6b526035e7fd42d9aa3",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\cash-flow-aapl.json": {
+    "mtime": 1779833968.9529927,
+    "ast_hash": "f4e223bd964a6075e686e0dbf6c9ca14",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\dividends-aapl-20y.json": {
+    "mtime": 1779833968.9529927,
+    "ast_hash": "13c06ea2e830d4625f732c52540e066d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\empty.json": {
+    "mtime": 1779475733.6245496,
+    "ast_hash": "35d0e0b801444bb1f4c2115720f8e4f6",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\graham-balance-googl.json": {
+    "mtime": 1779833968.9529927,
+    "ast_hash": "621b5bfb053eefd3e320aec6c7036d6c",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\graham-balance-ko.json": {
+    "mtime": 1779833968.955508,
+    "ast_hash": "bba78401c351e414b789920953a67577",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\graham-balance-msft.json": {
+    "mtime": 1779833968.955508,
+    "ast_hash": "c2f41e660c66e419e82f0b30ebf875b9",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\graham-cashflow-googl.json": {
+    "mtime": 1779833968.9573052,
+    "ast_hash": "6ea515a3bdbeaa261aba28f2e3267844",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\graham-cashflow-ko.json": {
+    "mtime": 1779833968.9573052,
+    "ast_hash": "e66aadf1d5fd0bc2aea31de0a981ba3c",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\graham-cashflow-msft.json": {
+    "mtime": 1779833968.95908,
+    "ast_hash": "682964648da70f35db3f2c3188d5b5fd",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\graham-dividends-ko.json": {
+    "mtime": 1779833968.95908,
+    "ast_hash": "2f1c078dd39ec297bc856576aaf72495",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\graham-dividends-msft.json": {
+    "mtime": 1779833968.9610949,
+    "ast_hash": "4cbabc24fa3273afb15ba150381237ff",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\graham-income-aapl.json": {
+    "mtime": 1779833968.9610949,
+    "ast_hash": "bed8f13f81df9b4d071b4657bba3ed12",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\graham-income-googl.json": {
+    "mtime": 1779833968.963111,
+    "ast_hash": "c679d60e2a421b84a9e10316fb10e3b9",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\graham-income-ko.json": {
+    "mtime": 1779833968.963111,
+    "ast_hash": "d7b75b720acbf24ae6e550211f3143ce",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\graham-income-msft.json": {
+    "mtime": 1779833968.963111,
+    "ast_hash": "5852ad9c2fc368692ea1893e94f36c8b",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\graham-keymetrics-aapl.json": {
+    "mtime": 1779833968.963111,
+    "ast_hash": "019907d0b55f7eac83f0da0904c4a60c",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\graham-keymetrics-googl.json": {
+    "mtime": 1779833968.9651248,
+    "ast_hash": "ea21a2e5c8e19d5efcf77fd79f7c4aba",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\graham-keymetrics-ko.json": {
+    "mtime": 1779833968.9651248,
+    "ast_hash": "28c95ff3789ef39418db2a0466e983e0",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\graham-keymetrics-msft.json": {
+    "mtime": 1779833968.9676416,
+    "ast_hash": "c06a947939e2d34b21791cf98fff8d2b",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\graham-profile-googl.json": {
+    "mtime": 1779833968.9676416,
+    "ast_hash": "d091ec67c1150506d9d4b565e689bd48",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\graham-profile-ko.json": {
+    "mtime": 1779833968.9696805,
+    "ast_hash": "2db5d626dd1e2925a08e106d273f71e3",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\graham-profile-msft.json": {
+    "mtime": 1779833968.9696805,
+    "ast_hash": "543626d1578f96647444799728a897e9",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\income-statement-aapl.json": {
+    "mtime": 1779833968.971696,
+    "ast_hash": "85ced16a7423968309b28c4ae6360fe1",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\key-metrics-aapl.json": {
+    "mtime": 1779833968.973712,
+    "ast_hash": "5ba6a51954b1c65430c8648f51f89179",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\profile-aapl.json": {
+    "mtime": 1779833968.9746044,
+    "ast_hash": "26a3d9e2baf09c5da19fbd03a75bb7ad",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\search-aapl.json": {
+    "mtime": 1779833968.9763336,
+    "ast_hash": "3d8a56f7d119273bf546a7819339209d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\search-empty.json": {
+    "mtime": 1779475733.6281965,
+    "ast_hash": "35d0e0b801444bb1f4c2115720f8e4f6",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\technical-rsi-aapl-30.json": {
+    "mtime": 1779833968.9763336,
+    "ast_hash": "c3c62040e17a340685e67c038f3721c9",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\fmp-fixtures\\technical-sma-aapl-200.json": {
+    "mtime": 1779833968.9783866,
+    "ast_hash": "53c364d413fce026ef9fc102ffc102c4",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\sec-edgar-fixtures\\company_tickers.json": {
+    "mtime": 1779833968.980498,
+    "ast_hash": "35ed5b292d217190f230ece59848a125",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\test\\resources\\sec-edgar-fixtures\\submissions-CIK0000320193.json": {
+    "mtime": 1779833968.980498,
+    "ast_hash": "5e2e9902b60f9fac5e7be26b6a605595",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\docker\\start-agentic-value-investor.ps1": {
+    "mtime": 1779910289.4394042,
+    "ast_hash": "2683b522e1ef5f39b464ac6af5a21862",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\docker\\scripts\\backup-postgres.sh": {
+    "mtime": 1779833968.9918869,
+    "ast_hash": "89d2d425399853cec32a5c74728462e9",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\docker\\scripts\\restore-postgres.sh": {
+    "mtime": 1779833968.9918869,
+    "ast_hash": "b1564f65bf535dbc7d91b9e378c84a99",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\embeddings-sidecar\\app.py": {
+    "mtime": 1779833968.995914,
+    "ast_hash": "eaf1b568456b3ddc2b7a8be92533bffd",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\.eslintrc.json": {
+    "mtime": 1779475733.635778,
+    "ast_hash": "cf755b275ab5337af3ebf8c61fc9ab47",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\.lighthouserc.js": {
+    "mtime": 1779833968.9979272,
+    "ast_hash": "d9e130c7608e24a983ea28bb55c6e047",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\middleware.ts": {
+    "mtime": 1779915809.8427794,
+    "ast_hash": "4353788d98a6868de9fe11d63a320b5f",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\next-env.d.ts": {
+    "mtime": 1779865688.0402164,
+    "ast_hash": "29f60a376e12bf72b67d4994fcc84214",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\next.config.js": {
+    "mtime": 1779475733.7242212,
+    "ast_hash": "7c8e281e7659e4059bd81bb1cfe56676",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\package.json": {
+    "mtime": 1779833969.1128018,
+    "ast_hash": "8d69f533d8481eb68616baf8274db126",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\playwright.config.realbe.ts": {
+    "mtime": 1779475733.730004,
+    "ast_hash": "444da4f47713b5289763c1f82b3b9d4f",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\playwright.config.ts": {
+    "mtime": 1779475733.7310162,
+    "ast_hash": "9c0026c28de43e23003207635916ccee",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\postcss.config.js": {
+    "mtime": 1779475733.7321973,
+    "ast_hash": "9a248c780e4c76f85b0f492f63a3d417",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\tailwind.config.ts": {
+    "mtime": 1779833969.1308184,
+    "ast_hash": "6fe6355f381de9df1be5818dcd234de8",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\tsconfig.api.json": {
+    "mtime": 1779475733.733212,
+    "ast_hash": "193b1938407679d28b58e8356400db7b",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\tsconfig.json": {
+    "mtime": 1779478491.9272473,
+    "ast_hash": "f2b6745ae35cd61dce68e0f23f890b03",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\vitest.config.ts": {
+    "mtime": 1779475733.7357078,
+    "ast_hash": "aa853cb58de4ce8717aa6f344587e822",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\vitest.setup.ts": {
+    "mtime": 1779475733.7357078,
+    "ast_hash": "2b9a2baf78ecc9cb14fc15edd668f0a9",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\app\\layout.tsx": {
+    "mtime": 1779910289.4480517,
+    "ast_hash": "8a83d953d82e58d05fbe6b2b667cc8d6",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\app\\page.tsx": {
+    "mtime": 1779833969.018512,
+    "ast_hash": "cf9c276363467b0da562385a47ccb814",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\app\\(auth)\\login\\page.tsx": {
+    "mtime": 1779998815.312815,
+    "ast_hash": "8458ac6e5ebb7210c4b5ee4bc49a8632",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\app\\(auth)\\login\\__tests__\\page.test.tsx": {
+    "mtime": 1779999063.6424541,
+    "ast_hash": "397c2ffc7caf96b4e3183b8826b8895e",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\app\\(auth)\\register\\page.tsx": {
+    "mtime": 1779998879.8629375,
+    "ast_hash": "0120518889c6538b3e6ed9c39b8906f8",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\app\\(auth)\\register\\__tests__\\page.test.tsx": {
+    "mtime": 1779999090.443026,
+    "ast_hash": "f45422ded3e85c11e5c83e340eb45097",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\app\\(auth)\\_lib\\form-errors.test.ts": {
+    "mtime": 1779915747.522691,
+    "ast_hash": "4411a540880bb6ae0738aa45ffd4ed10",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\app\\(auth)\\_lib\\form-errors.ts": {
+    "mtime": 1779915702.6793492,
+    "ast_hash": "620de34645085a548b1548b11c112b47",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\app\\403\\page.tsx": {
+    "mtime": 1779835685.248995,
+    "ast_hash": "783ae47b8c3d605ae6dc0f9f5a642014",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\app\\admin\\page.tsx": {
+    "mtime": 1779833969.0052085,
+    "ast_hash": "697bc0d1d983c082b23647c87986a625",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\app\\analysis\\page.tsx": {
+    "mtime": 1779833969.0113542,
+    "ast_hash": "b65d269d4e90174b7460a9d18a20b784",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\app\\analysis\\deep\\DeepAnalysisPageClient.tsx": {
+    "mtime": 1779833969.0103405,
+    "ast_hash": "4a6d665ab09e900ddf4727d3c6ff8507",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\app\\analysis\\deep\\page.tsx": {
+    "mtime": 1779833969.0113542,
+    "ast_hash": "03b7443fc9e009813264c490d2f8b432",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\app\\moat\\page.tsx": {
+    "mtime": 1779833969.016493,
+    "ast_hash": "678ce0acb39e2d3b1b70db371050ba9a",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\app\\profile\\mfa\\page.tsx": {
+    "mtime": 1779923969.1301792,
+    "ast_hash": "4f86e8a01405197953a9372c62937684",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\app\\profile\\mfa\\__tests__\\page.test.tsx": {
+    "mtime": 1779924067.6886594,
+    "ast_hash": "0ae11ee0c4cf673138b574b4ebbe3345",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\app\\screener\\page.tsx": {
+    "mtime": 1779475733.6534908,
+    "ast_hash": "0afa3024cbf74f2d6657cb7d3e8a0c87",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\app\\top-picks\\page.tsx": {
+    "mtime": 1779833969.0215387,
+    "ast_hash": "49c75d48dc6b6681d53b809397cb838e",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\app\\top-picks\\TopPicksPageClient.tsx": {
+    "mtime": 1779833969.020526,
+    "ast_hash": "87ac309a5d9f69e659390b2b766fb1ea",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\app\\watchlist\\page.tsx": {
+    "mtime": 1779918178.2857692,
+    "ast_hash": "2729470696aaf729ea816a72605548bb",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\app\\watchlist\\__tests__\\page.test.tsx": {
+    "mtime": 1779839113.0162623,
+    "ast_hash": "ea72ba9d1d62293f00734a02677afe59",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\admin\\LlmBudgetAdminPanel.tsx": {
+    "mtime": 1779833969.0251157,
+    "ast_hash": "8f7ec8aad6131fa9b0dbb0e10c1085c5",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\analysis\\AnalysisPageClient.tsx": {
+    "mtime": 1779833969.0271375,
+    "ast_hash": "eeaf7bd98561d6682bbc18d07bbba70b",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\analysis\\DcfOverridePanel.test.tsx": {
+    "mtime": 1779835812.247006,
+    "ast_hash": "6f8ff5e447a76fe23e9317f46410ea79",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\analysis\\DcfOverridePanel.tsx": {
+    "mtime": 1779833969.0291595,
+    "ast_hash": "e27a18b3bda8e923f5a1b740a34a9847",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\analysis\\LongTermTrendBadge.test.tsx": {
+    "mtime": 1779833969.0291595,
+    "ast_hash": "0078299812594c77280fb92c76b9221a",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\analysis\\LongTermTrendBadge.tsx": {
+    "mtime": 1779833969.03118,
+    "ast_hash": "fdbf85b595a9b35a0336ca93ef7de893",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\analysis\\MrMarketSentimentBadge.test.tsx": {
+    "mtime": 1779833969.031691,
+    "ast_hash": "ace9bc6192ed645668b9a2aa91aae337",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\analysis\\MrMarketSentimentBadge.tsx": {
+    "mtime": 1779833969.031691,
+    "ast_hash": "b78f21c5d53648b600fbc1e9b0fabaca",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\analysis\\RuleSignalCard.test.tsx": {
+    "mtime": 1779475733.660771,
+    "ast_hash": "ca6e17457d5d88b927411cc02f634173",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\analysis\\RuleSignalCard.tsx": {
+    "mtime": 1779475733.6617665,
+    "ast_hash": "447711c3eff084d7c80d3f014304a236",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\analysis\\StaleDataBadge.test.tsx": {
+    "mtime": 1779475733.6627667,
+    "ast_hash": "3e65e951d5375c191157df7f60cb7644",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\analysis\\StaleDataBadge.tsx": {
+    "mtime": 1779475733.6637673,
+    "ast_hash": "b8879a4f329c841496d5bb92a4c70b58",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\analysis\\TrafficLightPanel.test.tsx": {
+    "mtime": 1779833969.033454,
+    "ast_hash": "4bd7a9bbe3511f27c07d0167b85317f9",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\analysis\\TrafficLightPanel.tsx": {
+    "mtime": 1779833969.033454,
+    "ast_hash": "fce654c22767ceae393d31ab890049c6",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\analysis\\ValuationSummary.test.tsx": {
+    "mtime": 1779475733.664767,
+    "ast_hash": "1485835f3a03d162d0e6b1b1b96592c6",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\analysis\\ValuationSummary.tsx": {
+    "mtime": 1779833969.033454,
+    "ast_hash": "b0fd45dbb62623eebd40dd6e815a6f6d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\auth\\AuthGuard.tsx": {
+    "mtime": 1779835752.5878644,
+    "ast_hash": "e53040cdf91e4bc3dcfb8532d2698b56",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\auth\\idle-timeout-provider.tsx": {
+    "mtime": 1779837009.8823225,
+    "ast_hash": "b9551a2a817611842552c3867af83e9f",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\auth\\mfa-challenge-form.tsx": {
+    "mtime": 1779923854.3399634,
+    "ast_hash": "1fe01f397aa3234f456fa85936485ecb",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\auth\\SessionExpiredBanner.tsx": {
+    "mtime": 1779475733.6682022,
+    "ast_hash": "339c0a45e995648381a4eb71bf1f68cd",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\auth\\turnstile-widget.tsx": {
+    "mtime": 1779998781.1482828,
+    "ast_hash": "dce3b9ba0bc0473aec1a83560ef1ba75",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\auth\\__tests__\\idle-timeout-provider.test.tsx": {
+    "mtime": 1779837637.0781045,
+    "ast_hash": "021a6e995de7f62c55a4858cea09f50d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\auth\\__tests__\\mfa-challenge-form.test.tsx": {
+    "mtime": 1779924039.4587302,
+    "ast_hash": "12e27eb75361ef23767e70ef03c0f4bb",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\auth\\__tests__\\turnstile-widget.test.tsx": {
+    "mtime": 1779999036.375677,
+    "ast_hash": "54906bc9a587f7b68b6be8155b524e91",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\charts\\HistoricalChart.test.tsx": {
+    "mtime": 1779475733.6697526,
+    "ast_hash": "75520c6d95aa7f8058109902641a7601",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\charts\\HistoricalChart.tsx": {
+    "mtime": 1779475733.6707637,
+    "ast_hash": "0cdde5ef61a44ffea3bb84016e4a051d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\deep-analysis\\DeepVerdictBadge.test.tsx": {
+    "mtime": 1779833969.0357137,
+    "ast_hash": "fe60a294259f9a7327e5d730d1ffa4aa",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\deep-analysis\\DeepVerdictBadge.tsx": {
+    "mtime": 1779833969.0377314,
+    "ast_hash": "de4bd3a367d35db23de7d340e515b574",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\deep-analysis\\DrawdownChart.tsx": {
+    "mtime": 1779833969.0377314,
+    "ast_hash": "bed45f4069829d9391ba16aee77b9c00",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\deep-analysis\\EdgarFilingLinks.tsx": {
+    "mtime": 1779833969.0397472,
+    "ast_hash": "2c5b6cf2897d44b7a1469df5298669f9",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\deep-analysis\\index.ts": {
+    "mtime": 1779833969.0419073,
+    "ast_hash": "9861661b1d1a12525e6b561194568ba6",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\deep-analysis\\LlmBudgetBar.test.tsx": {
+    "mtime": 1779833969.0402493,
+    "ast_hash": "6bce77223671d4d60fd2ef4a80a80953",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\deep-analysis\\LlmBudgetBar.tsx": {
+    "mtime": 1779833969.0402493,
+    "ast_hash": "05a4186ee6e27db1b88470632e5f4815",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\deep-analysis\\MungerReportCollapsible.tsx": {
+    "mtime": 1779833969.0419073,
+    "ast_hash": "acc49f5cdd5ee53b2c3a5d8acaf72203",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\deep-analysis\\NewsSentimentChip.tsx": {
+    "mtime": 1779833969.0419073,
+    "ast_hash": "a7c2a843a0b4067c6d7ea18da62f1930",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\forms\\form-error-summary.tsx": {
+    "mtime": 1779833969.0439248,
+    "ast_hash": "9487db72b58d1a0901d52b789e974e9b",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\forms\\form-field.tsx": {
+    "mtime": 1779833969.0459461,
+    "ast_hash": "23c0e3ba0a88fe40a41031f6bbac354a",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\forms\\__tests__\\form-error-summary.test.tsx": {
+    "mtime": 1779833969.0439248,
+    "ast_hash": "be6dce89c279e5e773801927800fbf3d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\layout\\Navbar.tsx": {
+    "mtime": 1779836976.217031,
+    "ast_hash": "696c5d228e2b8259fa7970fd592d9fe8",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\moat\\MoatChecklist.test.tsx": {
+    "mtime": 1779918261.2810645,
+    "ast_hash": "ad8943b509b323fd88bcaa37763c07df",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\moat\\MoatChecklist.tsx": {
+    "mtime": 1779918147.918377,
+    "ast_hash": "466b667fb95b8edf85fb34a61302afd9",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\notifications\\index.ts": {
+    "mtime": 1779833969.049181,
+    "ast_hash": "65deb889104cc47dbc695f09fbae5f09",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\notifications\\notification-container.tsx": {
+    "mtime": 1779833969.0507836,
+    "ast_hash": "b2d835db431517157bc99a77e6c7ecf2",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\notifications\\notification-provider.tsx": {
+    "mtime": 1779833969.0516274,
+    "ast_hash": "0b38f4daf112735fbd691b03596dda48",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\notifications\\notification-toast.tsx": {
+    "mtime": 1779833969.0516274,
+    "ast_hash": "0291607ffd4360027d3442b01cd851c1",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\notifications\\__tests__\\notification-a11y.test.tsx": {
+    "mtime": 1779833969.0471635,
+    "ast_hash": "4c5f4b7e54ec8dbf7a05c47bf22b296b",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\notifications\\__tests__\\notification-provider.test.tsx": {
+    "mtime": 1779833969.0471635,
+    "ast_hash": "66105152468145b70d7ff48ffe45c119",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\providers\\AuthProvider.tsx": {
+    "mtime": 1779836731.6839204,
+    "ast_hash": "fc39d3d49e522977882f38d580591fb7",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\providers\\ToastProvider.tsx": {
+    "mtime": 1779475733.6787899,
+    "ast_hash": "4b2c916a489df23a9e261e778afd757a",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\screener\\MarketCapSelector.tsx": {
+    "mtime": 1779475733.679791,
+    "ast_hash": "b6bfe8318ed945f623cdb43f97415b10",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\screener\\ResultsListInline.tsx": {
+    "mtime": 1779477550.5609357,
+    "ast_hash": "0a9557d80f024ed3d56af6406c8db741",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\screener\\ScreenerForm.test.tsx": {
+    "mtime": 1779475733.682313,
+    "ast_hash": "b0bcb391be36cdeac241377208cbbf8b",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\screener\\ScreenerForm.tsx": {
+    "mtime": 1779475733.6837046,
+    "ast_hash": "53c2f7ce2e1c9b5505e98c260425813c",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\screener\\SectorSelector.tsx": {
+    "mtime": 1779475733.6837046,
+    "ast_hash": "2af294785bd88f66758f39c3b7f2da3c",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\search\\ResultsList.test.tsx": {
+    "mtime": 1779996936.4703856,
+    "ast_hash": "655208e7efa787bc2e7ccb526fd0b4a9",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\search\\ResultsList.tsx": {
+    "mtime": 1779477555.2839577,
+    "ast_hash": "f1e998055ebca76214fb526c4d33100b",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\search\\SearchBar.test.tsx": {
+    "mtime": 1779479361.5176742,
+    "ast_hash": "9b23e727a8e463bed603e6b1b5006c49",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\search\\SearchBar.tsx": {
+    "mtime": 1779477554.0521586,
+    "ast_hash": "7320478ab3d06f3e04a9e62a934da703",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\theme\\theme-provider.tsx": {
+    "mtime": 1779833969.057839,
+    "ast_hash": "0eea26f09d6741c77486bf8d8eb1cc65",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\theme\\__tests__\\theme-provider.test.tsx": {
+    "mtime": 1779833969.0556583,
+    "ast_hash": "e130158dda021b5ab16b97b79c9afedb",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\top-picks\\TopPicksFilters.tsx": {
+    "mtime": 1779833969.0598626,
+    "ast_hash": "c9efbe9575553cb88c1432a2538266ca",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\top-picks\\TopPicksHeader.tsx": {
+    "mtime": 1779833969.0598626,
+    "ast_hash": "e932e6d934e175097b951c0bfb1cba4b",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\top-picks\\TopPicksManualTriggerButton.tsx": {
+    "mtime": 1779833969.0618796,
+    "ast_hash": "bb55cb8faf4d306934e9fdf3c2e9609b",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\top-picks\\TopPicksPagination.tsx": {
+    "mtime": 1779833969.0618796,
+    "ast_hash": "a989da9e86684f84467104f009885d4c",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\top-picks\\TopPicksTable.tsx": {
+    "mtime": 1779833969.0638933,
+    "ast_hash": "a571b5ded12793dc390db5ae7bc490ae",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\ui\\Button.tsx": {
+    "mtime": 1779833969.0659096,
+    "ast_hash": "4b3955d995a111ad705d6d78f2a0c449",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\ui\\Card.tsx": {
+    "mtime": 1779833969.0659096,
+    "ast_hash": "472ea026116ac70f5360e3ad1842a2fb",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\ui\\Input.tsx": {
+    "mtime": 1779833969.0659096,
+    "ast_hash": "0f59fcceafa3010216e0963cdfd75586",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\ui\\Modal.tsx": {
+    "mtime": 1779833969.067927,
+    "ast_hash": "cd64465355eb665b0a56721a0965fd5a",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\ui\\Toast.tsx": {
+    "mtime": 1779833969.0700095,
+    "ast_hash": "cd1ccbbb9b343887a5350b1fd6dad18f",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\watchlist\\AddToWatchlistButton.test.tsx": {
+    "mtime": 1779918277.947564,
+    "ast_hash": "9d2b310a1d3dc5e45970ccac16274eb0",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\watchlist\\AddToWatchlistButton.tsx": {
+    "mtime": 1779918168.7094831,
+    "ast_hash": "f42fa85e6261201936cf53af86aa27e3",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\watchlist\\WatchlistTable.test.tsx": {
+    "mtime": 1779478523.7738757,
+    "ast_hash": "650d54cf83dbf0170d89239898ff588d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\components\\watchlist\\WatchlistTable.tsx": {
+    "mtime": 1779833969.0700095,
+    "ast_hash": "66eaf5936ce30ac0e95638815123fa08",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\e2e\\accessibility-keyboard.spec.ts": {
+    "mtime": 1779912068.4629066,
+    "ast_hash": "5dbf2faeedf65b8734f806b8519b687b",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\e2e\\accessibility-zoom.spec.ts": {
+    "mtime": 1779833969.074983,
+    "ast_hash": "11008209df189ffcc3e78748f8865410",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\e2e\\auth-csp-csrf.spec.ts": {
+    "mtime": 1779923732.361382,
+    "ast_hash": "3fff29eda5ccbd12e2a2147f33c9b910",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\e2e\\auth-mfa.spec.ts": {
+    "mtime": 1779999956.2709184,
+    "ast_hash": "20c79e6866c5b791c8fc4fdf1f2cac38",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\e2e\\auth-watchlist.spec.ts": {
+    "mtime": 1779833969.0780096,
+    "ast_hash": "e2da013c15b4d761fbf297ffe6c4b5dd",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\e2e\\cutover-smoke.spec.ts": {
+    "mtime": 1779833969.079049,
+    "ast_hash": "cbb55bb1e0c487ab97e4e0ffb656ad7f",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\e2e\\deep-analysis.spec.ts": {
+    "mtime": 1779911770.1732185,
+    "ast_hash": "20903a55d83be9aa10521b515496caae",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\e2e\\search-to-analysis.spec.ts": {
+    "mtime": 1779478333.11709,
+    "ast_hash": "dcff68ba8a77c022613257c96276b8d9",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\e2e\\top-picks.spec.ts": {
+    "mtime": 1779833969.0866184,
+    "ast_hash": "cb3474b4fc14fcc9eea3c914ea7ee34f",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\e2e\\fixtures\\analysis-aapl.json": {
+    "mtime": 1779475733.6964655,
+    "ast_hash": "21b53bea35d1a84d3220d2e58a2fbda6",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\e2e\\fixtures\\analysis-stale.json": {
+    "mtime": 1779475733.6974678,
+    "ast_hash": "1cfdf0e61e1733ec2a7a24a459f87f46",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\e2e\\fixtures\\deep-analysis-aapl.json": {
+    "mtime": 1779833969.0805721,
+    "ast_hash": "1d8288878af897dc5657a5805d90d7c5",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\e2e\\fixtures\\deep-analysis-value-trap.json": {
+    "mtime": 1779833969.0805721,
+    "ast_hash": "23fca04bc785f9f16ddd7226a854c715",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\e2e\\fixtures\\historical-aapl.json": {
+    "mtime": 1779475733.698468,
+    "ast_hash": "070ebcc0d5603b3f37735967f5d57afb",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\e2e\\fixtures\\profile-aapl.json": {
+    "mtime": 1779475733.698468,
+    "ast_hash": "3565e1d0b24ae10020bf63b72ce4ca79",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\e2e\\fixtures\\search-aapl.json": {
+    "mtime": 1779475733.698468,
+    "ast_hash": "8c9fcbf6898c032cab839ed9a4ab940c",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\e2e\\fixtures\\search-notfound.json": {
+    "mtime": 1779475733.6994705,
+    "ast_hash": "9f40aa21b4ad48542695f986f2cd7348",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\e2e\\fixtures\\top-picks-approvato-filter.json": {
+    "mtime": 1779833969.0825858,
+    "ast_hash": "ce3bcb08e3b2a4ccba11930f9eddf429",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\e2e\\fixtures\\top-picks-default.json": {
+    "mtime": 1779833969.0825858,
+    "ast_hash": "69c60d04e32ac35572d7cee71626e49d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\e2e\\fixtures\\top-picks-empty.json": {
+    "mtime": 1779833969.0846045,
+    "ast_hash": "a32c4082d4b35101edf6dc7e143ba1c4",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\e2e\\fixtures\\top-picks-page1.json": {
+    "mtime": 1779833969.0846045,
+    "ast_hash": "21d597f934812e1e09534bd3ca234c28",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\hooks\\use-logout.ts": {
+    "mtime": 1779836963.948071,
+    "ast_hash": "54738f80e16e186cf099f1bf481e4476",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\hooks\\use-notification.ts": {
+    "mtime": 1779833969.088635,
+    "ast_hash": "4a4a7179adcde69b8c3b33175119d4a9",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\hooks\\use-theme.ts": {
+    "mtime": 1779833969.088635,
+    "ast_hash": "a6d11c8687d23fb867ee8a7ac7df9b2c",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\hooks\\__tests__\\use-logout.test.ts": {
+    "mtime": 1779837154.1806436,
+    "ast_hash": "abb140b8b342c1c7aaab7085db871c1f",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\to-user-message.ts": {
+    "mtime": 1779918085.6155665,
+    "ast_hash": "53197bfee65a1a43a04bfbc03da6f852",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\api\\analysis.ts": {
+    "mtime": 1779833969.0923288,
+    "ast_hash": "f9b0882f6588004c4efd9d6cbae6b093",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\api\\auth.ts": {
+    "mtime": 1779998737.834143,
+    "ast_hash": "b028639e74152e016270510b565f3dbf",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\api\\client.ts": {
+    "mtime": 1779836174.4734063,
+    "ast_hash": "1b8bf696a75c8fc665ba5791f8b080a1",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\api\\dcf-overrides.ts": {
+    "mtime": 1779475733.7027009,
+    "ast_hash": "f1ef983d5314b280062bf4985275c5f0",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\api\\deep-analysis.ts": {
+    "mtime": 1779833969.0943425,
+    "ast_hash": "513f837e3b24f45b85c83f43a8165912",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\api\\historical.ts": {
+    "mtime": 1779477466.6331851,
+    "ast_hash": "87e43d66b0b2e35bae76b86c651240da",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\api\\llm-budget.ts": {
+    "mtime": 1779833969.0943425,
+    "ast_hash": "104e02d657337bed12b35b11b75269e9",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\api\\moat.ts": {
+    "mtime": 1779475733.7088847,
+    "ast_hash": "b5d9b1af67bd6dc64cb4f543b15a0fcc",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\api\\network-error-interceptor.ts": {
+    "mtime": 1779833969.096356,
+    "ast_hash": "589fffe3d17bac40a20939721d8a6255",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\api\\screener.ts": {
+    "mtime": 1779475733.709881,
+    "ast_hash": "f80e16f834139b8b0f2ca7fc1a856a72",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\api\\search.ts": {
+    "mtime": 1779475733.709881,
+    "ast_hash": "5b3d3f09017e7661f93aeac5bce873d4",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\api\\top-picks.ts": {
+    "mtime": 1779833969.096356,
+    "ast_hash": "27e00fd824ffa40c1ae397cfec7cf11d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\api\\watchlist.ts": {
+    "mtime": 1779475733.711223,
+    "ast_hash": "46a8ae24b0e3dd3d3e7bd7f5371abb80",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\api\\generated\\schema.placeholder.ts": {
+    "mtime": 1779475733.7058818,
+    "ast_hash": "ecf111245f40c33f72a165f380ad9e14",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\api\\__tests__\\network-error-interceptor.test.ts": {
+    "mtime": 1779833969.0910137,
+    "ast_hash": "2994a64bbde35f2c74c357e43844bb69",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\auth\\captcha-error.ts": {
+    "mtime": 1779998729.6899745,
+    "ast_hash": "29249216c04789f7d89505778bd85a48",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\auth\\route-config.ts": {
+    "mtime": 1779835150.8673573,
+    "ast_hash": "73b50760b24716a7646932d11ccea50b",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\auth\\__tests__\\captcha-error.test.ts": {
+    "mtime": 1779999014.4969702,
+    "ast_hash": "78407ebca766de4d64188484e3984053",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\auth\\__tests__\\route-config.test.ts": {
+    "mtime": 1779836081.9250796,
+    "ast_hash": "1d5736b92f23dff59f97b5edaeb87c24",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\errors\\error-code-map.ts": {
+    "mtime": 1779833969.0983698,
+    "ast_hash": "6b6c00e9ae2d2117356db45e7169f826",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\errors\\__tests__\\error-code-map.test.ts": {
+    "mtime": 1779833969.0983698,
+    "ast_hash": "02d40785fed1e4eaf76a329ced5fc9b0",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\hooks\\useDeepAnalysis.ts": {
+    "mtime": 1779833969.1003952,
+    "ast_hash": "09a5aaaad6ff8b691fcaba6bf0888ee2",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\hooks\\useHistorical.ts": {
+    "mtime": 1779475733.7122343,
+    "ast_hash": "ef66d54b8997fa0aba07a3cc31553426",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\hooks\\useLlmBudget.ts": {
+    "mtime": 1779833969.1003952,
+    "ast_hash": "ac37ae646b375a97d7bc3a7cc2fd47f6",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\hooks\\useTopPicks.ts": {
+    "mtime": 1779833969.1024132,
+    "ast_hash": "ef58ff0fe5582aefc9e149bebadc5c67",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\security\\csp.ts": {
+    "mtime": 1779998901.4132144,
+    "ast_hash": "5325bacd820e3b97de27eeb4d58a9259",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\security\\__tests__\\csp.test.ts": {
+    "mtime": 1779998912.928169,
+    "ast_hash": "e290c94ecc2cd73928d54d59f07aaa8e",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\stores\\useAnalysisStore.ts": {
+    "mtime": 1779475733.7132323,
+    "ast_hash": "98feb8452fddfc8db43e1ac08058aae7",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\stores\\useAuthStore.test.ts": {
+    "mtime": 1779923815.2048573,
+    "ast_hash": "3e2d967f605464700083b182737118d8",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\stores\\useAuthStore.ts": {
+    "mtime": 1779998744.40821,
+    "ast_hash": "21165d5be9b84c8792908ad5733159d5",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\stores\\useScreenerStore.ts": {
+    "mtime": 1779475733.716237,
+    "ast_hash": "e07828e6e42d120e23d8828413e959ed",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\stores\\useWatchlistStore.ts": {
+    "mtime": 1779918199.053589,
+    "ast_hash": "5f07e556a86da4893faa28e052a08510",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\stores\\__tests__\\auth-storage-security.test.ts": {
+    "mtime": 1779836233.6669374,
+    "ast_hash": "36e86f9d790236343145bd9b7e901ad1",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\utils\\analysis-url.ts": {
+    "mtime": 1779833969.1024132,
+    "ast_hash": "e6412750c0bf3005171f2d9d6555e9c8",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\utils\\cn.ts": {
+    "mtime": 1779475733.7182343,
+    "ast_hash": "fded086d1bf7f020387f5a9848f865a8",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\utils\\formatters.test.ts": {
+    "mtime": 1779833969.104447,
+    "ast_hash": "0ff6c9313b65b8963bf92d1c283f6473",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\utils\\formatters.ts": {
+    "mtime": 1779833969.104447,
+    "ast_hash": "f8b01bdd8895cb30a5b09b8af2a3cb7d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\utils\\signal-color.test.ts": {
+    "mtime": 1779475733.7207565,
+    "ast_hash": "4b7fe017ab7f1943bb1071699e2dfb00",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\utils\\signal-color.ts": {
+    "mtime": 1779475733.7217588,
+    "ast_hash": "266a522ce96b5cf3559191bde8c95364",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\lib\\__tests__\\to-user-message.test.ts": {
+    "mtime": 1779918238.4993546,
+    "ast_hash": "b2db70d17a34aab9a59c650e5f22d475",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\locales\\it.json": {
+    "mtime": 1779833969.1069498,
+    "ast_hash": "19aee0b2718b5aa63c51871ab094c988",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\public\\theme-init.js": {
+    "mtime": 1779856874.7420502,
+    "ast_hash": "7963900a14d9d71a5a9c833773a513b4",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\__tests__\\defense-in-depth-client-logic.test.ts": {
+    "mtime": 1779856755.6296425,
+    "ast_hash": "678da4091910cee603d5f735a117a068",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\__tests__\\middleware.test.ts": {
+    "mtime": 1779856726.911933,
+    "ast_hash": "97834517cf4bec6cfae0c03f4eee7900",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\__tests__\\wcag-audit.test.tsx": {
+    "mtime": 1779833968.9989414,
+    "ast_hash": "9205071523dddfae2ab613f50f3742df",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\backend\\src\\main\\resources\\application.yml": {
+    "mtime": 1779924352.0264454,
+    "ast_hash": "6424409def2b114e6b801c40d57c61f7",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\docker\\docker-compose.prod.yml": {
+    "mtime": 1779833968.9845252,
+    "ast_hash": "d7010fdf1e0fcb4262e181338d9d3e6f",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\docker\\docker-compose.yml": {
+    "mtime": 1779910289.4394042,
+    "ast_hash": "d4a1e12fac8e84b3f6e14e71ccbcd2ab",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\docker\\scripts\\README.md": {
+    "mtime": 1779833968.988883,
+    "ast_hash": "f48d3af4a7aaf33c64b4b42251ba5231",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\embeddings-sidecar\\requirements.txt": {
+    "mtime": 1779833968.995914,
+    "ast_hash": "23b437b3b55d11ef87179b2dc5ccd8f2",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\README.md": {
+    "mtime": 1779475733.6371334,
+    "ast_hash": "21eb687231f0375898ea4237f0e55ed6",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\e2e\\cutover-smoke.README.md": {
+    "mtime": 1779833969.0780096,
+    "ast_hash": "463d24bc62d98551f12b1a350930e105",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\e2e\\SCREEN_READER_CHECKLIST.md": {
+    "mtime": 1779833969.072024,
+    "ast_hash": "016d0bd3450275c6601d847896bb5460",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\soliv\\Progetti\\agents-workspace\\agentic-value-investor-application\\src\\frontend\\public\\favicon.svg": {
+    "mtime": 1779910289.4500618,
+    "ast_hash": "80b2023b34dc337d9dba9e5b95dfd786",
+    "semantic_hash": ""
+  }
+}

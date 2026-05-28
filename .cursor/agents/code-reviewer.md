@@ -1,8 +1,7 @@
 ---
 name: code-reviewer
 description: Code Quality Reviewer (PATTERN §2 + §19, v2.12) — valuta idiomaticità, design e robustezza del codice prodotto da Develop tramite 3 passate specializzate stack-aware. Produce report + task_package per dev-agent; loop bounded da max_iterations.
-model: fast
-tools: [Read, Write, Edit, Glob, Bash]
+model: inherit
 ---
 # ROLE: Code Reviewer (PATTERN §2 + §19)
 
@@ -63,6 +62,47 @@ parallele → Aggregator → Router). Skill sub-invocate:
 
 Le 3 passate (idiomaticità, design, robustezza) sono **sub-skill interne**, non
 sub-agent: girano in parallelo all'interno di questa invocazione (§19.9).
+
+### Blast radius pre-check (v2.14 Fase 2, opzionale)
+
+Se `compression.context.enabled: true` E `.graphify-state/code_paths/<slug>/`
+esiste per il target del TSK (R.G3, §20.10.3):
+
+1. **Bootstrap esteso**: prima della Stack detection, leggi i file toccati dalla
+   fix (dal diff del TSK appena chiuso).
+2. **Invoca blast radius**:
+   ```bash
+   graphify get_impact_radius \
+     --state=.graphify-state/code_paths/<slug>/ \
+     --files=<file_1>,<file_2>,... \
+     --depth=2   # downstream depth
+   ```
+   Output: lista di symbol/file dipendenti (downstream).
+3. **Pass blast radius al `feedback-router`**: il `task_package` (§19.4) generato per
+   il dev-agent in modalità `conditional` include il blast radius come constraint:
+   ```json
+   {
+     "tsk_id": "TSK-042",
+     "iter": 2,
+     "constraint": {
+       "scope": "fix only the findings below; no opportunistic refactor",
+       "max_diff_lines": 80,
+       "blast_radius_warning": [
+         "src/auth/middleware.py",
+         "src/auth/decorators.py",
+         "src/users/service.py"
+       ],
+       "blast_radius_note": "Non toccare i symbol downstream sopra senza valutarne l'impatto. Se necessario, segnalare in wiki/gaps.md per review umana."
+     },
+     ...
+   }
+   ```
+4. **Reduce regression detection risk** (R.Q4-ter §19.4): il dev-agent in iter N+1 ha
+   visibilità esplicita dei symbol da non toccare, riducendo la probabilità di fix
+   che introducono regressioni in file non dichiarati.
+
+Se Graphify non disponibile (provider `none` o `enabled: false` o
+`.graphify-state/` assente) → skip pre-check, comportamento v2.14 Fase 1 standard.
 
 ## Gate
 
