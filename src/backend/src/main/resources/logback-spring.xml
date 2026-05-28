@@ -14,53 +14,6 @@
     <springProperty scope="context" name="SECURITY_RETENTION_DAYS"
                     source="app.logging.retention.security-events-days" defaultValue="365"/>
 
-    <!-- ===== JSON appender (prod / LOG_FORMAT=json) ===== -->
-    <!-- PiiRedactionEncoder wraps LogstashEncoder to redact PII on serialized
-         JSON before writing. relaxedMode=false (prod strict); dev override below.
-         [^src: design_&_architecture/decisions/ADR-021-structured-logging-pii-redaction.md §4] -->
-    <appender name="JSON_STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="com.valueinvesting.webapp.logging.PiiRedactionEncoder">
-            <innerEncoder class="net.logstash.logback.encoder.LogstashEncoder">
-                <includeMdcKeyName>requestId</includeMdcKeyName>
-                <includeMdcKeyName>correlationId</includeMdcKeyName>
-                <includeMdcKeyName>userId</includeMdcKeyName>
-                <includeMdcKeyName>traceId</includeMdcKeyName>
-                <includeMdcKeyName>spanId</includeMdcKeyName>
-                <customFields>{"service":"value-investing-webapp"}</customFields>
-            </innerEncoder>
-            <enabled>true</enabled>
-            <relaxedMode>false</relaxedMode>
-        </encoder>
-    </appender>
-
-    <appender name="ASYNC_JSON" class="ch.qos.logback.classic.AsyncAppender">
-        <queueSize>256</queueSize>
-        <neverBlock>true</neverBlock>
-        <appender-ref ref="JSON_STDOUT"/>
-    </appender>
-
-    <!-- ===== JSON appender (dev — relaxedMode for IBAN/email at DEBUG) ===== -->
-    <appender name="JSON_STDOUT_DEV" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="com.valueinvesting.webapp.logging.PiiRedactionEncoder">
-            <innerEncoder class="net.logstash.logback.encoder.LogstashEncoder">
-                <includeMdcKeyName>requestId</includeMdcKeyName>
-                <includeMdcKeyName>correlationId</includeMdcKeyName>
-                <includeMdcKeyName>userId</includeMdcKeyName>
-                <includeMdcKeyName>traceId</includeMdcKeyName>
-                <includeMdcKeyName>spanId</includeMdcKeyName>
-                <customFields>{"service":"value-investing-webapp"}</customFields>
-            </innerEncoder>
-            <enabled>true</enabled>
-            <relaxedMode>true</relaxedMode>
-        </encoder>
-    </appender>
-
-    <appender name="ASYNC_JSON_DEV" class="ch.qos.logback.classic.AsyncAppender">
-        <queueSize>256</queueSize>
-        <neverBlock>true</neverBlock>
-        <appender-ref ref="JSON_STDOUT_DEV"/>
-    </appender>
-
     <!-- ===== Pretty-print appender (dev / LOG_FORMAT=pretty) ===== -->
     <appender name="PRETTY_STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -137,8 +90,31 @@
 
     <!-- ===== Profile-based activation with LOG_FORMAT env override ===== -->
 
-    <!-- prod profile: JSON unless LOG_FORMAT=pretty; file appenders always active (TSK-181) -->
+    <!-- prod profile: JSON unless LOG_FORMAT=pretty; file appenders always active (TSK-181).
+         JSON appender (with PiiRedactionEncoder strict mode) is defined inside this
+         <springProfile> so it isn't materialized — and reported as "not referenced" —
+         when running under dev/test profiles. -->
     <springProfile name="prod">
+        <appender name="JSON_STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="com.valueinvesting.webapp.logging.PiiRedactionEncoder">
+                <innerEncoder class="net.logstash.logback.encoder.LogstashEncoder">
+                    <includeMdcKeyName>requestId</includeMdcKeyName>
+                    <includeMdcKeyName>correlationId</includeMdcKeyName>
+                    <includeMdcKeyName>userId</includeMdcKeyName>
+                    <includeMdcKeyName>traceId</includeMdcKeyName>
+                    <includeMdcKeyName>spanId</includeMdcKeyName>
+                    <customFields>{"service":"value-investing-webapp"}</customFields>
+                </innerEncoder>
+                <enabled>true</enabled>
+                <relaxedMode>false</relaxedMode>
+            </encoder>
+        </appender>
+        <appender name="ASYNC_JSON" class="ch.qos.logback.classic.AsyncAppender">
+            <queueSize>256</queueSize>
+            <neverBlock>true</neverBlock>
+            <appender-ref ref="JSON_STDOUT"/>
+        </appender>
+
         <if condition='property("LOG_FORMAT").equals("pretty")'>
             <then>
                 <root level="${LOG_LEVEL}">
@@ -158,8 +134,30 @@
         <logger name="com.valueinvesting" level="${LOG_LEVEL}"/>
     </springProfile>
 
-    <!-- dev profile (default): pretty unless LOG_FORMAT=json -->
+    <!-- dev profile (default): pretty unless LOG_FORMAT=json.
+         JSON dev appender (relaxedMode for IBAN/email at DEBUG) is defined inside
+         this <springProfile> so it isn't materialized under prod/test profiles. -->
     <springProfile name="dev | default">
+        <appender name="JSON_STDOUT_DEV" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="com.valueinvesting.webapp.logging.PiiRedactionEncoder">
+                <innerEncoder class="net.logstash.logback.encoder.LogstashEncoder">
+                    <includeMdcKeyName>requestId</includeMdcKeyName>
+                    <includeMdcKeyName>correlationId</includeMdcKeyName>
+                    <includeMdcKeyName>userId</includeMdcKeyName>
+                    <includeMdcKeyName>traceId</includeMdcKeyName>
+                    <includeMdcKeyName>spanId</includeMdcKeyName>
+                    <customFields>{"service":"value-investing-webapp"}</customFields>
+                </innerEncoder>
+                <enabled>true</enabled>
+                <relaxedMode>true</relaxedMode>
+            </encoder>
+        </appender>
+        <appender name="ASYNC_JSON_DEV" class="ch.qos.logback.classic.AsyncAppender">
+            <queueSize>256</queueSize>
+            <neverBlock>true</neverBlock>
+            <appender-ref ref="JSON_STDOUT_DEV"/>
+        </appender>
+
         <if condition='property("LOG_FORMAT").equals("json")'>
             <then>
                 <root level="${LOG_LEVEL}">
