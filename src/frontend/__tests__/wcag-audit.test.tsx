@@ -164,6 +164,10 @@ vi.mock('@/components/auth/AuthGuard', () => ({
   AuthGuard: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
+vi.mock('@/components/auth/ClientAuthGuard', () => ({
+  ClientAuthGuard: ({ children }: { children: ReactNode }) => <>{children}</>,
+}));
+
 vi.mock('@/components/auth/SessionExpiredBanner', () => ({
   SessionExpiredBanner: () => null,
 }));

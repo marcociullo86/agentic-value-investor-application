@@ -1,21 +1,20 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useEffect, type ReactNode } from 'react';
-import { useAuthStore } from '@/lib/stores/useAuthStore';
+import type { ReactNode } from 'react';
+import { ClientAuthGuard } from './ClientAuthGuard';
 
 /**
- * Client-side guard for protected pages (TSK-034/035, TSK-211).
+ * AuthGuard (TSK-034/035, TSK-211, TSK-266).
  *
- * Waits for rehydration to complete before evaluating auth state.
- * This prevents a false redirect to /login when a valid httpOnly
- * refresh-token cookie exists but the in-memory store is empty
- * (e.g. after F5).
+ * Thin backward-compatible alias for `ClientAuthGuard`. Historical call
+ * sites (`/watchlist`, `/moat`, `/profile/mfa`) import this name and get
+ * the unified TSK-266 decision matrix (unauth → login+returnUrl,
+ * forbidden → /403, sessionExpired → logout silente + login) without
+ * any per-page migration.
  *
- * Renders `children` only when an access token is present after
- * rehydration; otherwise pushes the user to `/login`. Server-side
- * enforcement happens in `SecurityConfig` (TSK-033) — this is a
- * UX nicety.
+ * New protected layouts/pages SHOULD import `ClientAuthGuard` directly to
+ * make the static-export-compatible client-side guard explicit at the
+ * call site (ADR-026 §Decisione).
  */
 export function AuthGuard({
   children,
@@ -24,17 +23,5 @@ export function AuthGuard({
   readonly children: ReactNode;
   readonly fallback?: ReactNode;
 }): ReactNode {
-  const router = useRouter();
-  const accessToken = useAuthStore((s) => s.accessToken);
-  const rehydrationStatus = useAuthStore((s) => s.rehydrationStatus);
-
-  useEffect(() => {
-    if (rehydrationStatus === 'done' && !accessToken) {
-      router.replace('/login');
-    }
-  }, [accessToken, rehydrationStatus, router]);
-
-  if (rehydrationStatus !== 'done') return fallback;
-  if (!accessToken) return fallback;
-  return children;
+  return <ClientAuthGuard fallback={fallback}>{children}</ClientAuthGuard>;
 }

@@ -8,4 +8,5 @@ import java.util.UUID
 @Repository
 interface RefreshTokenRepository : JpaRepository<RefreshToken, UUID> {
     fun findByTokenValue(tokenValue: String): RefreshToken?
+    fun deleteAllByUserId(userId: UUID): Long
 }

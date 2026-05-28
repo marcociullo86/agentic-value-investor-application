@@ -33,6 +33,20 @@ cross-conversazione e VCS integration esplicita.
 
 **Claude Code:** comandi in [`.claude/commands/`](.claude/commands/). Vedi [`CLAUDE.md`](CLAUDE.md).
 
+**Local Docker/Podman bootstrap (macOS/Linux):**
+
+```bash
+./src/docker/start-agentic-value-investor.sh
+```
+
+Avvio locale rapido senza embeddings sidecar (override locale, compose canonico invariato):
+
+```bash
+podman compose -f src/docker/docker-compose.yml -f src/docker/docker-compose.local-no-embeddings.yml up -d postgres adminer app
+```
+
+Script PowerShell equivalente (Windows): `src/docker/start-agentic-value-investor.ps1`.
+
 ```text
 1. Aggiungere PDF in raw/ con naming YYYY-MM-DD-<nome>.pdf
 2. Lanciare /sync-docs → estrazione testo+figure

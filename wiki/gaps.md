@@ -445,6 +445,7 @@ ADR-007 §Error format dichiara RFC 9457 §3.2 (extensions al top-level). Quattr
 **Impatto:** Il middleware è UX-only (defense-in-depth), il backend protegge gli endpoint indipendentemente. Non bloccante per sicurezza. Bloccante per UX completa delle redirezioni auth in produzione. In `next dev` il middleware è pienamente funzionante.
 **TSK correlati:** TSK-206 (middleware AuthGuard), TSK-122 (deep analysis route), US-073 (AuthGuard centralizzato).
 
+<<<<<<< HEAD
 ---
 
 ### 2026-05-28 — be-csp-missing-turnstile-allowlist
@@ -455,3 +456,8 @@ ADR-007 §Error format dichiara RFC 9457 §3.2 (extensions al top-level). Quattr
 **Impatto:** In produzione il widget Turnstile fallisce silenziosamente (CSP block); la verifica server-side (TSK-230 `BruteForceProtectionService.guardLogin`) continua a richiedere il token e ritorna 401 `captchaRequired=true` ma il FE non può fornirlo. Net effect: dopo 10+ failure/IP, l'utente è permanentemente lockato finché il contatore IP non scade (5 min). In `next dev` il flusso funziona perché la CSP del middleware è applicata. Bloccante per AC US-081 in produzione.
 **TSK correlati:** TSK-238 (FE widget + FE CSP), TSK-230 (BE BruteForceProtectionService + Turnstile siteverify), TSK-221 (BE SecurityHeadersConfig).
 
+=======
+**Aggiornamento 2026-05-28 — remediation parziale runtime statico:** confermata root cause locale su route FE non forwardate nel deploy statico backend (`NoResourceFoundException` su `/top-picks` e `/analysis/deep`). Esteso `SpaRoutingConfig` con forward espliciti per le route statiche mancanti e allineati smoke test FE (route/query-param + selector top-picks). Il gap middleware/export resta aperto: la decisione architetturale su `output: 'export'` vs runtime middleware e` ancora necessaria.
+
+**Risolto:** 2026-05-28 — ADR-026 (`design_&_architecture/decisions/ADR-026-frontend-authguard-static-export-runtime.md`, status: accepted) adotta **Opzione B: ClientAuthGuard client-side** in produzione con `output: 'export'` invariato (ADR-009 deployment model invariato). US-087 completata (4/4 TSK done+passed): `ClientAuthGuard.tsx` HOC/hook client-side (TSK-266), hook `use-auth-guard.ts` con logica `auth-guard-decision.ts` (TSK-267), middleware.ts hardening dev-only con warning esplicito (TSK-268), E2E static export suite `playwright.config.static.ts` con 11 test Playwright (TSK-269). Il middleware Next.js resta attivo in `next dev` come prima linea difensiva UX; in produzione il `ClientAuthGuard` garantisce le stesse redirect (non autenticato → `/login?returnUrl=`, ruolo insufficiente → `/403`, sessione scaduta → `/login?expired=true`). Defense-in-depth invariato: il backend protegge gli endpoint indipendentemente dal client. [^src: design_&_architecture/decisions/ADR-026-frontend-authguard-static-export-runtime.md] [^src: management/kanban/EP-017-protezione-rotte-sessione/US-087-authguard-client-side-static-export/US-087.md]
+>>>>>>> 5fff20a265978ab52089913bfd1165264efaf19b

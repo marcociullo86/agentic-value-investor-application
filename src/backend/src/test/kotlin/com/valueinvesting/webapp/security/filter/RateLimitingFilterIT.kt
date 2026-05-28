@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.valueinvesting.webapp.api.model.LoginRequest
 import com.valueinvesting.webapp.persistence.repository.LoginAttemptRepository
 import com.valueinvesting.webapp.persistence.repository.UserRepository
+import com.valueinvesting.webapp.service.AuthRateLimitService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
@@ -89,7 +90,13 @@ class RateLimitingFilterIT {
             header { exists(RateLimitingFilter.RETRY_AFTER_HEADER) }
         }
 
-        assertThat(loginAttemptRepository.count()).isEqualTo(3)
+        // Only the per-IP rate-limit probe rows are written by RateLimitingFilter;
+        // the bad-credentials rows persisted by BruteForceProtectionService for the
+        // first 3 allowed attempts are out of scope here. The 4th request is blocked
+        // by the filter so no probe row is added.
+        val loginProbeReason = "${AuthRateLimitService.RATE_LIMIT_PROBE_REASON}:LOGIN"
+        val probeRows = loginAttemptRepository.findAll().count { it.failureReason == loginProbeReason }
+        assertThat(probeRows).isEqualTo(3)
     }
 
     @Test

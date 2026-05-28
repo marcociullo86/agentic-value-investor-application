@@ -43,7 +43,11 @@ async function mockLoginApi(page: Page): Promise<void> {
   await page.route('**/api/auth/login', (route) =>
     route.fulfill({
       status: 200,
-      json: { accessToken: 'fake-jwt-token', email: 'test@example.com' },
+      json: {
+        accessToken: 'fake-jwt-token',
+        expiresInSeconds: 900,
+        mfaRequired: false,
+      },
     }),
   );
 }

@@ -2,6 +2,7 @@ package com.valueinvesting.webapp.service
 
 import com.valueinvesting.webapp.persistence.entity.MfaSecretEntity
 import com.valueinvesting.webapp.persistence.repository.MfaSecretRepository
+import com.valueinvesting.webapp.persistence.repository.RefreshTokenRepository
 import com.valueinvesting.webapp.persistence.repository.UserRepository
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -33,6 +34,7 @@ import java.util.UUID
 class MfaService(
     private val mfaSecretRepository: MfaSecretRepository,
     private val userRepository: UserRepository,
+    private val refreshTokenRepository: RefreshTokenRepository,
     private val totpService: TotpService,
     private val passwordEncoder: PasswordEncoder,
     private val clock: Clock,
@@ -87,6 +89,10 @@ class MfaService(
         secret.enabled = true
         secret.enabledAt = Instant.now(clock)
         mfaSecretRepository.save(secret)
+        // Sessions opened before MFA was activated must not be able to skip the
+        // second factor — revoke all refresh tokens for this user so the next
+        // /api/auth/login goes through the MFA challenge flow.
+        refreshTokenRepository.deleteAllByUserId(userId)
     }
 
     fun isMfaEnabled(userId: UUID): Boolean {

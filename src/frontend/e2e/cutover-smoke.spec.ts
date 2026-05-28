@@ -146,7 +146,7 @@ test.describe('Cutover R1.1 smoke — STAGING ONLY', () => {
   // -------------------------------------------------------------------------
   // Scenario 5 — Deep analysis flow
   // -------------------------------------------------------------------------
-  test('5. /analysis/AAPL/deep — DeepVerdictBadge + MungerReport + EdgarFilingLinks', async ({ page }) => {
+  test('5. /analysis/deep?ticker=AAPL — DeepVerdictBadge + MungerReport + EdgarFilingLinks', async ({ page }) => {
     await loginStagingUser(page);
 
     await withNoPageErrors(page, async () => {
@@ -182,7 +182,7 @@ test.describe('Cutover R1.1 smoke — STAGING ONLY', () => {
       await page.goto(`${STAGING}/top-picks`, { timeout: PAGE_LOAD_TIMEOUT });
 
       // Either at least one result row or the empty-state placeholder
-      const hasRows = await page.getByTestId('top-picks-row').first().isVisible().catch(() => false);
+      const hasRows = await page.locator('[data-testid^="top-pick-row-"]').first().isVisible().catch(() => false);
       const hasEmptyState = await page
         .getByText(/nessuna classifica/i)
         .first()

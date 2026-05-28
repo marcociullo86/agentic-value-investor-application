@@ -5,6 +5,7 @@ import com.valueinvesting.webapp.config.AppProperties
 import com.valueinvesting.webapp.persistence.entity.MfaSecretEntity
 import com.valueinvesting.webapp.persistence.entity.User
 import com.valueinvesting.webapp.persistence.repository.MfaSecretRepository
+import com.valueinvesting.webapp.persistence.repository.RefreshTokenRepository
 import com.valueinvesting.webapp.persistence.repository.UserRepository
 import dev.samstevens.totp.code.DefaultCodeGenerator
 import dev.samstevens.totp.code.HashingAlgorithm
@@ -50,15 +51,18 @@ class MfaServiceTest {
 
     private lateinit var mfaSecretRepository: MfaSecretRepository
     private lateinit var userRepository: UserRepository
+    private lateinit var refreshTokenRepository: RefreshTokenRepository
     private lateinit var service: MfaService
 
     @BeforeEach
     fun setUp() {
         mfaSecretRepository = mockk(relaxed = true)
         userRepository = mockk(relaxed = true)
+        refreshTokenRepository = mockk(relaxed = true)
         service = MfaService(
             mfaSecretRepository = mfaSecretRepository,
             userRepository = userRepository,
+            refreshTokenRepository = refreshTokenRepository,
             totpService = totpService,
             passwordEncoder = passwordEncoder,
             clock = clock,

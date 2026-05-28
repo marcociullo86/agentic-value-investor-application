@@ -39,15 +39,15 @@ describe('route-config', () => {
       ['/', false],
       ['/login', false],
       ['/register', false],
-      ['/analysis', false],
-      ['/analysis/deep', false],
       ['/screener', false],
-      ['/top-picks', false],
     ])('public route %s returns false', (path, expected) => {
       expect(isProtectedRoute(path)).toBe(expected);
     });
 
     it.each([
+      ['/analysis', true],
+      ['/analysis/deep', true],
+      ['/top-picks', true],
       ['/watchlist', true],
       ['/moat', true],
       ['/profile', true],
@@ -83,7 +83,15 @@ describe('route-config', () => {
 
   describe('declarative route map extensibility (US-074)', () => {
     it('adding a route to ROUTE_MAP makes it discoverable without code changes to AuthGuard', () => {
-      const protectedRoutes = ['/watchlist', '/moat', '/profile', '/admin'];
+      const protectedRoutes = [
+        '/analysis',
+        '/analysis/deep',
+        '/top-picks',
+        '/watchlist',
+        '/moat',
+        '/profile',
+        '/admin',
+      ];
       for (const route of protectedRoutes) {
         const config = getRouteConfig(route);
         expect(config).toBeDefined();

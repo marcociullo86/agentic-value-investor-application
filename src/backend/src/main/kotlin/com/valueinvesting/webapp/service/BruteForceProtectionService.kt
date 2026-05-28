@@ -213,9 +213,14 @@ class BruteForceProtectionService(
      * Runs in its own transaction; deletes hard so probe + brute-force +
      * lockout sentinel rows all age out together.
      */
+    // Cron/zone resolved from `app.security.brute-force.cleanup-cron/zone`
+    // (BruteForceProperties defaults); `${...}` placeholders are used instead
+    // of `#{@bean}` SpEL because @ConfigurationPropertiesScan registers beans
+    // with names like `{prefix}-{FQCN}`, not the short class name — same
+    // pattern as TopValuePicksJob.
     @Scheduled(
-        cron = "#{@bruteForceProperties.cleanupCron}",
-        zone = "#{@bruteForceProperties.cleanupZone}",
+        cron = "\${app.security.brute-force.cleanup-cron:0 0 4 * * *}",
+        zone = "\${app.security.brute-force.cleanup-zone:UTC}",
     )
     @Transactional
     fun purgeExpiredLoginAttempts() {

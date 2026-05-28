@@ -3,7 +3,7 @@ type: concept
 sources: ["raw/06_Documento_Funzionale_WebApp_Value_Investing.md"]
 status: draft
 created: 2026-05-20
-updated: 2026-05-27
+updated: 2026-05-28
 tags: [product-spec, architecture, kotlin, spring-boot, spa, postgresql, fmp, caching, rest]
 ---
 # Architettura WebApp Value Investing
@@ -136,6 +136,71 @@ Il layer di autenticazione e protezione rotte e ora implementato end-to-end:
 - **Token refresh:** pre-expiry 60s con mutex singleton, 401 interceptor.
 
 Dettaglio completo: [[auth-guard-frontend]] §Aggiornamenti (v2026-05-27).
+
+## Aggiornamenti (v2026-05-28)
+
+**Fix runtime statico — SpaRoutingConfig + same-origin API base URL + tooling locale.**
+
+### SpaRoutingConfig — route forward estese
+
+`SpaRoutingConfig.kt` esteso con 5 nuove route forward (fix `NoResourceFoundException` su runtime statico single-container):
+
+| Route aggiunta | Forward target |
+|---|---|
+| `/analysis/deep`, `/analysis/deep/` | `/analysis/deep/index.html` |
+| `/top-picks`, `/top-picks/` | `/top-picks/index.html` |
+| `/profile/mfa`, `/profile/mfa/` | `/profile/mfa/index.html` |
+| `/admin`, `/admin/` | `/admin/index.html` |
+| `/403`, `/403/` | `/403/index.html` |
+
+Queste route erano raggiungibili in `next dev` (webpack dev server gestisce il fallback) ma causavano `NoResourceFoundException` nel deploy statico Spring Boot R1.1 quando il browser navigava direttamente all'URL (hard navigation / refresh F5). [^src: src/backend/src/main/kotlin/com/valueinvesting/webapp/config/SpaRoutingConfig.kt]
+
+### NEXT_PUBLIC_API_BASE_URL — default same-origin
+
+`next.config.js` e `src/frontend/lib/api/client.ts` ora usano `NEXT_PUBLIC_API_BASE_URL || ''` (stringa vuota = same-origin) come default, evitando bundle hardcoded su `localhost` nel static export. Override opzionale via env var a build time per ambienti staging/produzione con domini separati. [^src: src/frontend/next.config.js] [^src: src/frontend/lib/api/client.ts]
+
+### E2E smoke e top-picks — allineamento selector/route
+
+- `cutover-smoke.spec.ts`: route analysis aggiornata a `/analysis?ticker=AAPL` e deep a `/analysis/deep?ticker=AAPL` (query-param ADR-013).
+- `top-picks.spec.ts`: selector aggiornati a `top-pick-row-{ticker}` e link di navigazione a `/analysis/deep?ticker=`.
+- `accessibility-keyboard.spec.ts`: allineato (fix TSK-239 già documentato).
+
+### Tooling locale Podman
+
+| File | Scopo |
+|---|---|
+| `src/docker/start-agentic-value-investor.sh` | Bootstrap helper (build + compose up + Portainer) per macOS/Linux Podman |
+| `src/docker/docker-compose.local-no-embeddings.yml` | Override compose locale: stub embeddings-sidecar (`python:3.12-alpine http.server 8001`) per tour app senza build sidecar pesante; compose canonico invariato |
+
+Avvio rapido senza embeddings:
+
+```bash
+podman compose -f src/docker/docker-compose.yml \
+               -f src/docker/docker-compose.local-no-embeddings.yml \
+               up -d postgres adminer app
+```
+
+**Gap `fe-middleware-static-export-conflict` chiuso** con ADR-026 + US-087 (2026-05-28): `ClientAuthGuard` client-side in produzione, `output: 'export'` invariato, middleware dev-only con warning esplicito, E2E suite 11 test. [^src: design_&_architecture/decisions/ADR-026-frontend-authguard-static-export-runtime.md]
+
+## Aggiornamenti (v2026-05-28) — US-087 ClientAuthGuard static export
+
+**Gap `fe-middleware-static-export-conflict` chiuso. ADR-026 accepted. US-087 done (4/4 TSK).**
+
+ADR-026 formalizza la soluzione al conflitto tra `output: 'export'` e Next.js middleware: il layer di protezione rotte in produzione è `ClientAuthGuard` (Opzione B), mantenendo invariato il deployment model ADR-009 (static SPA servita dal backend Spring Boot).
+
+### Modello AuthGuard in produzione (post US-087)
+
+| Ambiente | Meccanismo attivo | Note |
+|---|---|---|
+| `next dev` | `middleware.ts` + `ClientAuthGuard` | Doppia protezione; middleware Edge runtime disponibile |
+| `next build` (static export) | `ClientAuthGuard` only | Middleware ignorato da Next.js con `output: 'export'`; warning esplicito a build time (TSK-268) |
+| Backend sempre | Spring Security + JWT filter | Trust boundary effettivo; indipendente dal client |
+
+Il `ClientAuthGuard.tsx` (TSK-266) replica tutti e 4 i comportamenti del middleware: redirect a `/login?returnUrl=` (non autenticato), `/403` (ruolo insufficiente), `/login?expired=true` (sessione scaduta), `/` (autenticato su `/login`). È rehydration-aware: non valuta auth fino al completamento del bootstrap `AuthProvider`. [^src: management/kanban/EP-017-protezione-rotte-sessione/US-087-authguard-client-side-static-export/US-087.md]
+
+**E2E coverage:** `playwright.config.static.ts` (TSK-269) — 11 test che verificano i redirect client-side su server statico, non solo in `next dev`. [^src: management/kanban/EP-017-protezione-rotte-sessione/US-087-authguard-client-side-static-export/TSK-269.md]
+
+Dettaglio completo: [[auth-guard-frontend]] §Aggiornamenti (v2026-05-28).
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->

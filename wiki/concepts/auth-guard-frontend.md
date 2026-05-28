@@ -83,9 +83,24 @@ Tutte le feature descritte in questa pagina sono ora implementate in `src/fronte
 - **Idle/absolute timeout con prompt accessibile** (TSK-215): idle timeout 15min (`NEXT_PUBLIC_IDLE_TIMEOUT_MINUTES`), prompt modale countdown 60s; absolute timeout 8h (`NEXT_PUBLIC_ABSOLUTE_TIMEOUT_HOURS`); `role="alertdialog"`, focus trap, Escape key. [^src: management/kanban/EP-017-protezione-rotte-sessione/US-077-timeout-inattivita-assoluto/TSK-215.md]
 - **Logout completo con back-button blocking** (TSK-217): sequenza revoca BE (best-effort) → clear store → SWR cache wipe → sessionStorage cleanup → `history.replaceState` + `router.push('/login')`; resiliente anche se revoca fallisce. [^src: management/kanban/EP-017-protezione-rotte-sessione/US-078-flusso-logout-completo/TSK-217.md]
 
-**Gap aperti:** `fe-middleware-static-export-conflict` (middleware inattivo con `output: 'export'`); `auth-cascade-revocation-missing` (US-075 AC §6: riuso refresh ruotato non revoca tutti i token utente — ADR-024 §3 prevede revoca su riuso, implementazione parziale). [^src: design_&_architecture/decisions/ADR-024-session-lifecycle-credential-storage.md §3]
+**Gap chiusi:** `fe-middleware-static-export-conflict` → risolto con ADR-026 + US-087 (vedi §Aggiornamenti v2026-05-28 sotto). **Gap aperto residuo:** `auth-cascade-revocation-missing` (US-075 AC §6: riuso refresh ruotato non revoca tutti i token utente — ADR-024 §3 prevede revoca su riuso, implementazione parziale). [^src: design_&_architecture/decisions/ADR-024-session-lifecycle-credential-storage.md §3]
 
 **Nota L4:** ADR-024 resta `status: proposed` in `design_&_architecture/`; il codice EP-017 è allineato a §3 cookie/httpOnly (verificato da contract test sopra).
+
+## Aggiornamenti (v2026-05-28)
+
+**US-087 AuthGuard client-side static export — gap `fe-middleware-static-export-conflict` chiuso.**
+
+ADR-026 (status: accepted) adotta **Opzione B**: `ClientAuthGuard` client-side React come meccanismo primario di protezione rotte in produzione, mantenendo `output: 'export'` (ADR-009 deployment invariato). Il middleware Next.js resta attivo in `next dev` come prima linea difensiva UX; in produzione viene ignorato da `next build` con static export — comportamento documentato esplicitamente e reso non-silente da un warning a build time (TSK-268). [^src: design_&_architecture/decisions/ADR-026-frontend-authguard-static-export-runtime.md]
+
+**Componenti implementati (4/4 TSK done+passed):**
+
+- **`ClientAuthGuard.tsx`** (TSK-266): HOC/hook client-side con gli stessi 4 stati del middleware (non autenticato → `/login?returnUrl=`, autenticato senza ruolo → `/403`, sessione scaduta → `/login?expired=true`, autenticato su `/login` → `/`); rehydration-aware (attende `AuthProvider` bootstrap prima di valutare auth). [^src: management/kanban/EP-017-protezione-rotte-sessione/US-087-authguard-client-side-static-export/TSK-266.md]
+- **`use-auth-guard.ts` + `auth-guard-decision.ts`** (TSK-267): hook e logica di decisione auth estratti come moduli testabili, disaccoppiati dal rendering del guard. [^src: management/kanban/EP-017-protezione-rotte-sessione/US-087-authguard-client-side-static-export/TSK-267.md]
+- **`middleware.ts` hardening dev-only** (TSK-268): warning esplicito a build time che documenta il comportamento del middleware con `output: 'export'`; nessuna modifica alla logica (rimane funzionante in `next dev`). [^src: management/kanban/EP-017-protezione-rotte-sessione/US-087-authguard-client-side-static-export/TSK-268.md]
+- **E2E static export suite** (TSK-269): `playwright.config.static.ts` con 11 test Playwright che verificano i redirect client-side in ambiente static export (server statico `scripts/static-test-server.js`). [^src: management/kanban/EP-017-protezione-rotte-sessione/US-087-authguard-client-side-static-export/TSK-269.md]
+
+**Defense-in-depth invariato:** il backend protegge tutti gli endpoint con autenticazione/autorizzazione server-side indipendentemente dal client — il `ClientAuthGuard` è UX, non sicurezza.
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->

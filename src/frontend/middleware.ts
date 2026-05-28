@@ -7,6 +7,39 @@ import {
   generateCspNonce,
 } from "./lib/security/csp";
 
+/**
+ * Next.js middleware — **DEV-ONLY by design** (ADR-026 / TSK-268 / US-087).
+ *
+ * Production runtime contract:
+ *  - `next.config.js` impone `output: 'export'` (ADR-009), quindi il bundle
+ *    produzione servito dal backend Spring Boot NON include questo
+ *    middleware: nessuna Edge/Node runtime FE in prod.
+ *  - L'AuthGuard di produzione vive interamente client-side: vedi
+ *    `components/auth/ClientAuthGuard.tsx` + `hooks/use-auth-guard.ts`
+ *    (TSK-266) — UX only, niente security boundary.
+ *  - La security authoritativa resta sul backend (defense-in-depth,
+ *    ADR-025): ogni endpoint protetto verifica auth/authz lato server.
+ *  - In produzione la CSP è emessa dal backend via `SecurityHeadersConfig`
+ *    (TSK-221), non da qui.
+ *
+ * Ruolo di questo file:
+ *  - Convenienza per `next dev` (parità minima di comportamento auth/CSP
+ *    con la produzione durante lo sviluppo locale).
+ *  - Tutte le altre invocazioni eventuali (test, build SSR accidentale,
+ *    runtime non-export) sono trattate come pass-through esplicito —
+ *    vedi `isDevRuntime()` sotto. Questo è il guard-rail che impedisce a
+ *    `middleware.ts` di diventare implicitamente "il" controllo auth di
+ *    produzione se qualcuno in futuro rimuove `output: 'export'` senza
+ *    ridisegnare il perimetro.
+ *
+ * Hardening dev-only (TSK-268):
+ *  - `isDevRuntime()` controlla `process.env.NODE_ENV === 'development'`.
+ *  - In ogni altro contesto la funzione esegue solo `NextResponse.next()`
+ *    senza side-effect (no CSP nonce, no cookie inspection, no redirect).
+ *  - Build/export statica non dipende da questo file: rimosso comporta
+ *    solo perdita della convenienza dev.
+ */
+
 const AUTH_COOKIE = "isAuthenticated";
 const ROLE_COOKIE = "userRole";
 const SESSION_EXPIRED_COOKIE = "sessionExpired";
@@ -16,7 +49,16 @@ const REGISTER_PATH = "/register";
 const FORBIDDEN_PATH = "/403";
 const HOME_PATH = "/";
 
-const CSP_DEV_MODE = process.env.NODE_ENV === "development";
+/**
+ * True only in `next dev` (NODE_ENV === 'development').
+ *
+ * Wrapped in a helper so test setups can stub `process.env.NODE_ENV` via
+ * `vi.stubEnv('NODE_ENV', 'development')` without forcing module reset,
+ * and so future static analysis can grep the dev-only gate.
+ */
+function isDevRuntime(): boolean {
+  return process.env.NODE_ENV === "development";
+}
 
 /**
  * Normalise pathname by stripping a trailing slash (keeps "/" intact).
@@ -35,19 +77,15 @@ function isAuthPage(pathname: string): boolean {
 }
 
 /**
- * Attach per-request CSP + nonce request header (TSK-222 / US-080).
- * Propagates nonce to App Router via `x-nonce` for inline scripts in layout.
+ * Attach per-request CSP + nonce request header (TSK-222 / US-080) — DEV ONLY.
  *
- * STATIC EXPORT LIMITATION (TSK-257 / wave A6, finding TSK-222 #1).
- * `next.config.js` impone `output: 'export'`: il bundle prod servito dal
- * backend Spring Boot non passa da questo middleware, quindi l'header
- * `Content-Security-Policy` con nonce è attivo SOLO in `next dev`.
- * In prod la CSP è applicata via `SecurityHeadersConfig` lato BE
- * (TSK-221) con policy statica equivalente (senza nonce per-request:
- * gli script inline non sono usati nel layout — vedi `app/layout.tsx`
- * §`/theme-init.js` esterno).
- * Risoluzione completa del nonce per-request richiede un ADR: vedere
- * `wiki/gaps.md §fe-middleware-static-export-conflict`.
+ * In produzione static export (`output: 'export'`, ADR-009) il middleware
+ * non gira affatto: la CSP è emessa dal backend tramite
+ * `SecurityHeadersConfig` (TSK-221) con policy statica equivalente.
+ * Qui il nonce per-request serve solo a mantenere parità minima in
+ * `next dev` (gap tracciato in
+ * `wiki/gaps.md §fe-middleware-static-export-conflict`, accettato in
+ * ADR-026).
  */
 function withCspHeaders(
   request: NextRequest,
@@ -58,7 +96,7 @@ function withCspHeaders(
   requestHeaders.set(CSP_NONCE_HEADER, nonce);
   response.headers.set(
     "Content-Security-Policy",
-    buildContentSecurityPolicy(nonce, { devMode: CSP_DEV_MODE }),
+    buildContentSecurityPolicy(nonce, { devMode: true }),
   );
   return response;
 }
@@ -84,15 +122,27 @@ function redirectWithCsp(
 }
 
 /**
- * AuthGuard middleware (TSK-206 / US-073 / EP-017).
+ * AuthGuard middleware (TSK-206 / US-073 / EP-017) — DEV-ONLY (ADR-026 / TSK-268).
  *
  * UX improvement — NOT a security boundary. Every protected backend endpoint
  * independently verifies auth & authz server-side (defense-in-depth).
  *
- * CSP with per-request nonce (TSK-222 / US-080): all FE responses include
- * `Content-Security-Policy` with `script-src 'nonce-…'` (no `unsafe-inline`).
+ * Production runtime:
+ *  - Bundle servito dal backend con `output: 'export'`: questo middleware
+ *    NON viene eseguito (nessun runtime FE in prod).
+ *  - L'AuthGuard di produzione è implementato client-side: vedi
+ *    `components/auth/ClientAuthGuard.tsx` + `hooks/use-auth-guard.ts`
+ *    (TSK-266 / US-087).
+ *  - CSP è emessa dal backend (`SecurityHeadersConfig`, TSK-221).
  *
- * Decision table:
+ * Per qualunque runtime diverso da `next dev` (`NODE_ENV !== 'development'`),
+ * la funzione esegue un pass-through esplicito senza side-effect: niente
+ * lookup route, niente CSP, niente redirect. È un guard-rail di hardening
+ * (TSK-268) che impedisce a `middleware.ts` di diventare implicitamente
+ * il controllo auth di produzione se un futuro cambio di config rimuove
+ * `output: 'export'` senza ridisegnare il perimetro.
+ *
+ * Decision table (eseguita SOLO in dev):
  *  1. Session-expired marker cookie  → clear cookie, redirect /login?expired=true
  *  2. Authenticated → auth page      → redirect /
  *  3. Route not in ROUTE_MAP          → pass through (fail-open)
@@ -106,12 +156,12 @@ function redirectWithCsp(
  *  - userRole: current user role string (e.g. "admin")
  *  - sessionExpired: "true" when the client-side 401 interceptor detects
  *    an unrecoverable session expiry (set by the Zustand clearSession flow)
- *
- * NOTE: requires a Next.js server runtime to execute. With the current
- * `output: 'export'` in next.config.js the middleware runs in `next dev` only.
- * See wiki/gaps.md (fe-middleware-static-export-conflict) for the tracking gap.
  */
 export function middleware(request: NextRequest): NextResponse {
+  if (!isDevRuntime()) {
+    return NextResponse.next();
+  }
+
   const { pathname, search } = request.nextUrl;
   const normalised = normalisePath(pathname);
 
