@@ -499,6 +499,141 @@ paths:
               description: "refresh_token=; Max-Age=0 (cookie deleted)"
               schema: { type: string }
 
+  /api/auth/mfa/enroll:
+    post:
+      tags: [auth-mfa]
+      summary: Start MFA enrollment — generate secret + QR + recovery codes (US-081)
+      description: |
+        Generates a fresh TOTP secret + 8 one-time recovery codes for the
+        authenticated user. Recovery codes are returned in plain text ONCE;
+        the server stores BCrypt hashes (ADR-025 §4).
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Enrollment material
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MfaEnrollmentResponse'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409':
+          description: MFA already enabled
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+
+  /api/auth/mfa/verify:
+    post:
+      tags: [auth-mfa]
+      summary: Activate MFA by proving the user can compute a TOTP code (US-081)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MfaVerifyRequest'
+      responses:
+        '204':
+          description: MFA activated
+        '400':
+          description: Invalid TOTP code
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409':
+          description: MFA already enabled or no enrollment in progress
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+
+  /api/auth/mfa/challenge:
+    post:
+      tags: [auth-mfa]
+      summary: Complete login MFA challenge with a TOTP code (US-081)
+      description: |
+        Trades the short-lived `mfaToken` (from /api/auth/login) plus a current
+        TOTP code for the regular access token + refresh cookie pair.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MfaChallengeRequest'
+      responses:
+        '200':
+          description: MFA challenge succeeded
+          headers:
+            Set-Cookie:
+              description: "refresh_token={value}; HttpOnly; Secure; SameSite=Strict; Path=/api/auth; Max-Age=604800"
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessTokenResponse'
+        '400':
+          description: Invalid TOTP code
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/auth/mfa/recovery:
+    post:
+      tags: [auth-mfa]
+      summary: Complete login MFA challenge with a one-time recovery code (US-081)
+      description: |
+        Alternative to TOTP for users who lost access to their authenticator.
+        Consumes one of the 8 recovery codes generated at enrollment.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MfaRecoveryRequest'
+      responses:
+        '200':
+          description: Recovery succeeded
+          headers:
+            Set-Cookie:
+              description: "refresh_token={value}; HttpOnly; Secure; SameSite=Strict; Path=/api/auth; Max-Age=604800"
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessTokenResponse'
+        '400':
+          description: Invalid or already-used recovery code
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/auth/mfa:
+    delete:
+      tags: [auth-mfa]
+      summary: Disable MFA after re-asserting identity with the account password (US-081)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MfaDisableRequest'
+      responses:
+        '204':
+          description: MFA disabled
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409':
+          description: MFA was not enabled
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+
   /api/watchlist:
     get:
       tags: [watchlist]
@@ -1001,6 +1136,46 @@ components:
       properties:
         accessToken:      { type: string, description: "JWT access token (Bearer)" }
         expiresInSeconds: { type: integer, description: "Token lifetime in seconds", example: 900 }
+
+    MfaEnrollmentResponse:
+      type: object
+      description: |
+        Initial enrollment material. Recovery codes are returned ONCE in plain
+        text; the server stores only BCrypt hashes (ADR-025 §4).
+      required: [secret, qrCodeUri, recoveryCodes]
+      properties:
+        secret:        { type: string, description: "Base32 TOTP shared secret (RFC 6238)" }
+        qrCodeUri:     { type: string, description: "otpauth:// provisioning URI to render as QR code" }
+        recoveryCodes:
+          type: array
+          description: "8 plain-text recovery codes, one-time consumable"
+          items: { type: string }
+
+    MfaVerifyRequest:
+      type: object
+      required: [totpCode]
+      properties:
+        totpCode: { type: string, description: "6-digit TOTP code from the authenticator app" }
+
+    MfaChallengeRequest:
+      type: object
+      required: [mfaToken, totpCode]
+      properties:
+        mfaToken: { type: string, description: "Short-lived JWT issued by /api/auth/login" }
+        totpCode: { type: string, description: "6-digit TOTP code from the authenticator app" }
+
+    MfaRecoveryRequest:
+      type: object
+      required: [mfaToken, recoveryCode]
+      properties:
+        mfaToken:     { type: string, description: "Short-lived JWT issued by /api/auth/login" }
+        recoveryCode: { type: string, description: "Plain-text recovery code (dashes optional)" }
+
+    MfaDisableRequest:
+      type: object
+      required: [password]
+      properties:
+        password: { type: string, description: "Account password — re-asserts identity before disabling MFA" }
 
     UserProfile:
       type: object
