@@ -152,7 +152,7 @@ class HibpWireMockIT {
         }
 
         assertThat(userRepository.findByEmailIgnoreCase("hibp-compromised@example.com"))
-            .as("User must NOT be persisted when password is compromised")
+            .`as`("User must NOT be persisted when password is compromised")
             .isNull()
     }
 
@@ -197,7 +197,7 @@ class HibpWireMockIT {
         }
 
         assertThat(userRepository.findByEmailIgnoreCase("hibp-safe@example.com"))
-            .as("User must be persisted when password is safe")
+            .`as`("User must be persisted when password is safe")
             .isNotNull()
     }
 
@@ -225,7 +225,7 @@ class HibpWireMockIT {
         }
 
         assertThat(userRepository.findByEmailIgnoreCase("hibp-degraded@example.com"))
-            .as("User must be persisted when HIBP is unavailable (graceful degradation)")
+            .`as`("User must be persisted when HIBP is unavailable (graceful degradation)")
             .isNotNull()
     }
 
@@ -259,30 +259,30 @@ class HibpWireMockIT {
 
         val requests = wireMockServer.findAll(getRequestedFor(urlPathMatching("$HIBP_BASE_PATH/.*")))
         assertThat(requests)
-            .as("Exactly one request must reach the HIBP mock")
+            .`as`("Exactly one request must reach the HIBP mock")
             .hasSize(1)
 
         val urlPath = requests.first().url        // e.g. "/range/ABCDE"
         val sentSegment = urlPath.removePrefix("$HIBP_BASE_PATH/")
 
         assertThat(sentSegment)
-            .as("HIBP request segment must be exactly 5 characters (k-anonymity prefix)")
+            .`as`("HIBP request segment must be exactly 5 characters (k-anonymity prefix)")
             .hasSize(5)
 
         assertThat(sentSegment)
-            .as("HIBP request segment must be uppercase hex")
+            .`as`("HIBP request segment must be uppercase hex")
             .matches("[A-F0-9]{5}")
 
         assertThat(sentSegment)
-            .as("The segment must equal the expected SHA-1 prefix")
+            .`as`("The segment must equal the expected SHA-1 prefix")
             .isEqualTo(expectedPrefix)
 
         assertThat(sentSegment)
-            .as("Full SHA-1 hash must NOT be sent (k-anonymity guard)")
+            .`as`("Full SHA-1 hash must NOT be sent (k-anonymity guard)")
             .isNotEqualTo(sha1Hex(password))
 
         assertThat(sentSegment)
-            .as("Suffix must NOT be sent as part of the URL (k-anonymity guard)")
+            .`as`("Suffix must NOT be sent as part of the URL (k-anonymity guard)")
             .doesNotContain(suffix)
     }
 }
