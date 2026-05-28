@@ -47,12 +47,11 @@ class SpaRoutingConfig {
     @GetMapping("/top-picks", "/top-picks/")
     fun topPicks(): String = "forward:/top-picks/index.html"
 
-    @GetMapping("/admin", "/admin/")
-    fun admin(): String = "forward:/admin/index.html"
-
     @GetMapping("/profile/mfa", "/profile/mfa/")
     fun profileMfa(): String = "forward:/profile/mfa/index.html"
 
+    @GetMapping("/admin", "/admin/")
+    fun admin(): String = "forward:/admin/index.html"
     @GetMapping("/403", "/403/")
     fun forbidden(): String = "forward:/403/index.html"
 }

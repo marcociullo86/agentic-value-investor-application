@@ -31,7 +31,7 @@
  *  2. Empty state: data senza run → "Nessuna classifica disponibile".
  *  3. Filtro verdict: select APPROVATO_PANIC_BUY → tabella filtrata + URL aggiornato.
  *  4. Datepicker: cambia data → URL ?date=YYYY-MM-DD aggiornato.
- *  5. Click ticker → naviga a /analysis/{ticker}/deep.
+ *  5. Click ticker → naviga a /analysis/deep?ticker={ticker}.
  *  6. Paginazione: bottone successiva → URL ?page=1.
  *
  * References:
@@ -185,9 +185,9 @@ test.describe('/top-picks page', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // Scenario 5 — Click ticker link → navigate to /analysis/{ticker}/deep
+  // Scenario 5 — Click ticker link → navigate to /analysis/deep?ticker={ticker}
   // ---------------------------------------------------------------------------
-  test('ticker link — click AAPL navigates to /analysis/AAPL/deep', async ({ page }) => {
+  test('ticker link — click AAPL navigates to /analysis/deep?ticker=AAPL', async ({ page }) => {
     await mockTopPicksDefault(page);
 
     await page.goto('/top-picks');

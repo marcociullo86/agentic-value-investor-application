@@ -68,7 +68,7 @@ suite is skipped with message "STAGING_USER_EMAIL / STAGING_USER_PASSWORD not se
 | 2 | Home accessible | Page load < 5s, no 5xx, title contains "Value Investing" |
 | 3 | Login flow | Form login → redirect home + auth UI visible |
 | 4 | Analysis flow | `/analysis/AAPL` → 13 ruleSignals + DCF + MoS badge |
-| 5 | Deep analysis flow | `/analysis/AAPL/deep` → DeepVerdictBadge + MungerReport + EdgarFilingLinks |
+| 5 | Deep analysis flow | `/analysis/deep?ticker=AAPL` → DeepVerdictBadge + MungerReport + EdgarFilingLinks |
 | 6 | Top Picks flow | `/top-picks` → ≥1 row OR empty-state placeholder |
 | 7 | Watchlist flow | Add AAPL → reload → AAPL persists |
 | 8 | API contract | `GET /api/analysis/AAPL` (auth) → 200 + signals[13] |

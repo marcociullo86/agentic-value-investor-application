@@ -444,3 +444,5 @@ ADR-007 §Error format dichiara RFC 9457 §3.2 (extensions al top-level). Quattr
 **Sospetta fonte:** lead-architect — decisione su `output` mode e modello deployment (ADR-009 vs server runtime).
 **Impatto:** Il middleware è UX-only (defense-in-depth), il backend protegge gli endpoint indipendentemente. Non bloccante per sicurezza. Bloccante per UX completa delle redirezioni auth in produzione. In `next dev` il middleware è pienamente funzionante.
 **TSK correlati:** TSK-206 (middleware AuthGuard), TSK-122 (deep analysis route), US-073 (AuthGuard centralizzato).
+
+**Aggiornamento 2026-05-28 — remediation parziale runtime statico:** confermata root cause locale su route FE non forwardate nel deploy statico backend (`NoResourceFoundException` su `/top-picks` e `/analysis/deep`). Esteso `SpaRoutingConfig` con forward espliciti per le route statiche mancanti e allineati smoke test FE (route/query-param + selector top-picks). Il gap middleware/export resta aperto: la decisione architetturale su `output: 'export'` vs runtime middleware e` ancora necessaria.

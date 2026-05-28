@@ -1,0 +1,16 @@
+services:
+  # Lightweight stub to avoid building heavy embeddings stack in local tours.
+  embeddings-sidecar:
+    image: python:3.12-alpine
+    command: ["python", "-m", "http.server", "8001"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+networks:
+  default:
+    external: true
+    name: docker_default

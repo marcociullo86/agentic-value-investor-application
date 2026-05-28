@@ -15,8 +15,8 @@ import { acquireFreshToken } from '@/lib/api/token-refresh-mutex';
  * Riferimento: design_&_architecture/components/frontend-components.md §API client.
  *
  * Responsabilità:
- *  - baseURL da `NEXT_PUBLIC_API_BASE_URL` (default `http://localhost:8080`,
- *    CORS abilitato lato BE — TSK-031 CorsConfig).
+ *  - baseURL da `NEXT_PUBLIC_API_BASE_URL` (default same-origin `''`,
+ *    robusto sia in `next dev` sia in static export servito dal backend).
  *  - Interceptor request: inietta `Authorization: Bearer ${accessToken}` se
  *    presente nello store auth (access token in memoria, mai persistito —
  *    ADR-006).
@@ -38,8 +38,7 @@ export interface ApiResult<T> {
   readonly status: number;
 }
 
-const BASE_URL: string =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
+const BASE_URL: string = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
 
 export const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,

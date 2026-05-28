@@ -153,3 +153,11 @@ Dopo `npx playwright install chromium` e `npm run test:e2e -- --reporter=line` (
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare -->
+
+## Aggiornamenti (v2026-05-28) — static runtime parity (`:8080`)
+
+- Riprodotto localmente errore route FE su runtime statico backend (`/top-picks`, `/analysis/deep`): backend logga `NoResourceFoundException` quando la route non viene forwardata verso `index.html` statico.
+- Mitigazione applicata in codebase:
+  - estese route forward in `SpaRoutingConfig` per `/top-picks`, `/analysis/deep`, `/profile/mfa`, `/admin`, `/403`;
+  - allineati smoke test FE su selector route correnti (`top-pick-row-*`, deep route query-param).
+- Nota operativa locale: per tour applicativo su Podman e` disponibile override non invasivo `docker-compose.local-no-embeddings.yml` (compose canonico invariato).
