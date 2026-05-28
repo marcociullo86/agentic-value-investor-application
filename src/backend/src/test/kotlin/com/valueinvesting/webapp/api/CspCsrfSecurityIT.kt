@@ -35,7 +35,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
  *
  * Covers:
  *  1. [CspOnAuthEndpoints] — Content-Security-Policy header present on all API responses,
- *     including /api/auth/* endpoints (complements SecurityHeadersIT which covers
+ *     including all /api/auth endpoints (complements SecurityHeadersIT which covers
  *     /actuator and /api/screener).
  *  2. [CsrfProtection] — POST /api/auth/refresh without X-CSRF-Token → 403.
  *     (Overlaps with AuthControllerIT "refresh without CSRF token returns 403" intentionally:
