@@ -8,6 +8,8 @@ const replaceMock = vi.fn();
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: pushMock, replace: replaceMock }),
+  usePathname: () => '/watchlist',
+  useSearchParams: () => new URLSearchParams(''),
 }));
 
 vi.mock('@/lib/stores/useAuthStore', () => ({

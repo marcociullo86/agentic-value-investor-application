@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
@@ -34,10 +34,21 @@ const FIELD_LABELS: Record<string, string> = {
 };
 
 /**
- * Login page (TSK-034, TSK-201, TSK-207).
+ * Login page (TSK-034, TSK-201, TSK-207, TSK-267).
+ *
  * Posts to `POST /api/auth/login` via useAuthStore.
- * Shows a "session expired" banner when redirected with `?expired=true`.
+ *
+ * Shows a "session expired" banner when redirected with `?expired=true`
+ * (TSK-267 / ADR-026 §session-expired branch).
+ *
+ * Consumes `?returnUrl=<path+query>` and redirects there after a
+ * successful login (TSK-267 / US-087 AC §returnUrl post-login).
+ * `returnUrl` is validated as a same-origin pathname to prevent
+ * open-redirect attacks (any value not starting with a single `/` is
+ * ignored and falls back to `/`).
+ *
  * Reference: design_&_architecture/components/frontend-components.md §app/(auth)/login.
+ * [^src: design_&_architecture/decisions/ADR-026-frontend-authguard-static-export-runtime.md §Decisione]
  */
 export default function LoginPage(): React.ReactElement {
   return (
@@ -45,6 +56,26 @@ export default function LoginPage(): React.ReactElement {
       <LoginContent />
     </Suspense>
   );
+}
+
+/**
+ * Returns the requested `returnUrl` if it is a safe same-origin path
+ * (starts with `/`, not `//`, not `/login*`), otherwise `/`.
+ *
+ * The guard mirrors the constraints imposed by
+ * `buildLoginUrl(... )` (auth-guard-decision.ts) which never emits a
+ * `returnUrl` pointing back at `/login`. Keeping the validation here
+ * defends against tampered query strings (clipboard-pasted URLs,
+ * cross-tab opens) trying to coerce a redirect to a third-party origin.
+ */
+export function resolveSafeReturnUrl(raw: string | null): string {
+  if (!raw) return '/';
+  if (!raw.startsWith('/')) return '/';
+  if (raw.startsWith('//')) return '/';
+  if (raw === '/login' || raw.startsWith('/login?') || raw.startsWith('/login/')) {
+    return '/';
+  }
+  return raw;
 }
 
 /**
@@ -63,6 +94,10 @@ function LoginContent(): React.ReactElement {
   const [mfaChallenge, setMfaChallenge] = useState<MfaChallenge | null>(null);
 
   const expired = searchParams.get('expired') === 'true';
+  const returnUrl = useMemo(
+    () => resolveSafeReturnUrl(searchParams.get('returnUrl')),
+    [searchParams],
+  );
 
   const {
     register,
@@ -81,7 +116,7 @@ function LoginContent(): React.ReactElement {
         setMfaChallenge({ mfaToken: result.mfaToken, email: data.email });
         return;
       }
-      router.push('/');
+      router.push(returnUrl);
     } catch (err) {
       setServerError(getAuthFormErrorMessage(err, 'login'));
     }
@@ -94,7 +129,7 @@ function LoginContent(): React.ReactElement {
           <MfaChallengeForm
             mfaToken={mfaChallenge.mfaToken}
             email={mfaChallenge.email}
-            onSuccess={() => router.push('/')}
+            onSuccess={() => router.push(returnUrl)}
           />
           <button
             type="button"

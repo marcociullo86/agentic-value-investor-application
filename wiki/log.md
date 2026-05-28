@@ -1843,3 +1843,51 @@ Pagine create: 0 | Figure: 0 | Aggiornamenti: 2 (agentic-factory-v213, index.md)
   - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
   - Markers: none
   - Report: [code_quality/reports/TSK-230-iter-2.md](../code_quality/reports/TSK-230-iter-2.md)
+
+- 2026-05-28 14:50 — `review TSK-266 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.0.3 (conf 0.92)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: scope_inferred
+  - Report: [code_quality/reports/TSK-266-iter-1.md](../code_quality/reports/TSK-266-iter-1.md)
+
+- 2026-05-28 16:00 — `review TSK-267 iter-1 → conditional`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.0.3 (conf 0.94)
+  - Finding: {high: 0, medium: 2, low: 2}, dedup: 4
+  - Markers: scope_inferred
+  - Report: [code_quality/reports/TSK-267-iter-1.md](../code_quality/reports/TSK-267-iter-1.md)
+
+- 2026-05-28 15:30 — `review TSK-267 iter-2 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.0.3 (conf 0.94)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: scope_inferred
+  - Report: [code_quality/reports/TSK-267-iter-2.md](../code_quality/reports/TSK-267-iter-2.md)
+
+- 2026-05-28 15:45 — `review TSK-268 iter-1 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/nextjs 16.0.3 (conf 0.93)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: scope_inferred
+  - Report: [code_quality/reports/TSK-268-iter-1.md](../code_quality/reports/TSK-268-iter-1.md)
+
+- 2026-05-28 16:30 — `review TSK-269 iter-1 → conditional`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/playwright 1.51.1 (conf 0.91)
+  - Finding: {high: 2, medium: 1, low: 1}, dedup: 4
+  - Markers: none
+  - Report: [code_quality/reports/TSK-269-iter-1.md](../code_quality/reports/TSK-269-iter-1.md)
+
+- 2026-05-28 16:10 — `review TSK-269 iter-2 → pass`
+  - Reviewer: code-reviewer@2.12.0
+  - Stack: typescript/playwright 1.51.1 (conf 0.93)
+  - Finding: {high: 0, medium: 0, low: 0}, dedup: 0
+  - Markers: none
+  - Report: [code_quality/reports/TSK-269-iter-2.md](../code_quality/reports/TSK-269-iter-2.md)
+
+---
+
+[2026-05-28 12:14] update — fix runtime statico SPA: SpaRoutingConfig esteso (+5 route: /analysis/deep, /top-picks, /profile/mfa, /admin, /403), NEXT_PUBLIC_API_BASE_URL default same-origin, docker-compose.local-no-embeddings.yml + start-agentic-value-investor.sh documentati, E2E smoke/top-picks selector/route allineati; gap fe-middleware-static-export-conflict resta aperto (L4 pending) — files touched: 2 (wiki/concepts/webapp-architecture-vi.md, wiki/log.md)
+
+[2026-05-28 17:04] close-gap fe-middleware-static-export-conflict — ADR-026 accepted, US-087 done (TSK-266/267/268/269 done+passed): ClientAuthGuard client-side in produzione con output: 'export' invariato; middleware dev-only hardening; E2E static suite 11 test — files touched: 3 (wiki/gaps.md, wiki/concepts/auth-guard-frontend.md, wiki/concepts/webapp-architecture-vi.md)

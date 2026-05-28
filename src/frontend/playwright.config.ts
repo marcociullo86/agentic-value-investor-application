@@ -23,8 +23,9 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './e2e',
-  // Exclude real-BE specs — they are run with playwright.config.realbe.ts.
-  testIgnore: ['**/auth-watchlist.spec.ts'],
+  // Exclude real-BE specs — run with playwright.config.realbe.ts.
+  // Exclude static-export spec — run with playwright.config.static.ts (TSK-269).
+  testIgnore: ['**/auth-watchlist.spec.ts', '**/auth-guard-static-export.spec.ts'],
   outputDir: 'e2e/test-results',
 
   /* Esegui i test in parallelo (workers default = metà CPU). */

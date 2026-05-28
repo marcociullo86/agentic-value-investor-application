@@ -23,4 +23,6 @@ code_quality/reports/*
 # Next.js / Playwright local artifacts
 src/frontend/.next/
 src/frontend/e2e/test-results/
+src/frontend/e2e/test-results-static/
+src/frontend/e2e/playwright-report-static/
 src/frontend/playwright-report/

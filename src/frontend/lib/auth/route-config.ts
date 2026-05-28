@@ -14,12 +14,18 @@ export const ROUTE_MAP: readonly RouteConfig[] = [
   { path: "/login", requiresAuth: false },
   { path: "/register", requiresAuth: false },
   { path: "/", requiresAuth: false },
-  { path: "/analysis", requiresAuth: false },
-  { path: "/analysis/deep", requiresAuth: false },
   { path: "/screener", requiresAuth: false },
-  { path: "/top-picks", requiresAuth: false },
 
   // Authenticated routes
+  //
+  // TSK-267 / US-087 / ADR-026 §Migration steps — `/analysis`,
+  // `/analysis/deep` e `/top-picks` sono ora rotte protette gestite dal
+  // `ClientAuthGuard` client-side (compatibile con `output: 'export'`).
+  // L'enforcement reale resta sul backend; il guard è UX-only.
+  // [^src: management/kanban/EP-017-protezione-rotte-sessione/US-087-authguard-client-side-static-export/TSK-267.md §Technical Specs]
+  { path: "/analysis", requiresAuth: true },
+  { path: "/analysis/deep", requiresAuth: true },
+  { path: "/top-picks", requiresAuth: true },
   { path: "/watchlist", requiresAuth: true },
   { path: "/moat", requiresAuth: true },
   { path: "/profile", requiresAuth: true },

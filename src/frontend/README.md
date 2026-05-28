@@ -41,6 +41,79 @@ npm run build   # produce out/ (static export)
 Il bundle `out/` viene servito dal backend (vedi ADR-009 `§Dev locale` /
 `§Serving`).
 
+## Perimetro auth e routing (ADR-026)
+
+> TL;DR: in **produzione** l'AuthGuard è **client-side** (UX) e l'enforcement
+> reale è **sul backend** (security boundary). `middleware.ts` è **dev-only**.
+
+Con `output: 'export'` non esiste un runtime Next.js in produzione: il
+bundle statico viene servito dal backend Spring Boot, quindi nessun
+middleware Edge/Node FE può intercettare le richieste. ADR-026 formalizza
+la separazione fra layer di guard e layer di sicurezza:
+
+| Concern | Produzione | Dev locale (`next dev`) |
+|---|---|---|
+| Redirect non autenticato → `/login?returnUrl=…` | `ClientAuthGuard` + `useAuthGuard` | Idem, più fallback `middleware.ts` |
+| Redirect ruolo insufficiente → `/403` | `ClientAuthGuard` | Idem, più fallback `middleware.ts` |
+| Sessione scaduta → logout + login | `useAuthGuard` (`session-expired`) | Idem, più `middleware.ts` |
+| Authz reale (security boundary) | Backend (`@PreAuthorize`, sessione, ruoli) | Idem |
+| CSP | `SecurityHeadersConfig` lato BE (TSK-221) | `middleware.ts` con nonce per-request (parità minima) |
+
+### Componenti chiave
+
+- `components/auth/ClientAuthGuard.tsx` — wrapper riusabile applicato ai
+  layout/pagine protetti (`/analysis`, `/analysis/deep`, `/watchlist`,
+  `/top-picks`, `/moat`, `/profile`, `/admin`).
+- `hooks/use-auth-guard.ts` — implementa la matrice decisionale (`loading`,
+  `allow`, `unauthenticated`, `forbidden`, `session-expired`) e collega il
+  redirect al router Next.
+- `lib/auth/auth-guard-decision.ts` — funzione pura `evaluateAuthGuard`
+  testabile in isolamento (input → decisione).
+- `lib/auth/route-config.ts` — mappa dichiarativa unica dei requisiti
+  `requiresAuth` / `roles` (TSK-205 / US-074), consumata sia dal guard
+  client-side che dal middleware dev.
+
+### `middleware.ts` (dev-only)
+
+`middleware.ts` resta solo come convenienza per `next dev`: con
+`output: 'export'` non viene mai incluso nel bundle prodotto in `out/`.
+Per evitare che diventi accidentalmente "il" controllo auth di produzione
+(es. se in futuro qualcuno rimuove `output: 'export'` senza ridisegnare il
+perimetro), TSK-268 ha introdotto un guard-rail esplicito:
+
+```ts
+if (process.env.NODE_ENV !== "development") {
+  return NextResponse.next();
+}
+```
+
+Conseguenze operative:
+
+- Build/export statica (`npm run build`) NON dipende da `middleware.ts`.
+- I test Vitest (`NODE_ENV=test`) di default vedono solo il pass-through;
+  i test dello scenario dev stubbano esplicitamente
+  `vi.stubEnv('NODE_ENV', 'development')`.
+- In produzione il file non viene caricato; la sua sola esistenza non ha
+  effetto runtime.
+
+Riferimenti:
+[`design_&_architecture/decisions/ADR-026-frontend-authguard-static-export-runtime.md`](../../design_%26_architecture/decisions/ADR-026-frontend-authguard-static-export-runtime.md)
+·
+[`management/kanban/EP-017-protezione-rotte-sessione/US-087-authguard-client-side-static-export/`](../../management/kanban/EP-017-protezione-rotte-sessione/US-087-authguard-client-side-static-export/).
+
+### Test E2E AuthGuard (static export)
+
+Valida `ClientAuthGuard` sul bundle `out/` **senza** `next dev` né middleware:
+
+```bash
+cd src/frontend
+npm run build
+npm run test:e2e:static
+```
+
+Config dedicata: `playwright.config.static.ts` (spec `e2e/auth-guard-static-export.spec.ts`).
+In CI: job `fe-e2e-static` in `.github/workflows/ci.yml`.
+
 ## Env vars
 
 | Variabile | Default | Note |

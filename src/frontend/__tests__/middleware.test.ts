@@ -61,14 +61,19 @@ function createMockRequest(
   };
 }
 
-describe('AuthGuard middleware', () => {
+describe('AuthGuard middleware (dev runtime)', () => {
   beforeEach(() => {
     vi.resetModules();
     mockRedirect.mockClear();
     mockNext.mockClear();
+    // Dev-only by design (TSK-268): the decision table only runs when
+    // NODE_ENV === 'development'. Vitest sets NODE_ENV='test' by default,
+    // so we stub it to exercise the in-dev branch.
+    vi.stubEnv('NODE_ENV', 'development');
   });
 
   afterEach(() => {
+    vi.unstubAllEnvs();
     vi.restoreAllMocks();
   });
 
@@ -148,9 +153,21 @@ describe('AuthGuard middleware', () => {
     expect(mockRedirect).not.toHaveBeenCalled();
   });
 
-  it('passes through for /analysis public route', async () => {
+  it('redirects unauthenticated /analysis request to /login (TSK-267 — newly protected)', async () => {
     const middleware = await importMiddleware();
-    const request = createMockRequest('/analysis', {});
+    const request = createMockRequest('/analysis', {}, '?ticker=AAPL');
+
+    middleware(request as never);
+
+    expect(mockRedirect).toHaveBeenCalledTimes(1);
+    const redirectUrl = mockRedirect.mock.calls[0]?.[0] as URL;
+    expect(redirectUrl.pathname).toBe('/login');
+    expect(redirectUrl.searchParams.get('returnUrl')).toBe('/analysis?ticker=AAPL');
+  });
+
+  it('passes through for /screener public route', async () => {
+    const middleware = await importMiddleware();
+    const request = createMockRequest('/screener', {});
 
     middleware(request as never);
 
@@ -198,19 +215,21 @@ describe('AuthGuard middleware', () => {
   });
 });
 
-describe('CSP middleware (TSK-222)', () => {
+describe('CSP middleware (TSK-222) — dev runtime', () => {
   const fixedNonce = '00000000-0000-4000-8000-000000000001';
 
   beforeEach(() => {
     vi.resetModules();
     mockRedirect.mockClear();
     mockNext.mockClear();
+    vi.stubEnv('NODE_ENV', 'development');
     vi.stubGlobal('crypto', {
       randomUUID: () => fixedNonce,
     });
   });
 
   afterEach(() => {
+    vi.unstubAllEnvs();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
@@ -223,8 +242,13 @@ describe('CSP middleware (TSK-222)', () => {
   function expectCspOnResponse(response: { headers: Headers }): void {
     const csp = response.headers.get('Content-Security-Policy');
     expect(csp).toBeTruthy();
+    // Dev mode CSP always includes per-request nonce + `'unsafe-inline'`
+    // for HMR (TSK-222 §dev relaxation). Production CSP — without
+    // `'unsafe-inline'` — is emitted by the backend `SecurityHeadersConfig`
+    // (TSK-221), never by this middleware (dev-only per TSK-268).
     expect(csp).toContain(`'nonce-${fixedNonce}'`);
-    expect(csp).not.toMatch(/script-src[^;]*unsafe-inline/);
+    expect(csp).toMatch(/script-src[^;]*'unsafe-inline'/);
+    expect(csp).toMatch(/connect-src[^;]*ws:/);
   }
 
   it('adds Content-Security-Policy with nonce on pass-through responses', async () => {
@@ -249,5 +273,95 @@ describe('CSP middleware (TSK-222)', () => {
 
     expect(mockRedirect).toHaveBeenCalledTimes(1);
     expectCspOnResponse(response);
+  });
+});
+
+/**
+ * Dev-only guard-rail (TSK-268 / ADR-026).
+ *
+ * `middleware.ts` is intentionally limited to `next dev` because the
+ * production bundle is `output: 'export'` and never executes middleware.
+ * If a future runtime accidentally invokes this code path with a
+ * non-development `NODE_ENV`, it must short-circuit to pass-through
+ * without redirects, CSP headers, or any other side-effect — production
+ * auth lives in `ClientAuthGuard` (UX) and on the backend (security).
+ */
+describe('middleware dev-only guard-rail (TSK-268)', () => {
+  beforeEach(() => {
+    vi.resetModules();
+    mockRedirect.mockClear();
+    mockNext.mockClear();
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
+  });
+
+  async function importMiddleware() {
+    const mod = await import('../middleware');
+    return mod.middleware;
+  }
+
+  it('passes through without redirect when NODE_ENV is "production"', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    const middleware = await importMiddleware();
+    const request = createMockRequest('/watchlist', {});
+
+    middleware(request as never);
+
+    expect(mockRedirect).not.toHaveBeenCalled();
+    expect(mockNext).toHaveBeenCalledTimes(1);
+  });
+
+  it('emits no Content-Security-Policy header outside dev', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    const middleware = await importMiddleware();
+    const request = createMockRequest('/', {});
+
+    const response = middleware(request as never);
+
+    expect(response.headers.get('Content-Security-Policy')).toBeNull();
+  });
+
+  it('passes through admin route with non-admin role when NODE_ENV !== "development"', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    const middleware = await importMiddleware();
+    const request = createMockRequest('/admin', {
+      isAuthenticated: 'true',
+      userRole: 'user',
+    });
+
+    middleware(request as never);
+
+    expect(mockRedirect).not.toHaveBeenCalled();
+    expect(mockNext).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores sessionExpired cookie outside dev (no redirect, no cookie clearing)', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    const middleware = await importMiddleware();
+    const request = createMockRequest('/watchlist', {
+      isAuthenticated: 'true',
+      sessionExpired: 'true',
+    });
+
+    const response = middleware(request as never);
+
+    expect(mockRedirect).not.toHaveBeenCalled();
+    expect(mockNext).toHaveBeenCalledTimes(1);
+    expect(response.cookies.delete).not.toHaveBeenCalled();
+  });
+
+  it('passes through with vitest default NODE_ENV ("test") — guard-rail is strict', async () => {
+    // No stubEnv: vitest default is NODE_ENV='test'. The middleware must
+    // bail to `NextResponse.next()` since 'test' !== 'development'.
+    const middleware = await importMiddleware();
+    const request = createMockRequest('/watchlist', {});
+
+    middleware(request as never);
+
+    expect(mockRedirect).not.toHaveBeenCalled();
+    expect(mockNext).toHaveBeenCalledTimes(1);
   });
 });
