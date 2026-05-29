@@ -1989,3 +1989,21 @@ PATTERN.md aggiornato; factory.config.yaml pattern_version 2.14 + blocco compres
 [2026-05-29 14:30] review TSK-235 iter-2 → pass — kotlin/spring-boot JUnit5 IT; 4/4 finding actionable iter-1 risolti (blocking F-235-1-001 sbloccato: 11/11 verdi via Podman/Testcontainers; KDoc; write-path maybeTriggerLockout via Scenario 3b; asserzioni); 1 low non-actionable (field injection @SpringBootTest) accettato; no regression; report: code_quality/reports/TSK-235-iter-2.json
 
 [2026-05-29 14:30] review TSK-271 iter-2 → pass — typescript/playwright e2e mocked-tier; 3/3 finding iter-1 risolti (webServer.env + no early-return, getByRole, expect.not.toBeDisabled); 0 new findings; no regression; confidence 0.97; report: code_quality/reports/TSK-271-iter-2.json
+
+### 2026-05-29 develop — TSK-272 BE (Sprint 18, US-031)
+- role: be-dev (agent)
+- scope: migrazione FmpAdapterRestClient `/api/v3` → `/stable` (EP-002).
+- change: routing/DTO/fixture risultano GIÀ migrati a `/stable` (sotto TSK-050 + audit DTO 2026-05-23). Solo 2 commenti stale corretti (FmpAdapter.kt:68, ScreenedStockDto.kt:5). Nessun cambio funzionale necessario.
+- tests: FmpAdapterRestClientTest 18/18, FmpAdapterDividendHistoryTest 10/10, FmpAdapterTechnicalIndicatorTest 10/10, Fmp429RetryWireMockIT 1/1 → **39/39 verdi** (Podman/Testcontainers).
+- DoD: PASS. Nessun `api/v3` residuo. status: todo → done.
+- VCS gate: pending (gate umano).
+
+### 2026-05-29 develop — TSK-286 DB (Sprint 18, US-037) — no-op (duplicato di TSK-084)
+- role: db-dev (agent)
+- scope: migration cache dividendi.
+- change: la tabella `fmp_dividend_history_snapshot` esiste già da V010 (TSK-084, sprint 6, done 2026-05-25). TSK-286 è un duplicato; riallineamento alle specs avrebbe richiesto DROP/RENAME irreversibili → STOP corretto. Nessuna nuova migration. Aperto gap non-bloccante `sprint18-us037-db-tsk-duplicate-of-sprint6` in wiki/gaps.md.
+- tests: Flyway chain V001..V026 valida pulita via Testcontainers/Podman (TopValuePickRepositoryTest BUILD SUCCESSFUL).
+- DoD: PASS (sostanziale via V010). status: todo → done.
+- VCS gate: pending (gate umano).
+
+[2026-05-29 15:00] audit Sprint 18 — backlog largamente pre-implementato: oltre a TSK-272 (FMP /stable già fatto) e TSK-286 (V010 esistente), TUTTE le 6 regole Graham US-032..037 esistono già nel rule engine (SizeRule, EarningsStabilityRule, EpsGrowthRule, Pe3yAvgRule, PbLatestRule, DividendContinuityRule). US mai chiuse di status → tpm le ha ri-task-izzate. Raccomandazione: audit ACvs-codice + chiusura status, NON ri-sviluppo.

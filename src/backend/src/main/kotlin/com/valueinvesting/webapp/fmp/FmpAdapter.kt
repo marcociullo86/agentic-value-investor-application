@@ -65,9 +65,10 @@ interface FmpAdapter {
         limit: Int = 50,
     ): List<ScreenedStockDto>
 
-    // `/api/v3/search?query={q}&limit={limit}` — ricerca free-text per ticker o
-    // nome azienda. Ritorna 0..N hit; lista vuota è risultato legittimo (nessun
-    // match) e NON deve sollevare FmpTickerNotFoundException.
+    // `/stable/search-symbol?query={q}&limit={limit}` — ricerca free-text per
+    // ticker o nome azienda (TSK-272: migrato da `/api/v3/search` deprecato).
+    // Ritorna 0..N hit; lista vuota è risultato legittimo (nessun match) e
+    // NON deve sollevare FmpTickerNotFoundException.
     //
     // Il caller (SearchService.search) è responsabile della normalizzazione
     // uppercase della query (US-001 AC) PRIMA di invocare questo metodo.

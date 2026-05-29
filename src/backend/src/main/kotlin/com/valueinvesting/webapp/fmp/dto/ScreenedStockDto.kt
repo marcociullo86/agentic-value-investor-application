@@ -2,7 +2,7 @@ package com.valueinvesting.webapp.fmp.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
-// FMP `/api/v3/stock-screener` response item.
+// FMP `/stable/company-screener` response item (TSK-272: migrato da `/api/v3/stock-screener`).
 // FMP restituisce un array di candidati con il subset di campi necessari allo
 // screener parametrico (US-002): symbol/companyName + sector + market cap +
 // price/currency. I campi extra sono ignorati via @JsonIgnoreProperties.
