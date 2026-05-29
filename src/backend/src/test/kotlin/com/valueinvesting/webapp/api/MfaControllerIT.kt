@@ -123,7 +123,12 @@ class MfaControllerIT {
         assertThat(body.path("mfaRequired").asBoolean()).isTrue()
         assertThat(body.path("mfaToken").asText()).isNotBlank()
         assertThat(body.has("accessToken") && !body.get("accessToken").isNull).isFalse()
-        assertThat(loginResult.response.getHeader("Set-Cookie")).isNull()
+        // The MFA login must NOT emit a refresh_token cookie (no session yet).
+        // A non-httpOnly XSRF-TOKEN cookie may be present (CsrfCookieFilter),
+        // so assert specifically on the absence of refresh_token rather than
+        // on Set-Cookie being entirely null.
+        assertThat(loginResult.response.getHeaders("Set-Cookie"))
+            .noneMatch { it.contains("refresh_token=") }
         assertThat(refreshTokenRepository.count()).isEqualTo(0)
     }
 

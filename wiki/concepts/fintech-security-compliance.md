@@ -3,7 +3,7 @@ type: concept
 sources: ["raw/requisiti-funzionali-fintech.md"]
 status: draft
 created: 2026-05-26
-updated: 2026-05-28
+updated: 2026-05-29
 tags: [security, compliance, pii, pci-dss, threat-model, gdpr, csrf, xss, fintech]
 ---
 # Sicurezza, Privacy e Compliance Fintech
@@ -174,6 +174,17 @@ Dopo `feat(ep-018)` (`341610b`), la pipeline `ci` è stata riallineata con fix i
 [^src: .github/workflows/ci.yml]
 
 **Wave 3 prossima:** integrazione MFA end-to-end (TSK-228), audit log tentativi auth (TSK-230), QA CSP+CSRF (TSK-224), client CSRF header su refresh/logout FE.
+
+## Aggiornamenti (v2026-05-29)
+
+**CSRF cookie-to-header completato end-to-end — chiuso l'item pendente "client CSRF header su refresh/logout FE" (Wave 2 §sopra).**
+
+La protezione CSRF (§5.5) era cablata solo lato regola (`CsrfTokenConfig`, TSK-223) ma né il cookie `XSRF-TOKEN` veniva emesso, né il FE inviava l'header — provocando un 403 sul refresh silenzioso e il logout su F5 (vedi [[2026-05-29-f5-logout-csrf]]). Completata la catena:
+
+- **Emissione cookie (BE)**: `CsrfCookieFilter` materializza il `CsrfToken` deferred di Spring Security 6 (registrato dopo `CsrfFilter`); il cookie `XSRF-TOKEN` non-httpOnly `SameSite=Strict` viene ora scritto al page load. [^src: src/backend/src/main/kotlin/com/valueinvesting/webapp/security/filter/CsrfCookieFilter.kt]
+- **Invio header (FE)**: axios riecheggia il cookie come `X-CSRF-Token` su `POST /api/auth/refresh` e `/api/auth/logout` (`xsrfHeaderName` + `withXSRFToken`). [^src: src/frontend/lib/api/client.ts]
+
+Threat model §5.5 (riga CSRF): "Cookie `SameSite=Strict` + token CSRF su richieste state-changing" ora pienamente operativo per refresh/logout. Le routes Bearer restano escluse (header custom non inviati cross-origin dai browser). Invariante: refresh senza header → 403 (CSRF enforced), con header valido → 200.
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->

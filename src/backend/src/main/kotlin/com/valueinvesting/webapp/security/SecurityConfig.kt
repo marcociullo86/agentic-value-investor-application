@@ -5,6 +5,7 @@ import com.valueinvesting.webapp.config.CsrfTokenConfig
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.valueinvesting.webapp.config.FlatteningProblemDetailHttpMessageConverter
 import com.valueinvesting.webapp.config.SecurityHeadersConfig
+import com.valueinvesting.webapp.security.filter.CsrfCookieFilter
 import com.valueinvesting.webapp.security.filter.RateLimitingFilter
 import com.valueinvesting.webapp.service.AuthRateLimitService
 import org.springframework.boot.web.servlet.FilterRegistrationBean
@@ -27,6 +28,7 @@ import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.access.AccessDeniedHandler
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import org.springframework.security.web.csrf.CsrfFilter
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler
 import org.springframework.security.web.csrf.CsrfTokenRepository
 
@@ -273,6 +275,11 @@ class SecurityConfig(
                 jwtAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter::class.java,
             )
+            // Materializes the deferred CsrfToken so the (non-httpOnly)
+            // XSRF-TOKEN cookie is actually emitted to the browser — without
+            // it the FE has nothing to echo as X-CSRF-Token and refresh/logout
+            // are rejected with 403 (F5-logout bug). See CsrfCookieFilter.
+            .addFilterAfter(CsrfCookieFilter(), CsrfFilter::class.java)
             .build()
     }
 

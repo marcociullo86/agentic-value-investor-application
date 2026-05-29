@@ -3,7 +3,7 @@ type: concept
 sources: ["raw/requisiti-funzionali-fintech.md"]
 status: draft
 created: 2026-05-26
-updated: 2026-05-27
+updated: 2026-05-29
 tags: [auth, auth-guard, frontend, token, session, security, fintech]
 ---
 # AuthGuard sulle Sezioni Protette del Frontend
@@ -101,6 +101,18 @@ ADR-026 (status: accepted) adotta **Opzione B**: `ClientAuthGuard` client-side R
 - **E2E static export suite** (TSK-269): `playwright.config.static.ts` con 11 test Playwright che verificano i redirect client-side in ambiente static export (server statico `scripts/static-test-server.js`). [^src: management/kanban/EP-017-protezione-rotte-sessione/US-087-authguard-client-side-static-export/TSK-269.md]
 
 **Defense-in-depth invariato:** il backend protegge tutti gli endpoint con autenticazione/autorizzazione server-side indipendentemente dal client — il `ClientAuthGuard` è UX, non sicurezza.
+
+## Aggiornamenti (v2026-05-29)
+
+**Bugfix: logout su F5 — protezione CSRF su `/api/auth/refresh` cablata a metà.**
+
+L'AC "Refresh F5 su rotta protetta da utente autenticato non causa flicker verso login" era regredito: dopo il login, un F5 sloggava l'utente. La `rehydrate()` al mount faceva `POST /api/auth/refresh`, ma la protezione CSRF (TSK-223) rifiutava la richiesta con 403 perché (a) il backend non emetteva mai il cookie `XSRF-TOKEN` (token *deferred* di Spring Security 6 mai materializzato su API stateless) e (b) il client axios non inviava l'header `X-CSRF-Token`. L'interceptor gestiva solo il 401, quindi il 403 finiva in `clearSession()` → redirect a `/login`.
+
+Fix:
+- **BE** — nuovo `CsrfCookieFilter` (registrato dopo `CsrfFilter`) che materializza il token così il cookie `XSRF-TOKEN` viene emesso: prima dell'handler sulle GET (semina al page load), dopo l'handler sulle POST (preserva l'ordine dei `Set-Cookie`). [^src: src/backend/src/main/kotlin/com/valueinvesting/webapp/security/filter/CsrfCookieFilter.kt]
+- **FE** — axios configurato con `xsrfCookieName: 'XSRF-TOKEN'`, `xsrfHeaderName: 'X-CSRF-Token'`, `withXSRFToken: true`: legge il cookie non-httpOnly e lo riecheggia come header su refresh/logout. [^src: src/frontend/lib/api/client.ts]
+
+Verificato end-to-end sullo stack Podman locale (`GET /` semina il cookie; refresh senza header → 403, con header → 200 + sessione ripristinata). Dettaglio: [[2026-05-29-f5-logout-csrf]].
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->

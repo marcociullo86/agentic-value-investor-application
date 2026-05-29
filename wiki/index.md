@@ -13,6 +13,7 @@ updated: 2026-05-26 (ingest requisiti-funzionali-fintech.md: +1 source, +6 conce
 updated: 2026-05-27 (+1 incident run test FE locale)
 updated: 2026-05-27 (doc-sync factory v2.13 + CQRL enabled: +1 concept agentic-factory-v213, +1 sezione Factory/Tooling)
 updated: 2026-05-28 (reconcile L1-L4 post EP-019 CQRL bonifica: update agentic-factory-v213 outcome 224/224 pass, incident allineato TSK-239 done)
+updated: 2026-05-29 (+1 incident F5-logout CSRF bugfix; update auth-guard-frontend + fintech-security-compliance)
 tags: [navigation]
 ---
 # Wiki Index — App Template Demo
@@ -188,9 +189,10 @@ tags: [navigation]
 | [[pii-redaction-checklist]] | PII redaction step-by-step: pattern centralizzati, PiiRedactionEncoder, leak detection CI, GDPR retention |
 | [[code-quality-review-runbook]] | CQRL operativo: roadmap 9 fasi, loop control (max_iterations=3, no-progress, regression detection), strategie batching (all-in-one / severity-tiered / split-by-area) |
 
-### Incidents (1)
+### Incidents (2)
 
 | Pagina | Descrizione |
 |--------|-------------|
 | [[2026-05-27-local-fe-test-run]] | Run Vitest/Playwright locale: 434/434 unit pass; E2E Playwright 30/30 pass post TSK-239 (keyboard seed + deep-analysis assert fix); cutover-smoke skip (no staging creds). |
+| [[2026-05-29-f5-logout-csrf]] | Logout su F5: protezione CSRF su `/api/auth/refresh` cablata a metà (cookie `XSRF-TOKEN` mai emesso + header `X-CSRF-Token` mai inviato → 403). Fix BE `CsrfCookieFilter` + FE axios XSRF config; verificato end-to-end su stack Podman. |
 

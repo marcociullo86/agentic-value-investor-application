@@ -44,6 +44,15 @@ export const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,
   timeout: 30_000,
   withCredentials: true, // refresh token in httpOnly cookie (ADR-006).
+  // CSRF (ADR-025 §3): the BE protects POST /api/auth/refresh and /logout with
+  // a cookie-to-header token. axios reads the non-httpOnly `XSRF-TOKEN` cookie
+  // and echoes it as `X-CSRF-Token`. The header name overrides axios' default
+  // (`X-XSRF-TOKEN`) to match the BE (`CsrfTokenConfig.CSRF_HEADER_NAME`), and
+  // `withXSRFToken: true` forces attachment even cross-origin (`next dev` on a
+  // different port than the BE), where axios would otherwise skip it.
+  xsrfCookieName: 'XSRF-TOKEN',
+  xsrfHeaderName: 'X-CSRF-Token',
+  withXSRFToken: true,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
