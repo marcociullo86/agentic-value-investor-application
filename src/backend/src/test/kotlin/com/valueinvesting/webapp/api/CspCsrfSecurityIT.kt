@@ -140,12 +140,16 @@ class CspCsrfSecurityIT {
 
         @Test
         fun `Content-Security-Policy is an HTTP response header not empty (US-080 AC#6)`() {
+            // TSK-270 (ADR-025 §5): frame-src now allows the Cloudflare
+            // Turnstile origin instead of 'none' so the per-IP CAPTCHA
+            // gate (US-081) can render in production where Spring serves
+            // the static SPA build. object-src stays 'none'.
             val result = mockMvc.get("/actuator/health").andReturn()
             val csp = result.response.getHeader("Content-Security-Policy")
 
             assertThat(csp).isNotBlank()
             assertThat(csp).contains("default-src 'self'")
-            assertThat(csp).contains("frame-src 'none'")
+            assertThat(csp).contains("frame-src https://challenges.cloudflare.com")
             assertThat(csp).contains("object-src 'none'")
             assertThat(csp).contains("form-action 'self'")
         }

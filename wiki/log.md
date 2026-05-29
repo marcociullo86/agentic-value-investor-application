@@ -1942,3 +1942,18 @@ PATTERN.md aggiornato; factory.config.yaml pattern_version 2.14 + blocco compres
   - Finding: {high: 0, medium: 1 (waived), low: 1 (non-blocking)}, blocking: 0
   - Markers: waiver:e2e_external_blocker
   - Report: [code_quality/reports/TSK-238-iter-3.md](../code_quality/reports/TSK-238-iter-3.md)
+
+- 2026-05-29 10:02 — `develop TSK-270 → done`
+  - Role: be-dev (agent), Stack: kotlin 2.2 / spring-boot 3.5 / jvm 21
+  - Scope: BE CSP allow-list Cloudflare Turnstile in `SecurityHeadersConfig` (US-081, ADR-025 §5) — sblocca widget Turnstile (TSK-238) quando Spring serve il static export Next.js (ADR-009/026); FE policy `lib/security/csp.ts` resta autoritativa solo sotto `next dev`.
+  - Change: `script-src`, `connect-src` aggiungono `https://challenges.cloudflare.com`; `frame-src` passa da `'none'` a `https://challenges.cloudflare.com` (singolo origin permitted). Variante strict allineata 1:1. Costante pubblica `TURNSTILE_ORIGIN` introdotta per traceability con `src/frontend/lib/security/csp.ts` `TURNSTILE_ORIGIN`. Altre direttive (default-src, style-src, img-src, font-src, object-src, base-uri, form-action) invariate.
+  - Tests: unit `SecurityHeadersConfigTest` esteso da 7 a 14 test (8 nuovi: TURNSTILE_ORIGIN constant, default+strict allow Turnstile su 3 direttive, frame-src equality lock, connect-src equality lock per ciascuna variante, guard "unrelated directives untouched"). IT `CspCsrfSecurityIT.kt` `AC#6` aggiornato a `frame-src https://challenges.cloudflare.com`. `SecurityHeadersIT` invariato (confronta contro la costante).
+  - Run: `gradle test --tests com.valueinvesting.webapp.config.SecurityHeadersConfigTest --rerun-tasks` (JDK21 via `/usr/local/opt/openjdk@21`) → BUILD SUCCESSFUL, 14 tests, 0 failures, 0 errors. IT (`SecurityHeadersIT`, `CspCsrfSecurityIT`) non eseguiti localmente: Docker daemon down, Testcontainers bloccato — da rieseguire in CI (no logic drift atteso: confronto vs costante).
+  - DoD: pass (4/4 checkbox); code review pendente (gate separato `/review`).
+  - Files touched: 3
+    - `src/backend/src/main/kotlin/com/valueinvesting/webapp/config/SecurityHeadersConfig.kt`
+    - `src/backend/src/test/kotlin/com/valueinvesting/webapp/config/SecurityHeadersConfigTest.kt`
+    - `src/backend/src/test/kotlin/com/valueinvesting/webapp/api/CspCsrfSecurityIT.kt`
+  - VCS: commit pending (gate umano — PATTERN §7 r.14).
+
+[2026-05-29 12:00] review TSK-270 iter-1 → pass — kotlin/spring-boot CSP Turnstile allow-list; 0 high/medium, 2 low (assertion style); frame-src design correct, FE/BE coherent, 14 unit tests substantive; IT not run (Docker unavailable, acceptable per §7 r.8); report: code_quality/reports/TSK-270-iter-1.json
