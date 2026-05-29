@@ -2,7 +2,9 @@
 #
 # Flow:
 #   1. Ask whether to rebuild the vi-app image.
-#      - If YES: podman build -> compose down -> compose up -d, then Portainer.
+#      - If YES: chiede anche CPU/GPU per il sidecar embeddings, poi
+#        podman build vi-app -> compose down -> compose build sidecar ->
+#        compose up -d (con override GPU se scelto), then Portainer.
 #      - If NO : skip directly to Portainer (assumes stack is already up).
 #   2. Always (re)start vi-portainer via `podman run` (the socket bind
 #      cannot be expressed in podman-compose on Windows -- see docker-compose.yml).
@@ -34,16 +36,38 @@ $answer = Read-Host 'Vuoi buildare l''app prima di avviare lo stack? (y/N)'
 $doBuild = $answer -match '^(y|Y|yes|YES|s|S|si|SI)$'
 
 if ($doBuild) {
+    # 1b. Backend del sidecar embeddings: CPU oppure GPU NVIDIA (via CDI).
+    #     GPU richiede, una tantum nella podman machine, nvidia-container-toolkit
+    #     + spec CDI (`nvidia-ctk cdi generate`). Layer dell'override docker-compose.gpu.yml.
+    #     Default CPU su Invio: non fallisce dove la GPU non e' configurata.
+    $gpuAnswer = Read-Host 'Sidecar embeddings: CPU o GPU? (cpu/GPU) [default CPU]'
+    $useGpu = $gpuAnswer -match '^(g|G|gpu|GPU)$'
+
+    $composeArgs = @('-f', $composeFile)
+    if ($useGpu) {
+        $composeArgs += @('-f', 'src/docker/docker-compose.gpu.yml')
+        Write-Host 'Sidecar: GPU (CDI nvidia.com/gpu=all)' -ForegroundColor Green
+    } else {
+        Write-Host 'Sidecar: CPU' -ForegroundColor DarkGray
+    }
+
     Invoke-Native 'podman build vi-app:latest' {
         podman build -f $dockerfile -t vi-app:latest .
     }
 
     Invoke-Native 'podman-compose down' -AllowFail {
-        podman-compose -f $composeFile down
+        podman-compose @composeArgs down
+    }
+
+    # Rebuild del solo sidecar: recepisce le modifiche a embeddings-sidecar/app.py
+    # (l'ultimo layer e' la COPY di app.py -> rebuild veloce; il download del
+    #  modello resta cache-ato nei layer precedenti).
+    Invoke-Native 'podman-compose build embeddings-sidecar' {
+        podman-compose @composeArgs build embeddings-sidecar
     }
 
     Invoke-Native 'podman-compose up -d' {
-        podman-compose -f $composeFile up -d
+        podman-compose @composeArgs up -d
     }
 } else {
     Write-Host 'Skip build/restart - using existing running stack.' -ForegroundColor DarkGray

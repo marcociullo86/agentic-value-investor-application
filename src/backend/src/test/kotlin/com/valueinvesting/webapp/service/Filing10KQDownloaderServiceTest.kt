@@ -113,7 +113,7 @@ class Filing10KQDownloaderServiceTest {
     // =========================================================================
     @Test
     fun `happy path - fetchAndCache persists filing with non-empty extractedText`() {
-        every { fmpAdapter.getSecFilings(TICKER, any(), any()) } returns listOf(fmpFiling())
+        every { fmpAdapter.getSecFilings(TICKER, any(), any(), any()) } returns listOf(fmpFiling())
         every { secEdgarAdapter.downloadFilingHtml(any()) } returns SMALL_HTML
 
         val result = service.fetchAndCache(TICKER)
@@ -137,7 +137,7 @@ class Filing10KQDownloaderServiceTest {
     // =========================================================================
     @Test
     fun `cache hit - second fetchAndCache does not call SEC for same accession`() {
-        every { fmpAdapter.getSecFilings(TICKER, any(), any()) } returns listOf(fmpFiling())
+        every { fmpAdapter.getSecFilings(TICKER, any(), any(), any()) } returns listOf(fmpFiling())
         every { secEdgarAdapter.downloadFilingHtml(any()) } returns SMALL_HTML
 
         service.fetchAndCache(TICKER)
@@ -153,7 +153,7 @@ class Filing10KQDownloaderServiceTest {
     // =========================================================================
     @Test
     fun `post TTL - re-fetches filing when expires_at is in the past`() {
-        every { fmpAdapter.getSecFilings(TICKER, any(), any()) } returns listOf(fmpFiling())
+        every { fmpAdapter.getSecFilings(TICKER, any(), any(), any()) } returns listOf(fmpFiling())
         every { secEdgarAdapter.downloadFilingHtml(any()) } returns SMALL_HTML
 
         service.fetchAndCache(TICKER)
@@ -180,7 +180,7 @@ class Filing10KQDownloaderServiceTest {
     // =========================================================================
     @Test
     fun `limit 50MB - filing exceeding limit is not persisted`() {
-        every { fmpAdapter.getSecFilings(TICKER, any(), any()) } returns listOf(fmpFiling())
+        every { fmpAdapter.getSecFilings(TICKER, any(), any(), any()) } returns listOf(fmpFiling())
         val oversizedHtml = "a".repeat(52_500_000)
         every { secEdgarAdapter.downloadFilingHtml(any()) } returns oversizedHtml
 
@@ -195,7 +195,7 @@ class Filing10KQDownloaderServiceTest {
     // =========================================================================
     @Test
     fun `FMP empty list - fetchAndCache returns empty list without exception`() {
-        every { fmpAdapter.getSecFilings(TICKER, any(), any()) } returns emptyList()
+        every { fmpAdapter.getSecFilings(TICKER, any(), any(), any()) } returns emptyList()
 
         val result = service.fetchAndCache(TICKER)
 

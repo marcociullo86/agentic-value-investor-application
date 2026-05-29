@@ -175,8 +175,12 @@ class Filing10KQDownloaderService(
 
     private fun parseFilingDate(dateStr: String?): LocalDate {
         if (dateStr.isNullOrBlank()) return LocalDate.EPOCH
+        // FMP restituisce filingDate sia come "yyyy-MM-dd" sia come datetime
+        // "yyyy-MM-dd HH:mm:ss" (o ISO "yyyy-MM-ddTHH:mm:ss"). Isoliamo la sola
+        // parte data prima del parse per evitare il fallback a EPOCH.
+        val datePart = dateStr.trim().substringBefore(' ').substringBefore('T')
         return try {
-            LocalDate.parse(dateStr)
+            LocalDate.parse(datePart)
         } catch (_: DateTimeParseException) {
             log.warn("Unparseable filing date: {}", dateStr)
             LocalDate.EPOCH

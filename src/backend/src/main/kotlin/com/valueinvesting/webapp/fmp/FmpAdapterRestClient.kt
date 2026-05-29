@@ -389,24 +389,37 @@ class FmpAdapterRestClient(
     // Mai propagata fuori dall'adapter.
     private class EmptyDividendsSentinelException : RuntimeException()
 
-    // `/stable/sec-filings-search/symbol?symbol={ticker}&limit={limit}` — discovery
-    // SEC filing per ticker via FMP search aggregato (TSK-094, US-039, EP-011).
+    // `/stable/sec-filings-search/symbol?symbol={ticker}&formType={ft}&from={from}&to={to}&page=0&limit=...`
+    // — discovery SEC filing per ticker via FMP search (TSK-094, US-039, EP-011).
     //
-    // Endpoint verificato in raw/fmp_docs.md:10815. Pattern di error-handling
-    // identico a getDividendHistory:
-    //   - 429 → FmpUnavailableException(429).
+    // Endpoint verificato in raw/fmp_docs.md:10815. Comportamento reale FMP
+    // (verificato sul campo, ticker TTD, mag 2026):
+    //   - `from`/`to` sono OBBLIGATORI: senza finestra temporale → 400 BAD_REQUEST.
+    //   - L'endpoint NON filtra per `formType` lato server (passarlo è innocuo);
+    //     ritorna TUTTI i form type (Form-4, 8-K, SC 13G, 10-K, 10-Q, ...) ordinati
+    //     DESC per filingDate. Il 10-K/10-Q va quindi filtrato lato client.
+    //   - L'endpoint gemello `/sec-filings-search/form-type` IGNORA il `symbol`
+    //     (ritorna i filing di TUTTE le aziende) → inutilizzabile per ticker singolo.
+    //
+    // Strategia (allineata all'aspettativa "una chiamata per 10-K e una per 10-Q"):
+    // per ogni `formType` richiesto emettiamo una chiamata distinta all'endpoint
+    // /symbol con quel `formType` in querystring (così la richiesta "esce" con
+    // formType=10-K / formType=10-Q e resta forward-compatible se FMP attiverà il
+    // filtro server-side), poi filtriamo client-side per quel form type. Usiamo un
+    // page-limit ampio (SEC_FILINGS_PAGE_LIMIT) perché i 10-K/10-Q sono pochi ma
+    // annegati tra decine di Form-4/8-K più recenti: con un limit basso (es. 10)
+    // verrebbero esclusi dalla pagina → root cause del bug "No SEC filings".
+    //
+    // Finestra: `to = oggi`, `from = oggi - lookbackMonths` (default 15 → ultimo
+    // 10-K annuale + ultimi 10-Q trimestrali, con margine per ritardi di deposito).
+    //
+    // Risultato: union dei form type richiesti, deduplicata per link, ordinata DESC
+    // per filingDate, troncata a `limit` (cap totale, non per-tipo).
+    //
+    // Error policy per ogni chiamata:
+    //   - 429 → FmpUnavailableException(429) (route Resilience4j).
     //   - 5xx → FmpUnavailableException(status).
-    //   - 4xx (non 429) → emptyList() (ticker valido ma nessun filing visibile).
-    //
-    // Filtro `formTypes` applicato lato client dopo fetch — FMP /symbol endpoint
-    // non documenta filtro server-side per form type. Default ["10-K", "10-Q"].
-    //
-    // Limit passato a FMP (max 100 per page) + take(limit) client-side per
-    // double-safety. NB: l'endpoint supporta paginazione via `page=N` ma per il
-    // caso d'uso EP-011 (ultimi 10 filing) basta page=0.
-    //
-    // Ordinamento conservato dall'API FMP (DESC by filingDate tipicamente);
-    // se la garanzia futura cambiasse, il consumer può riordinare.
+    //   - 4xx (non 429) → trattato come "nessun filing per quel tipo" (emptyList).
     //
     // [^src: raw/fmp_docs.md §Sec Filings — SEC Filings By Symbol API]
     // [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-039-download-cache-filings/TSK-094.md]
@@ -414,10 +427,40 @@ class FmpAdapterRestClient(
         ticker: String,
         formTypes: List<String>,
         limit: Int,
+        lookbackMonths: Long,
     ): List<SecFilingFmpDto> {
         require(ticker.isNotBlank()) { "ticker must not be blank" }
         require(limit > 0) { "limit must be > 0" }
+        require(lookbackMonths > 0) { "lookbackMonths must be > 0" }
         val upperTicker = ticker.uppercase()
+        val to = LocalDate.now()
+        val from = to.minusMonths(lookbackMonths)
+
+        // Dedup per link canonico, preservando l'inserimento; ordiniamo dopo.
+        val byLink = LinkedHashMap<String, SecFilingFmpDto>()
+        for (formType in formTypes) {
+            val wanted = formType.uppercase()
+            for (f in fetchSecFilingsByFormType(upperTicker, formType, from, to)) {
+                if (f.formType?.uppercase() != wanted) continue
+                val key = f.finalLink ?: f.link ?: continue
+                byLink.putIfAbsent(key, f)
+            }
+        }
+
+        return byLink.values
+            .sortedByDescending { it.filingDate ?: "" }
+            .take(limit)
+    }
+
+    // Singola chiamata GET /sec-filings-search/symbol con un dato formType e
+    // finestra [from, to]. Vedi getSecFilings per il razionale del page-limit
+    // ampio e del filtro client-side.
+    private fun fetchSecFilingsByFormType(
+        upperTicker: String,
+        formType: String,
+        from: LocalDate,
+        to: LocalDate,
+    ): List<SecFilingFmpDto> {
         val typeRef = object : ParameterizedTypeReference<List<SecFilingFmpDto>>() {}
 
         val result: List<SecFilingFmpDto>? = try {
@@ -427,7 +470,11 @@ class FmpAdapterRestClient(
                         .path("/sec-filings-search/symbol")
                         .queryParam("apikey", appProperties.fmp.apiKey)
                         .queryParam("symbol", upperTicker)
-                        .queryParam("limit", limit)
+                        .queryParam("formType", formType)
+                        .queryParam("from", from.format(DateTimeFormatter.ISO_LOCAL_DATE))
+                        .queryParam("to", to.format(DateTimeFormatter.ISO_LOCAL_DATE))
+                        .queryParam("page", 0)
+                        .queryParam("limit", SEC_FILINGS_PAGE_LIMIT)
                         .build()
                 }
                 .retrieve()
@@ -435,26 +482,26 @@ class FmpAdapterRestClient(
                     val status = response.statusCode
                     if (status.value() == 429) {
                         log.warn(
-                            "FMP 429 (rate limited) on /sec-filings-search/symbol ticker={}",
-                            upperTicker,
+                            "FMP 429 (rate limited) on /sec-filings-search/symbol ticker={} formType={}",
+                            upperTicker, formType,
                         )
                         throw FmpUnavailableException(
                             "FMP rate limited for sec-filings/$upperTicker",
                             httpStatus = 429,
                         )
                     }
-                    // 4xx non-429 = ticker valido ma zero filing → emptyList sentinel.
+                    // 4xx non-429 = ticker valido ma zero filing per quel tipo → emptyList sentinel.
                     log.warn(
-                        "FMP 4xx on /sec-filings-search/symbol ticker={} status={} — treating as empty",
-                        upperTicker, status,
+                        "FMP 4xx on /sec-filings-search/symbol ticker={} formType={} status={} — treating as empty",
+                        upperTicker, formType, status,
                     )
                     throw EmptySecFilingsSentinelException()
                 }
                 .onStatus(HttpStatusCode::is5xxServerError) { _, response ->
                     val status = response.statusCode
                     log.warn(
-                        "FMP 5xx on /sec-filings-search/symbol ticker={} status={}",
-                        upperTicker, status,
+                        "FMP 5xx on /sec-filings-search/symbol ticker={} formType={} status={}",
+                        upperTicker, formType, status,
                     )
                     throw FmpUnavailableException(
                         "FMP returned $status for sec-filings/$upperTicker",
@@ -474,13 +521,7 @@ class FmpAdapterRestClient(
             )
         }
 
-        if (result.isNullOrEmpty()) {
-            return emptyList()
-        }
-        val formTypesUpper = formTypes.map { it.uppercase() }.toSet()
-        return result
-            .filter { it.formType?.uppercase() in formTypesUpper }
-            .take(limit)
+        return result ?: emptyList()
     }
 
     // Sentinel locale per /sec-filings-search/symbol 4xx (non 429) → emptyList.
@@ -668,6 +709,13 @@ class FmpAdapterRestClient(
         // in scope nuovi indicator (ema, wma, dema, tema, standarddeviation,
         // williams, adx — vedi raw/fmp_docs.md:10385+).
         val ALLOWED_INDICATORS = setOf("rsi", "sma")
+
+        // Page size per /sec-filings-search/symbol: ampio perché l'endpoint NON
+        // filtra per formType lato server e restituisce TUTTI i filing del ticker
+        // ordinati DESC per data. I 10-K/10-Q (pochi) vanno recuperati dentro una
+        // pagina dominata da decine di Form-4/8-K. 1000 copre abbondantemente la
+        // finestra di 15 mesi anche per filer molto attivi (TTD: ~102 righe).
+        const val SEC_FILINGS_PAGE_LIMIT = 1000
     }
 
     // Generic GET on /{endpoint}?symbol={ticker}&apikey=...&limit=...

@@ -163,11 +163,17 @@ fmp-batch:
   timeout-seconds: ${FMP_BATCH_TIMEOUT_SECONDS:30}
 
 # Embeddings sidecar (ADR-018 — Qwen3-Embedding-0.6B, fallback Arctic Embed L v2.0)
+# timeout-seconds 600 + batch-size 4: Qwen3-0.6B/1024-dim su CPU (no GPU) impiega
+# ~6s per chunk da 6000 char. Con batch piccoli (4 chunk ≈ ~25s/chiamata) nessuna
+# singola POST /embed supera il timeout; la deep analysis è asincrona in background,
+# quindi la durata complessiva (minuti) non blocca l'utente. Per tornare veloci
+# servirebbe un modello CPU-friendly (es. bge-small 384-dim) con migration della
+# dimensione pgvector — vedi EmbeddingsProperties.
 embeddings:
   sidecar:
     url: ${EMBEDDINGS_SIDECAR_URL:http://embeddings-sidecar:8001}
-    timeout-seconds: 30
-  batch-size: 32
+    timeout-seconds: 1800
+  batch-size: 4
   model:
     name: ${EMBEDDINGS_MODEL_NAME:Qwen/Qwen3-Embedding-0.6B}
 

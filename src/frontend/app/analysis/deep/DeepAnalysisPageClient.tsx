@@ -14,16 +14,17 @@ import {
 } from '@/components/deep-analysis';
 
 /**
- * Client-side Deep Analysis page — TSK-122 + TSK-123 (US-046, EP-011).
+ * Client-side Deep Analysis page — async flow.
  *
  * Ticker from query param (?ticker=AAPL), aligned with ADR-013.
  *
- * Renders 5 real components (TSK-123):
- *   1. DeepVerdictBadge — verdict class + position size
- *   2. MungerReportCollapsible — rischi / punti di forza / segnali
- *   3. NewsSentimentChip — distribuzione news
- *   4. DrawdownChart — grafico prezzi 52w
- *   5. EdgarFilingLinks — lista filing SEC
+ * Behaviour:
+ *  - On mount / return to the page, fetch GET /latest and render whatever the
+ *    backend has (SUCCESS → full result, FAILED → error, RUNNING → banner +
+ *    polling, NONE → empty state). No auto-rerun.
+ *  - "Esegui ora" → POST runs with invoke_llm=false then 3s polling.
+ *  - "Esegui + LLM" → POST runs with invoke_llm=true then 3s polling.
+ *  - Buttons disabled while isRunning (backend deduplicates anyway).
  */
 
 export function DeepAnalysisPageClient(): React.ReactElement {
@@ -49,8 +50,18 @@ function DeepAnalysisContent({
 }: {
   readonly ticker: string;
 }): React.ReactElement {
-  const { data, error, isLoading, isValidating, isFrozenByAdmin, invokeLlm, refresh } =
-    useDeepAnalysis(ticker);
+  const {
+    data,
+    latestStatus,
+    isRunning,
+    isLoading,
+    error,
+    isFrozenByAdmin,
+    requestedAt,
+    completedAt,
+    runNow,
+    runWithLlm,
+  } = useDeepAnalysis(ticker);
 
   return (
     <main
@@ -61,24 +72,36 @@ function DeepAnalysisContent({
 
       <ManualRunBar
         ticker={ticker}
-        isWorking={isLoading || isValidating}
-        onRun={() => void refresh()}
-        onRunWithLlm={() => void invokeLlm()}
+        isRunning={isRunning}
+        onRun={() => void runNow()}
+        onRunWithLlm={() => void runWithLlm()}
       />
 
-      {isLoading ? <SkeletonLoader /> : null}
+      {isRunning ? (
+        <RunningBanner requestedAt={requestedAt} />
+      ) : null}
 
-      {error !== undefined && data === undefined ? (
+      {isLoading && !isRunning ? <SkeletonLoader /> : null}
+
+      {!isRunning && error !== undefined && data === undefined ? (
         <ErrorPanel status={error.status} message={error.message} />
+      ) : null}
+
+      {!isRunning &&
+      data === undefined &&
+      error === undefined &&
+      !isLoading &&
+      latestStatus === 'NONE' ? (
+        <EmptyState />
       ) : null}
 
       {data !== undefined ? (
         <>
           <DeepVerdictBadge
             data={data}
-            isValidating={isValidating}
+            isValidating={isRunning}
             isFrozenByAdmin={isFrozenByAdmin}
-            onInvokeLlm={invokeLlm}
+            onInvokeLlm={runWithLlm}
           />
           <MungerReportCollapsible report={data.mungerReport} />
           <NewsSentimentChip sentiment={data.newsSentiment} />
@@ -90,17 +113,20 @@ function DeepAnalysisContent({
           >
             <span>
               Generato il{' '}
-              {new Date(data.generatedAt).toLocaleString('it-IT')} — LLM
-              status: {data.llmStatus} — Pipeline: {data.totalDurationMs}ms
+              {new Date(
+                completedAt ?? data.generatedAt,
+              ).toLocaleString('it-IT')}{' '}
+              — LLM status: {data.llmStatus} — Pipeline:{' '}
+              {data.totalDurationMs}ms
             </span>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => void refresh()}
-              disabled={isValidating}
+              onClick={() => void runNow()}
+              disabled={isRunning}
               data-testid="regenerate-button"
             >
-              {isValidating ? 'Rigenerazione…' : 'Rigenera'}
+              {isRunning ? 'Rigenerazione…' : 'Rigenera'}
             </Button>
           </footer>
         </>
@@ -156,12 +182,12 @@ function DeepAnalysisHeader({
 
 function ManualRunBar({
   ticker,
-  isWorking,
+  isRunning,
   onRun,
   onRunWithLlm,
 }: {
   readonly ticker: string;
-  readonly isWorking: boolean;
+  readonly isRunning: boolean;
   readonly onRun: () => void;
   readonly onRunWithLlm: () => void;
 }): React.ReactElement {
@@ -186,24 +212,79 @@ function ManualRunBar({
           variant="secondary"
           size="sm"
           onClick={onRun}
-          disabled={isWorking}
+          disabled={isRunning}
           data-testid="deep-analysis-manual-run"
         >
-          {isWorking ? 'In esecuzione…' : 'Esegui ora'}
+          {isRunning ? 'In esecuzione…' : 'Esegui ora'}
         </Button>
         <Button
           type="button"
           variant="primary"
           size="sm"
           onClick={onRunWithLlm}
-          disabled={isWorking}
+          disabled={isRunning}
           data-testid="deep-analysis-manual-run-llm"
           title="Include Munger LLM (più lento, costo)"
         >
-          {isWorking ? 'In esecuzione…' : 'Esegui + LLM'}
+          {isRunning ? 'In esecuzione…' : 'Esegui + LLM'}
         </Button>
       </div>
     </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Running banner (async polling state)                              */
+/* ------------------------------------------------------------------ */
+
+function RunningBanner({
+  requestedAt,
+}: {
+  readonly requestedAt: string | null;
+}): React.ReactElement {
+  const startedLabel =
+    requestedAt !== null
+      ? new Date(requestedAt).toLocaleTimeString('it-IT')
+      : null;
+  return (
+    <div
+      data-testid="deep-analysis-running"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+      className="flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-200"
+    >
+      <span
+        aria-hidden="true"
+        className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"
+      />
+      <span>
+        Esecuzione in corso…
+        {startedLabel !== null ? ` (avviata alle ${startedLabel})` : ''}
+      </span>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Empty state (latestStatus === 'NONE')                              */
+/* ------------------------------------------------------------------ */
+
+function EmptyState(): React.ReactElement {
+  return (
+    <div
+      data-testid="deep-analysis-empty"
+      className="flex flex-col gap-2 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+    >
+      <p className="font-medium text-slate-800 dark:text-slate-200">
+        Nessuna esecuzione disponibile.
+      </p>
+      <p>
+        Premi <strong>Esegui ora</strong> per avviare la deep analysis senza
+        LLM, oppure <strong>Esegui + LLM</strong> per includere il report Munger
+        e il sentiment news.
+      </p>
+    </div>
   );
 }
 
@@ -221,7 +302,7 @@ function SkeletonLoader(): React.ReactElement {
       className="flex flex-col gap-4"
     >
       <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
-        Sto analizzando i filing SEC, potrebbero servire fino a due minuti…
+        Sto recuperando lo stato dell&apos;ultima esecuzione…
       </p>
       <div className="h-24 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />
       <div className="h-40 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />

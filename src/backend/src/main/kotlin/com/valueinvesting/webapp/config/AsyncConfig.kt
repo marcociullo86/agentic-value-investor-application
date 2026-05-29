@@ -50,4 +50,30 @@ class AsyncConfig {
             setAwaitTerminationSeconds(10)
             initialize()
         }
+
+    // Executor dedicato per la deep-analysis async pipeline (POST
+    // /api/analysis/{ticker}/deep/runs). DeepAnalysisService.analyze impiega
+    // minuti (embedding sidecar + LLM): un pool separato evita che un burst
+    // di richieste deep saturi `fmpExecutor` o gli HTTP thread Tomcat.
+    //
+    // - core=2, max=4 → cap concorrenza deep analysis (LLM/embedding sono cari)
+    // - queue=50      → buffer in caso di burst, evita reject troppo aggressivi
+    // - CallerRunsPolicy → fallback: meglio eseguire sul caller (raro, dato che
+    //   l'enqueue avviene da MVC thread) che droppare silenziosamente la run.
+    // - waitForTasksToCompleteOnShutdown=true + 30s → consente alle run in volo
+    //   di completare durante un graceful shutdown senza lasciare row RUNNING
+    //   appese (l'executor robustamente le marca FAILED nel finally; vedi
+    //   DeepAnalysisRunExecutor).
+    @Bean("deepAnalysisExecutor")
+    fun deepAnalysisExecutor(): TaskExecutor =
+        ThreadPoolTaskExecutor().apply {
+            corePoolSize = 2
+            maxPoolSize = 4
+            queueCapacity = 50
+            setThreadNamePrefix("deep-analysis-")
+            setRejectedExecutionHandler(java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy())
+            setWaitForTasksToCompleteOnShutdown(true)
+            setAwaitTerminationSeconds(30)
+            initialize()
+        }
 }

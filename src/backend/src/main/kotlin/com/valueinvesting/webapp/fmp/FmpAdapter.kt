@@ -107,17 +107,29 @@ interface FmpAdapter {
     // [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-043-price-action-analyzer/TSK-112.md]
     fun getHistoricalEodPrices(ticker: String, days: Int = 365): List<EodPriceRecord>
 
-    // `/stable/sec-filings-search/symbol?symbol={ticker}&limit={limit}` — discovery
-    // SEC filing per ticker via FMP search aggregato. Endpoint canonico verificato
-    // in raw/fmp_docs.md:10815 (SEC Filings By Symbol API, /stable/sec-filings-search/symbol).
+    // `/stable/sec-filings-search/symbol?symbol={ticker}&formType={ft}&from={from}&to={to}&page=0&limit=...`
+    // — discovery SEC filing per ticker via FMP search. Endpoint canonico
+    // verificato in raw/fmp_docs.md:10815 (SEC Filings By Symbol API).
+    //
+    // Comportamento reale FMP (verificato sul campo): `from`/`to` OBBLIGATORI
+    // (assenti → 400 BAD_REQUEST); `formType` NON filtrato lato server (l'endpoint
+    // ritorna tutti i form type ordinati DESC per data). L'adapter emette una
+    // chiamata distinta per ogni form type richiesto (così la richiesta "esce" con
+    // formType=10-K / formType=10-Q) e filtra client-side. L'endpoint gemello
+    // /form-type ignora invece il `symbol` → inutilizzabile per ticker singolo.
+    //
+    // La finestra temporale è calcolata da `lookbackMonths` indietro da oggi
+    // (`to = today`, `from = today - lookbackMonths`). Default `lookbackMonths = 15`:
+    // copre l'ultimo 10-K annuale + gli ultimi 10-Q trimestrali, con margine per
+    // ritardi di deposito SEC.
     //
     // Ritorna metadata (CIK, link, finalLink, filingDate, formType) — NON il body
     // HTML. Il download HTML è demandato a SecEdgarAdapter (US-038) o
     // Filing10KQDownloaderService (TSK-096) che orchestra la pipeline completa.
     //
-    // Filtro `formTypes` applicato lato client dopo fetch (FMP endpoint non
-    // documenta filtro server-side per form type via /symbol). Form types tipici:
-    // "10-K", "10-Q", "10-K/A", "10-Q/A". Default: ["10-K", "10-Q"].
+    // Form types tipici: "10-K", "10-Q", "10-K/A", "10-Q/A". Default: ["10-K", "10-Q"].
+    // `limit` è il cap sul numero TOTALE di filing restituiti (union dei tipi),
+    // non un cap per-tipo.
     //
     // Lista vuota = ticker senza filing visibili nel range. NON deve sollevare
     // FmpTickerNotFoundException — l'adapter ritorna `emptyList()`.
@@ -133,6 +145,7 @@ interface FmpAdapter {
         ticker: String,
         formTypes: List<String> = listOf("10-K", "10-Q"),
         limit: Int = 10,
+        lookbackMonths: Long = 15,
     ): List<SecFilingFmpDto>
 
     // `/stable/search-cusip?cusip={cusip}` — risolve un CUSIP (9 char alfanumerici)

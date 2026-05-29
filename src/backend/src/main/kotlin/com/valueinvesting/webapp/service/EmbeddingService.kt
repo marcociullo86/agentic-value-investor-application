@@ -3,11 +3,11 @@ package com.valueinvesting.webapp.service
 import com.valueinvesting.webapp.config.EmbeddingsProperties
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
-import org.springframework.http.client.JdkClientHttpRequestFactory
+import org.springframework.http.client.ClientHttpRequestFactory
+import org.springframework.http.client.SimpleClientHttpRequestFactory
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientException
-import java.net.http.HttpClient
 import java.time.Duration
 
 /**
@@ -33,12 +33,17 @@ class EmbeddingService(
         .requestFactory(buildRequestFactory(props.sidecar.timeoutSeconds))
         .build()
 
-    private fun buildRequestFactory(timeoutSeconds: Long): JdkClientHttpRequestFactory {
+    // SimpleClientHttpRequestFactory (HttpURLConnection) bufferizza interamente il
+    // body e imposta Content-Length prima di inviare. Lo scegliamo al posto di
+    // JdkClientHttpRequestFactory: quest'ultimo usa un body-publisher in streaming
+    // dell'oggetto e, quando la Content-Length non è nota a priori, può inviare
+    // `noBody()` → il sidecar FastAPI riceve body vuoto e risponde 422
+    // ({"loc":["body"],"msg":"Field required","input":null}). Mantenuti i timeout
+    // connect+read di TSK-100 (un sidecar bloccato non deve pinnare i thread RAG).
+    private fun buildRequestFactory(timeoutSeconds: Long): ClientHttpRequestFactory {
         val timeout = Duration.ofSeconds(timeoutSeconds)
-        val httpClient = HttpClient.newBuilder()
-            .connectTimeout(timeout)
-            .build()
-        val factory = JdkClientHttpRequestFactory(httpClient)
+        val factory = SimpleClientHttpRequestFactory()
+        factory.setConnectTimeout(timeout)
         factory.setReadTimeout(timeout)
         return factory
     }

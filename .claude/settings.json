@@ -5,7 +5,42 @@
   },
   "permissions": {
     "allow": [
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(sort -t- -k2 -n)",
+      "Bash(cmd /c \"findstr /s /n /c:\\\\\"class NoSecFilingsException\\\\\" \\\\\"c:\\\\Users\\\\marco.ciullo\\\\PycharmProjects\\\\agentic-value-investor-app\\\\src\\\\backend\\\\src\\\\main\\\\kotlin\\\\*.kt\\\\\"\")",
+      "Bash(powershell -NoProfile -Command \"Select-String -Path 'c:\\\\Users\\\\marco.ciullo\\\\PycharmProjects\\\\agentic-value-investor-app\\\\src\\\\backend\\\\src\\\\main\\\\kotlin\\\\com\\\\valueinvesting\\\\webapp\\\\service\\\\*.kt' -Pattern 'class NoSecFilingsException|class LlmUnavailableException|class EmbeddingServiceUnavailableException|class EmbeddingTimeoutException' | Select-Object Path,LineNumber,Line\")",
+      "PowerShell(python -c \"import yaml,sys; yaml.safe_load\\(open\\(r'design_&_architecture/api/openapi.yaml',encoding='utf-8'\\)\\); print\\('YAML OK'\\)\")",
+      "Bash(pwsh -NoProfile -Command \"cd 'c:/Users/marco.ciullo/PycharmProjects/agentic-value-investor-app/src/frontend'; npx tsc --noEmit -p tsconfig.json\")",
+      "Bash(where.exe pwsh *)",
+      "Bash(command -v node)",
+      "Bash(command -v npm)",
+      "Bash(command -v npx)",
+      "Bash(/c/Windows/System32/where.exe rg *)",
+      "Bash(/c/Windows/System32/findstr.exe /s /n /c:\"enum class LivelloRischio\" \"c:/Users/marco.ciullo/PycharmProjects/agentic-value-investor-app/src/backend/src/main/kotlin/*.kt\")",
+      "Bash(/c/Windows/System32/findstr.exe /s /n /c:\"enum class LivelloRischio\" \"*.kt\")",
+      "Bash(/c/Windows/System32/findstr.exe /s /n /c:'enum class LivelloRischio' '*.kt')",
+      "Bash(/c/Windows/System32/findstr.exe -s -n \"enum class LivelloRischio\" *.kt)",
+      "Bash(/c/Windows/System32/findstr.exe /s /n /r \"enum.class.LivelloRischio\" *.kt)",
+      "Bash(/c/Windows/System32/findstr.exe \"LivelloRischio SentimentClass\" *.kt)",
+      "Bash(/c/Windows/System32/findstr.exe \"enum class Signal\" *.kt)",
+      "Bash(/c/Windows/System32/findstr.exe \"jsr310 jackson-datatype\" build.gradle.kts)",
+      "Bash(/c/Windows/System32/findstr.exe \"jsr310 jackson-datatype\" build.gradle)",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\('axios:', \\(p.dependencies&&p.dependencies.axios\\)||\\(p.devDependencies&&p.devDependencies.axios\\)\\)\")",
+      "Bash(grep -m1 '\"axios\"' package-lock.json)",
+      "Bash(/c/Windows/System32/findstr.exe /n \"jackson\" build.gradle.kts)",
+      "Bash(/c/Windows/System32/findstr.exe \"jackson\" \"build.gradle.kts\")",
+      "Bash(gradle -v)",
+      "PowerShell($dist=\"$env:USERPROFILE\\\\.gradle\\\\wrapper\\\\dists\"; if\\(Test-Path $dist\\){ Get-ChildItem $dist -Recurse -Filter 'gradle.bat' -ErrorAction SilentlyContinue | Select-Object -First 5 FullName } else { \"no dists\" }; \"---ideaGradle---\"; Get-ChildItem \"$env:USERPROFILE\" -Directory -Filter '.gradle' -ErrorAction SilentlyContinue | Select FullName)",
+      "PowerShell($bases=@\\(\"$env:LOCALAPPDATA\\\\Programs\",\"$env:LOCALAPPDATA\\\\JetBrains\",\"C:\\\\Program Files\\\\JetBrains\",\"$env:APPDATA\\\\JetBrains\"\\); foreach\\($b in $bases\\){ if\\(Test-Path $b\\){ Get-ChildItem $b -Recurse -Filter 'gradle.bat' -ErrorAction SilentlyContinue | Where-Object {$_.FullName -match 'gradle'} | Select-Object -First 3 FullName } })",
+      "Bash(node -e \"const s=require\\('./package.json'\\).scripts; console.log\\(JSON.stringify\\(s,null,1\\)\\)\")",
+      "PowerShell(podman ps --format 'table {{.Names}}|{{.Status}}|{{.Ports}}' 2>&1)",
+      "Bash(git submodule *)",
+      "PowerShell(podman machine ssh \"echo '--- /dev/dxg \\(GPU WSL\\) ---'; ls -l /dev/dxg 2>&1; echo '--- WSL CUDA libs ---'; ls /usr/lib/wsl/lib 2>&1 | head; echo '--- nvidia-ctk presente? ---'; command -v nvidia-ctk 2>&1; echo '--- CDI spec ---'; ls -l /etc/cdi 2>&1; echo '--- toolkit pkg ---'; \\(rpm -q nvidia-container-toolkit 2>&1 || true\\)\")",
+      "PowerShell(podman machine ssh \"curl -s -L https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo | sudo tee /etc/yum.repos.d/nvidia-container-toolkit.repo > /dev/null && echo 'repo added' && sudo dnf install -y nvidia-container-toolkit 2>&1 | tail -25\")",
+      "PowerShell(podman machine ssh \"command -v nvidia-ctk; echo '--- generate \\(WSL\\) ---'; sudo nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml 2>&1 | tail -6; echo '--- cdi list ---'; nvidia-ctk cdi list 2>&1 | head\")",
+      "PowerShell(podman machine ssh \"podman run --rm --device nvidia.com/gpu=all docker.io/nvidia/cuda:12.4.0-base-ubuntu22.04 nvidia-smi 2>&1 | tail -20\")",
+      "PowerShell(\"--- podman compose ---\"; podman compose version 2>&1 | Select-Object -First 3; \"--- podman-compose ---\"; \\(Get-Command podman-compose -ErrorAction SilentlyContinue\\).Source; podman-compose --version 2>&1 | Select-Object -First 2)",
+      "PowerShell(\"----- branch -----\")"
     ]
   }
 }

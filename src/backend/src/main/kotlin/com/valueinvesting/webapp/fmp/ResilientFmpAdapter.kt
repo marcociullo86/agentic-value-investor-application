@@ -112,8 +112,11 @@ class ResilientFmpAdapter(
         ticker: String,
         formTypes: List<String>,
         limit: Int,
+        lookbackMonths: Long,
     ): List<SecFilingFmpDto> =
-        execute("sec-filings", ticker) { delegate.getSecFilings(ticker, formTypes, limit) }
+        execute("sec-filings", ticker) {
+            delegate.getSecFilings(ticker, formTypes, limit, lookbackMonths)
+        }
 
     override fun searchCusip(cusip: String): String? =
         // Il logger ticker e' "-" (search-cusip non e' per-ticker, e' per-CUSIP).

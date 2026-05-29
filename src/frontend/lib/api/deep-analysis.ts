@@ -1,4 +1,4 @@
-import { apiGet, type ApiResult } from '@/lib/api/client';
+import { apiGet, apiPost, type ApiResult } from '@/lib/api/client';
 import type { RuleSignal } from '@/lib/api/analysis';
 
 /**
@@ -124,6 +124,9 @@ export interface DeepAnalysisResponse {
  *
  * @param invokeLlm - when true, triggers Munger inversion + news sentiment
  *   LLM pipeline (may take 30-90s). Default false → deterministic-only in <2s.
+ *
+ * NOTE: This synchronous endpoint is preserved for backwards compatibility but
+ * the page now uses the asynchronous run/latest flow below.
  */
 export async function getDeepAnalysis(
   ticker: string,
@@ -135,5 +138,83 @@ export async function getDeepAnalysis(
     await apiGet<DeepAnalysisResponse>(
       `/api/analysis/${encodeURIComponent(normalized)}/deep${params}`,
     );
+  return result.data;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Async run/latest API (TSK-async-deep)                              */
+/* ------------------------------------------------------------------ */
+
+/** Status of a single deep analysis run on the backend. */
+export type DeepAnalysisRunStatus = 'RUNNING' | 'SUCCESS' | 'FAILED';
+
+/**
+ * Status surfaced by GET /latest. `NONE` is used when no run has ever been
+ * executed for this ticker (empty state for the frontend).
+ */
+export type LatestStatus = 'RUNNING' | 'SUCCESS' | 'FAILED' | 'NONE';
+
+/** Payload returned by POST /api/analysis/{ticker}/deep/runs (HTTP 202). */
+export interface DeepAnalysisRunDto {
+  readonly runId: string;
+  readonly ticker: string;
+  readonly status: DeepAnalysisRunStatus;
+  readonly invokeLlm: boolean;
+}
+
+/** Structured error payload emitted by the backend when a run fails. */
+export interface LatestDeepAnalysisError {
+  readonly reason: string;
+  readonly message: string | null;
+}
+
+/** Payload returned by GET /api/analysis/{ticker}/deep/latest (HTTP 200). */
+export interface LatestDeepAnalysis {
+  readonly ticker: string;
+  readonly status: LatestStatus;
+  readonly runId: string | null;
+  readonly invokeLlm: boolean;
+  readonly requestedAt: string | null;
+  readonly completedAt: string | null;
+  /** Valorizzato solo quando `status === 'SUCCESS'`. */
+  readonly result: DeepAnalysisResponse | null;
+  /** Valorizzato solo quando `status === 'FAILED'`. */
+  readonly error: LatestDeepAnalysisError | null;
+}
+
+/**
+ * POST /api/analysis/{ticker}/deep/runs?invoke_llm=true|false
+ *
+ * Avvia un nuovo run asincrono. La response 202 conferma l'accettazione del
+ * job; lo stato successivo deve essere recuperato via {@link getLatestDeepAnalysis}.
+ * Il backend deduplica i POST concorrenti: due click ravvicinati restituiscono
+ * lo stesso `runId` con status `RUNNING`.
+ */
+export async function startDeepAnalysisRun(
+  ticker: string,
+  invokeLlm: boolean,
+): Promise<DeepAnalysisRunDto> {
+  const normalized = ticker.trim().toUpperCase();
+  const qs = `?invoke_llm=${invokeLlm ? 'true' : 'false'}`;
+  const result: ApiResult<DeepAnalysisRunDto> = await apiPost<DeepAnalysisRunDto>(
+    `/api/analysis/${encodeURIComponent(normalized)}/deep/runs${qs}`,
+  );
+  return result.data;
+}
+
+/**
+ * GET /api/analysis/{ticker}/deep/latest
+ *
+ * Restituisce l'ultimo run noto per il ticker (qualsiasi status). Quando non
+ * esiste alcuna esecuzione passata, il backend restituisce `status === 'NONE'`
+ * con campi `runId/result/error/requestedAt/completedAt` a null.
+ */
+export async function getLatestDeepAnalysis(
+  ticker: string,
+): Promise<LatestDeepAnalysis> {
+  const normalized = ticker.trim().toUpperCase();
+  const result: ApiResult<LatestDeepAnalysis> = await apiGet<LatestDeepAnalysis>(
+    `/api/analysis/${encodeURIComponent(normalized)}/deep/latest`,
+  );
   return result.data;
 }

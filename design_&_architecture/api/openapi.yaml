@@ -344,6 +344,65 @@ paths:
                         type: string
                         enum: [llm_unavailable, fmp_unavailable]
 
+  /api/analysis/{ticker}/deep/runs:
+    post:
+      tags: [analysis]
+      summary: Avvia un'esecuzione ASINCRONA della deep analysis (US-045)
+      description: |
+        Avvio fire-and-enqueue della deep analysis pipeline. Risponde 202 Accepted
+        immediatamente senza attendere il completamento; l'esecuzione prosegue in
+        background (executor @Async) e popola la tabella deep_analysis_run.
+        Dedupe: se per il ticker esiste già un run in stato RUNNING, NON ne avvia
+        uno nuovo e restituisce il runId di quello in corso. L'esito finale si
+        recupera via GET /api/analysis/{ticker}/deep/latest. L'endpoint sincrono
+        GET /api/analysis/{ticker}/deep resta disponibile per back-compat.
+      parameters:
+        - $ref: '#/components/parameters/Ticker'
+        - name: invoke_llm
+          in: query
+          required: false
+          description: |
+            Enable LLM-dependent blocks (Munger inversion report, news sentiment)
+            for the background run. Default false.
+          schema: { type: boolean, default: false }
+      responses:
+        '202':
+          description: Run avviato (o run RUNNING esistente riusato per dedupe)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeepAnalysisRunStatusResponse'
+        '404':
+          description: Ticker non trovato
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+
+  /api/analysis/{ticker}/deep/latest:
+    get:
+      tags: [analysis]
+      summary: Ultima esecuzione (asincrona) della deep analysis per il ticker (US-045)
+      description: |
+        Restituisce l'ultima esecuzione persistita in deep_analysis_run per il
+        ticker. All'apertura pagina si mostra questo stato senza ri-eseguire la
+        pipeline (no auto-rerun). status=NONE quando non esiste ancora alcun run;
+        result è popolato (DeepAnalysisResponse) solo quando status=SUCCESS;
+        error è popolato solo quando status=FAILED.
+      parameters:
+        - $ref: '#/components/parameters/Ticker'
+      responses:
+        '200':
+          description: Stato dell'ultima esecuzione
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LatestDeepAnalysisResponse'
+        '404':
+          description: Ticker non trovato
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+
   # ---------------- EP-005 historical + moat ----------------
   /api/historical/{ticker}:
     get:
@@ -1399,6 +1458,74 @@ components:
         llmStatus:   { $ref: '#/components/schemas/LlmStatus' }
         llmCalls:    { type: integer, description: "Number of LLM API calls made" }
         totalDurationMs: { type: integer, format: int64, description: "Total pipeline duration in milliseconds" }
+
+    # ---- EP-011 Deep Analysis — async run model (US-045, 2026-05-29) ----
+
+    DeepAnalysisRunStatus:
+      type: string
+      description: Stato di un'esecuzione asincrona della deep analysis.
+      enum: [RUNNING, SUCCESS, FAILED]
+
+    LatestDeepAnalysisStatus:
+      type: string
+      description: |
+        Stato dell'ultima esecuzione esposto da GET .../deep/latest. Aggiunge
+        NONE rispetto a DeepAnalysisRunStatus per il caso "nessun run esistente".
+      enum: [RUNNING, SUCCESS, FAILED, NONE]
+
+    RunError:
+      type: object
+      required: [reason, message]
+      description: Dettaglio errore di un run FAILED. reason = codice dominio (RFC 9457).
+      properties:
+        reason:  { type: string, description: "Codice motivo dominio (es. no_sec_filings, llm_unavailable)" }
+        message: { type: string }
+
+    DeepAnalysisRunStatusResponse:
+      type: object
+      required: [runId, ticker, status, invokeLlm]
+      description: |
+        Risposta 202 di POST /api/analysis/{ticker}/deep/runs. In caso di dedupe
+        runId è quello del run RUNNING già in corso per il ticker.
+      properties:
+        runId:     { type: string, format: uuid }
+        ticker:    { type: string }
+        status:    { $ref: '#/components/schemas/DeepAnalysisRunStatus' }
+        invokeLlm: { type: boolean }
+
+    LatestDeepAnalysisResponse:
+      type: object
+      required: [ticker, status, invokeLlm]
+      description: |
+        Risposta 200 di GET /api/analysis/{ticker}/deep/latest. runId/requestedAt/
+        completedAt sono null quando status=NONE. result (DeepAnalysisResponse) è
+        valorizzato solo quando status=SUCCESS; error solo quando status=FAILED.
+      properties:
+        ticker:      { type: string }
+        status:      { $ref: '#/components/schemas/LatestDeepAnalysisStatus' }
+        runId:
+          type: string
+          format: uuid
+          nullable: true
+        invokeLlm:   { type: boolean }
+        requestedAt:
+          type: string
+          format: date-time
+          nullable: true
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        result:
+          allOf:
+            - $ref: '#/components/schemas/DeepAnalysisResponse'
+          nullable: true
+          description: Payload completo, presente solo quando status=SUCCESS
+        error:
+          allOf:
+            - $ref: '#/components/schemas/RunError'
+          nullable: true
+          description: Dettaglio errore, presente solo quando status=FAILED
 
     # ---------------- EP-012 top value picks (US-050) ----------------
     TopPickItem:

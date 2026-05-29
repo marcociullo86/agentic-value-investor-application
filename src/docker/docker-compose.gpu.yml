@@ -1,0 +1,48 @@
+# GPU override per il servizio embeddings-sidecar (NVIDIA via Podman + CDI).
+#
+# Perché un override separato: il compose principale resta CPU-safe (CI e dev
+# senza GPU non devono fallire). Layer questo file SOPRA quello base solo sulle
+# macchine con GPU configurata.
+#
+# Prerequisiti host (one-time, dentro la podman machine):
+#   - nvidia-container-toolkit installato
+#   - spec CDI generata:  sudo nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml
+#   - verifica:           nvidia-ctk cdi list   → nvidia.com/gpu=all
+#
+# Avvio (podman-compose — forma `devices` qui sotto):
+#   podman-compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+#
+# Verifica che il modello giri su GPU:
+#   - log del sidecar:  "Embedding model '...' loaded on device=cuda"
+#   - oppure:           curl http://localhost:8001/health   → {"device":"cuda"}
+#   - in container:     podman exec vi-embeddings-sidecar nvidia-smi
+#
+# NB: `nvidia.com/gpu=all` è un device CDI, non un path host → viene passato come
+# `--device nvidia.com/gpu=all` (stesso flag verificato con `podman run`).
+#
+# Alternativa per `podman compose` (provider docker-compose v2, compose-spec CDI):
+#   deploy:
+#     resources:
+#       reservations:
+#         devices:
+#           - driver: cdi
+#             device_ids: ["nvidia.com/gpu=all"]
+services:
+  embeddings-sidecar:
+    devices:
+      - nvidia.com/gpu=all
+    # Forza esplicitamente CUDA (app.py auto-rileva comunque la GPU iniettata).
+    environment:
+      EMBEDDING_DEVICE: cuda
+
+  # Tuning lato app per la modalità GPU: il sidecar su GPU è veloce, quindi
+  # batch più grandi e timeout più corto. Queste env (relaxed-binding Spring)
+  # hanno precedenza su application.yml → quando QUESTO override è attivo
+  # vincono i valori GPU; in modalità CPU (override non applicato) restano i
+  # valori di application.yml (batch-size 4, timeout 1800).
+  #   EMBEDDINGS_BATCH_SIZE            → embeddings.batch-size
+  #   EMBEDDINGS_SIDECAR_TIMEOUT_SECONDS → embeddings.sidecar.timeout-seconds
+  app:
+    environment:
+      EMBEDDINGS_BATCH_SIZE: "32"
+      EMBEDDINGS_SIDECAR_TIMEOUT_SECONDS: "300"

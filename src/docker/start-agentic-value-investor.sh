@@ -3,7 +3,9 @@
 #
 # Flow:
 #   1. Ask whether to rebuild the vi-app image.
-#      - If YES: podman build -> compose down -> compose up -d, then Portainer.
+#      - If YES: chiede anche CPU/GPU per il sidecar embeddings, poi
+#        podman build vi-app -> compose down -> compose build sidecar ->
+#        compose up -d (con override GPU se scelto), then Portainer.
 #      - If NO : skip directly to Portainer (assumes stack is already up).
 #   2. Always (re)start vi-portainer via `podman run`.
 #
@@ -86,14 +88,33 @@ fi
 read -r -p "Vuoi buildare l'app prima di avviare lo stack? (y/N) " answer
 answer="${answer:-N}"
 if [[ "${answer}" =~ ^([yY]|yes|YES|s|S|si|SI)$ ]]; then
+  # Backend del sidecar embeddings: CPU oppure GPU NVIDIA (via CDI).
+  # GPU richiede, una tantum nella podman machine, nvidia-container-toolkit
+  # + spec CDI (`nvidia-ctk cdi generate`). Layer dell'override docker-compose.gpu.yml.
+  # Default CPU su Invio: non fallisce dove la GPU non e' configurata.
+  read -r -p "Sidecar embeddings: CPU o GPU? (cpu/GPU) [default CPU] " gpu_answer
+  COMPOSE_ARGS=(-f "${COMPOSE_FILE}")
+  if [[ "${gpu_answer}" =~ ^([gG]|gpu|GPU)$ ]]; then
+    COMPOSE_ARGS+=(-f "src/docker/docker-compose.gpu.yml")
+    echo "Sidecar: GPU (CDI nvidia.com/gpu=all)"
+  else
+    echo "Sidecar: CPU"
+  fi
+
   run_cmd "podman build vi-app:latest" \
     podman build -f "${DOCKERFILE}" -t vi-app:latest .
 
   run_cmd_allow_fail "compose down" \
-    "${COMPOSE_BIN[@]}" -f "${COMPOSE_FILE}" down
+    "${COMPOSE_BIN[@]}" "${COMPOSE_ARGS[@]}" down
+
+  # Rebuild del solo sidecar: recepisce le modifiche a embeddings-sidecar/app.py
+  # (l'ultimo layer e' la COPY di app.py -> rebuild veloce; il download del
+  #  modello resta cache-ato nei layer precedenti).
+  run_cmd "compose build embeddings-sidecar" \
+    "${COMPOSE_BIN[@]}" "${COMPOSE_ARGS[@]}" build embeddings-sidecar
 
   run_cmd "compose up -d" \
-    "${COMPOSE_BIN[@]}" -f "${COMPOSE_FILE}" up -d
+    "${COMPOSE_BIN[@]}" "${COMPOSE_ARGS[@]}" up -d
 else
   echo "Skip build/restart - using existing running stack."
 fi
