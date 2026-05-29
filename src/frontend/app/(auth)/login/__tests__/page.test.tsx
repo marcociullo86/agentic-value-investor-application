@@ -176,6 +176,7 @@ describe('resolveSafeReturnUrl — open-redirect defence', () => {
 describe('LoginPage — US-081 CAPTCHA flow (TSK-238)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    searchParamsMock = new URLSearchParams();
   });
 
   it('hides the captcha widget on initial render (under-threshold flow)', () => {

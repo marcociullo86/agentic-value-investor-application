@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useCallback,useMemo, useState } from 'react';
+import { Suspense, useCallback, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
@@ -36,19 +36,7 @@ const FIELD_LABELS: Record<string, string> = {
 };
 
 /**
-<<<<<<< HEAD
- * Login page (TSK-034, TSK-201, TSK-207, TSK-238).
- * Posts to `POST /api/auth/login` via useAuthStore.
- * Shows a "session expired" banner when redirected with `?expired=true`.
- *
- * TSK-238 (US-081 / ADR-025 §5): when the BE flags the IP with
- * `captchaRequired: true` (after 10+ login failures from the same
- * IP in 5 min), the page mounts a Cloudflare Turnstile widget and
- * blocks resubmission until the user solves it. The Turnstile token
- * is then forwarded to /login as `captchaToken` so the BE can
- * verify it via siteverify (TSK-230).
-=======
- * Login page (TSK-034, TSK-201, TSK-207, TSK-267).
+ * Login page (TSK-034, TSK-201, TSK-207, TSK-238, TSK-267).
  *
  * Posts to `POST /api/auth/login` via useAuthStore.
  *
@@ -60,7 +48,13 @@ const FIELD_LABELS: Record<string, string> = {
  * `returnUrl` is validated as a same-origin pathname to prevent
  * open-redirect attacks (any value not starting with a single `/` is
  * ignored and falls back to `/`).
->>>>>>> 5fff20a265978ab52089913bfd1165264efaf19b
+ *
+ * TSK-238 (US-081 / ADR-025 §5): when the BE flags the IP with
+ * `captchaRequired: true` (after 10+ login failures from the same
+ * IP in 5 min), the page mounts a Cloudflare Turnstile widget and
+ * blocks resubmission until the user solves it. The Turnstile token
+ * is then forwarded to /login as `captchaToken` so the BE can
+ * verify it via siteverify (TSK-230).
  *
  * Reference: design_&_architecture/components/frontend-components.md §app/(auth)/login.
  * [^src: design_&_architecture/decisions/ADR-026-frontend-authguard-static-export-runtime.md §Decisione]
@@ -262,7 +256,7 @@ function LoginContent(): React.ReactElement {
 
           {captchaRequired && (
             <div data-testid="login-captcha" className="flex flex-col gap-2">
-              <p className="text-sm text-slate-600">
+              <p id="login-captcha-hint" className="text-sm text-slate-600">
                 Per motivi di sicurezza, completa la verifica anti-bot.
               </p>
               <TurnstileWidget
@@ -276,6 +270,7 @@ function LoginContent(): React.ReactElement {
           <Button
             type="submit"
             disabled={submitDisabled}
+            aria-describedby={captchaRequired ? 'login-captcha-hint' : undefined}
             data-testid="login-submit"
           >
             {isSubmitting ? 'Accesso in corso…' : 'Accedi'}

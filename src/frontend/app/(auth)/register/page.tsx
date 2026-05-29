@@ -203,7 +203,7 @@ export default function RegisterPage(): React.ReactElement {
 
           {captchaRequired && (
             <div data-testid="register-captcha" className="flex flex-col gap-2">
-              <p className="text-sm text-slate-600">
+              <p id="register-captcha-hint" className="text-sm text-slate-600">
                 Per motivi di sicurezza, completa la verifica anti-bot.
               </p>
               <TurnstileWidget
@@ -217,6 +217,7 @@ export default function RegisterPage(): React.ReactElement {
           <Button
             type="submit"
             disabled={submitDisabled}
+            aria-describedby={captchaRequired ? 'register-captcha-hint' : undefined}
             data-testid="register-submit"
           >
             {isSubmitting ? 'Registrazione…' : 'Registrati'}

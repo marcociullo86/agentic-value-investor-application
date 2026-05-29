@@ -1,4 +1,4 @@
-import axios, { type AxiosError } from 'axios';
+import axios from 'axios';
 import type { ProblemDetail } from '@/lib/api/network-error-interceptor';
 
 /**
@@ -38,11 +38,10 @@ export function isCaptchaRequiredError(error: unknown): boolean {
   if (!axios.isAxiosError(error)) {
     return false;
   }
-  const axiosError = error as AxiosError;
-  if (axiosError.response?.status !== 401) {
+  if (error.response?.status !== 401) {
     return false;
   }
-  const data = axiosError.response.data;
+  const data = error.response.data;
   if (!data || typeof data !== 'object') {
     return false;
   }

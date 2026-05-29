@@ -2,7 +2,7 @@
 ---
 id: sprint
 title: Sprint Plan — R1.0 MVP + R1.1 + R1.1.x + R2.0 + R2.1 + R3.0 + CQRL Bonifica
-generated: 2026-05-28
+generated: 2026-05-29
 tpm: tpm
 release: R3.0 EP-018 Sprint 15 (corrente) + EP-017 chiusa (Sprint 14+17) + R3.1 EP-019 chiusa (Sprint 16)
 r10_closed: 2026-05-22
@@ -20,7 +20,7 @@ r31_cqrl_target: TBD
 > **R1.1.x hotfix chiuso:** Sprint 5.5 — 12/12 TSK `done`. US-052, US-053, US-054 completate.
 > **R2.0 chiuso:** Sprint 6–9 completati — 79/79 TSK `done`, 21/21 US, 3/3 EP (EP-010, EP-011, EP-012).
 > **R2.1 chiuso:** Sprint 10 — EP-013 Mr. Market Context Flags — 6/6 TSK `done`, 2/2 US (US-056, US-057).
-> **R3.0 in corso:** Sprint 15 (EP-018) — **17/20 TSK `done`**. Residui: TSK-234, TSK-235, TSK-238. Sprint 15.5 chiuso (TSK-239). EP-014..016 `done`.
+> **R3.0 in corso:** Sprint 15 (EP-018) — **19/22 TSK `done`**. Residui: TSK-235, TSK-270, TSK-271. Sprint 15.5 chiuso (TSK-239). EP-014..016 `done`.
 > **R3.0 chiuso:** Sprint 14+17 (EP-017) — **18/18 TSK `done`**, 7/7 US (US-073..078 + US-087). EP-017 `done`; ADR-026 `accepted`.
 > **R3.1 chiuso:** Sprint 16 (EP-019 CQRL) — **25/25 TSK `done`**. US-084/085/086 `done`; EP-019 `done`.
 
@@ -543,7 +543,7 @@ idle/absolute timeout con prompt, logout completo con blocco history. ADR-024.
 recovery codes, rate limiting + progressive lockout + CAPTCHA threshold, HIBP password check,
 dichiarazione formale PCI-DSS non applicabile. ADR-025. DB: mfa_secrets + login_attempts.
 
-**Stato:** IN PROGRESS — **17/20 TSK `done`**. Wave 1 completata (MFA BE/FE, brute-force, CSP/CSRF QA, HIBP QA). Q_005 risolta; TSK-237 `done`; TSK-230 CQRL `passed` iter-2. Residui wave 2: TSK-234, TSK-235, TSK-238.
+**Stato:** IN PROGRESS — **19/22 TSK `done`**. Wave 1 completata (MFA BE/FE, brute-force, CSP/CSRF QA, HIBP QA). TSK-234 `done` (review_status: passed, iter 1). TSK-238 `done` (review_status: passed, iter 3). Residui: TSK-235, TSK-270, TSK-271.
 
 | TSK | Titolo | Layer | Consumer | Est. | US | Status |
 |-----|--------|-------|----------|------|----|--------|
@@ -562,13 +562,20 @@ dichiarazione formale PCI-DSS non applicabile. ADR-025. DB: mfa_secrets + login_
 | TSK-231 | BE HibpClient: verifica password compromesse k-anonymity SHA-1 | be | agent | S | US-081 | done |
 | TSK-232 | FE MfaEnrollmentPage: QR code + verifica TOTP + recovery codes | fe | agent | M | US-081 | done |
 | TSK-233 | FE MfaChallengeForm: form TOTP durante login MFA | fe | agent | S | US-081 | done |
-| TSK-238 | FE Login CAPTCHA Turnstile quando captchaRequired | fe | agent | S | US-081 | todo |
-| TSK-234 | QA Test MFA: enrollment, login TOTP, recovery, disabilitazione | qa | agent | M | US-081 | todo |
-| TSK-235 | QA Test rate limiting + brute force: delay, CAPTCHA, lockout 30min | qa | agent | M | US-081 | todo |
+| TSK-234 | QA Test MFA: enrollment, login TOTP, recovery, disabilitazione | qa | agent | M | US-081 | done |
 | TSK-236 | QA Test HIBP: password compromessa rifiutata, sicura accettata | qa | agent | S | US-081 | done |
 | TSK-237 | QA Verifica codebase no dati carta + validazione ADR PCI-DSS | qa | agent | S | US-082 | done |
+| TSK-238 | FE Login CAPTCHA Turnstile quando captchaRequired | fe | agent | S | US-081 | done |
+| TSK-270 | BE CSP allow-list Cloudflare Turnstile in SecurityHeadersConfig | be | agent | S | US-081 | todo |
+| TSK-235 | QA Test rate limiting + brute force: delay, CAPTCHA, lockout 30min | qa | agent | M | US-081 | todo |
+| TSK-271 | QA E2E Playwright mocked-tier flusso CAPTCHA login | qa | agent | M | US-081 | todo |
 
-**Totale Sprint 15:** 20 TSK (8 be, 3 fe, 2 db, 7 qa) — 3 `todo` residui
+**Totale Sprint 15:** 22 TSK (9 be, 4 fe, 2 db, 7 qa) — 19 `done`, 3 `todo`
+
+**Ordine residui (wave 2):**
+1. be-dev: **TSK-270** (CSP BE Turnstile — P0, bloccante per AC CAPTCHA in produzione; no dipendenze su TSK-235/TSK-271)
+2. qa-dev: **TSK-271** (Playwright mocked-tier CAPTCHA — P1, può procedere in parallelo a TSK-270; dipende solo da TSK-238 già done)
+3. qa-dev: **TSK-235** (QA rate limiting + brute force — P0; TSK-238 ora done, tutte le dipendenze soddisfatte)
 
 ---
 
@@ -606,11 +613,11 @@ fuori scope. CI #131 resta riferimento.
 | R3.0 | 12 | 0 | 0 | 0 | 5 | 5 | **10** | done |
 | R3.0 | 13 | 0 | 0 | 0 | 6 | 5 | **11** | done |
 | R3.0 | 14 | 0 | 0 | 2 | 7 | 5 | **14** | done |
-| R3.0 | 15 | 0 | 2 | 8 | 3 | 7 | **20** | 17 done, 3 todo |
+| R3.0 | 15 | 0 | 2 | 9 | 4 | 7 | **22** | 19 done, 3 todo |
 | R3.0 | 15.5 | 0 | 0 | 0 | 0 | 1 | **1** | 1 done, 0 todo |
 | R3.1 | 16 | 0 | 1 | 7 | 3 | 15 | **25** | done |
 | R3.0 | 17 | 0 | 0 | 0 | 3 | 1 | **4** | done |
-| | **TOTALE** | **10** | **17** | **91** | **54** | **97** | **268** | 265 done, 3 todo |
+| | **TOTALE** | **10** | **17** | **92** | **55** | **98** | **272** | 269 done, 3 todo |
 
 ---
 
@@ -635,7 +642,7 @@ Sprint 12 (EP-016) ✅ ═══╝        │
 ```
 
 **Sprint 11, 12, 13, 14** completati. Dipendenze cross-sprint soddisfatte.
-**Sprint 15** in corso: BE-heavy (8 be) + FE (3 fe) + DB (2 db) + QA (7 qa).
+**Sprint 15** in corso: BE-heavy (9 be) + FE (4 fe) + DB (2 db) + QA (7 qa).
 **Sprint 15.5** hotfix incident E2E: TSK-239 (qa-dev) parallelo a Sprint 15 — nessuna dipendenza BE/FE Sprint 15.
 **Sprint 15** dipende da Sprint 14 per la CSRF protection sugli endpoint cookie-based (TSK-209 → TSK-223). ✅ Dipendenza soddisfatta.
 
@@ -658,14 +665,14 @@ Sprint 14 → Sprint 15: ✅ SODDISFATTA
 
 ## Prossimo /dev suggerito
 
-**Sprint corrente:** Sprint 15 (EP-018 Hardening Sicurezza e Compliance) — **3 TSK `todo`**: TSK-234, TSK-235, TSK-238.
+**Sprint corrente:** Sprint 15 (EP-018 Hardening Sicurezza e Compliance) — **3 TSK `todo`**: TSK-270, TSK-271, TSK-235.
 
 **Chiusi (non richiedono `/dev`):** Sprint 16 (EP-019 CQRL, 25/25), Sprint 17 (EP-017 US-087, 4/4), EP-017 `done`.
 
-**Ordine residui Sprint 15 (Wave 5):**
-1. fe-dev: **TSK-238** (Login CAPTCHA Turnstile — prerequisito per TSK-235)
-2. qa-dev: **TSK-234** (QA MFA — enrollment, login TOTP, recovery)
-3. qa-dev: **TSK-235** (QA rate limiting + brute force — dopo TSK-238)
+**Ordine residui Sprint 15 (Wave 2):**
+1. be-dev: **TSK-270** (BE CSP allow-list Turnstile — P0, bloccante per AC CAPTCHA prod; dipende da TSK-221 + TSK-238, entrambi done)
+2. qa-dev: **TSK-271** (QA E2E Playwright mocked CAPTCHA — P1, parallelo a TSK-270; dipende da TSK-238, done)
+3. qa-dev: **TSK-235** (QA rate limiting + brute force — P0; TSK-238 ora done, tutte le dipendenze soddisfatte; può procedere subito)
 
 **Gate umano post-Sprint 15:** commit VCS (`vcs-handoff`), chiusura formale EP-018 quando US-079..082 tutte `done`.
 
