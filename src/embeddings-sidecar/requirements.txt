@@ -1,5 +1,8 @@
 fastapi==0.115.0
 uvicorn[standard]==0.30.6
 sentence-transformers>=2.7.0
-torch>=2.3.0
+# torch NON è qui: viene installato esplicitamente nel Dockerfile dal canale
+# CUDA cu126 (compatibile col driver NVIDIA). Il wheel torch di default su PyPI
+# è compilato per una CUDA troppo recente per driver 12.8 → "NVIDIA driver too
+# old". sentence-transformers lo trova già soddisfatto.
 numpy>=1.26.0

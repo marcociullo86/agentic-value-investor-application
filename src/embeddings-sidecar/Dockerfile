@@ -2,6 +2,12 @@ FROM python:3.12-slim AS builder
 
 WORKDIR /app
 COPY requirements.txt .
+# torch compilato per CUDA 12.6 (cu126): forward-compatible col driver NVIDIA
+# 12.8 dell'host. Il wheel torch di default su PyPI punta a una CUDA più recente
+# che richiede un driver più nuovo → errore "NVIDIA driver too old (12080)".
+# Installato PRIMA dei requirements così sentence-transformers lo trova già
+# soddisfatto e non scarica il wheel di default.
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cu126
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Pre-download model at build time to avoid cold-start latency at runtime.

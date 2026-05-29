@@ -40,7 +40,8 @@
       "PowerShell(podman machine ssh \"command -v nvidia-ctk; echo '--- generate \\(WSL\\) ---'; sudo nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml 2>&1 | tail -6; echo '--- cdi list ---'; nvidia-ctk cdi list 2>&1 | head\")",
       "PowerShell(podman machine ssh \"podman run --rm --device nvidia.com/gpu=all docker.io/nvidia/cuda:12.4.0-base-ubuntu22.04 nvidia-smi 2>&1 | tail -20\")",
       "PowerShell(\"--- podman compose ---\"; podman compose version 2>&1 | Select-Object -First 3; \"--- podman-compose ---\"; \\(Get-Command podman-compose -ErrorAction SilentlyContinue\\).Source; podman-compose --version 2>&1 | Select-Object -First 2)",
-      "PowerShell(\"----- branch -----\")"
+      "PowerShell(\"----- branch -----\")",
+      "PowerShell(git push application master)"
     ]
   }
 }
