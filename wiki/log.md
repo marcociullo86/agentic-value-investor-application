@@ -1957,3 +1957,35 @@ PATTERN.md aggiornato; factory.config.yaml pattern_version 2.14 + blocco compres
   - VCS: commit pending (gate umano — PATTERN §7 r.14).
 
 [2026-05-29 12:00] review TSK-270 iter-1 → pass — kotlin/spring-boot CSP Turnstile allow-list; 0 high/medium, 2 low (assertion style); frame-src design correct, FE/BE coherent, 14 unit tests substantive; IT not run (Docker unavailable, acceptable per §7 r.8); report: code_quality/reports/TSK-270-iter-1.json
+
+---
+## [2026-05-29] develop TSK-235 → done — QA BruteForceProtectionIT
+**role:** qa-dev (agent)
+**scope:** src/backend/src/test/kotlin/com/valueinvesting/webapp/security/BruteForceProtectionIT.kt
+**change:** Creato `BruteForceProtectionIT` (@SpringBootTest + @Testcontainers) — copre i 6 scenari AC US-081 brute-force + rate-limiting (TSK-235): (1) delay progressivo dopo N fail stesso account; (2) `captchaRequired=true` dopo N fail stesso IP; (3) lockout 423 + Retry-After oltre soglia; (4) auto-unlock via SettableClock +31 min → 200; (5) rate-limit 429 + Retry-After con probe rows pre-seedate al limite per-IP; (6) login post-lockout success (AC6 narrative). Design: SettableClock @Primary via @TestConfiguration (no Thread.sleep), seeding diretto loginAttemptRepository, DynamicPropertySource per soglie basse (3/4/5) e per-ip=100, @Nested RateLimitScenario.
+**tests:** JUnit 5 IT, 6 scenari AC US-081.
+**run:** `gradle test --tests "com.valueinvesting.webapp.security.BruteForceProtectionIT" --project-dir src/backend` (richiede Docker/Testcontainers — da CI). Compile-only verificato: `gradle compileTestKotlin --project-dir src/backend` → BUILD SUCCESSFUL.
+**DoD:** pass (implementazione + compilazione); esecuzione in CI; code review pending gate umano.
+**files touched:** src/backend/.../security/BruteForceProtectionIT.kt [NEW]; management/kanban/.../TSK-235.md [status: done, updated: 2026-05-29].
+**VCS gate:** NON committato (gate umano).
+
+---
+## [2026-05-29] develop TSK-271 → done — QA E2E Playwright CAPTCHA login (mocked-tier)
+**role:** qa-dev (agent)
+**scope:** src/frontend/e2e/captcha-login.spec.ts
+**change:** Creato `captcha-login.spec.ts` (4 test, mocked-tier, zero dipendenza CDN Cloudflare): (1) baseline no-gate → login OK, widget assente; (2) `captchaRequired:true` 401 → login-captcha visibile, submit disabilitato; (3) solve via `window.turnstile` stub iniettato (page.addInitScript) → resubmit → redirect; (4) token invalido → mock 400 → [role=alert] visibile, no redirect. CDN bloccata via `page.route('**/challenges.cloudflare.com/**')`. Nota: mockato anche POST /api/auth/refresh con stessa forma captchaRequired perché l'interceptor axios 401 (client.ts) tenta refresh su tutti i 401; zero modifiche a codice di produzione.
+**tests:** Playwright (chromium), 4 scenari AC US-081 §CAPTCHA.
+**run:** `npx playwright test captcha-login --reporter=list` (da src/frontend/) → **4/4 PASS** (12.2s).
+**DoD:** pass tecnico (4/4 AC verdi); code review pending gate umano.
+**files touched:** src/frontend/e2e/captcha-login.spec.ts [NEW]; management/kanban/.../TSK-271.md [status: done, updated: 2026-05-29].
+**VCS gate:** NON committato (gate umano). Gap noto: E2E su deploy reale resta soggetto a TSK-270 (be-csp) per la CSP di produzione.
+
+[2026-05-29 13:00] review TSK-235 iter-1 → conditional — kotlin/spring-boot JUnit5 IT; findings high:1 medium:2 low:2; blocking: tests never executed (compileTestKotlin-only, Docker unavailable §7 r.8), medium: KDoc lockout-duration mismatch + seeding bypasses maybeTriggerLockout trigger path; report: code_quality/reports/TSK-235-iter-1.json
+
+[2026-05-29 13:00] review TSK-271 iter-1 → conditional — typescript/playwright e2e mocked-tier; findings {high: 0, medium: 1, low: 2}; fallback misconfig path in scenari 3-4 rischia falso verde senza NEXT_PUBLIC_TURNSTILE_SITE_KEY; report: code_quality/reports/TSK-271-iter-1.json
+
+[2026-05-29 14:30] remediation TSK-235 iter-2 — Docker assente sbloccato via Podman (Testcontainers su podman.sock, TESTCONTAINERS_RYUK_DISABLED=true): BruteForceProtectionIT **11/11 green** (incl. nuovo Scenario 3b lockout via HTTP reale con IP distinti 203.0.113.1-5 per evitare il gate captcha per-IP); KDoc lockout-duration→30; asserzioni Retry-After/retryAfterSeconds rafforzate. TSK-270 IT (CspCsrfSecurityIT+SecurityHeadersIT) **12/12 green** su Podman (conferma runtime CSP Turnstile). TSK-271 iter-2: webServer.env NEXT_PUBLIC_TURNSTILE_SITE_KEY + rimozione early-return scenari 3-4 + expect.not.toBeDisabled + getByRole → **4/4 playwright pass**.
+
+[2026-05-29 14:30] review TSK-235 iter-2 → pass — kotlin/spring-boot JUnit5 IT; 4/4 finding actionable iter-1 risolti (blocking F-235-1-001 sbloccato: 11/11 verdi via Podman/Testcontainers; KDoc; write-path maybeTriggerLockout via Scenario 3b; asserzioni); 1 low non-actionable (field injection @SpringBootTest) accettato; no regression; report: code_quality/reports/TSK-235-iter-2.json
+
+[2026-05-29 14:30] review TSK-271 iter-2 → pass — typescript/playwright e2e mocked-tier; 3/3 finding iter-1 risolti (webServer.env + no early-return, getByRole, expect.not.toBeDisabled); 0 new findings; no regression; confidence 0.97; report: code_quality/reports/TSK-271-iter-2.json

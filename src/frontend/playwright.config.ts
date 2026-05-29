@@ -74,5 +74,12 @@ export default defineConfig({
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
+    // Cloudflare "always-pass" test sitekey — required so that the Turnstile
+    // widget component does not fall back to "turnstile-misconfigured" during
+    // e2e tests (TSK-271 / US-081 AC§CAPTCHA scenarios 3-4).
+    // NEXT_PUBLIC_ vars must be inlined at dev-server startup in Next.js.
+    env: {
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: '1x00000000000000000000AA',
+    },
   },
 });
