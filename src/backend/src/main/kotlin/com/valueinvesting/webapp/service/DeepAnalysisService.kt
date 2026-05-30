@@ -90,15 +90,20 @@ class DeepAnalysisService(
         val startMs = System.currentTimeMillis()
         val t = ticker.uppercase()
 
+        log.info("Deep analysis INGEST START for {} (download + embedding filing SEC)…", t)
         val filingBlobs = filing10KQDownloaderService.fetchAndCache(t)
         if (filingBlobs.isEmpty()) {
             throw NoSecFilingsException(t)
         }
+        log.info("Deep analysis INGEST [{}]: {} filing da indicizzare", t, filingBlobs.size)
 
         var chunksIndexed = 0
         var filingsSkipped = 0
-        for (blob in filingBlobs) {
+        for ((idx, blob) in filingBlobs.withIndex()) {
             val blobId = blob.id ?: continue
+            // L'embedding su CPU è lento (minuti per filing): log per-filing così
+            // l'avanzamento è visibile durante l'ingest invece del silenzio.
+            log.info("Deep analysis INGEST [{}]: filing {}/{} (embedding…)", t, idx + 1, filingBlobs.size)
             val result = filingRagService.indexFiling(blobId)
             if (result.skipped) {
                 filingsSkipped++
@@ -128,14 +133,18 @@ class DeepAnalysisService(
         val t = ticker.uppercase()
         var llmCalls = 0
 
+        log.info("Deep analysis START for {} (invokeLlm={})", t, invokeLlm)
+
         val profile = try {
             fmpCacheService.getOrFetchProfile(t) { fmpAdapter.getProfile(t) }
         } catch (ex: FmpTickerNotFoundException) {
             throw ex
         }
+        log.info("Deep analysis [{}] step: profilo FMP ok", t)
 
         // Step 1: Financial dataset + ROE
         val dataset = financialDataService.getFinancialDataset(t)
+        log.info("Deep analysis [{}] step: financials + ROE ok", t)
         val roe5y = RoeCalculator.fiveYearAverage(dataset.income, dataset.balance)
         val roe10y = RoeCalculator.tenYearAverage(dataset.income, dataset.balance)
         val roeBlock = RoeBlock(
@@ -230,7 +239,9 @@ class DeepAnalysisService(
         }
 
         // Step 5: Price action (deterministic)
+        log.info("Deep analysis [{}] step: price action (fetch EOD FMP)…", t)
         val priceSnapshot = priceActionAnalyzer.analyze(t)
+        log.info("Deep analysis [{}] step: price action ok", t)
         val priceActionBlock = PriceActionBlock(
             priceNow = priceSnapshot.priceNow,
             max52w = priceSnapshot.max52w,
@@ -247,6 +258,7 @@ class DeepAnalysisService(
         // Step 6: Rule engine (13 rules — deterministic)
         val datasetWithPrice = dataset.copy(currentPrice = profile.value.price)
         val signals = ruleEngineService.evaluateAll(datasetWithPrice)
+        log.info("Deep analysis [{}] step: rule engine ok ({} signals)", t, signals.size)
 
         // Step 7: DCF (needed for position sizing via MoS)
         val dcf = dcfCalculator.calculate(datasetWithPrice)
