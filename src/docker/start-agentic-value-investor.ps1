@@ -7,9 +7,10 @@
 #        poi: podman build vi-app -> compose down -> [compose build sidecar] ->
 #        compose up -d (con override GPU se scelto). Se GPU, verifica che il
 #        sidecar veda CUDA. Then Portainer.
-#      - If NO : riavvia i container esistenti dello stack (podman-compose
-#        restart, niente build/recreate → la modalita' CPU/GPU resta invariata),
-#        poi Portainer.
+#      - If NO : chiede se RICREARE i container per applicare nuove variabili di
+#        .env (up -d --force-recreate app: le env sono fissate alla creazione,
+#        un restart NON le rilegge). Se no, fa solo `restart` dei container
+#        esistenti (bounce, CPU/GPU invariati). Poi Portainer.
 #   2. Always (re)start vi-portainer via `podman run` (the socket bind
 #      cannot be expressed in podman-compose on Windows -- see docker-compose.yml).
 #
@@ -99,20 +100,35 @@ if ($doBuild) {
         }
     }
 } else {
-    # Niente build: riavvia i container gia' esistenti dello stack. Usiamo
-    # `podman restart` per NOME (container_name del compose) invece di
-    # `podman-compose restart`, che non sempre risolve tutti i service (becca
-    # solo alcuni container se sono stati creati in run/progetti diversi).
-    # `restart` non ricrea i container (preserva la config runtime, inclusa la
-    # GPU del sidecar) e non rilegge .env. vi-app per ultimo così si riconnette
-    # a postgres/sidecar appena riavviati.
-    Write-Host 'Skip build — riavvio i container esistenti dello stack.' -ForegroundColor DarkGray
-    foreach ($c in @('vi-postgres', 'vi-embeddings-sidecar', 'vi-adminer', 'vi-app')) {
-        $exists = podman ps -a --filter "name=^$c$" --format '{{.Names}}'
-        if ($exists -eq $c) {
-            Invoke-Native "restart $c" -AllowFail { podman restart $c | Out-Null }
-        } else {
-            Write-Host "  ($c non presente, skip)" -ForegroundColor DarkGray
+    # Niente build. Chiedi se RICREARE i container: necessario per iniettare nel
+    # container le NUOVE variabili di .env (le env sono fissate alla CREAZIONE
+    # del container; un semplice restart NON le rilegge).
+    $recreateAnswer = Read-Host 'Ricreare i container per applicare le modifiche a .env? (y/N)'
+    $recreate = $recreateAnswer -match '^(y|Y|yes|YES|s|S|si|SI)$'
+
+    if ($recreate) {
+        # `up -d --force-recreate app`: ricrea SOLO vi-app (consumer principale
+        # di .env: FMP/Anthropic/JWT/TOP_PICKS/...) rileggendo env_file, senza
+        # build e senza toccare sidecar/postgres → GPU del sidecar preservata.
+        # NB: per env del sidecar (EMBEDDING_MODEL) o di postgres (POSTGRES_*)
+        # usa il ramo build (down + up -d con CPU/GPU).
+        Write-Host 'Ricreo vi-app per applicare .env (no build; sidecar/postgres invariati)…' -ForegroundColor DarkGray
+        Invoke-Native 'podman-compose up -d --force-recreate app' {
+            podman-compose -f $composeFile up -d --force-recreate app
+        }
+    } else {
+        # Solo bounce dei container esistenti. `podman restart` per NOME
+        # (container_name del compose) invece di `podman-compose restart`, che
+        # non sempre risolve tutti i service. NON rilegge .env, preserva la
+        # config runtime (GPU). vi-app per ultimo (riconnessione a postgres/sidecar).
+        Write-Host 'Skip build — riavvio i container esistenti dello stack.' -ForegroundColor DarkGray
+        foreach ($c in @('vi-postgres', 'vi-embeddings-sidecar', 'vi-adminer', 'vi-app')) {
+            $exists = podman ps -a --filter "name=^$c$" --format '{{.Names}}'
+            if ($exists -eq $c) {
+                Invoke-Native "restart $c" -AllowFail { podman restart $c | Out-Null }
+            } else {
+                Write-Host "  ($c non presente, skip)" -ForegroundColor DarkGray
+            }
         }
     }
 }
