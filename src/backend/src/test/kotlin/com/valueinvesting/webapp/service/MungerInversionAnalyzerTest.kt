@@ -369,6 +369,39 @@ class MungerInversionAnalyzerTest {
 
             assertThat(report.livelloRischio).isEqualTo(LivelloRischio.RISCHIO_ALTO)
         }
+
+        @Test
+        fun `parseSynthesisResponse populates sintesi when present (US-089)`() {
+            val json = """
+                {
+                    "livello_rischio": "RISCHIO_MODERATO",
+                    "sintesi": "Moat solido ma valutazione ricca: rischio moderato.",
+                    "rischi_principali": [],
+                    "punti_di_forza": [],
+                    "segnali_recenti_10q": []
+                }
+            """.trimIndent()
+
+            val report = analyzer.parseSynthesisResponse(json, "AAPL", "hash", 11)
+
+            assertThat(report.sintesi).isEqualTo("Moat solido ma valutazione ricca: rischio moderato.")
+        }
+
+        @Test
+        fun `parseSynthesisResponse sets sintesi to null when absent (retrocompat)`() {
+            val json = """
+                {
+                    "livello_rischio": "RISCHIO_BASSO",
+                    "rischi_principali": [],
+                    "punti_di_forza": [],
+                    "segnali_recenti_10q": []
+                }
+            """.trimIndent()
+
+            val report = analyzer.parseSynthesisResponse(json, "AAPL", "hash", 11)
+
+            assertThat(report.sintesi).isNull()
+        }
     }
 
     @Nested

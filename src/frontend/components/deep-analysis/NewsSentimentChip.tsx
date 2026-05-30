@@ -4,6 +4,7 @@ import { ExternalLink } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import type {
   NewsSentimentBlock,
+  NewsItem,
   SentimentClass,
 } from '@/lib/api/deep-analysis';
 
@@ -36,6 +37,62 @@ const CLASS_MAP: Readonly<Record<SentimentClass, ClassPresentation>> = {
       'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
   },
 };
+
+function NewsItemList({
+  items,
+}: {
+  readonly items: readonly NewsItem[] | undefined;
+}): React.ReactElement | null {
+  if (!items || items.length === 0) return null;
+
+  return (
+    <ul className="flex flex-col gap-3" data-testid="news-items-list">
+      {items.map((item, idx) => {
+        const cls = CLASS_MAP[item.sentimentClass];
+        return (
+          <li
+            key={`${idx}-${item.url ?? item.headline ?? ''}`}
+            className="flex flex-col gap-1 border-t border-slate-200 pt-3 first:border-t-0 first:pt-0 dark:border-slate-800"
+            data-testid={`news-item-${idx}`}
+          >
+            <div className="flex items-start justify-between gap-2">
+              {item.url ? (
+                <a
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-start gap-1 text-sm font-medium text-blue-700 hover:underline dark:text-blue-400"
+                >
+                  {item.headline ?? '(senza titolo)'}
+                  <ExternalLink className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />
+                </a>
+              ) : (
+                <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                  {item.headline ?? '(senza titolo)'}
+                </span>
+              )}
+              <span
+                className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${cls.chipColor}`}
+              >
+                {cls.label}
+              </span>
+            </div>
+            {item.textExcerpt ? (
+              <p className="text-xs text-slate-600 dark:text-slate-400">
+                {item.textExcerpt}
+              </p>
+            ) : null}
+            {item.motivazione ? (
+              <p className="text-xs italic text-slate-500 dark:text-slate-500">
+                {item.motivazione}
+              </p>
+            ) : null}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
 
 function SentimentBar({
   sentiment,
@@ -118,6 +175,7 @@ export function NewsSentimentChip({
               </span>
             </div>
             <SentimentBar sentiment={sentiment} />
+            <NewsItemList items={sentiment.items} />
           </div>
         ) : (
           <p className="text-sm text-slate-500 dark:text-slate-400">

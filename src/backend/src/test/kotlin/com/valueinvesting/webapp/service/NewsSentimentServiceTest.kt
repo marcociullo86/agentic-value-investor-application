@@ -112,6 +112,34 @@ class NewsSentimentServiceTest {
     }
 
     @Test
+    fun `classifications expose textExcerpt and motivazione for analyzed news (US-091)`() {
+        every { fmpAdapter.getStockNews("AAPL", 90) } returns makeNews(3)
+        every { anthropicClient.complete(any(), any()) } returns synthJson(count = 3)
+
+        val result = newsSentimentService.classify("AAPL")
+
+        assertThat(result.classifications).isNotEmpty
+        assertThat(result.classifications).allSatisfy {
+            assertThat(it.textExcerpt).isNotBlank()
+            assertThat(it.motivazione).isNotNull()
+        }
+    }
+
+    @Test
+    fun `cache reconstruction preserves textExcerpt (US-091)`() {
+        every { fmpAdapter.getStockNews("KO", 90) } returns makeNews(3)
+        every { anthropicClient.complete(any(), any()) } returns synthJson(count = 3)
+
+        newsSentimentService.classify("KO") // 1ª: sintesi + persist
+        val result = newsSentimentService.classify("KO") // 2ª: ricostruzione da cache
+
+        verify(exactly = 1) { anthropicClient.complete(any(), any()) }
+        assertThat(result.classifications).allSatisfy {
+            assertThat(it.textExcerpt).isNotBlank()
+        }
+    }
+
+    @Test
     fun `second call within 24h reuses cache - no new LLM call`() {
         every { fmpAdapter.getStockNews("MSFT", 90) } returns makeNews(5)
         every { anthropicClient.complete(any(), any()) } returns synthJson(count = 5)

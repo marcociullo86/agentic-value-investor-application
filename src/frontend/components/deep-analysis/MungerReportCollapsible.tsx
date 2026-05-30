@@ -57,7 +57,7 @@ function InversionItemList({
 
   return (
     <ul className="flex flex-col gap-2" data-testid={testIdPrefix}>
-      {items.slice(0, 3).map((item, idx) => (
+      {items.map((item, idx) => (
         <li
           key={`${item.chunkIndex}-${idx}`}
           className="flex items-start gap-2 text-sm text-slate-700 dark:text-slate-300"
@@ -137,6 +137,17 @@ export function MungerReportCollapsible({
                 className="flex flex-col gap-4"
                 data-testid="munger-report-details"
               >
+                {report.sintesi ? (
+                  <section data-testid="munger-synthesis">
+                    <h3 className="mb-2 text-sm font-semibold text-slate-800 dark:text-slate-200">
+                      Motivazione
+                    </h3>
+                    <p className="whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-300">
+                      {report.sintesi}
+                    </p>
+                  </section>
+                ) : null}
+
                 <section>
                   <h3 className="mb-2 text-sm font-semibold text-slate-800 dark:text-slate-200">
                     Top Rischi

@@ -114,6 +114,19 @@ export function DeepVerdictBadge({
         <p className="text-sm text-slate-700 dark:text-slate-300">
           {data.verdict.motivazioneAggregata}
         </p>
+        {data.mungerReport?.sintesi ? (
+          <div
+            className="rounded-md border-l-2 border-amber-400 bg-amber-50/60 px-3 py-2 dark:border-amber-500 dark:bg-amber-950/30"
+            data-testid="verdict-llm-synthesis"
+          >
+            <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-400">
+              Perché questo verdetto
+            </p>
+            <p className="whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-300">
+              {data.mungerReport.sintesi}
+            </p>
+          </div>
+        ) : null}
         {data.verdict.partialBasis ? (
           <p className="text-xs font-medium text-amber-700 dark:text-amber-400">
             VERDETTO PARZIALE — completa con analisi LLM

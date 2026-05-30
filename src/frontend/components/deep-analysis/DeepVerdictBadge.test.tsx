@@ -85,6 +85,42 @@ describe('DeepVerdictBadge (TSK-157)', () => {
     expect(button).toHaveTextContent('Avvia analisi LLM ≈ $0.49');
   });
 
+  it('renders the LLM synthesis paragraph when mungerReport.sintesi is present (US-089)', () => {
+    render(
+      <DeepVerdictBadge
+        data={makeData({
+          mungerReport: {
+            livelloRischio: 'RISCHIO_MODERATO',
+            sintesi: 'Sintesi narrativa di prova sul perché del verdetto.',
+            rischiPrincipali: [],
+            puntiDiForza: [],
+            segnaliRecenti10Q: [],
+            filingComboHash: 'abc123',
+            llmCallsCount: 11,
+          },
+        })}
+        isValidating={false}
+        isFrozenByAdmin={false}
+        onInvokeLlm={onInvokeLlm}
+      />,
+    );
+    expect(screen.getByTestId('verdict-llm-synthesis')).toHaveTextContent(
+      'Sintesi narrativa di prova',
+    );
+  });
+
+  it('omits the synthesis paragraph when mungerReport is null', () => {
+    render(
+      <DeepVerdictBadge
+        data={makeData()}
+        isValidating={false}
+        isFrozenByAdmin={false}
+        onInvokeLlm={onInvokeLlm}
+      />,
+    );
+    expect(screen.queryByTestId('verdict-llm-synthesis')).toBeNull();
+  });
+
   it('shows cost estimate with null → no cost in label', () => {
     render(
       <DeepVerdictBadge
