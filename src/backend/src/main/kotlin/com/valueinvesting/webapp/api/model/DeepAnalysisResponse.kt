@@ -87,6 +87,8 @@ data class PositionSizeBlock(
 @Schema(name = "MungerReportBlock")
 data class MungerReportBlock(
     val livelloRischio: LivelloRischio,
+    @Schema(description = "Narrative LLM synthesis explaining the risk level; null for legacy cached reports", nullable = true)
+    val sintesi: String?,
     val rischiPrincipali: List<InversionItem>,
     val puntiDiForza: List<InversionItem>,
     val segnaliRecenti10Q: List<InversionItem>,
@@ -107,6 +109,19 @@ data class NewsSentimentBlock(
     val structuralCount: Int,
     val neutralCount: Int,
     val dominantClass: SentimentClass,
+    @Schema(description = "Le notizie effettivamente analizzate (set curato): titolo + testo + classe + motivazione")
+    val items: List<NewsItem> = emptyList(),
+)
+
+@Schema(name = "NewsItem", description = "Singola notizia analizzata nel Sentiment News")
+data class NewsItem(
+    val headline: String?,
+    @Schema(description = "Snippet/testo della notizia")
+    val textExcerpt: String?,
+    val sentimentClass: SentimentClass,
+    @Schema(description = "Motivazione LLM della classificazione", nullable = true)
+    val motivazione: String?,
+    val url: String?,
 )
 
 @Schema(name = "FilingRef")

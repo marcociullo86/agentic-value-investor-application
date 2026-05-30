@@ -9,6 +9,10 @@ data class MungerInversionReport(
     val segnaliRecenti10Q: List<InversionSignal>,
     val filingComboHash: String,
     val llmCallsCount: Int,
+    // Sintesi narrativa LLM (US-089): spiega il "perché" del livello di rischio
+    // complessivo. Nullable per retrocompat con i report_json in cache (TTL 90gg)
+    // generati prima dell'introduzione del campo.
+    val sintesi: String? = null,
 )
 
 data class InversionRisk(

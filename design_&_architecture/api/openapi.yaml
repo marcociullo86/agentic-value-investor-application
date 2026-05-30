@@ -1439,6 +1439,7 @@ components:
       description: Munger inversion LLM report (US-041). Null when invoke_llm=false.
       properties:
         livelloRischio:    { $ref: '#/components/schemas/LivelloRischio' }
+        sintesi:           { type: string, nullable: true, description: "Narrative LLM synthesis of the risk level (US-089); null for legacy cached reports" }
         rischiPrincipali:
           type: array
           items: { $ref: '#/components/schemas/InversionItem' }
@@ -1453,7 +1454,7 @@ components:
 
     NewsSentimentBlock:
       type: object
-      required: [total, panicCount, structuralCount, neutralCount, dominantClass]
+      required: [total, panicCount, structuralCount, neutralCount, dominantClass, items]
       description: News sentiment classification summary (US-042). Null when invoke_llm=false.
       properties:
         total:           { type: integer }
@@ -1461,6 +1462,21 @@ components:
         structuralCount: { type: integer }
         neutralCount:    { type: integer }
         dominantClass:   { $ref: '#/components/schemas/SentimentClass' }
+        items:
+          type: array
+          description: "Notizie analizzate (set curato): titolo + testo + classe + motivazione (US-091)"
+          items: { $ref: '#/components/schemas/NewsItem' }
+
+    NewsItem:
+      type: object
+      required: [sentimentClass]
+      description: Singola notizia analizzata nel Sentiment News (US-091).
+      properties:
+        headline:      { type: string, nullable: true }
+        textExcerpt:   { type: string, nullable: true, description: "Snippet/testo della notizia" }
+        sentimentClass: { $ref: '#/components/schemas/SentimentClass' }
+        motivazione:   { type: string, nullable: true, description: "Motivazione LLM della classificazione" }
+        url:           { type: string, nullable: true }
 
     FilingRef:
       type: object

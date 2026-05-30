@@ -280,6 +280,15 @@ llm:
     absolute-max-usd: ${LLM_BUDGET_ABSOLUTE_MAX_USD:10000}
     frozen: false
 
+# Deep analysis — osservabilità interazioni LLM (US-088 / EP-020).
+# log-interactions=true scrive system/user prompt + risposta raw di ogni chiamata
+# LLM (10 query Munger + 1 sintesi + sintesi news) nei log, troncati a log-max-chars.
+# Default OFF in prod.
+deep-analysis:
+  llm:
+    log-interactions: ${DEEP_ANALYSIS_LLM_LOG_INTERACTIONS:false}
+    log-max-chars: ${DEEP_ANALYSIS_LLM_LOG_MAX_CHARS:8000}
+
 # SEC EDGAR integration (TSK-091 / US-038 / EP-011)
 # Fair-access policy: rate-limit-per-second hard cap = 10 (NON aumentare).
 # `user-agent.email` deve essere un indirizzo valido raggiungibile in prod

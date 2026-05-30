@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.valueinvesting.webapp.fmp.FmpAdapter
 import com.valueinvesting.webapp.fmp.dto.StockNewsItem
 import com.valueinvesting.webapp.llm.AnthropicClient
+import com.valueinvesting.webapp.llm.LlmInteractionLogger
 import com.valueinvesting.webapp.persistence.entity.NewsClassificationEntity
 import com.valueinvesting.webapp.persistence.repository.NewsClassificationRepository
 import org.slf4j.LoggerFactory
@@ -39,6 +40,7 @@ class NewsSentimentService(
     private val fmpAdapter: FmpAdapter,
     private val anthropicClient: AnthropicClient,
     private val newsRepo: NewsClassificationRepository,
+    private val llmInteractionLogger: LlmInteractionLogger = LlmInteractionLogger(),
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val mapper = jacksonObjectMapper()
@@ -96,16 +98,30 @@ class NewsSentimentService(
 
         val classified: List<ClassifiedItem> = if (allFresh) {
             cachedRows.filterNotNull().map {
-                ClassifiedItem(it.newsId, it.headline, SentimentClass.valueOf(it.sentimentClass))
+                ClassifiedItem(
+                    newsId = it.newsId,
+                    headline = it.headline,
+                    sentimentClass = SentimentClass.valueOf(it.sentimentClass),
+                    textExcerpt = it.textExcerpt,
+                    motivazione = it.motivazione,
+                    url = it.url,
+                )
             }
         } else {
-            val synthesis = synthesize(curated)
+            val synthesis = synthesize(ticker, curated)
             curated.mapIndexed { idx, item ->
                 val classe = synthesis.classOf(idx)
                 val entity = persistClassification(
                     ticker, item, newsKey(item), classe, synthesis.motivazioneOf(idx),
                 )
-                ClassifiedItem(entity.newsId, entity.headline, classe)
+                ClassifiedItem(
+                    newsId = entity.newsId,
+                    headline = entity.headline,
+                    sentimentClass = classe,
+                    textExcerpt = entity.textExcerpt,
+                    motivazione = entity.motivazione,
+                    url = entity.url,
+                )
             }
         }
 
@@ -121,7 +137,14 @@ class NewsSentimentService(
             neutralCount = neutral,
             dominantClass = deriveDominant(classified.map { it.sentimentClass }),
             classifications = classified.map {
-                NewsClassificationSummary(it.newsId, it.headline, it.sentimentClass)
+                NewsClassificationSummary(
+                    newsId = it.newsId,
+                    headline = it.headline,
+                    sentimentClass = it.sentimentClass,
+                    textExcerpt = it.textExcerpt,
+                    motivazione = it.motivazione,
+                    url = it.url,
+                )
             },
         )
     }
@@ -155,7 +178,7 @@ class NewsSentimentService(
 
     // ---- Stage 2: sintesi LLM unica --------------------------------------------
 
-    private fun synthesize(curated: List<StockNewsItem>): SynthesisResult {
+    private fun synthesize(ticker: String, curated: List<StockNewsItem>): SynthesisResult {
         val itemsBlock = curated.mapIndexed { idx, item ->
             val date = item.publishedDate?.toLocalDate()?.toString() ?: "n/d"
             val snippet = item.text?.take(SNIPPET_LEN).orEmpty()
@@ -175,7 +198,11 @@ class NewsSentimentService(
             |{"impairment_permanente":"si|no|incerto","items":[{"idx":0,"classe":"NEUTRAL","motivazione":"..."}],"sintesi":"..."}""".trimMargin()
 
         return try {
+            val start = System.currentTimeMillis()
             val response = anthropicClient.complete(prompt, maxTokens = SYNTH_MAX_TOKENS)
+            llmInteractionLogger.log(
+                "news-synthesis:$ticker", null, prompt, response, System.currentTimeMillis() - start,
+            )
             parseSynthesis(extractJsonObject(response), curated.size)
         } catch (e: Exception) {
             // Degrado sicuro: nessun veto/panic-buy indotto da un parse fallito.
@@ -251,6 +278,7 @@ class NewsSentimentService(
         entity.url = item.url
         entity.sentimentClass = classe.name
         entity.motivazione = motivazione?.take(MOTIVAZIONE_MAX)
+        entity.textExcerpt = item.text?.take(SNIPPET_LEN)
         entity.classifiedAt = Instant.now()
         return newsRepo.save(entity)
     }
@@ -269,6 +297,9 @@ class NewsSentimentService(
         val newsId: String,
         val headline: String?,
         val sentimentClass: SentimentClass,
+        val textExcerpt: String?,
+        val motivazione: String?,
+        val url: String?,
     )
 
     private class SynthesisResult(
@@ -298,4 +329,7 @@ data class NewsClassificationSummary(
     val newsId: String,
     val headline: String?,
     val sentimentClass: SentimentClass,
+    val textExcerpt: String? = null,
+    val motivazione: String? = null,
+    val url: String? = null,
 )

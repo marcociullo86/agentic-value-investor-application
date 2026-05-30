@@ -81,11 +81,22 @@ export interface InversionItem {
 
 export interface MungerReportBlock {
   readonly livelloRischio: LivelloRischio;
+  /** Sintesi narrativa LLM del livello di rischio (US-089); null per report legacy in cache. */
+  readonly sintesi: string | null;
   readonly rischiPrincipali: readonly InversionItem[];
   readonly puntiDiForza: readonly InversionItem[];
   readonly segnaliRecenti10Q: readonly InversionItem[];
   readonly filingComboHash: string;
   readonly llmCallsCount: number;
+}
+
+/** Singola notizia analizzata nel Sentiment News (US-091). */
+export interface NewsItem {
+  readonly headline: string | null;
+  readonly textExcerpt: string | null;
+  readonly sentimentClass: SentimentClass;
+  readonly motivazione: string | null;
+  readonly url: string | null;
 }
 
 export interface NewsSentimentBlock {
@@ -94,6 +105,8 @@ export interface NewsSentimentBlock {
   readonly structuralCount: number;
   readonly neutralCount: number;
   readonly dominantClass: SentimentClass;
+  /** Notizie analizzate (set curato): titolo + testo + classe + motivazione. */
+  readonly items: readonly NewsItem[];
 }
 
 export interface FilingRef {

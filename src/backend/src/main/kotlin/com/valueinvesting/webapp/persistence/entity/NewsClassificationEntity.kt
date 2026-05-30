@@ -39,6 +39,11 @@ class NewsClassificationEntity(
     @Column(name = "motivazione", length = 250)
     var motivazione: String? = null,
 
+    // Snippet della notizia (V030): mostrato come "testo" nel blocco Sentiment News.
+    // Persistito per ricostruire la lista anche su cache-hit.
+    @Column(name = "text_excerpt", length = 400)
+    var textExcerpt: String? = null,
+
     @Column(name = "classified_at", nullable = false)
     var classifiedAt: Instant = Instant.now(),
 )

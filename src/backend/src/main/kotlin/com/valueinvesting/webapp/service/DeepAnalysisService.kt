@@ -5,6 +5,7 @@ import com.valueinvesting.webapp.api.model.FilingRef
 import com.valueinvesting.webapp.api.model.IngestSummary
 import com.valueinvesting.webapp.api.model.InversionItem
 import com.valueinvesting.webapp.api.model.MungerReportBlock
+import com.valueinvesting.webapp.api.model.NewsItem
 import com.valueinvesting.webapp.api.model.NewsSentimentBlock
 import com.valueinvesting.webapp.api.model.PositionSizeBlock
 import com.valueinvesting.webapp.api.model.PriceActionBlock
@@ -184,6 +185,7 @@ class DeepAnalysisService(
 
                 mungerReport = MungerReportBlock(
                     livelloRischio = report.livelloRischio,
+                    sintesi = report.sintesi,
                     rischiPrincipali = report.rischiPrincipali.map { InversionItem(it.testo, it.chunkIndex) },
                     puntiDiForza = report.puntiDiForza.map { InversionItem(it.testo, it.chunkIndex) },
                     segnaliRecenti10Q = report.segnaliRecenti10Q.map { InversionItem(it.testo, it.chunkIndex) },
@@ -212,6 +214,15 @@ class DeepAnalysisService(
                     structuralCount = sentimentResult.structuralCount,
                     neutralCount = sentimentResult.neutralCount,
                     dominantClass = sentimentResult.dominantClass,
+                    items = sentimentResult.classifications.map {
+                        NewsItem(
+                            headline = it.headline,
+                            textExcerpt = it.textExcerpt,
+                            sentimentClass = it.sentimentClass,
+                            motivazione = it.motivazione,
+                            url = it.url,
+                        )
+                    },
                 )
             } catch (ex: LlmException) {
                 throw LlmUnavailableException(t, cause = ex)

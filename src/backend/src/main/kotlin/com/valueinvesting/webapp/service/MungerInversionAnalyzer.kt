@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.valueinvesting.webapp.llm.AnthropicClient
 import com.valueinvesting.webapp.llm.LlmException
+import com.valueinvesting.webapp.llm.LlmInteractionLogger
 import com.valueinvesting.webapp.llm.LlmRequest
 import com.valueinvesting.webapp.persistence.entity.DeepAnalysisReportEntity
 import com.valueinvesting.webapp.persistence.repository.DeepAnalysisReportRepository
@@ -25,6 +26,7 @@ class MungerInversionAnalyzer(
     private val filingBlobRepository: FilingBlobRepository,
     private val reportRepository: DeepAnalysisReportRepository,
     private val objectMapper: ObjectMapper,
+    private val llmInteractionLogger: LlmInteractionLogger = LlmInteractionLogger(),
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -149,7 +151,12 @@ class MungerInversionAnalyzer(
         )
 
         try {
-            return anthropicClient.complete(request).content
+            val start = System.currentTimeMillis()
+            val content = anthropicClient.complete(request).content
+            llmInteractionLogger.log(
+                "munger-query:$ticker", systemPrompt, userPrompt, content, System.currentTimeMillis() - start,
+            )
+            return content
         } catch (ex: LlmException) {
             log.error("LLM call failed for ticker={}, query='{}': {}", ticker, query.take(60), ex.message)
             throw EmbeddingServiceUnavailableException(
@@ -166,12 +173,14 @@ class MungerInversionAnalyzer(
             Respond ONLY with valid JSON matching this schema:
             {
               "livello_rischio": "RISCHIO_BASSO|RISCHIO_MODERATO|RISCHIO_ALTO|RISCHIO_ESTREMO",
+              "sintesi": "narrative synthesis (max ~1500 chars) explaining WHY this overall risk level, weighing the dominant risks against the strengths",
               "rischi_principali": [{"testo": "...", "chunk_index": N}],
               "punti_di_forza": [{"testo": "...", "chunk_index": N}],
               "segnali_recenti_10q": [{"testo": "...", "chunk_index": N}]
             }
             Rules:
             - livello_rischio must be exactly one of the four values shown above.
+            - sintesi: a concise narrative (Italian) that a value investor can read to understand the verdict rationale; ground it in the filings, no speculation.
             - rischi_principali: top 5-10 most critical risks, deduplicated across queries.
             - punti_di_forza: key strengths that emerged as counterbalance to risks.
             - segnali_recenti_10q: signals specific to recent 10-Q deterioration vs 10-K.
@@ -185,7 +194,12 @@ class MungerInversionAnalyzer(
         )
 
         try {
-            return anthropicClient.complete(request).content
+            val start = System.currentTimeMillis()
+            val content = anthropicClient.complete(request).content
+            llmInteractionLogger.log(
+                "munger-synthesis:$ticker", systemPrompt, input, content, System.currentTimeMillis() - start,
+            )
+            return content
         } catch (ex: LlmException) {
             log.error("LLM synthesis failed for ticker={}: {}", ticker, ex.message)
             throw EmbeddingServiceUnavailableException(
@@ -259,6 +273,7 @@ class MungerInversionAnalyzer(
                 segnaliRecenti10Q = dto.segnaliRecenti10Q.map { InversionSignal(it.testo, it.chunkIndex) },
                 filingComboHash = comboHash,
                 llmCallsCount = llmCalls,
+                sintesi = dto.sintesi.ifBlank { null },
             )
         } catch (ex: Exception) {
             log.error("Failed to parse LLM synthesis response for {}: {}", ticker, ex.message)
@@ -330,6 +345,7 @@ class MungerInversionAnalyzer(
     @JsonIgnoreProperties(ignoreUnknown = true)
     internal data class SynthesisResponseDto(
         @JsonProperty("livello_rischio") val livelloRischio: String = "",
+        @JsonProperty("sintesi") val sintesi: String = "",
         @JsonProperty("rischi_principali") val rischiPrincipali: List<QueryItemDto> = emptyList(),
         @JsonProperty("punti_di_forza") val puntiDiForza: List<QueryItemDto> = emptyList(),
         @JsonProperty("segnali_recenti_10q") val segnaliRecenti10Q: List<QueryItemDto> = emptyList(),
