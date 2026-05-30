@@ -3,10 +3,10 @@
 #
 # Flow:
 #   1. Ask whether to rebuild the vi-app image.
-#      - If YES: chiede prima se ribuildare il sidecar embeddings (non sempre
-#        serve), poi CPU/GPU per il sidecar, infine:
-#        podman build vi-app -> compose down -> [compose build sidecar] ->
-#        compose up -d (con override GPU se scelto), then Portainer.
+#      - If YES: chiede CPU/GPU (scelta RUNTIME del sidecar → override compose,
+#        applicato anche senza rebuild) e se ribuildare il sidecar (opzionale),
+#        poi: podman build vi-app -> compose down -> [compose build sidecar] ->
+#        compose up -d (con override GPU se scelto). Se GPU, verifica CUDA.
 #      - If NO : skip directly to Portainer (assumes stack is already up).
 #   2. Always (re)start vi-portainer via `podman run`.
 #
@@ -89,31 +89,28 @@ fi
 read -r -p "Vuoi buildare l'app prima di avviare lo stack? (y/N) " answer
 answer="${answer:-N}"
 if [[ "${answer}" =~ ^([yY]|yes|YES|s|S|si|SI)$ ]]; then
-  # Il sidecar embeddings non cambia spesso: chiedi se ribuildarlo.
-  # Default NO su Invio. La domanda CPU/GPU e il rebuild del sidecar vengono
-  # fatti SOLO se si risponde si.
+  # CPU oppure GPU: scelta RUNTIME del sidecar. L'override docker-compose.gpu.yml
+  # (devices: nvidia.com/gpu=all) va applicato a down/up -d A PRESCINDERE dal
+  # rebuild, altrimenti il container riparte in CPU. GPU richiede, una tantum
+  # nella podman machine, nvidia-container-toolkit + spec CDI. Default CPU.
+  read -r -p "Sidecar embeddings: CPU o GPU? (cpu/GPU) [default CPU] " gpu_answer
+  COMPOSE_ARGS=(-f "${COMPOSE_FILE}")
+  use_gpu=0
+  if [[ "${gpu_answer}" =~ ^([gG]|gpu|GPU)$ ]]; then
+    use_gpu=1
+    COMPOSE_ARGS+=(-f "src/docker/docker-compose.gpu.yml")
+    echo "Sidecar: GPU (override docker-compose.gpu.yml, CDI nvidia.com/gpu=all)"
+  else
+    echo "Sidecar: CPU"
+  fi
+
+  # Rebuild del sidecar: opzionale e indipendente da CPU/GPU (serve solo se hai
+  # cambiato embeddings-sidecar/app.py o il suo Dockerfile). Default NO.
   read -r -p "Vuoi ribuildare il sidecar embeddings? (y/N) " sidecar_answer
   sidecar_answer="${sidecar_answer:-N}"
   rebuild_sidecar=0
   if [[ "${sidecar_answer}" =~ ^([yY]|yes|YES|s|S|si|SI)$ ]]; then
     rebuild_sidecar=1
-  fi
-
-  COMPOSE_ARGS=(-f "${COMPOSE_FILE}")
-  if [[ "${rebuild_sidecar}" -eq 1 ]]; then
-    # Backend del sidecar embeddings: CPU oppure GPU NVIDIA (via CDI).
-    # GPU richiede, una tantum nella podman machine, nvidia-container-toolkit
-    # + spec CDI (`nvidia-ctk cdi generate`). Layer dell'override docker-compose.gpu.yml.
-    # Default CPU su Invio: non fallisce dove la GPU non e' configurata.
-    read -r -p "Sidecar embeddings: CPU o GPU? (cpu/GPU) [default CPU] " gpu_answer
-    if [[ "${gpu_answer}" =~ ^([gG]|gpu|GPU)$ ]]; then
-      COMPOSE_ARGS+=(-f "src/docker/docker-compose.gpu.yml")
-      echo "Sidecar: GPU (CDI nvidia.com/gpu=all)"
-    else
-      echo "Sidecar: CPU"
-    fi
-  else
-    echo "Skip rebuild sidecar embeddings - uso immagine esistente."
   fi
 
   run_cmd "podman build vi-app:latest" \
@@ -128,10 +125,25 @@ if [[ "${answer}" =~ ^([yY]|yes|YES|s|S|si|SI)$ ]]; then
   if [[ "${rebuild_sidecar}" -eq 1 ]]; then
     run_cmd "compose build embeddings-sidecar" \
       "${COMPOSE_BIN[@]}" "${COMPOSE_ARGS[@]}" build embeddings-sidecar
+  else
+    echo "Skip rebuild sidecar embeddings - uso immagine esistente."
   fi
 
   run_cmd "compose up -d" \
     "${COMPOSE_BIN[@]}" "${COMPOSE_ARGS[@]}" up -d
+
+  # Se GPU: verifica che il sidecar veda davvero CUDA, altrimenti avvisa.
+  if [[ "${use_gpu}" -eq 1 ]]; then
+    echo "Verifica CUDA nel sidecar..."
+    sleep 8
+    cuda="$(podman exec vi-embeddings-sidecar python -c 'import torch; print(torch.cuda.is_available())' 2>/dev/null || true)"
+    if [[ "${cuda}" == *True* ]]; then
+      echo "Sidecar GPU OK: torch.cuda.is_available() = True"
+    else
+      echo "ATTENZIONE: sidecar NON vede la GPU (cuda_available=${cuda}). Gira in CPU."
+      echo "  Controlla: nvidia-ctk cdi list  (deve elencare nvidia.com/gpu=all)"
+    fi
+  fi
 else
   echo "Skip build/restart - using existing running stack."
 fi
