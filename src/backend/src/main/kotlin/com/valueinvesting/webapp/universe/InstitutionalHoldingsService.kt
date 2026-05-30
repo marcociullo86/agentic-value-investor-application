@@ -1,5 +1,6 @@
 package com.valueinvesting.webapp.universe
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.benmanes.caffeine.cache.Cache
 import com.valueinvesting.webapp.fmp.FmpAdapter
 import com.valueinvesting.webapp.secedgar.SecEdgarAdapter
@@ -26,8 +27,10 @@ import org.springframework.stereotype.Component
 //
 // PIPELINE per fund CIK (5 fund hardcoded in application.yml):
 //   1. SEC EDGAR `listFilings(cik, ["13F-HR"], 1)` → metadata ultimo 13-F.
-//   2. Costruisce URL `informationtable.xml` dal pattern SEC EDGAR Archives:
-//      `https://www.sec.gov/Archives/edgar/data/{cikNoLeadZeros}/{accessionNoDashes}/informationtable.xml`
+//   2. GET del directory `index.json` del filing per risolvere il nome REALE
+//      del file information table (varia per filing agent: "infotable.xml",
+//      "information_table.xml", "53405.xml", ...). Si scarta `primary_doc.xml`
+//      (cover page) e si prende l'unico altro .xml.
 //   3. SEC `downloadFilingHtml(xmlUrl)` → body XML del 13-F informationTable.
 //   4. Parse XML via Jsoup (XmlParser) → estrae `<nameOfIssuer>` + `<cusip>`.
 //   5. Per ogni holding: `FmpAdapter.searchCusip(cusip)` → ticker (o null →
@@ -65,10 +68,13 @@ import org.springframework.stereotype.Component
 )
 class InstitutionalHoldingsService(
     private val secEdgarAdapter: SecEdgarAdapter,
+    // La risoluzione CUSIP→ticker dei 13-F passa dall'unico RateLimiter FMP
+    // `fmp` (280/min, condiviso online+batch — ADR-016 §4).
     private val fmpAdapter: FmpAdapter,
     private val properties: InstitutionalHoldingsProperties,
     @Qualifier("institutionalHoldingsCache")
     private val cache: Cache<String, List<UniverseCandidate>>,
+    private val objectMapper: ObjectMapper,
 ) : InstitutionalHoldingsProvider {
 
     /**
@@ -126,12 +132,35 @@ class InstitutionalHoldingsService(
         }
         val accessionNoDashes = accession.replace("-", "")
         val cikNoLeadZeros = cik.trimStart('0').ifEmpty { "0" }
+        val baseDir =
+            "https://www.sec.gov/Archives/edgar/data/$cikNoLeadZeros/$accessionNoDashes"
 
-        // Step 2-3 — costruisci URL informationtable.xml e scarica via SEC adapter.
-        // Pattern URL canonico SEC EDGAR (verificato empiricamente 2026-05-26):
-        //   https://www.sec.gov/Archives/edgar/data/{cikNumeric}/{accessionNoDashes}/informationtable.xml
-        val xmlUrl =
-            "https://www.sec.gov/Archives/edgar/data/$cikNoLeadZeros/$accessionNoDashes/informationtable.xml"
+        // Step 2 — risolvi il nome REALE del file information table.
+        // SEC NON usa un nome canonico fisso: a seconda del filing agent il file
+        // si chiama "infotable.xml", "information_table.xml", "53405.xml", ecc.
+        // (verificato empiricamente 2026-05-30 sui 5 fund: nessuno usa
+        // "informationtable.xml", che era hardcoded e causava 404 sistematici).
+        // Strategia robusta: GET del directory index.json del filing e prendi
+        // l'unico .xml diverso da primary_doc.xml (la cover page del 13-F).
+        val infoTableFile = runCatching {
+            resolveInfoTableFilename(baseDir)
+        }.getOrElse { ex ->
+            log.warn(
+                "13-F index.json resolve failed for {} ({}): {}",
+                fundName, cik, ex.message,
+            )
+            return emptyList()
+        }
+        if (infoTableFile == null) {
+            log.info(
+                "13-F: nessun information table xml nel filing index per {} ({}) — skip",
+                fundName, cik,
+            )
+            return emptyList()
+        }
+
+        // Step 3 — scarica l'information table XML via SEC adapter.
+        val xmlUrl = "$baseDir/$infoTableFile"
         val xml = runCatching {
             secEdgarAdapter.downloadFilingHtml(xmlUrl)
         }.getOrElse { ex ->
@@ -144,8 +173,8 @@ class InstitutionalHoldingsService(
 
         if (xml.isNullOrBlank()) {
             log.info(
-                "13-F: informationtable.xml 404 or empty for {} ({}) — skip",
-                fundName, cik,
+                "13-F: information table xml ({}) 404 or empty for {} ({}) — skip",
+                infoTableFile, fundName, cik,
             )
             return emptyList()
         }
@@ -187,6 +216,27 @@ class InstitutionalHoldingsService(
         )
         cache.put(cacheKey, resolved)
         return resolved
+    }
+
+    /**
+     * Risolve il nome del file information table nella directory del filing
+     * 13-F leggendo `{baseDir}/index.json`. SEC espone l'elenco file in
+     * `directory.item[].name`; il 13-F contiene sempre `primary_doc.xml` (cover
+     * page) piu' UN file XML con la tabella holdings, il cui nome varia per
+     * filing agent. Ritorna il primo .xml != primary_doc.xml, o null se assente
+     * (filing senza information table → caller skippa il fund).
+     */
+    private fun resolveInfoTableFilename(baseDir: String): String? {
+        val indexJson = secEdgarAdapter.downloadFilingHtml("$baseDir/index.json")
+            ?: return null
+        val items = objectMapper.readTree(indexJson).path("directory").path("item")
+        if (!items.isArray) return null
+        return items
+            .mapNotNull { it.get("name")?.asText()?.takeIf(String::isNotBlank) }
+            .firstOrNull { name ->
+                name.endsWith(".xml", ignoreCase = true) &&
+                    !name.equals("primary_doc.xml", ignoreCase = true)
+            }
     }
 
     /**

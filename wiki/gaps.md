@@ -209,6 +209,8 @@ ADR-007 §Error format dichiara RFC 9457 §3.2 (extensions al top-level). Quattr
 
 **Risolto parzialmente (policy):** 2026-05-25 — ADR-016 (`design_&_architecture/decisions/ADR-016-fmp-operations-throttling.md`, status: accepted) §4 fissa rate limiter 30 req/60s con override `FMP_RATE_LIMIT_PER_MINUTE`. I numeri ufficiali FMP per piano (quota giornaliera, comportamento retry-after) restano non documentati in raw — la chiusura completa richiede ingest di raw FMP ufficiale (sezione pricing/rate-limits). Calibrazione post-ingest tramite nuovo ADR (no edit in-place). [^src: design_&_architecture/decisions/ADR-016-fmp-operations-throttling.md]
 
+**Aggiornamento (operatore):** 2026-05-30 — Il limite del piano in uso è **FMP Starter = 300 req/min** (confermato dall'operatore dell'account; **non** è doc contrattuale provider citabile da raw, quindi il gap "doc ufficiale" resta formalmente aperto). Il rate limit FMP è per-API-key (account-wide): config aggiornata a **un unico limiter `fmp` a 280/min** condiviso online+batch (300 − ~7% margine), rimosso il bucket `fmp-batch` separato. Vedi [ADR-016 Appendice A](../design_&_architecture/decisions/ADR-016-fmp-operations-throttling.md). [^src: design_&_architecture/decisions/ADR-016-fmp-operations-throttling.md §Appendice A]
+
 ---
 
 ## 2026-05-22 10:00 — fmp-stable-analyst-estimates

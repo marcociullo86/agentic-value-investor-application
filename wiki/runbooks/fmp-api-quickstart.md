@@ -29,9 +29,9 @@ Tutte le richieste richiedono API key in header `apikey` oppure query `?apikey=`
 | HTTP 429, header `Retry-After` | **Non documentato** nei raw |
 | Gap | `fmp-rate-limiting` in [[gaps]] — **aperto** |
 
-**Policy applicazione (L4, non quota ufficiale FMP):** fino a chiusura del gap, il backend usa **30 richieste / 60s** verso FMP (Resilience4j), override `FMP_RATE_LIMIT_PER_MINUTE` [^src: design_&_architecture/decisions/ADR-016-fmp-operations-throttling.md §4. Throttling backend]. Non promuovere questo valore come limite contrattuale del provider senza `[^src: raw/...]`.
+**Policy applicazione (L4):** il backend usa **un unico RateLimiter `fmp` a 280 richieste / 60s** condiviso da tutto il traffico (online UI + batch notturno), override `FMP_RATE_LIMIT_PER_MINUTE` [^src: design_&_architecture/decisions/ADR-016-fmp-operations-throttling.md §Appendice A]. Il rate limit FMP è **per-API-key (account-wide)**: con una sola key esiste un solo budget, quindi un solo bucket è il modello corretto (due bucket indipendenti potevano sommare oltre il cap → 429). Il valore 280 = piano **Starter 300/min** (confermato dall'operatore dell'account, non da doc contrattuale provider) − ~7% di margine.
 
-**Calibrazione:** TSK-071 (Sprint 6) dipende da numeri ufficiali nel wiki dopo ingest raw dedicato.
+**Calibrazione:** se cambia il piano FMP, aggiornare solo `FMP_RATE_LIMIT_PER_MINUTE` (e `DEFAULT_RATE_LIMIT_PER_MINUTE` in `FmpRateLimitProperties`).
 
 ## URL base e path endpoint MVP
 

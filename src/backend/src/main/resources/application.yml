@@ -126,7 +126,9 @@ resilience4j:
   ratelimiter:
     instances:
       fmp:
-        limit-for-period: ${FMP_RATE_LIMIT_PER_MINUTE:30}
+        # Limite UNICO condiviso (online + batch). FMP rate-limit e' per-API-key:
+        # 280/min = FMP Starter 300/min con margine ~7% (ADR-016 §4).
+        limit-for-period: ${FMP_RATE_LIMIT_PER_MINUTE:280}
         limit-refresh-period: 1m
         timeout-duration: 2s
       llm-claude:
@@ -152,8 +154,12 @@ resilience4j:
 # necessaria — è qui solo per coerenza visiva e per `/actuator/health` annotation.
 
 # FMP cache TTL — profile snapshot (ADR-014); financial stays 24h in code (ADR-004).
+# rate-limit-per-minute: limite UNICO condiviso online+batch (per-API-key,
+# FMP Starter 300/min → 280 con margine). Vedi resilience4j.ratelimiter.fmp e
+# FmpRateLimitProperties. (ADR-016 §4 rev. 2026-05-30 — rimosso il bucket
+# `fmp-batch` separato che poteva sommare oltre il cap dell'account.)
 fmp:
-  rate-limit-per-minute: ${FMP_RATE_LIMIT_PER_MINUTE:30}
+  rate-limit-per-minute: ${FMP_RATE_LIMIT_PER_MINUTE:280}
   cache:
     profile-ttl-hours: 1
   event-log:
@@ -162,15 +168,6 @@ fmp:
     # Default 03:00 UTC ogni giorno (offset 1h dopo TopValuePicksJob 02:00).
     purge-cron: "${FMP_EVENT_LOG_PURGE_CRON:0 0 3 * * *}"
     purge-zone: "${FMP_EVENT_LOG_PURGE_ZONE:UTC}"
-
-# FMP batch rate limit dedicato a TopValuePicksJob (TSK-132, EP-012/US-048).
-# Separato da `fmp.rate-limit-per-minute` (online) per non bloccare il traffico
-# diurno durante il batch notturno (cron 02:00 UTC). Cap 300 req/min default —
-# sufficiente per ~500 candidati x 3-4 endpoint FMP in ~30 min. timeout-seconds
-# lungo (30s) perche' il batch puo' permettersi di attendere il refresh tick.
-fmp-batch:
-  rate-limit-per-minute: ${FMP_BATCH_RATE_LIMIT_PER_MINUTE:300}
-  timeout-seconds: ${FMP_BATCH_TIMEOUT_SECONDS:30}
 
 # Embeddings sidecar (ADR-018 — Qwen3-Embedding-0.6B, fallback Arctic Embed L v2.0)
 # timeout-seconds 600 + batch-size 4: Qwen3-0.6B/1024-dim su CPU (no GPU) impiega
@@ -231,8 +228,12 @@ universe:
         cik: "0001067983"
       - name: "Baupost Group"
         cik: "0001061165"
-      - name: "Oakmark Funds"
-        cik: "0000814580"
+      # Oakmark e' gestito da Harris Associates L.P. (Bill Nygren): il 13F-HR e'
+      # depositato da Harris (CIK 0000813917), NON dal fondo. Il vecchio CIK
+      # 0000814580 era errato (= "ADVANCED MARKETING SERVICES INC", nessun 13F)
+      # → listFilings vuoto e fund saltato. (verificato SEC 2026-05-30)
+      - name: "Oakmark (Harris Associates)"
+        cik: "0000813917"
       - name: "Markel Group"
         cik: "0001096343"
       - name: "Pershing Square Capital"

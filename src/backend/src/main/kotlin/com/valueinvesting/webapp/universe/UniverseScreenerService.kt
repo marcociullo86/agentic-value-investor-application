@@ -4,9 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.valueinvesting.webapp.fmp.FmpAdapter
 import com.valueinvesting.webapp.fmp.FmpCacheService
 import com.valueinvesting.webapp.fmp.dto.ScreenedStockDto
-import io.github.resilience4j.ratelimiter.RateLimiter
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
@@ -37,19 +35,15 @@ import java.time.LocalDate
 // override per-endpoint, che e' un cambio di contratto cross-service e
 // quindi tracciato come task separato (out-of-scope di TSK-126 / TSK-256).
 //
-// RATE LIMITER — Le chiamate FMP del path batch passano attraverso un
-// RateLimiter SEPARATO da quello online (`fmpRateLimiter`, FmpResilienceConfig,
-// cap 30 req/min condiviso con UI/REST controllers). Iniettiamo il bean
-// `fmpBatchRateLimiter` (BatchResilienceConfig.INSTANCE_NAME = "fmp-batch",
-// cap 300 req/min, timeout 30s) e gate-iamo la chiamata `fmpAdapter.screen(...)`
-// con `RateLimiter.decorateSupplier(limiter, ...).get()` PRIMA del cache layer.
-// Cosi' il batch puo' satturare il proprio bucket durante la finestra notturna
-// senza intaccare il limiter online (TSK-132 §Motivazione). Stesso pattern e'
-// previsto per gli altri consumer batch (es. TopValuePicksJob) — vedi
-// BatchResilienceConfig §Servizi consumer.
+// RATE LIMITER — Le chiamate FMP passano dal `ResilientFmpAdapter` @Primary, che
+// applica l'UNICO RateLimiter FMP (`fmp`, FmpResilienceConfig). Il rate limit FMP
+// e' per-API-key (account-wide): online e batch condividono lo stesso budget
+// (280 req/min, FMP Starter 300 con margine). Non esiste piu' un bucket
+// `fmp-batch` separato — due bucket indipendenti potevano sommare oltre il cap
+// dell'account (=> 429 da FMP) e strozzavano inutilmente l'online a 30/min
+// (ADR-016 §4 rev. 2026-05-30).
 //
 // [^src: management/kanban/EP-012-batch-top-value-picks/US-047-universe-screener-service/TSK-126.md §Acceptance Criteria]
-// [^src: management/kanban/EP-012-batch-top-value-picks/US-048-job-notturno-top-picks/TSK-132.md §fmp-batch limiter]
 // [^src: design_&_architecture/decisions/ADR-016-fmp-operations-throttling.md §4. Throttling backend]
 // [^src: wiki/runbooks/defensive-investor-checklist.md §Universe screening]
 @Service
@@ -59,8 +53,6 @@ class UniverseScreenerService(
     private val holdingsProvider: InstitutionalHoldingsProvider,
     private val newsScoutProvider: NewsScoutProvider,
     private val universeProperties: UniverseProperties,
-    @Qualifier("fmpBatchRateLimiter")
-    private val fmpBatchRateLimiter: RateLimiter,
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -81,24 +73,20 @@ class UniverseScreenerService(
         val startMs = System.currentTimeMillis()
 
         // Step 1 — FMP base screener, cache-aside via FmpCacheService.
-        // La chiamata HTTP a FMP e' gate-iata dal RateLimiter `fmp-batch`
-        // (bucket dedicato al batch, isolato dal `fmp` online): il wrap
-        // avviene DENTRO il fetchFn cosi' che il limiter venga acquisito SOLO
-        // su cache miss (i cache hit non consumano token).
+        // La chiamata HTTP a FMP (su cache miss) e' gate-iata dall'unico
+        // RateLimiter `fmp` dentro il ResilientFmpAdapter: i cache hit non
+        // arrivano all'adapter e quindi non consumano token.
         val fmpRaw: List<ScreenedStockDto> = fmpCacheService.getOrFetch(
             ticker = "ALL",
             endpoint = "company-screener",
             typeRef = object : TypeReference<List<ScreenedStockDto>>() {},
             fetchFn = {
-                val supplier = RateLimiter.decorateSupplier(fmpBatchRateLimiter) {
-                    fmpAdapter.screen(
-                        marketCapMoreThan = universeProperties.marketCapMoreThan,
-                        exchange = universeProperties.exchanges,
-                        country = universeProperties.country,
-                        limit = universeProperties.fmpMaxResults,
-                    )
-                }
-                supplier.get()
+                fmpAdapter.screen(
+                    marketCapMoreThan = universeProperties.marketCapMoreThan,
+                    exchange = universeProperties.exchanges,
+                    country = universeProperties.country,
+                    limit = universeProperties.fmpMaxResults,
+                )
             },
         ).value
 

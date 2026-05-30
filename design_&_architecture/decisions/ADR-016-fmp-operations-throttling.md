@@ -79,6 +79,44 @@ Il throttling **in uscita verso FMP** non espone 429 al browser per default. Deg
 - [ADR-004](ADR-004-fmp-integration.md): appendice §8 (sotto).
 - US-006 regressione: fallback stale invariato.
 
+## Appendice A (2026-05-30) — Consolidamento a limiter FMP unico condiviso
+
+**Contesto.** EP-012 (TSK-132) aveva introdotto un secondo RateLimiter `fmp-batch`
+(300 req/min) separato dall'online `fmp` (30 req/min) per non far starvare l'UI
+durante il batch notturno. In esercizio sono emersi due difetti, dato che il rate
+limit FMP è **per-API-key (account-wide)** e l'app usa **una sola key**:
+
+1. **Possibile sforamento del cap reale.** I due bucket Resilience4j sono
+   indipendenti e non si coordinano: online (30) + batch (300) possono sommare
+   fino a 330 req/min > limite account → **429 da FMP**. (Inoltre il batch, via
+   `ResilientFmpAdapter` @Primary, restava double-gated dall'online a 30/min →
+   il fan-out NewsScout ~200 ticker falliva con *"RateLimiter 'fmp' does not
+   permit further calls"*.)
+2. **Quota online sprecata.** Con piano FMP Starter (**300 req/min**) l'online
+   resta cappato a 30 — 1/10 della capacità pagata — anche quando il batch non gira.
+
+**Decisione (revisione §4).** Un **unico** RateLimiter `fmp` condiviso da tutto il
+traffico (online + batch), dimensionato sul piano dell'account:
+
+| Parametro | Valore | Env override |
+|---|---|---|
+| Rate limiter (Resilience4j) | **280 richieste / 60s** (FMP Starter 300/min − ~7% margine) | `FMP_RATE_LIMIT_PER_MINUTE` |
+
+Il margine assorbe il disallineamento finestra-fissa (Resilience4j) vs rolling (FMP)
+e l'amplificazione HTTP del Retry (1 token = fino a 3 tentativi). Con quota esterna
+unica, un solo bucket è sia il più semplice sia quello a massimo utilizzo (nessuna
+capacità riservata e sprecata quando un lato è fermo; somma garantita ≤ cap account).
+
+**Rimossi:** bucket/config `fmp-batch`, `BatchResilienceConfig`, env
+`FMP_BATCH_RATE_LIMIT_PER_MINUTE`/`FMP_BATCH_TIMEOUT_SECONDS`. TSK-132 e gli AC
+"fmp-batch" di TSK-126/TSK-130 sono **superseded** da questa appendice.
+
+**Gap noto.** `TopValuePicksJob` chiama `DeepAnalysisService.analyze()` in loop su
+fino a 500 candidati attraverso il limiter condiviso: corretto per il cap account,
+ma a cache fredda il batch può occupare l'intero bucket. Accettabile alle 02:00 UTC
+(online ~0); priorità FIFO non garantita ma è l'unico modello coerente con una
+quota account unica.
+
 ## Pagine collegate
 
 - [ADR-004](ADR-004-fmp-integration.md)

@@ -45,7 +45,8 @@ class FmpResilienceConfigTest {
     private lateinit var resilient: ResilientFmpAdapter
 
     @Test
-    fun `default rate limiter allows 30 calls per refresh period`() {
+    fun `default rate limiter uses the shared per-account cap (DEFAULT_RATE_LIMIT_PER_MINUTE)`() {
+        // Limite UNICO condiviso online+batch (FMP Starter 300/min → 280 default).
         val limiter = config.fmpRateLimiterRegistry().rateLimiter(FmpResilienceConfig.FMP_INSTANCE)
         assertThat(limiter.rateLimiterConfig.limitForPeriod)
             .isEqualTo(FmpRateLimitProperties.DEFAULT_RATE_LIMIT_PER_MINUTE)

@@ -5,8 +5,6 @@ import com.valueinvesting.webapp.fmp.CachedPayload
 import com.valueinvesting.webapp.fmp.FmpAdapter
 import com.valueinvesting.webapp.fmp.FmpCacheService
 import com.valueinvesting.webapp.fmp.dto.ScreenedStockDto
-import io.github.resilience4j.ratelimiter.RateLimiter
-import io.github.resilience4j.ratelimiter.RateLimiterConfig
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
@@ -15,7 +13,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import java.time.Duration
 import java.time.Instant
 
 /**
@@ -41,21 +38,12 @@ class UniverseScreenerServiceTest {
     private val newsScoutProvider = mockk<NewsScoutProvider>()
     private val properties = UniverseProperties() // all defaults (cap=500, etc.)
 
-    // RateLimiter `fmp-batch` reale ma con cap molto alto + timeout 0:
-    // non vogliamo throttling nei test, vogliamo solo verificare che il
-    // service consumi un token PRIMA di chiamare FmpAdapter (AC TSK-126
-    // "fmp-batch usato"). Verifichiamo via `metrics.availablePermissions`.
-    private val fmpBatchRateLimiter: RateLimiter = RateLimiter.of(
-        "fmp-batch-test",
-        RateLimiterConfig.custom()
-            .limitForPeriod(1_000_000)
-            .limitRefreshPeriod(Duration.ofMinutes(1))
-            .timeoutDuration(Duration.ZERO)
-            .build(),
-    )
-
+    // Il rate limiting FMP vive ora nel ResilientFmpAdapter (limiter unico `fmp`),
+    // non piu' iniettato nello screener: qui `fmpAdapter` e' un mock, quindi non
+    // c'e' throttling da verificare a questo livello (coperto da
+    // FmpResilienceConfigTest).
     private val service = UniverseScreenerService(
-        fmpAdapter, fmpCacheService, holdingsProvider, newsScoutProvider, properties, fmpBatchRateLimiter,
+        fmpAdapter, fmpCacheService, holdingsProvider, newsScoutProvider, properties,
     )
 
     // -----------------------------------------------------------------------
@@ -457,38 +445,6 @@ class UniverseScreenerServiceTest {
 
         assertThat(result).hasSize(2)
         assertThat(result.map { it.ticker }).containsExactlyInAnyOrder("NOSECTOR", "TECH")
-    }
-
-    // -----------------------------------------------------------------------
-    // AC TSK-126 — `fmp-batch` RateLimiter consumed on FMP call (CQRL fix)
-    // -----------------------------------------------------------------------
-
-    @Test
-    @DisplayName("fmp-batch limiter: ogni cache miss consuma esattamente 1 permit dal bucket fmp-batch")
-    fun `fmp-batch rate limiter is acquired before the FMP screener HTTP call on cache miss`() {
-        val fmpResult = listOf(screened("AAPL"))
-
-        stubCachePassThrough()
-        every { fmpAdapter.screen(any(), any(), any(), any(), any(), any()) } returns fmpResult
-        every { holdingsProvider.thirteenFTickers() } returns emptyList()
-        every { newsScoutProvider.scoutTickers(any()) } returns emptyList()
-
-        val permitsBefore = fmpBatchRateLimiter.metrics.availablePermissions
-
-        service.screen()
-
-        val permitsAfterFirstCall = fmpBatchRateLimiter.metrics.availablePermissions
-        // Verifica TSK-126 AC: la chiamata FMP ha consumato esattamente 1 token
-        // dal limiter `fmp-batch` (separato dall'online `fmp`). Cap del bucket
-        // di test = 1_000_000, refresh = 1min → nessun refresh tick durante il
-        // test, quindi (before - after) e' deterministico.
-        assertThat(permitsBefore - permitsAfterFirstCall).isEqualTo(1)
-
-        service.screen()
-
-        val permitsAfterSecondCall = fmpBatchRateLimiter.metrics.availablePermissions
-        // Ogni invocazione di screen() su cache miss consuma 1 ulteriore token.
-        assertThat(permitsBefore - permitsAfterSecondCall).isEqualTo(2)
     }
 
     // -----------------------------------------------------------------------

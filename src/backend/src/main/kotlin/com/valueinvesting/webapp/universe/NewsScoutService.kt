@@ -75,6 +75,10 @@ import org.springframework.stereotype.Component
     matchIfMissing = true,
 )
 class NewsScoutService(
+    // Il fan-out news (~200 ticker) passa dall'unico RateLimiter FMP `fmp`
+    // (280/min, condiviso online+batch — ADR-016 §4). Prima il cap era 30/min
+    // e il fan-out lo saturava con "RateLimiter 'fmp' does not permit further
+    // calls"; 280/min assorbe i 200 ticker entro la finestra.
     private val fmpAdapter: FmpAdapter,
     private val anthropicClient: AnthropicClient,
     private val properties: NewsScoutProperties,
