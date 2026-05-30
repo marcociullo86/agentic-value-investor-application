@@ -7,7 +7,9 @@
 #        poi: podman build vi-app -> compose down -> [compose build sidecar] ->
 #        compose up -d (con override GPU se scelto). Se GPU, verifica che il
 #        sidecar veda CUDA. Then Portainer.
-#      - If NO : skip directly to Portainer (assumes stack is already up).
+#      - If NO : riavvia i container esistenti dello stack (podman-compose
+#        restart, niente build/recreate → la modalita' CPU/GPU resta invariata),
+#        poi Portainer.
 #   2. Always (re)start vi-portainer via `podman run` (the socket bind
 #      cannot be expressed in podman-compose on Windows -- see docker-compose.yml).
 #
@@ -97,7 +99,13 @@ if ($doBuild) {
         }
     }
 } else {
-    Write-Host 'Skip build/restart - using existing running stack.' -ForegroundColor DarkGray
+    # Niente build: riavvia i container gia' esistenti dello stack. `restart`
+    # NON ricrea i container (preserva la config runtime, inclusa la GPU del
+    # sidecar) e non rilegge .env — bounce dei processi e basta.
+    Write-Host 'Skip build — riavvio i container esistenti dello stack.' -ForegroundColor DarkGray
+    Invoke-Native 'podman-compose restart' -AllowFail {
+        podman-compose -f $composeFile restart
+    }
 }
 
 # 2. (Re)start Portainer

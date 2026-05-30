@@ -7,7 +7,9 @@
 #        applicato anche senza rebuild) e se ribuildare il sidecar (opzionale),
 #        poi: podman build vi-app -> compose down -> [compose build sidecar] ->
 #        compose up -d (con override GPU se scelto). Se GPU, verifica CUDA.
-#      - If NO : skip directly to Portainer (assumes stack is already up).
+#      - If NO : riavvia i container esistenti dello stack (podman-compose
+#        restart, niente build/recreate → la modalita' CPU/GPU resta invariata),
+#        poi Portainer.
 #   2. Always (re)start vi-portainer via `podman run`.
 #
 # Run from anywhere:
@@ -145,7 +147,12 @@ if [[ "${answer}" =~ ^([yY]|yes|YES|s|S|si|SI)$ ]]; then
     fi
   fi
 else
-  echo "Skip build/restart - using existing running stack."
+  # Niente build: riavvia i container gia' esistenti dello stack. `restart` NON
+  # ricrea i container (preserva la config runtime, inclusa la GPU del sidecar)
+  # e non rilegge .env — bounce dei processi e basta.
+  echo "Skip build — riavvio i container esistenti dello stack."
+  run_cmd_allow_fail "compose restart" \
+    "${COMPOSE_BIN[@]}" -f "${COMPOSE_FILE}" restart
 fi
 
 if podman ps -a --filter 'name=^vi-portainer$' --format '{{.Names}}' | grep -qx 'vi-portainer'; then
