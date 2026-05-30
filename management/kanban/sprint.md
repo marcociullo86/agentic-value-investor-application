@@ -685,3 +685,29 @@ Sprint 18 EP-002 → Sprint 18 EP-010: INTRA-SPRINT
 **Gate umano post-Sprint 18:** commit VCS, chiusura EP-010 (US-032..037 `done`) + EP-002 US-031 `done`.
 
 **ADR accepted:** ADR-021, ADR-022, ADR-023, ADR-024, ADR-025, ADR-026.
+
+---
+
+<!-- ADDENDUM MANUALE 2026-05-30 — EP-020 (da consolidare al prossimo run tpm) -->
+## Sprint 19 — EP-020 Trasparenza analisi LLM nel verdetto Deep Analysis
+
+Estende EP-011: log interazioni LLM, sintesi narrativa nel verdetto, dettaglio Munger, news analizzate (titolo+testo). Parallelizzazione in 3 wave (scheduler `code_path_conflict: strict`).
+
+**Wave 1 — fondamenta backend/contratto (parallela, file disgiunti):**
+1. be-dev: **TSK-299** (US-088 — logging gated interazioni LLM) — *indipendente*
+2. be-dev: **TSK-300** (US-089 — campo `sintesi` Munger + contratto)
+3. db-dev: **TSK-305** (US-091 — migration V030 `text_excerpt`) → poi be-dev **TSK-306** (US-091 — items news + contratto)
+   - ⚠️ TSK-300 e TSK-306 toccano entrambi `DeepAnalysisService.kt` + `DeepAnalysisResponse.kt` → serializzare l'edit di quei 2 file.
+
+**Wave 2 — frontend (parallela, dopo openapi+tipi FE):**
+4. fe-dev: **TSK-301** (US-089 — paragrafo sintesi nel verdetto)
+5. fe-dev: **TSK-303** (US-090 — MungerReportCollapsible con sintesi)
+6. fe-dev: **TSK-307** (US-091 — lista news titolo+testo)
+
+**Wave 3 — QA/test/E2E (parallela):**
+7. qa-dev: **TSK-302** (contratto+service sintesi Munger)
+8. qa-dev: **TSK-308** (contratto+service news items)
+9. qa-dev: **TSK-304** (E2E mocked pagina dettaglio arricchita)
+
+**Gate CI:** ogni TSK di contratto mantiene allineati openapi.yaml + DeepAnalysisResponse.kt + deep-analysis.ts (job `contract-check`) e i test BE (`ci`).
+**Retrocompat:** report Munger in cache (TTL 90gg) e righe `news_classification` esistenti → nuovi campi nullable.
