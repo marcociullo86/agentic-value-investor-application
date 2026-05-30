@@ -99,12 +99,21 @@ if ($doBuild) {
         }
     }
 } else {
-    # Niente build: riavvia i container gia' esistenti dello stack. `restart`
-    # NON ricrea i container (preserva la config runtime, inclusa la GPU del
-    # sidecar) e non rilegge .env — bounce dei processi e basta.
+    # Niente build: riavvia i container gia' esistenti dello stack. Usiamo
+    # `podman restart` per NOME (container_name del compose) invece di
+    # `podman-compose restart`, che non sempre risolve tutti i service (becca
+    # solo alcuni container se sono stati creati in run/progetti diversi).
+    # `restart` non ricrea i container (preserva la config runtime, inclusa la
+    # GPU del sidecar) e non rilegge .env. vi-app per ultimo così si riconnette
+    # a postgres/sidecar appena riavviati.
     Write-Host 'Skip build — riavvio i container esistenti dello stack.' -ForegroundColor DarkGray
-    Invoke-Native 'podman-compose restart' -AllowFail {
-        podman-compose -f $composeFile restart
+    foreach ($c in @('vi-postgres', 'vi-embeddings-sidecar', 'vi-adminer', 'vi-app')) {
+        $exists = podman ps -a --filter "name=^$c$" --format '{{.Names}}'
+        if ($exists -eq $c) {
+            Invoke-Native "restart $c" -AllowFail { podman restart $c | Out-Null }
+        } else {
+            Write-Host "  ($c non presente, skip)" -ForegroundColor DarkGray
+        }
     }
 }
 

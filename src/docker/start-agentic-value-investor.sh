@@ -147,12 +147,20 @@ if [[ "${answer}" =~ ^([yY]|yes|YES|s|S|si|SI)$ ]]; then
     fi
   fi
 else
-  # Niente build: riavvia i container gia' esistenti dello stack. `restart` NON
-  # ricrea i container (preserva la config runtime, inclusa la GPU del sidecar)
-  # e non rilegge .env — bounce dei processi e basta.
+  # Niente build: riavvia i container gia' esistenti dello stack. Usiamo
+  # `podman restart` per NOME (container_name del compose) invece di
+  # `podman-compose restart`, che non sempre risolve tutti i service (becca solo
+  # alcuni container se creati in run/progetti diversi). `restart` non ricrea i
+  # container (preserva la config runtime, inclusa la GPU del sidecar) e non
+  # rilegge .env. vi-app per ultimo così si riconnette a postgres/sidecar.
   echo "Skip build — riavvio i container esistenti dello stack."
-  run_cmd_allow_fail "compose restart" \
-    "${COMPOSE_BIN[@]}" -f "${COMPOSE_FILE}" restart
+  for c in vi-postgres vi-embeddings-sidecar vi-adminer vi-app; do
+    if podman ps -a --filter "name=^${c}\$" --format '{{.Names}}' | grep -qx "${c}"; then
+      run_cmd_allow_fail "restart ${c}" podman restart "${c}"
+    else
+      echo "  (${c} non presente, skip)"
+    fi
+  done
 fi
 
 if podman ps -a --filter 'name=^vi-portainer$' --format '{{.Names}}' | grep -qx 'vi-portainer'; then
