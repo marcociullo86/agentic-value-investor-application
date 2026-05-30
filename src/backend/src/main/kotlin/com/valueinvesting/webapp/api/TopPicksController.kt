@@ -71,6 +71,48 @@ class TopPicksController(
         }
     }
 
+    // Request cooperative cancellation of the in-flight manual run. The job
+    // stops at the next ticker boundary and leaves the day's existing picks
+    // untouched (run log → ABORTED). Returns 202 if a cancel was registered,
+    // 409 if no run is in flight.
+    @PostMapping("/run/cancel", produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun cancelRun(): ResponseEntity<Map<String, Any?>> {
+        return when (val result = manualTrigger.requestCancel()) {
+            is TopPicksManualTrigger.CancelResult.Requested -> ResponseEntity
+                .status(HttpStatus.ACCEPTED)
+                .body(
+                    mapOf(
+                        "status" to "cancellation_requested",
+                        "startedAt" to result.startedAt?.toString(),
+                        "message" to "Richiesta di blocco inviata. Il batch si fermerà al prossimo ticker.",
+                    ),
+                )
+            is TopPicksManualTrigger.CancelResult.NotRunning -> ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(
+                    mapOf(
+                        "status" to "not_running",
+                        "startedAt" to null,
+                        "message" to "Nessun run in corso da bloccare.",
+                    ),
+                )
+        }
+    }
+
+    // Lightweight liveness probe for the manual run, so the UI can render the
+    // right control (Lancia vs Blocca) on mount and detect when a run finishes.
+    @GetMapping("/run/status", produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun runStatus(): ResponseEntity<Map<String, Any?>> = ResponseEntity.ok()
+        // Polled liveness probe (~every 5s): must never be served stale from a
+        // browser/proxy cache, or the UI would lag the real run state.
+        .cacheControl(CacheControl.noStore())
+        .body(
+            mapOf(
+                "running" to manualTrigger.isRunning(),
+                "startedAt" to manualTrigger.lastStartedAt()?.toString(),
+            ),
+        )
+
     @GetMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
     fun list(
         @RequestParam(required = false) date: String?,

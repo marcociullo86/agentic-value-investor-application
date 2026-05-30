@@ -918,6 +918,60 @@ paths:
                   message: { type: string }
                 required: [status, message]
 
+  /api/top-picks/run/cancel:
+    post:
+      tags: [top-picks]
+      summary: Blocco manuale del batch Top Value Picks in corso
+      description: |
+        Richiede la cancellazione cooperativa del run manuale in flight. Il job
+        controlla il flag al confine di ogni ticker e si ferma alla prossima
+        iterazione, lasciando intatti i top picks del giorno già presenti (run
+        log → ABORTED). Risponde 202 se un blocco è stato registrato, 409 se non
+        c'è nessun run da bloccare.
+      responses:
+        '202':
+          description: Richiesta di blocco registrata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: cancellation_requested }
+                  startedAt: { type: string, format: date-time, nullable: true }
+                  message: { type: string }
+                required: [status, message]
+        '409':
+          description: Nessun run in corso da bloccare
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: not_running }
+                  startedAt: { type: string, format: date-time, nullable: true }
+                  message: { type: string }
+                required: [status, message]
+
+  /api/top-picks/run/status:
+    get:
+      tags: [top-picks]
+      summary: Stato del run manuale (liveness probe)
+      description: |
+        Probe leggera per la UI: indica se un run manuale è attualmente in
+        corso, così la homepage può mostrare il controllo giusto (Lancia vs
+        Blocca) al mount e accorgersi quando il batch termina.
+      responses:
+        '200':
+          description: Stato corrente del run manuale
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  running: { type: boolean }
+                  startedAt: { type: string, format: date-time, nullable: true }
+                required: [running]
+
 components:
   parameters:
     Ticker:

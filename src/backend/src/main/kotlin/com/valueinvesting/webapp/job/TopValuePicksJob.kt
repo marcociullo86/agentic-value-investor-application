@@ -56,6 +56,7 @@ class TopValuePicksJob(
     private val topValuePickRepository: TopValuePickRepository,
     private val runLogRepository: TopPicksRunLogRepository,
     private val properties: TopPicksProperties,
+    private val cancellationSignal: TopPicksCancellationSignal,
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -80,6 +81,10 @@ class TopValuePicksJob(
             log.debug("TopValuePicksJob scheduled tick skipped — top-picks.enabled=false")
             return
         }
+        // Start clean: a stale cancel flag from a previous (manually aborted)
+        // run must never abort this scheduled run. The manual path clears the
+        // flag in TopPicksManualTrigger before dispatching, by the same logic.
+        cancellationSignal.clear()
         run()
     }
 
@@ -107,6 +112,25 @@ class TopValuePicksJob(
             val results = mutableListOf<Scored>()
 
             for (cand in candidates) {
+                // Cooperative cancellation: a manual "Blocca" request (POST
+                // /api/top-picks/run/cancel) sets the shared flag. We poll it
+                // at the top of each iteration so an in-flight run stops at the
+                // next ticker boundary — without corrupting the day's picks
+                // (see the ABORTED branch below: no DELETE-then-INSERT upsert).
+                if (cancellationSignal.isCancelRequested()) {
+                    val finishedAt = Instant.now()
+                    runLog.finishedAt = finishedAt
+                    runLog.durationSeconds = ChronoUnit.SECONDS.between(startedAt, finishedAt)
+                    runLog.tickersProcessed = processed
+                    runLog.tickersFailed = failed
+                    runLog.status = "ABORTED"
+                    runLogRepository.save(runLog)
+                    log.warn(
+                        "TopValuePicksJob ABORTED runDate={} processed={} failed={} — cancel requested; existing picks left untouched",
+                        runDate, processed, failed,
+                    )
+                    return
+                }
                 try {
                     val response = deepAnalysisService.analyze(cand.ticker, invokeLlm = false)
                     val verdetto = response.verdict.verdettoClasse

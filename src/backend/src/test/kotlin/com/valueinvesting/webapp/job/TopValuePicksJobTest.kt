@@ -65,12 +65,15 @@ class TopValuePicksJobTest {
         zone = "UTC",
     )
 
+    private val cancellationSignal = TopPicksCancellationSignal()
+
     private val job = TopValuePicksJob(
         universeScreenerService,
         deepAnalysisService,
         topValuePickRepository,
         runLogRepository,
         properties,
+        cancellationSignal,
     )
 
     // Captured entities saved by topValuePickRepository.saveAll
@@ -82,6 +85,7 @@ class TopValuePicksJobTest {
     @BeforeEach
     fun setUp() {
         clearAllMocks()
+        cancellationSignal.clear()
         // Default stub: no existing entities for any run date (first run)
         every { topValuePickRepository.findByRunDateOrderByRankPositionAsc(any()) } returns emptyList()
         every { topValuePickRepository.deleteAllById(any()) } just Runs
@@ -292,8 +296,37 @@ class TopValuePicksJobTest {
     }
 
     // -------------------------------------------------------------------------
-    // AC-8 — fmpBatchRateLimiter: bean-level config — skip unit verification
-    //         (tested via FmpResilienceConfigTest; not testable without Spring context)
+    // AC-cancel — cancel flag set before run → ABORTED, no upsert, picks intact
+    // -------------------------------------------------------------------------
+    @Test
+    fun `cancellation - flag set before run aborts at first ticker without upserting`() {
+        val candidates = buildCandidates(10)
+        every { universeScreenerService.screen() } returns candidates
+        candidates.forEach { cand ->
+            every { deepAnalysisService.analyze(cand.ticker, invokeLlm = false) } returns
+                buildApprovatoResponse(cand.ticker, mosPct = 30.0)
+        }
+
+        val capturedLogs = mutableListOf<TopPicksRunLogEntity>()
+        every { runLogRepository.save(capture(capturedLogs)) } answers { firstArg() }
+
+        // Cancel requested before the loop reaches the first ticker boundary.
+        cancellationSignal.request()
+        job.run()
+
+        // Run log marked ABORTED, finishedAt set.
+        val abortedLog = capturedLogs.last()
+        assertThat(abortedLog.status).isEqualTo("ABORTED")
+        assertThat(abortedLog.finishedAt).isNotNull()
+
+        // Existing day's picks left untouched: no DELETE-then-INSERT upsert.
+        verify(exactly = 0) { topValuePickRepository.deleteAllById(any()) }
+        verify(exactly = 0) { topValuePickRepository.saveAll(any()) }
+    }
+
+    // -------------------------------------------------------------------------
+    // AC-8 — rate limiting FMP: limiter unico `fmp` nel ResilientFmpAdapter
+    //         (config a livello di bean — testato via FmpResilienceConfigTest).
     // -------------------------------------------------------------------------
 
     // -------------------------------------------------------------------------

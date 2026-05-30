@@ -127,3 +127,61 @@ export async function triggerTopPicksRun(): Promise<{
     throw err;
   }
 }
+
+/**
+ * Risposta di POST /api/top-picks/run/cancel (blocco manuale).
+ *
+ *  - 202 Accepted → `status: "cancellation_requested"`, il batch si fermerà al
+ *    prossimo ticker (cancellazione cooperativa, non preemptive).
+ *  - 409 Conflict → `status: "not_running"`, nessun run da bloccare.
+ */
+export interface TopPicksCancelResponse {
+  readonly status: 'cancellation_requested' | 'not_running';
+  readonly startedAt: string | null;
+  readonly message: string;
+}
+
+/**
+ * POST /api/top-picks/run/cancel — richiede il blocco del run manuale in corso.
+ * Il backend imposta un flag che il job controlla al confine di ogni ticker;
+ * i top picks del giorno già presenti restano intatti (run log → ABORTED).
+ */
+export async function cancelTopPicksRun(): Promise<{
+  readonly httpStatus: number;
+  readonly body: TopPicksCancelResponse;
+}> {
+  // 409 (nessun run) è uno stato atteso, non un errore di rete.
+  try {
+    const result = await apiPost<TopPicksCancelResponse, undefined>(
+      '/api/top-picks/run/cancel',
+      undefined,
+    );
+    return { httpStatus: result.status, body: result.data };
+  } catch (err) {
+    const status =
+      (err as { response?: { status?: number; data?: TopPicksCancelResponse } })
+        ?.response?.status ?? 500;
+    const body =
+      (err as { response?: { data?: TopPicksCancelResponse } })?.response?.data;
+    if (status === 409 && body) {
+      return { httpStatus: 409, body };
+    }
+    throw err;
+  }
+}
+
+/**
+ * Stato del run manuale, da GET /api/top-picks/run/status. Liveness probe
+ * leggera: permette alla UI di mostrare il controllo giusto (Lancia vs Blocca)
+ * al mount e di accorgersi quando il run termina.
+ */
+export interface TopPicksRunStatus {
+  readonly running: boolean;
+  readonly startedAt: string | null;
+}
+
+/** GET /api/top-picks/run/status — true se un run manuale è in corso. */
+export async function getTopPicksRunStatus(): Promise<TopPicksRunStatus> {
+  const result = await apiGet<TopPicksRunStatus>('/api/top-picks/run/status');
+  return result.data;
+}

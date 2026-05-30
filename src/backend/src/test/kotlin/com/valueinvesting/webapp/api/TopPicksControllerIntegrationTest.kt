@@ -17,6 +17,7 @@ import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
+import org.springframework.test.web.servlet.post
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
@@ -285,6 +286,32 @@ class TopPicksControllerIntegrationTest {
             status { isOk() }
             jsonPath("$.total") { value(0) }
             jsonPath("$.items") { isEmpty() }
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Run control — GET /run/status when idle → 200 running=false
+    // -------------------------------------------------------------------------
+    @Test
+    fun `run status - returns running=false when no manual run is in flight`() {
+        mockMvc.get("/api/top-picks/run/status") {
+            accept(MediaType.APPLICATION_JSON)
+        }.andExpect {
+            status { isOk() }
+            jsonPath("$.running") { value(false) }
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Run control — POST /run/cancel with no run in flight → 409 not_running
+    // -------------------------------------------------------------------------
+    @Test
+    fun `cancel run - returns 409 not_running when no run is in flight`() {
+        mockMvc.post("/api/top-picks/run/cancel") {
+            accept(MediaType.APPLICATION_JSON)
+        }.andExpect {
+            status { isConflict() }
+            jsonPath("$.status") { value("not_running") }
         }
     }
 

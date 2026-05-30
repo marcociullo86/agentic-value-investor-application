@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicReference
 @Component
 class TopPicksManualTrigger(
     private val job: TopValuePicksJob,
+    private val cancellationSignal: TopPicksCancellationSignal,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val running = AtomicBoolean(false)
@@ -36,6 +37,11 @@ class TopPicksManualTrigger(
         if (!running.compareAndSet(false, true)) {
             return TriggerResult.AlreadyRunning(startedAt = lastStartedAt.get())
         }
+        // Clear any leftover cancel flag BEFORE dispatching the run, so a
+        // "Blocca" from a previous run can't abort this fresh one. Done on the
+        // request thread (not inside run()) to close the race against an
+        // immediate cancel click right after this trigger returns 202.
+        cancellationSignal.clear()
         val startedAt = Instant.now()
         lastStartedAt.set(startedAt)
         executor.execute {
@@ -54,6 +60,21 @@ class TopPicksManualTrigger(
 
     fun isRunning(): Boolean = running.get()
 
+    fun lastStartedAt(): Instant? = lastStartedAt.get()
+
+    // Request cooperative cancellation of the in-flight run. Sets the shared
+    // flag that TopValuePicksJob polls at each ticker boundary; the run stops
+    // at the next boundary (it does NOT abort the current ticker's analysis).
+    // No-op if no run is in flight.
+    fun requestCancel(): CancelResult {
+        if (!running.get()) {
+            return CancelResult.NotRunning
+        }
+        cancellationSignal.request()
+        log.info("TopValuePicksJob cancel requested startedAt={}", lastStartedAt.get())
+        return CancelResult.Requested(startedAt = lastStartedAt.get())
+    }
+
     @PreDestroy
     fun shutdown() {
         executor.shutdown()
@@ -65,5 +86,10 @@ class TopPicksManualTrigger(
     sealed class TriggerResult {
         data class Started(val startedAt: Instant) : TriggerResult()
         data class AlreadyRunning(val startedAt: Instant?) : TriggerResult()
+    }
+
+    sealed class CancelResult {
+        data class Requested(val startedAt: Instant?) : CancelResult()
+        data object NotRunning : CancelResult()
     }
 }
