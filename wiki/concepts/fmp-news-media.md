@@ -51,9 +51,13 @@ La vecchia sezione "News & Estimates" v3 includeva anche stime degli analisti (c
 
 ## Uso nel progetto
 
-**Integrata in EP-011 (Deep Analysis, 2026-05-25):**
-- `FmpAdapter.getStockNews(ticker, days=90)` wrappa `GET /stable/news/stock?symbols={ticker}&from={date}` con filtro temporale 90 giorni post-hoc. DTO: `StockNewsItem`. [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-042-news-sentiment-classifier/TSK-108.md]
-- `NewsSentimentService` classifica le news in TEMPORARY_PANIC / STRUCTURAL_DAMAGE / NEUTRAL tramite LLM (max 50 call/ticker). Cache su `news_classification` (V015).
+**Integrata in EP-011 (Deep Analysis, 2026-05-25; pipeline a imbuto 2026-05-30):**
+- `FmpAdapter.getStockNews(ticker, days=90)` wrappa `GET /stable/news/stock?symbols={ticker}&from={date}&to={oggi}&page=0&limit=50`. Finestra esplicita `from..to` + cap `limit` per limitare il costo a monte; il filtro 90gg è anche post-hoc. DTO: `StockNewsItem`. [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-042-news-sentiment-classifier/TSK-108.md]
+- `NewsSentimentService` non classifica più ogni notizia in isolamento con voto di maggioranza (annegava un segnale strutturale reale nel rumore). Usa una **pipeline a imbuto**:
+  1. **Pre-filtro deterministico** (zero LLM): dedup, scarto pattern di rumore (price target, listicle, premarket/movers…), ranking per **materialità** (keyword tipo SEC/lawsuit/fraud/guidance/restatement…) + recency, taglio ai **top 12**.
+  2. **Sintesi LLM unica** (1 chiamata, non N): un solo prompt value-investing valuta il set curato in modo olistico → classe per-item + flag `impairment_permanente`.
+  3. **Dominante asimmetrica** (capital preservation, Buffett rule #1): **un solo** `STRUCTURAL_DAMAGE` credibile vince sul conteggio. Questa dominante guida il veto `BOCCIATO_VALUE_TRAP` / il segnale `APPROVATO_PANIC_BUY` in `MungerDecisionService`.
+  - Cache `news_classification` (V015/V029) con TTL 24h: se il set curato è già classificato fresco, il verdetto si ricostruisce senza nuove chiamate LLM.
 - `ResilientFmpAdapter` applica la chain Resilience4j identica agli altri endpoint FMP (label `news/stock`).
 
 > **Nota parametro (verificata sul campo, 2026-05-30):** l'endpoint stable usa `symbols`, **non** `tickers` (allineato ad agent.py v2.4 e all'esempio docs `?symbols=AAPL`). Con `tickers` il filtro per ticker viene ignorato.

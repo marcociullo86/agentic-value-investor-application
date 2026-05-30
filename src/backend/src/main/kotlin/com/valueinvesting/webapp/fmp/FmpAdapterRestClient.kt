@@ -331,7 +331,9 @@ class FmpAdapterRestClient(
     override fun getStockNews(ticker: String, days: Int): List<StockNewsItem> {
         require(ticker.isNotBlank()) { "ticker must not be blank" }
         val upperTicker = ticker.uppercase()
-        val from = LocalDate.now().minusDays(days.toLong()).format(DateTimeFormatter.ISO_LOCAL_DATE)
+        val today = LocalDate.now()
+        val from = today.minusDays(days.toLong()).format(DateTimeFormatter.ISO_LOCAL_DATE)
+        val to = today.format(DateTimeFormatter.ISO_LOCAL_DATE)
         val typeRef = object : ParameterizedTypeReference<List<StockNewsItem>>() {}
 
         val result: List<StockNewsItem>? = try {
@@ -344,7 +346,13 @@ class FmpAdapterRestClient(
                         // il filtro per ticker viene ignorato. Allineato ad agent.py v2.4
                         // e all'esempio docs /stable/news/stock?symbols=AAPL.
                         .queryParam("symbols", upperTicker)
+                        // Finestra esplicita from..to + cap a NEWS_FETCH_LIMIT: bound
+                        // del costo a monte (il funnel di materialita' lato service
+                        // seleziona poi le notizie rilevanti). page=0 = prima pagina.
                         .queryParam("from", from)
+                        .queryParam("to", to)
+                        .queryParam("page", 0)
+                        .queryParam("limit", NEWS_FETCH_LIMIT)
                         .build()
                 }
                 .retrieve()
@@ -361,7 +369,7 @@ class FmpAdapterRestClient(
         }
 
         return result?.filter {
-            it.publishedDate != null && it.publishedDate.toLocalDate() >= LocalDate.now().minusDays(days.toLong())
+            it.publishedDate != null && it.publishedDate.toLocalDate() >= today.minusDays(days.toLong())
         } ?: emptyList()
     }
 
@@ -726,6 +734,11 @@ class FmpAdapterRestClient(
         // pagina dominata da decine di Form-4/8-K. 1000 copre abbondantemente la
         // finestra di 15 mesi anche per filer molto attivi (TTD: ~102 righe).
         const val SEC_FILINGS_PAGE_LIMIT = 1000
+
+        // Cap notizie scaricate per /news/stock: il funnel di materialita' lato
+        // NewsSentimentService riduce poi al set rilevante. 50 copre con margine
+        // 90 giorni di copertura per un ticker tipico senza scaricare rumore inutile.
+        const val NEWS_FETCH_LIMIT = 50
     }
 
     // Generic GET on /{endpoint}?symbol={ticker}&apikey=...&limit=...

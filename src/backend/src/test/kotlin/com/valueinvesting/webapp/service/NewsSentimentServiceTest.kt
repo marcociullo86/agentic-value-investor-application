@@ -63,75 +63,132 @@ class NewsSentimentServiceTest {
         newsRepo.deleteAll()
     }
 
-    private fun makeNews(count: Int): List<StockNewsItem> {
-        return (1..count).map { i ->
+    // Notizie generiche (nessun pattern di rumore, nessuna keyword di materialità):
+    // sopravvivono al pre-filtro e sono ordinate per recency.
+    private fun makeNews(count: Int): List<StockNewsItem> =
+        (1..count).map { i ->
             StockNewsItem(
                 newsId = "news-$i",
                 publishedDate = LocalDateTime.now().minusDays(i.toLong()),
-                title = "Test News $i",
-                text = "Body of news $i about business performance",
+                title = "Quarterly update item $i",
+                text = "Routine company update number $i with ordinary commentary.",
                 url = "https://example.com/news/$i",
                 site = "TestSite",
                 symbol = "AAPL",
             )
         }
+
+    // Costruisce un JSON di sintesi valido per `count` item, con classi opzionali.
+    private fun synthJson(
+        count: Int,
+        impairment: String = "no",
+        structuralIdx: Set<Int> = emptySet(),
+        panicIdx: Set<Int> = emptySet(),
+    ): String {
+        val items = (0 until count).joinToString(",") { idx ->
+            val classe = when {
+                idx in structuralIdx -> "STRUCTURAL_DAMAGE"
+                idx in panicIdx -> "TEMPORARY_PANIC"
+                else -> "NEUTRAL"
+            }
+            """{"idx":$idx,"classe":"$classe","motivazione":"m$idx"}"""
+        }
+        return """{"impairment_permanente":"$impairment","items":[$items],"sintesi":"s"}"""
     }
 
     @Test
-    fun `classify with 20 news produces 20 classifications`() {
-        val news = makeNews(20)
-        every { fmpAdapter.getStockNews("AAPL", 90) } returns news
-        every { anthropicClient.complete(any(), any()) } returns
-            """{"classe": "NEUTRAL", "motivazione": "Normal business news"}"""
+    fun `synthesis runs once and caps curated set at MAX_CURATED (12)`() {
+        every { fmpAdapter.getStockNews("AAPL", 90) } returns makeNews(20)
+        every { anthropicClient.complete(any(), any()) } returns synthJson(count = 12)
 
         val result = newsSentimentService.classify("AAPL")
 
-        assertThat(result.total).isEqualTo(20)
-        assertThat(result.classifications).hasSize(20)
-        assertThat(newsRepo.count()).isEqualTo(20)
+        // 20 news in input, ma il funnel taglia ai 12 più rilevanti/recenti.
+        assertThat(result.total).isEqualTo(12)
+        assertThat(result.dominantClass).isEqualTo(SentimentClass.NEUTRAL)
+        // UNA sola chiamata LLM (sintesi olistica), non 20.
+        verify(exactly = 1) { anthropicClient.complete(any(), any()) }
+        assertThat(newsRepo.count()).isEqualTo(12)
     }
 
     @Test
-    fun `cache hit - second call does not invoke LLM`() {
-        val news = makeNews(5)
-        every { fmpAdapter.getStockNews("MSFT", 90) } returns news
-        every { anthropicClient.complete(any(), any()) } returns
-            """{"classe": "TEMPORARY_PANIC", "motivazione": "Sell-off"}"""
+    fun `second call within 24h reuses cache - no new LLM call`() {
+        every { fmpAdapter.getStockNews("MSFT", 90) } returns makeNews(5)
+        every { anthropicClient.complete(any(), any()) } returns synthJson(count = 5)
 
         newsSentimentService.classify("MSFT")
         newsSentimentService.classify("MSFT")
 
-        verify(exactly = 5) { anthropicClient.complete(any(), any()) }
+        // Sintesi eseguita solo la prima volta; la seconda ricostruisce dalla cache.
+        verify(exactly = 1) { anthropicClient.complete(any(), any()) }
     }
 
     @Test
-    fun `limit 50 - only 50 LLM calls with 60 news`() {
-        val news = makeNews(60)
-        every { fmpAdapter.getStockNews("GOOG", 90) } returns news
+    fun `single STRUCTURAL_DAMAGE drives dominant even when neutrals are majority`() {
+        every { fmpAdapter.getStockNews("KO", 90) } returns makeNews(6)
+        // 1 solo item strutturale, 5 neutri: la dominante deve essere STRUCTURAL.
         every { anthropicClient.complete(any(), any()) } returns
-            """{"classe": "STRUCTURAL_DAMAGE", "motivazione": "Permanent harm"}"""
-
-        val result = newsSentimentService.classify("GOOG")
-
-        verify(exactly = 50) { anthropicClient.complete(any(), any()) }
-        val neutralCount = result.classifications.count { it.sentimentClass == SentimentClass.NEUTRAL }
-        assertThat(neutralCount).isEqualTo(10)
-    }
-
-    @Test
-    fun `dominant class is computed correctly`() {
-        val news = makeNews(10)
-        every { fmpAdapter.getStockNews("KO", 90) } returns news
-        var callCount = 0
-        every { anthropicClient.complete(any(), any()) } answers {
-            callCount++
-            if (callCount <= 6) """{"classe": "TEMPORARY_PANIC", "motivazione": "Fear"}"""
-            else """{"classe": "NEUTRAL", "motivazione": "Normal"}"""
-        }
+            synthJson(count = 6, structuralIdx = setOf(0))
 
         val result = newsSentimentService.classify("KO")
 
+        assertThat(result.structuralCount).isEqualTo(1)
+        assertThat(result.neutralCount).isEqualTo(5)
+        assertThat(result.dominantClass).isEqualTo(SentimentClass.STRUCTURAL_DAMAGE)
+    }
+
+    @Test
+    fun `impairment_permanente=si promotes to structural even if all items neutral`() {
+        every { fmpAdapter.getStockNews("XYZ", 90) } returns makeNews(4)
+        every { anthropicClient.complete(any(), any()) } returns
+            synthJson(count = 4, impairment = "si")
+
+        val result = newsSentimentService.classify("XYZ")
+
+        assertThat(result.structuralCount).isGreaterThanOrEqualTo(1)
+        assertThat(result.dominantClass).isEqualTo(SentimentClass.STRUCTURAL_DAMAGE)
+    }
+
+    @Test
+    fun `panic majority among material news yields TEMPORARY_PANIC dominant`() {
+        every { fmpAdapter.getStockNews("GOOG", 90) } returns makeNews(5)
+        every { anthropicClient.complete(any(), any()) } returns
+            synthJson(count = 5, panicIdx = setOf(0, 1, 2))
+
+        val result = newsSentimentService.classify("GOOG")
+
+        assertThat(result.panicCount).isEqualTo(3)
         assertThat(result.dominantClass).isEqualTo(SentimentClass.TEMPORARY_PANIC)
-        assertThat(result.panicCount).isEqualTo(6)
+    }
+
+    @Test
+    fun `noise headlines are filtered out before the LLM`() {
+        val noise = listOf(
+            StockNewsItem(newsId = "n1", publishedDate = LocalDateTime.now().minusDays(1),
+                title = "5 stocks to watch this week", text = "listicle", url = "u1", site = "s", symbol = "T"),
+            StockNewsItem(newsId = "n2", publishedDate = LocalDateTime.now().minusDays(2),
+                title = "Analyst raises price target to \$120", text = "pt", url = "u2", site = "s", symbol = "T"),
+        )
+        val material = StockNewsItem(newsId = "m1", publishedDate = LocalDateTime.now().minusDays(3),
+            title = "Company faces SEC investigation over accounting", text = "probe", url = "u3", site = "s", symbol = "T")
+        every { fmpAdapter.getStockNews("T", 90) } returns (noise + material)
+        every { anthropicClient.complete(any(), any()) } returns synthJson(count = 1, structuralIdx = setOf(0))
+
+        val result = newsSentimentService.classify("T")
+
+        // Solo la notizia materiale sopravvive al pre-filtro.
+        assertThat(result.total).isEqualTo(1)
+        assertThat(result.dominantClass).isEqualTo(SentimentClass.STRUCTURAL_DAMAGE)
+    }
+
+    @Test
+    fun `empty news returns NEUTRAL without invoking LLM`() {
+        every { fmpAdapter.getStockNews("EMPTY", 90) } returns emptyList()
+
+        val result = newsSentimentService.classify("EMPTY")
+
+        assertThat(result.total).isEqualTo(0)
+        assertThat(result.dominantClass).isEqualTo(SentimentClass.NEUTRAL)
+        verify(exactly = 0) { anthropicClient.complete(any(), any()) }
     }
 }

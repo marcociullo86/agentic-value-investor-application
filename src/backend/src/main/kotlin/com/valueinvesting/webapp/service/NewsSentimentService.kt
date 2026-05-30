@@ -1,7 +1,6 @@
 package com.valueinvesting.webapp.service
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.valueinvesting.webapp.fmp.FmpAdapter
 import com.valueinvesting.webapp.fmp.dto.StockNewsItem
 import com.valueinvesting.webapp.llm.AnthropicClient
@@ -14,8 +13,25 @@ import java.time.Instant
 import java.time.ZoneOffset
 
 /**
- * Classifies stock news as TEMPORARY_PANIC / STRUCTURAL_DAMAGE / NEUTRAL
- * using LLM (Claude Opus). Caches classifications in DB to avoid re-processing.
+ * News sentiment per la deep analysis, in ottica value investing (Graham Cap.8 —
+ * [[market-fluctuations-graham]]). Distingue il *panico temporaneo di Mr. Market*
+ * (opportunità di acquisto) dal *danno strutturale permanente* del valore intrinseco
+ * (value trap da evitare).
+ *
+ * Pipeline a imbuto (sostituisce il vecchio "classifica-tutto + voto di maggioranza",
+ * che annegava un segnale strutturale reale nel rumore di N notizie neutre):
+ *   1. **Pre-filtro deterministico** (zero LLM): dedup, scarto pattern di rumore
+ *      (price target, listicle, premarket/movers…), ranking per materialità + recency,
+ *      taglio ai top [MAX_CURATED].
+ *   2. **Sintesi LLM unica** (1 chiamata, non N): un solo prompt valuta il set curato
+ *      in modo olistico e ritorna la classe per-item + il flag di impairment permanente.
+ *   3. **Dominante asimmetrica**: capital-preservation first — **un solo**
+ *      STRUCTURAL_DAMAGE credibile vince sul conteggio (Buffett rule #1).
+ *
+ * Cache: le classificazioni del set curato sono persistite in `news_classification`
+ * (TTL [CACHE_TTL_HOURS]h); se il set corrente è già tutto in cache fresca il verdetto
+ * viene ricostruito senza nuove chiamate LLM.
+ *
  * [^src: wiki/concepts/market-fluctuations-graham.md §Distinzione tra panic e damage]
  */
 @Service
@@ -28,105 +44,197 @@ class NewsSentimentService(
     private val mapper = jacksonObjectMapper()
 
     companion object {
-        private const val MAX_LLM_CALLS_PER_TICKER = 50
+        // Finestra value-investing per l'analisi on-demand: 90gg ≈ ultimo ciclo
+        // earnings, equilibrio tra segnale recente e rumore (US-042).
+        private const val NEWS_WINDOW_DAYS = 90
         private const val CACHE_TTL_HOURS = 24L
+
+        // Notizie passate all'LLM dopo il pre-filtro: cap olistico (1 sola chiamata).
+        private const val MAX_CURATED = 12
+        private const val SNIPPET_LEN = 300
+        private const val SYNTH_MAX_TOKENS = 1024
+        private const val NEWS_ID_MAX = 512
+        private const val MOTIVAZIONE_MAX = 250
+
+        // Pattern di rumore Mr. Market (titoli a basso/nullo valore informativo per
+        // un value investor): listicle, recap di prezzo, premarket/movers, price target.
+        private val NOISE_PATTERNS: List<Regex> = listOf(
+            "price target", "stocks to watch", "stocks to buy", "best stocks",
+            "things to know", "what to watch", "premarket", "pre-market",
+            "market wrap", "market update", "movers", "week ahead", "zacks rank",
+            "should you buy", "is it time to buy", "stocks to consider",
+        ).map { Regex(Regex.escape(it), RegexOption.IGNORE_CASE) }
+
+        // Keyword di materialità: eventi che possono intaccare il valore intrinseco.
+        // Pesano il ranking così le notizie sostanziali galleggiano in cima.
+        private val MATERIALITY_KEYWORDS: List<Regex> = listOf(
+            "lawsuit", "sued", "\\bsec\\b", "investigation", "probe", "fraud",
+            "accounting", "restatement", "guidance", "recall", "bankruptcy",
+            "default", "downgrade", "resign", "steps down", "resignation",
+            "\\bceo\\b", "\\bcfo\\b", "data breach", "\\bbreach\\b", "antitrust",
+            "penalty", "settlement", "layoff", "impairment", "write-down",
+            "writedown", "delisting", "going concern", "earnings miss", "misses",
+            "plunge", "collapse", "short seller", "short-seller", "warning",
+            "slash", "halt", "subpoena",
+        ).map { Regex(it, RegexOption.IGNORE_CASE) }
     }
 
     @Transactional
     fun classify(ticker: String): NewsSentimentResult {
-        val news = fmpAdapter.getStockNews(ticker, 90)
-        if (news.isEmpty()) {
-            return NewsSentimentResult(
-                ticker = ticker,
-                total = 0,
-                panicCount = 0,
-                structuralCount = 0,
-                neutralCount = 0,
-                dominantClass = SentimentClass.NEUTRAL,
-                classifications = emptyList(),
-            )
-        }
+        val rawNews = fmpAdapter.getStockNews(ticker, NEWS_WINDOW_DAYS)
+        if (rawNews.isEmpty()) return emptyResult(ticker)
 
+        // Stage 1 — pre-filtro deterministico (zero LLM).
+        val curated = curate(rawNews)
+        if (curated.isEmpty()) return emptyResult(ticker)
+
+        // Cache: se tutto il set curato è già classificato entro la TTL, ricostruisci
+        // senza chiamare l'LLM (US-042: 2ª analisi entro 24h non riconsuma LLM).
         val cutoff = Instant.now().minusSeconds(CACHE_TTL_HOURS * 3600)
-        var llmCallsUsed = 0
+        val cachedRows = curated.map { newsRepo.findByNewsId(newsKey(it)) }
+        val allFresh = cachedRows.all { it != null && it.classifiedAt.isAfter(cutoff) }
 
-        val classifications = news.map { item ->
-            // news_id è VARCHAR(512) (V029). FMP /news/stock non ha un id stabile,
-            // quindi il fallback è url/title (URL spesso > limite): tronchiamo qui
-            // alla fonte così lookup di dedup e insert usano la stessa chiave.
-            val newsId = (item.newsId ?: item.url ?: item.title ?: return@map null).take(512)
-
-            val cached = newsRepo.findByNewsId(newsId)
-            if (cached != null && cached.classifiedAt.isAfter(cutoff)) {
-                return@map cached
+        val classified: List<ClassifiedItem> = if (allFresh) {
+            cachedRows.filterNotNull().map {
+                ClassifiedItem(it.newsId, it.headline, SentimentClass.valueOf(it.sentimentClass))
             }
-
-            if (llmCallsUsed >= MAX_LLM_CALLS_PER_TICKER) {
-                return@map persistClassification(ticker, item, newsId, SentimentClass.NEUTRAL, "Limit exceeded")
+        } else {
+            val synthesis = synthesize(curated)
+            curated.mapIndexed { idx, item ->
+                val classe = synthesis.classOf(idx)
+                val entity = persistClassification(
+                    ticker, item, newsKey(item), classe, synthesis.motivazioneOf(idx),
+                )
+                ClassifiedItem(entity.newsId, entity.headline, classe)
             }
-
-            val classification = classifyWithLlm(item)
-            llmCallsUsed++
-
-            persistClassification(ticker, item, newsId, classification.first, classification.second)
-        }.filterNotNull()
-
-        val panicCount = classifications.count { it.sentimentClass == SentimentClass.TEMPORARY_PANIC.name }
-        val structuralCount = classifications.count { it.sentimentClass == SentimentClass.STRUCTURAL_DAMAGE.name }
-        val neutralCount = classifications.count { it.sentimentClass == SentimentClass.NEUTRAL.name }
-
-        val dominant = when {
-            panicCount >= structuralCount && panicCount >= neutralCount -> SentimentClass.TEMPORARY_PANIC
-            structuralCount >= panicCount && structuralCount >= neutralCount -> SentimentClass.STRUCTURAL_DAMAGE
-            else -> SentimentClass.NEUTRAL
         }
+
+        val panic = classified.count { it.sentimentClass == SentimentClass.TEMPORARY_PANIC }
+        val structural = classified.count { it.sentimentClass == SentimentClass.STRUCTURAL_DAMAGE }
+        val neutral = classified.count { it.sentimentClass == SentimentClass.NEUTRAL }
 
         return NewsSentimentResult(
             ticker = ticker,
-            total = classifications.size,
-            panicCount = panicCount,
-            structuralCount = structuralCount,
-            neutralCount = neutralCount,
-            dominantClass = dominant,
-            classifications = classifications.map {
-                NewsClassificationSummary(it.newsId, it.headline, SentimentClass.valueOf(it.sentimentClass))
+            total = classified.size,
+            panicCount = panic,
+            structuralCount = structural,
+            neutralCount = neutral,
+            dominantClass = deriveDominant(classified.map { it.sentimentClass }),
+            classifications = classified.map {
+                NewsClassificationSummary(it.newsId, it.headline, it.sentimentClass)
             },
         )
     }
 
-    private fun classifyWithLlm(item: StockNewsItem): Pair<SentimentClass, String?> {
-        val truncatedText = item.text?.take(500) ?: ""
-        val prompt = """Classifica questa news finanziaria in una delle tre categorie:
-            |TEMPORARY_PANIC (vendita emotiva senza danni fondamentali),
-            |STRUCTURAL_DAMAGE (danno permanente al business),
-            |NEUTRAL.
-            |News: ${item.title}. $truncatedText.
-            |Rispondi SOLO con JSON valido, motivazione max 200 caratteri:
-            |{"classe": "...", "motivazione": "..."}""".trimMargin()
+    // ---- Stage 1: pre-filtro deterministico ------------------------------------
+
+    private fun curate(news: List<StockNewsItem>): List<StockNewsItem> =
+        news.asSequence()
+            // dedup per chiave news + per titolo normalizzato (repost/aggregatori).
+            .distinctBy { newsKey(it) }
+            .distinctBy { it.title?.lowercase()?.trim() ?: newsKey(it) }
+            // scarta il rumore Mr. Market.
+            .filterNot { isNoise(it) }
+            // ranking: materialità desc, poi recency desc.
+            .sortedWith(
+                compareByDescending<StockNewsItem> { materialityScore(it) }
+                    .thenByDescending { it.publishedDate ?: java.time.LocalDateTime.MIN },
+            )
+            .take(MAX_CURATED)
+            .toList()
+
+    private fun isNoise(item: StockNewsItem): Boolean {
+        val title = item.title ?: return false
+        return NOISE_PATTERNS.any { it.containsMatchIn(title) }
+    }
+
+    private fun materialityScore(item: StockNewsItem): Int {
+        val haystack = "${item.title.orEmpty()} ${item.text.orEmpty()}"
+        return MATERIALITY_KEYWORDS.count { it.containsMatchIn(haystack) }
+    }
+
+    // ---- Stage 2: sintesi LLM unica --------------------------------------------
+
+    private fun synthesize(curated: List<StockNewsItem>): SynthesisResult {
+        val itemsBlock = curated.mapIndexed { idx, item ->
+            val date = item.publishedDate?.toLocalDate()?.toString() ?: "n/d"
+            val snippet = item.text?.take(SNIPPET_LEN).orEmpty()
+            "[$idx] ($date) ${item.title.orEmpty()} — $snippet"
+        }.joinToString("\n")
+
+        val prompt = """Sei un value investor (Graham/Buffett). Analizza queste notizie su un singolo titolo e classifica OGNI item in una delle tre classi:
+            |- TEMPORARY_PANIC: volatilità/vendita emotiva senza intacco dei fondamentali (macro fears, panico generico, reazione di breve).
+            |- STRUCTURAL_DAMAGE: evidenza di impairment PERMANENTE del valore intrinseco (frode, indagine/accusa SEC, perdita di licenza o del cliente principale, taglio guidance strutturale, going concern, restatement, default).
+            |- NEUTRAL: notizia routinaria senza impatto sul valore.
+            |Regola: la materialità conta più del numero. Sii rigoroso su STRUCTURAL_DAMAGE (solo evidenza credibile e corroborata).
+            |
+            |Notizie:
+            |$itemsBlock
+            |
+            |Rispondi SOLO con JSON valido (motivazione max 200 caratteri):
+            |{"impairment_permanente":"si|no|incerto","items":[{"idx":0,"classe":"NEUTRAL","motivazione":"..."}],"sintesi":"..."}""".trimMargin()
 
         return try {
-            // maxTokens=512: a 200 il JSON veniva troncato a metà stringa
-            // ("Unexpected end-of-input") quando la motivazione era verbosa.
-            val response = anthropicClient.complete(prompt, maxTokens = 512)
-            val parsed = mapper.readValue<Map<String, String>>(extractJsonObject(response))
-            val classe = SentimentClass.valueOf(parsed["classe"]?.uppercase() ?: "NEUTRAL")
-            val motivazione = parsed["motivazione"]
-            classe to motivazione
+            val response = anthropicClient.complete(prompt, maxTokens = SYNTH_MAX_TOKENS)
+            parseSynthesis(extractJsonObject(response), curated.size)
         } catch (e: Exception) {
-            log.warn("LLM classification failed for news '{}': {}", item.title?.take(50), e.message)
-            SentimentClass.NEUTRAL to "Classification failed"
+            // Degrado sicuro: nessun veto/panic-buy indotto da un parse fallito.
+            log.warn("News synthesis LLM failed: {}", e.message)
+            SynthesisResult(emptyMap(), emptyMap())
         }
     }
 
-    // Estrae l'oggetto JSON dalla risposta LLM tollerando code-fence markdown
-    // o prosa attorno: prende dal primo '{' all'ultimo '}'. Se non c'è un blocco
-    // bilanciato (es. risposta troncata) ritorna il testo grezzo -> il parse
-    // fallisce e il caller degrada a NEUTRAL.
+    private fun parseSynthesis(json: String, count: Int): SynthesisResult {
+        val root = mapper.readTree(json)
+        val classes = HashMap<Int, SentimentClass>()
+        val motivazioni = HashMap<Int, String?>()
+        root.path("items").forEach { node ->
+            val idx = node.path("idx").asInt(-1)
+            if (idx in 0 until count) {
+                classes[idx] = parseClass(node.path("classe").asText("NEUTRAL"))
+                motivazioni[idx] = node.path("motivazione").asText(null)
+            }
+        }
+        // Cross-check difensivo: se l'LLM dichiara impairment permanente ma non ha
+        // marcato alcun item STRUCTURAL, promuovi il più materiale (idx 0 = top rank).
+        val impairment = root.path("impairment_permanente").asText("no").equals("si", ignoreCase = true)
+        if (impairment && count > 0 && classes.values.none { it == SentimentClass.STRUCTURAL_DAMAGE }) {
+            classes[0] = SentimentClass.STRUCTURAL_DAMAGE
+            motivazioni.putIfAbsent(0, "Impairment permanente dichiarato dalla sintesi")
+        }
+        return SynthesisResult(classes, motivazioni)
+    }
+
+    private fun parseClass(raw: String): SentimentClass =
+        runCatching { SentimentClass.valueOf(raw.trim().uppercase()) }.getOrDefault(SentimentClass.NEUTRAL)
+
+    // Estrae l'oggetto JSON dalla risposta LLM tollerando code-fence o prosa attorno:
+    // dal primo '{' all'ultimo '}'. Se non bilanciato ritorna il grezzo -> parse fallisce
+    // -> degrado a NEUTRAL.
     private fun extractJsonObject(raw: String): String {
         val start = raw.indexOf('{')
         val end = raw.lastIndexOf('}')
         return if (start in 0 until end) raw.substring(start, end + 1) else raw
     }
+
+    // ---- Dominante asimmetrica (capital preservation first) --------------------
+
+    private fun deriveDominant(classes: List<SentimentClass>): SentimentClass {
+        val structural = classes.count { it == SentimentClass.STRUCTURAL_DAMAGE }
+        val panic = classes.count { it == SentimentClass.TEMPORARY_PANIC }
+        val neutral = classes.count { it == SentimentClass.NEUTRAL }
+        return when {
+            // Un solo danno strutturale credibile basta a far scattare il veto value-trap.
+            structural > 0 -> SentimentClass.STRUCTURAL_DAMAGE
+            panic > 0 && panic >= neutral -> SentimentClass.TEMPORARY_PANIC
+            else -> SentimentClass.NEUTRAL
+        }
+    }
+
+    // ---- Persistenza ------------------------------------------------------------
+
+    private fun newsKey(item: StockNewsItem): String =
+        (item.newsId ?: item.url ?: item.title ?: "").take(NEWS_ID_MAX)
 
     private fun persistClassification(
         ticker: String,
@@ -135,19 +243,40 @@ class NewsSentimentService(
         classe: SentimentClass,
         motivazione: String?,
     ): NewsClassificationEntity {
-        val existing = newsRepo.findByNewsId(newsId)
-        val entity = existing ?: NewsClassificationEntity()
+        val entity = newsRepo.findByNewsId(newsId) ?: NewsClassificationEntity()
         entity.ticker = ticker
-        // news_id è VARCHAR(512) (V029): tronchiamo difensivamente, dato che
-        // il fallback usa l'URL FMP come id e alcuni URL sforano.
-        entity.newsId = newsId.take(512)
+        entity.newsId = newsId.take(NEWS_ID_MAX)
         entity.publishedAt = item.publishedDate?.toInstant(ZoneOffset.UTC)
         entity.headline = item.title
         entity.url = item.url
         entity.sentimentClass = classe.name
-        entity.motivazione = motivazione?.take(250)
+        entity.motivazione = motivazione?.take(MOTIVAZIONE_MAX)
         entity.classifiedAt = Instant.now()
         return newsRepo.save(entity)
+    }
+
+    private fun emptyResult(ticker: String) = NewsSentimentResult(
+        ticker = ticker,
+        total = 0,
+        panicCount = 0,
+        structuralCount = 0,
+        neutralCount = 0,
+        dominantClass = SentimentClass.NEUTRAL,
+        classifications = emptyList(),
+    )
+
+    private data class ClassifiedItem(
+        val newsId: String,
+        val headline: String?,
+        val sentimentClass: SentimentClass,
+    )
+
+    private class SynthesisResult(
+        private val classes: Map<Int, SentimentClass>,
+        private val motivazioni: Map<Int, String?>,
+    ) {
+        fun classOf(idx: Int): SentimentClass = classes[idx] ?: SentimentClass.NEUTRAL
+        fun motivazioneOf(idx: Int): String? = motivazioni[idx]
     }
 }
 
