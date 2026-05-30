@@ -103,13 +103,6 @@ interface FmpAdapter {
     // [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-042-news-sentiment-classifier/TSK-108.md]
     fun getStockNews(ticker: String, days: Int = 90): List<StockNewsItem>
 
-    // `/stable/news/press-releases?symbols={ticker}&from=...` — comunicati stampa
-    // ufficiali dell'azienda negli ultimi N giorni. Stessa shape di /news/stock
-    // (riusa StockNewsItem). Affianca getStockNews nel NewsSentimentService:
-    // i press release sono fonte primaria (voce dell'azienda) mentre /news/stock
-    // e' copertura editoriale di terze parti. Lista vuota = nessun comunicato.
-    fun getPressReleases(ticker: String, days: Int = 90): List<StockNewsItem>
-
     // `/stable/historical-price-eod/full?symbol={ticker}&from=...` — EOD prices.
     // [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-043-price-action-analyzer/TSK-112.md]
     fun getHistoricalEodPrices(ticker: String, days: Int = 365): List<EodPriceRecord>
