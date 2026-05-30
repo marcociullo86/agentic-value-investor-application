@@ -6,6 +6,8 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
 import java.time.Instant
 
 @Entity
@@ -22,7 +24,13 @@ class DeepAnalysisReportEntity(
     @Column(name = "filing_combo_hash", length = 64, nullable = false)
     var filingComboHash: String = "",
 
-    @Column(name = "report_json", columnDefinition = "JSONB", nullable = false)
+    // JSONB column: senza @JdbcTypeCode(SqlTypes.JSON) Hibernate binda il valore
+    // come VARCHAR e Postgres rigetta con
+    //   ERROR: column "report_json" is of type jsonb but expression is of type character varying
+    // Stesso pattern di RuleEngineResultEntity (V015) / FmpFinancialSnapshot (V003) —
+    // storage String, (de)serializzazione Jackson lato service.
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "report_json", columnDefinition = "jsonb", nullable = false)
     var reportJson: String = "",
 
     @Column(name = "livello_rischio", length = 30, nullable = false)

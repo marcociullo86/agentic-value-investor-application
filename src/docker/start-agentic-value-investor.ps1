@@ -2,8 +2,9 @@
 #
 # Flow:
 #   1. Ask whether to rebuild the vi-app image.
-#      - If YES: chiede anche CPU/GPU per il sidecar embeddings, poi
-#        podman build vi-app -> compose down -> compose build sidecar ->
+#      - If YES: chiede prima se ribuildare il sidecar embeddings (non sempre
+#        serve), poi CPU/GPU per il sidecar, infine:
+#        podman build vi-app -> compose down -> [compose build sidecar] ->
 #        compose up -d (con override GPU se scelto), then Portainer.
 #      - If NO : skip directly to Portainer (assumes stack is already up).
 #   2. Always (re)start vi-portainer via `podman run` (the socket bind
@@ -36,19 +37,29 @@ $answer = Read-Host 'Vuoi buildare l''app prima di avviare lo stack? (y/N)'
 $doBuild = $answer -match '^(y|Y|yes|YES|s|S|si|SI)$'
 
 if ($doBuild) {
-    # 1b. Backend del sidecar embeddings: CPU oppure GPU NVIDIA (via CDI).
-    #     GPU richiede, una tantum nella podman machine, nvidia-container-toolkit
-    #     + spec CDI (`nvidia-ctk cdi generate`). Layer dell'override docker-compose.gpu.yml.
-    #     Default CPU su Invio: non fallisce dove la GPU non e' configurata.
-    $gpuAnswer = Read-Host 'Sidecar embeddings: CPU o GPU? (cpu/GPU) [default CPU]'
-    $useGpu = $gpuAnswer -match '^(g|G|gpu|GPU)$'
+    # 1a. Il sidecar embeddings non cambia spesso: chiedi se ribuildarlo.
+    #     Default NO su Invio. La domanda CPU/GPU e il rebuild del sidecar
+    #     vengono fatti SOLO se si risponde si.
+    $sidecarAnswer = Read-Host 'Vuoi ribuildare il sidecar embeddings? (y/N)'
+    $rebuildSidecar = $sidecarAnswer -match '^(y|Y|yes|YES|s|S|si|SI)$'
 
     $composeArgs = @('-f', $composeFile)
-    if ($useGpu) {
-        $composeArgs += @('-f', 'src/docker/docker-compose.gpu.yml')
-        Write-Host 'Sidecar: GPU (CDI nvidia.com/gpu=all)' -ForegroundColor Green
+    if ($rebuildSidecar) {
+        # 1b. Backend del sidecar embeddings: CPU oppure GPU NVIDIA (via CDI).
+        #     GPU richiede, una tantum nella podman machine, nvidia-container-toolkit
+        #     + spec CDI (`nvidia-ctk cdi generate`). Layer dell'override docker-compose.gpu.yml.
+        #     Default CPU su Invio: non fallisce dove la GPU non e' configurata.
+        $gpuAnswer = Read-Host 'Sidecar embeddings: CPU o GPU? (cpu/GPU) [default CPU]'
+        $useGpu = $gpuAnswer -match '^(g|G|gpu|GPU)$'
+
+        if ($useGpu) {
+            $composeArgs += @('-f', 'src/docker/docker-compose.gpu.yml')
+            Write-Host 'Sidecar: GPU (CDI nvidia.com/gpu=all)' -ForegroundColor Green
+        } else {
+            Write-Host 'Sidecar: CPU' -ForegroundColor DarkGray
+        }
     } else {
-        Write-Host 'Sidecar: CPU' -ForegroundColor DarkGray
+        Write-Host 'Skip rebuild sidecar embeddings - uso immagine esistente.' -ForegroundColor DarkGray
     }
 
     Invoke-Native 'podman build vi-app:latest' {
@@ -61,9 +72,11 @@ if ($doBuild) {
 
     # Rebuild del solo sidecar: recepisce le modifiche a embeddings-sidecar/app.py
     # (l'ultimo layer e' la COPY di app.py -> rebuild veloce; il download del
-    #  modello resta cache-ato nei layer precedenti).
-    Invoke-Native 'podman-compose build embeddings-sidecar' {
-        podman-compose @composeArgs build embeddings-sidecar
+    #  modello resta cache-ato nei layer precedenti). Skippato se non richiesto.
+    if ($rebuildSidecar) {
+        Invoke-Native 'podman-compose build embeddings-sidecar' {
+            podman-compose @composeArgs build embeddings-sidecar
+        }
     }
 
     Invoke-Native 'podman-compose up -d' {
