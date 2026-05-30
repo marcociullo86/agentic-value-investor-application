@@ -33,6 +33,8 @@ Tutte le richieste richiedono API key in header `apikey` oppure query `?apikey=`
 
 **Calibrazione:** se cambia il piano FMP, aggiornare solo `FMP_RATE_LIMIT_PER_MINUTE` (e `DEFAULT_RATE_LIMIT_PER_MINUTE` in `FmpRateLimitProperties`).
 
+**Online vs batch sul bucket condiviso:** l'online fa fail-fast (timeout 2s → degrada). Il batch notturno (`TopValuePicksJob`), che fa fan-out massiccio, su esaurimento del bucket **attende il refresh (~1 min) e ritenta** invece di perdere il ticker — selezione via flag thread-local `FmpBatchContext` letto da `ResilientFmpAdapter` [^src: design_&_architecture/decisions/ADR-016-fmp-operations-throttling.md §Appendice A].
+
 ## URL base e path endpoint MVP
 
 I raw `FMP_Docs_1`–`8` descrivono **nomi API e parametri**, non host né path HTTP completi (nessuna occorrenza di `financialmodelingprep.com` o `/api/v3` in quei file). Gap: `fmp-endpoint-base-urls` — **aperto**.

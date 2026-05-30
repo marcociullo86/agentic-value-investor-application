@@ -5,6 +5,8 @@ import com.valueinvesting.webapp.fmp.dto.IncomeStatementDto
 import io.github.resilience4j.bulkhead.Bulkhead
 import io.github.resilience4j.circuitbreaker.CircuitBreaker
 import io.github.resilience4j.ratelimiter.RateLimiter
+import io.github.resilience4j.ratelimiter.RateLimiterConfig
+import io.github.resilience4j.ratelimiter.RequestNotPermitted
 import io.github.resilience4j.retry.Retry
 import io.mockk.every
 import io.mockk.justRun
@@ -14,6 +16,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.Duration
 import java.util.concurrent.atomic.AtomicInteger
 
 // Unit test for the Resilience4j chain produced by FmpResilienceConfig.
@@ -154,5 +157,55 @@ class FmpResilienceConfigTest {
         assertThatThrownBy { resilient.getIncomeStatement("AAPL") }
             .isInstanceOf(FmpUnavailableException::class.java)
         verify(atLeast = 1) { eventLogger.logCircuitOpen(any()) }
+    }
+
+    @Test
+    fun `batch context waits for the rate limiter refresh and retries instead of failing`() {
+        // Limiter stretto: 1 permesso / 300ms, timeout 10ms (fail-fast la prima volta).
+        val tight = RateLimiter.of(
+            "fmp-test-batch-wait",
+            RateLimiterConfig.custom()
+                .limitForPeriod(1)
+                .limitRefreshPeriod(Duration.ofMillis(300))
+                .timeoutDuration(Duration.ofMillis(10))
+                .build(),
+        )
+        val batchResilient = ResilientFmpAdapter(delegate, cb, retry, tight, bulkhead, eventLogger)
+        every { delegate.getIncomeStatement("AAPL", any()) } returns
+            listOf(IncomeStatementDto(symbol = "AAPL", calendarYear = "2024"))
+
+        // Consuma l'unico permesso della finestra corrente.
+        batchResilient.getIncomeStatement("AAPL")
+
+        // In batch: la seconda chiamata trova il bucket vuoto, attende il refresh
+        // e ritenta → SUCCESSO (niente RequestNotPermitted propagata).
+        FmpBatchContext.setBatch(true)
+        try {
+            val result = batchResilient.getIncomeStatement("AAPL")
+            assertThat(result).hasSize(1)
+        } finally {
+            FmpBatchContext.setBatch(false)
+        }
+    }
+
+    @Test
+    fun `online context fails fast on rate limit without waiting`() {
+        val tight = RateLimiter.of(
+            "fmp-test-online-failfast",
+            RateLimiterConfig.custom()
+                .limitForPeriod(1)
+                .limitRefreshPeriod(Duration.ofSeconds(60))
+                .timeoutDuration(Duration.ofMillis(10))
+                .build(),
+        )
+        val onlineResilient = ResilientFmpAdapter(delegate, cb, retry, tight, bulkhead, eventLogger)
+        every { delegate.getIncomeStatement("AAPL", any()) } returns
+            listOf(IncomeStatementDto(symbol = "AAPL", calendarYear = "2024"))
+
+        onlineResilient.getIncomeStatement("AAPL") // consuma il permesso
+
+        // Online (nessun FmpBatchContext): RequestNotPermitted propaga subito.
+        assertThatThrownBy { onlineResilient.getIncomeStatement("AAPL") }
+            .isInstanceOf(RequestNotPermitted::class.java)
     }
 }

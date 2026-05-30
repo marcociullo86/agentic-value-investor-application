@@ -16,6 +16,7 @@ import io.github.resilience4j.bulkhead.Bulkhead
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException
 import io.github.resilience4j.circuitbreaker.CircuitBreaker
 import io.github.resilience4j.ratelimiter.RateLimiter
+import io.github.resilience4j.ratelimiter.RequestNotPermitted
 import io.github.resilience4j.retry.Retry
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
@@ -175,13 +176,43 @@ class ResilientFmpAdapter(
         // Apply RateLimiter at the outermost layer — one logical call ↔ one token.
         val gated: Supplier<T> = RateLimiter.decorateSupplier(rateLimiter, decorated)
 
-        return try {
-            gated.get()
-        } catch (ex: CallNotPermittedException) {
-            // CB is OPEN → fast-fail without burning a retry/token.
-            log.warn("FMP circuit OPEN for {}/{} — call not permitted", endpoint, ticker)
-            eventLogger.logCircuitOpen("call rejected: $endpoint/$ticker")
-            throw FmpUnavailableException("FMP circuit open for $endpoint", ex)
+        // Online vs batch sul rate limiter (bucket UNICO `fmp` 280/min, condiviso —
+        // ADR-016 §Appendice A):
+        //   - online: fail-fast. `gated.get()` attende `timeoutDuration` (2s) e poi
+        //     lancia RequestNotPermitted, che propaga al caller (degrada/stale).
+        //   - batch (TopValuePicksJob via FmpBatchContext): il fan-out e' massiccio
+        //     (13-F searchCusip ~centinaia, NewsScout ~200, deep analysis ~500x6) e
+        //     satura il bucket nella finestra; NON vogliamo perdere ticker. Su
+        //     RequestNotPermitted attendiamo il refresh del bucket (~1 min) e
+        //     ritentiamo la STESSA chiamata, poi proseguiamo. Bound da
+        //     MAX_RATE_LIMIT_WAITS per non bloccare all'infinito.
+        var rateLimitWaits = 0
+        while (true) {
+            try {
+                return gated.get()
+            } catch (ex: CallNotPermittedException) {
+                // CB is OPEN → fast-fail without burning a retry/token.
+                log.warn("FMP circuit OPEN for {}/{} — call not permitted", endpoint, ticker)
+                eventLogger.logCircuitOpen("call rejected: $endpoint/$ticker")
+                throw FmpUnavailableException("FMP circuit open for $endpoint", ex)
+            } catch (ex: RequestNotPermitted) {
+                if (!FmpBatchContext.isBatch() || rateLimitWaits >= MAX_RATE_LIMIT_WAITS) {
+                    throw ex
+                }
+                rateLimitWaits++
+                val waitMs = rateLimiter.rateLimiterConfig.limitRefreshPeriod.toMillis() +
+                    RATE_LIMIT_WAIT_SLACK_MS
+                log.warn(
+                    "FMP rate limiter esaurito per {}/{} (batch) — attendo {}ms il refresh, poi ritento [{}/{}]",
+                    endpoint, ticker, waitMs, rateLimitWaits, MAX_RATE_LIMIT_WAITS,
+                )
+                try {
+                    Thread.sleep(waitMs)
+                } catch (ie: InterruptedException) {
+                    Thread.currentThread().interrupt()
+                    throw FmpUnavailableException("FMP rate-limit wait interrupted for $endpoint", ie)
+                }
+            }
         }
     }
 
@@ -192,5 +223,17 @@ class ResilientFmpAdapter(
             null -> eventLogger.log5xx(ticker, endpoint, 0, detail) // unknown HTTP status
             else -> { /* 4xx (other than 429) is generally a not-found semantics, handled upstream */ }
         }
+    }
+
+    private companion object {
+        // Batch-only: numero massimo di attese-refresh per singola chiamata FMP
+        // prima di arrendersi (10 x ~60s = 10 min/chiamata = hard stop di sicurezza;
+        // in pratica una chiamata attende al piu' 1-2 volte: dopo il refresh la
+        // finestra ha di nuovo 280 permessi).
+        const val MAX_RATE_LIMIT_WAITS = 10
+
+        // Slack aggiunto al refresh period per garantire di entrare nella finestra
+        // successiva (la finestra Resilience4j e' fissa, non rolling).
+        const val RATE_LIMIT_WAIT_SLACK_MS = 500L
     }
 }

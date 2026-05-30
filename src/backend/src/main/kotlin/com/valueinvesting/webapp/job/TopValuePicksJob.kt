@@ -1,5 +1,6 @@
 package com.valueinvesting.webapp.job
 
+import com.valueinvesting.webapp.fmp.FmpBatchContext
 import com.valueinvesting.webapp.persistence.entity.TopPicksRunLogEntity
 import com.valueinvesting.webapp.persistence.entity.TopValuePickEntity
 import com.valueinvesting.webapp.persistence.entity.TopValuePickId
@@ -98,6 +99,13 @@ class TopValuePicksJob(
         )
         runLog = runLogRepository.save(runLog)
 
+        // Tutte le chiamate FMP del batch (screener + 13-F + NewsScout dentro
+        // screen(), e il loop DeepAnalysisService) girano sotto il flag batch:
+        // su esaurimento del rate limiter FMP condiviso il ResilientFmpAdapter
+        // attende il refresh (~1 min) e ritenta, invece di perdere il ticker
+        // (ADR-016 §Appendice A). Il batch e' single-thread sincrono, quindi il
+        // ThreadLocal copre tutte le chiamate discendenti; spento in `finally`.
+        FmpBatchContext.setBatch(true)
         try {
             val candidates = universeScreenerService.screen()
             log.info("TopValuePicksJob start runDate={} universeSize={}", runDate, candidates.size)
@@ -218,6 +226,8 @@ class TopValuePicksJob(
             runLog.status = "FAILED"
             runLog.errorMessage = ex.message?.take(2000)
             runLogRepository.save(runLog)
+        } finally {
+            FmpBatchContext.setBatch(false)
         }
     }
 }

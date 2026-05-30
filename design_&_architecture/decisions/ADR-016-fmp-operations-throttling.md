@@ -111,11 +111,20 @@ capacità riservata e sprecata quando un lato è fermo; somma garantita ≤ cap 
 `FMP_BATCH_RATE_LIMIT_PER_MINUTE`/`FMP_BATCH_TIMEOUT_SECONDS`. TSK-132 e gli AC
 "fmp-batch" di TSK-126/TSK-130 sono **superseded** da questa appendice.
 
-**Gap noto.** `TopValuePicksJob` chiama `DeepAnalysisService.analyze()` in loop su
-fino a 500 candidati attraverso il limiter condiviso: corretto per il cap account,
-ma a cache fredda il batch può occupare l'intero bucket. Accettabile alle 02:00 UTC
-(online ~0); priorità FIFO non garantita ma è l'unico modello coerente con una
-quota account unica.
+**Comportamento batch vs online sul limiter (rev. 2026-05-30 — burst handling).**
+Il fan-out del batch è massiccio (13-F `searchCusip` ~centinaia di holding, NewsScout
+~200, deep analysis ~500×N) e satura il bucket *dentro la finestra* anche se la portata
+oraria (280/min) è sufficiente. Per non perdere ticker per throttling, online e batch
+hanno comportamenti diversi sul medesimo limiter:
+
+- **online** (UI): fail-fast — `timeoutDuration` 2s, poi `RequestNotPermitted` → degrada/stale.
+- **batch**: su `RequestNotPermitted` il `ResilientFmpAdapter` **attende il refresh del
+  bucket (~1 min) e ritenta la stessa chiamata**, poi prosegue (bound a 10 attese/chiamata).
+
+La distinzione è runtime, non per-servizio (DeepAnalysisService è dual-use): un flag
+thread-local `FmpBatchContext`, attivato per la durata di `TopValuePicksJob.run()` (batch
+single-thread sincrono), seleziona il comportamento. Effetto: il batch consuma ~280/min
+in regime stazionario, attende ai bordi finestra, e non sottrae mai quota >cap all'online.
 
 ## Pagine collegate
 
