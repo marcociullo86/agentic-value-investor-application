@@ -212,6 +212,8 @@ Dettaglio completo: [[auth-guard-frontend]] §Aggiornamenti (v2026-05-28).
 
 **News deep analysis — feed FMP.** `NewsSentimentService` consuma `/stable/news/stock` (l'endpoint `/news/press-releases` non è nel piano Starter FMP → non integrato). Fix: parametro `symbols` (non `tickers`), `@JsonFormat` su `publishedDate` (`"yyyy-MM-dd HH:mm:ss"`), e degrado a lista vuota su errori di decode/trasporto (le news non sono segnale critico). Persistenza `deep_analysis_report.report_json` come `jsonb` via `@JdbcTypeCode(SqlTypes.JSON)`. Dettaglio: [[fmp-news-media]] §Uso nel progetto. [^src: src/backend/src/main/kotlin/com/valueinvesting/webapp/service/NewsSentimentService.kt]
 
+**News classification — persistenza robusta.** FMP `/news/stock` non ha un `newsId` stabile: `NewsSentimentService` usa l'URL come chiave di dedup/cache, ma gli URL sforavano `news_classification.news_id VARCHAR(200)` → migration **V029** allarga a `VARCHAR(512)` (con troncamento difensivo alla stessa chiave usata sia in lookup sia in insert). La chiamata LLM di classificazione usa `maxTokens=512` (a 200 il JSON veniva troncato) + estrazione tollerante dell'oggetto JSON dalla risposta. [^src: src/backend/src/main/resources/db/migration/V029__news_classification_widen_news_id.sql]
+
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->
 - **R1.0 done:** EP-002 (US-004…006), EP-004 (US-020), EP-005 (US-014…016), EP-006 (US-017…019)

@@ -19,7 +19,9 @@ class NewsClassificationEntity(
     @Column(name = "ticker", length = 20, nullable = false)
     var ticker: String = "",
 
-    @Column(name = "news_id", length = 200, nullable = false)
+    // length=512 (V029): l'URL FMP è usato come news_id quando manca un id stabile,
+    // e supera spesso i 200 char. Vedi V029__news_classification_widen_news_id.sql.
+    @Column(name = "news_id", length = 512, nullable = false)
     var newsId: String = "",
 
     @Column(name = "published_at")

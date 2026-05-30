@@ -51,7 +51,10 @@ class NewsSentimentService(
         var llmCallsUsed = 0
 
         val classifications = news.map { item ->
-            val newsId = item.newsId ?: item.url ?: item.title ?: return@map null
+            // news_id è VARCHAR(512) (V029). FMP /news/stock non ha un id stabile,
+            // quindi il fallback è url/title (URL spesso > limite): tronchiamo qui
+            // alla fonte così lookup di dedup e insert usano la stessa chiave.
+            val newsId = (item.newsId ?: item.url ?: item.title ?: return@map null).take(512)
 
             val cached = newsRepo.findByNewsId(newsId)
             if (cached != null && cached.classifiedAt.isAfter(cutoff)) {
@@ -98,18 +101,31 @@ class NewsSentimentService(
             |STRUCTURAL_DAMAGE (danno permanente al business),
             |NEUTRAL.
             |News: ${item.title}. $truncatedText.
-            |Rispondi SOLO con JSON: {"classe": "...", "motivazione": "..."}""".trimMargin()
+            |Rispondi SOLO con JSON valido, motivazione max 200 caratteri:
+            |{"classe": "...", "motivazione": "..."}""".trimMargin()
 
         return try {
-            val response = anthropicClient.complete(prompt, maxTokens = 200)
-            val parsed = mapper.readValue<Map<String, String>>(response)
+            // maxTokens=512: a 200 il JSON veniva troncato a metà stringa
+            // ("Unexpected end-of-input") quando la motivazione era verbosa.
+            val response = anthropicClient.complete(prompt, maxTokens = 512)
+            val parsed = mapper.readValue<Map<String, String>>(extractJsonObject(response))
             val classe = SentimentClass.valueOf(parsed["classe"]?.uppercase() ?: "NEUTRAL")
             val motivazione = parsed["motivazione"]
             classe to motivazione
         } catch (e: Exception) {
             log.warn("LLM classification failed for news '{}': {}", item.title?.take(50), e.message)
-            SentimentClass.NEUTRAL to "Classification failed: ${e.message}"
+            SentimentClass.NEUTRAL to "Classification failed"
         }
+    }
+
+    // Estrae l'oggetto JSON dalla risposta LLM tollerando code-fence markdown
+    // o prosa attorno: prende dal primo '{' all'ultimo '}'. Se non c'è un blocco
+    // bilanciato (es. risposta troncata) ritorna il testo grezzo -> il parse
+    // fallisce e il caller degrada a NEUTRAL.
+    private fun extractJsonObject(raw: String): String {
+        val start = raw.indexOf('{')
+        val end = raw.lastIndexOf('}')
+        return if (start in 0 until end) raw.substring(start, end + 1) else raw
     }
 
     private fun persistClassification(
@@ -122,7 +138,9 @@ class NewsSentimentService(
         val existing = newsRepo.findByNewsId(newsId)
         val entity = existing ?: NewsClassificationEntity()
         entity.ticker = ticker
-        entity.newsId = newsId
+        // news_id è VARCHAR(512) (V029): tronchiamo difensivamente, dato che
+        // il fallback usa l'URL FMP come id e alcuni URL sforano.
+        entity.newsId = newsId.take(512)
         entity.publishedAt = item.publishedDate?.toInstant(ZoneOffset.UTC)
         entity.headline = item.title
         entity.url = item.url
