@@ -61,6 +61,9 @@ class NewsSentimentServiceTest {
     @BeforeEach
     fun setup() {
         newsRepo.deleteAll()
+        // Default: nessun press release (i test esercitano solo getStockNews).
+        // Singoli test possono override-are questa stub se necessario.
+        every { fmpAdapter.getPressReleases(any(), any()) } returns emptyList()
     }
 
     private fun makeNews(count: Int): List<StockNewsItem> {

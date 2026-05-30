@@ -52,9 +52,13 @@ La vecchia sezione "News & Estimates" v3 includeva anche stime degli analisti (c
 ## Uso nel progetto
 
 **Integrata in EP-011 (Deep Analysis, 2026-05-25):**
-- `FmpAdapter.getStockNews(ticker, days=90)` wrappa `GET /stable/news/stock?tickers={ticker}&from={date}` con filtro temporale 90 giorni post-hoc. DTO: `StockNewsItem`. [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-042-news-sentiment-classifier/TSK-108.md]
-- `NewsSentimentService` classifica le news in TEMPORARY_PANIC / STRUCTURAL_DAMAGE / NEUTRAL tramite LLM (max 50 call/ticker). Cache su `news_classification` (V015).
-- `ResilientFmpAdapter` applica la chain Resilience4j identica agli altri endpoint FMP.
+- `FmpAdapter.getStockNews(ticker, days=90)` wrappa `GET /stable/news/stock?symbols={ticker}&from={date}` con filtro temporale 90 giorni post-hoc. DTO: `StockNewsItem`. [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-042-news-sentiment-classifier/TSK-108.md]
+- `FmpAdapter.getPressReleases(ticker, days=90)` wrappa `GET /stable/news/press-releases?symbols={ticker}&from={date}` — stessa shape (`StockNewsItem`) e stesso filtro. Fonte primaria (voce ufficiale dell'azienda) complementare alla copertura editoriale di `/news/stock`.
+- `NewsSentimentService` consuma **entrambi** i feed: union deduplicata per `newsId|url|title`, poi classifica in TEMPORARY_PANIC / STRUCTURAL_DAMAGE / NEUTRAL tramite LLM (max 50 call/ticker). Cache su `news_classification` (V015).
+- `ResilientFmpAdapter` applica la chain Resilience4j identica agli altri endpoint FMP (label `news/stock` e `news/press-releases`).
+
+> **Nota parametro (verificata sul campo, 2026-05-30):** l'endpoint stable usa `symbols`, **non** `tickers` (allineato ad agent.py v2.4 e all'esempio docs `?symbols=AAPL`). Con `tickers` il filtro per ticker viene ignorato.
+> **Nota formato data:** `publishedDate` è `"yyyy-MM-dd HH:mm:ss"` (separatore spazio, non ISO-8601 `T`) → il DTO usa `@JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")`, altrimenti il `JavaTimeModule` fallisce il decode e l'adapter degrada a lista vuota.
 
 L'endpoint `stock-news-latest` (news generali senza ticker) non è ancora integrato; previsto per EP-012 (Batch Universe Screener — segnale "news scout").
 

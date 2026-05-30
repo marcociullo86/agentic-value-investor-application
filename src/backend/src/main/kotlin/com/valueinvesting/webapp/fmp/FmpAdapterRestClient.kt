@@ -20,6 +20,7 @@ import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpStatusCode
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
+import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestClientResponseException
 
 // Sync implementation of FmpAdapter using Spring 6 RestClient.
@@ -327,7 +328,18 @@ class FmpAdapterRestClient(
         return result.sortedWith(dateDescNullsLast)
     }
 
-    override fun getStockNews(ticker: String, days: Int): List<StockNewsItem> {
+    override fun getStockNews(ticker: String, days: Int): List<StockNewsItem> =
+        fetchNewsFeed("/news/stock", ticker, days)
+
+    override fun getPressReleases(ticker: String, days: Int): List<StockNewsItem> =
+        fetchNewsFeed("/news/press-releases", ticker, days)
+
+    // Helper condiviso per i feed FMP /news/* (stock news + press releases):
+    // stessa shape (StockNewsItem), stessi parametri (symbols + from), stessa
+    // policy di degrado. FMP stable usa 'symbols' (non 'tickers'): con 'tickers'
+    // il filtro per ticker viene ignorato. Allineato ad agent.py v2.4 e all'esempio
+    // docs /stable/news/stock?symbols=AAPL.
+    private fun fetchNewsFeed(path: String, ticker: String, days: Int): List<StockNewsItem> {
         require(ticker.isNotBlank()) { "ticker must not be blank" }
         val upperTicker = ticker.uppercase()
         val from = LocalDate.now().minusDays(days.toLong()).format(DateTimeFormatter.ISO_LOCAL_DATE)
@@ -337,16 +349,22 @@ class FmpAdapterRestClient(
             client.get()
                 .uri { builder ->
                     builder
-                        .path("/news/stock")
+                        .path(path)
                         .queryParam("apikey", appProperties.fmp.apiKey)
-                        .queryParam("tickers", upperTicker)
+                        .queryParam("symbols", upperTicker)
                         .queryParam("from", from)
                         .build()
                 }
                 .retrieve()
                 .body(typeRef)
         } catch (ex: RestClientResponseException) {
-            log.warn("FMP news error for ticker={} status={}", upperTicker, ex.statusCode)
+            log.warn("FMP {} error for ticker={} status={}", path, upperTicker, ex.statusCode)
+            return emptyList()
+        } catch (ex: RestClientException) {
+            // News non e' un segnale critico: un errore di decoding del body
+            // (es. formato data inatteso) o di trasporto deve degradare a lista
+            // vuota, non far fallire l'intera deep analysis.
+            log.warn("FMP {} decode/transport error for ticker={}: {}", path, upperTicker, ex.message)
             return emptyList()
         }
 

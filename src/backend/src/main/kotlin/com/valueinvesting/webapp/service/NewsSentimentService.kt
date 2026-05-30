@@ -34,7 +34,12 @@ class NewsSentimentService(
 
     @Transactional
     fun classify(ticker: String): NewsSentimentResult {
-        val news = fmpAdapter.getStockNews(ticker, 90)
+        // Due fonti complementari: /news/stock (copertura editoriale di terze parti)
+        // + /news/press-releases (voce ufficiale dell'azienda). Union deduplicata
+        // per newsId|url|title cosi' la stessa notizia non viene classificata due volte.
+        val stockNews = fmpAdapter.getStockNews(ticker, 90)
+        val pressReleases = fmpAdapter.getPressReleases(ticker, 90)
+        val news = (stockNews + pressReleases).distinctBy { it.newsId ?: it.url ?: it.title }
         if (news.isEmpty()) {
             return NewsSentimentResult(
                 ticker = ticker,

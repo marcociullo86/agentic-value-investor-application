@@ -105,6 +105,9 @@ class ResilientFmpAdapter(
     override fun getStockNews(ticker: String, days: Int): List<StockNewsItem> =
         execute("news/stock", ticker) { delegate.getStockNews(ticker, days) }
 
+    override fun getPressReleases(ticker: String, days: Int): List<StockNewsItem> =
+        execute("news/press-releases", ticker) { delegate.getPressReleases(ticker, days) }
+
     override fun getHistoricalEodPrices(ticker: String, days: Int): List<EodPriceRecord> =
         execute("historical-price-eod", ticker) { delegate.getHistoricalEodPrices(ticker, days) }
 

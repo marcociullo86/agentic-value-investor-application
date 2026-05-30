@@ -71,22 +71,19 @@ services:
         condition: service_healthy
       embeddings-sidecar:
         condition: service_healthy
+    # `.env` è l'UNICO entry point per la configurazione runtime: env_file inietta
+    # nel container OGNI variabile definita in src/docker/.env (FMP, Anthropic, LLM
+    # budget, SEC EDGAR, MFA, Turnstile, HIBP, scheduling, retention log, …) così
+    # Spring le legge tutte. Senza questo, solo le var elencate sotto `environment`
+    # raggiungerebbero l'app e il resto di .env verrebbe silenziosamente ignorato.
+    env_file:
+      - .env
     environment:
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      # Override SOLO dei valori legati alla topologia della compose-network:
+      # hostname dei service (postgres, embeddings-sidecar). Pinati qui così
+      # restano coerenti anche se .env contiene host diversi (es. localhost).
       DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-value_investing}
-      DB_USERNAME: ${POSTGRES_USER:-postgres}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      FMP_API_KEY: ${FMP_API_KEY}
-      FMP_BASE_URL: ${FMP_BASE_URL:-https://financialmodelingprep.com/api/v3}
-      JWT_SIGNING_SECRET: ${JWT_SIGNING_SECRET}
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000}
       EMBEDDINGS_SIDECAR_URL: http://embeddings-sidecar:8001
-      # Scheduled jobs — override cron/timezone da .env
-      TOP_PICKS_ENABLED: ${TOP_PICKS_ENABLED:-true}
-      TOP_PICKS_CRON: ${TOP_PICKS_CRON:-0 0 2 * * *}
-      TOP_PICKS_ZONE: ${TOP_PICKS_ZONE:-UTC}
-      FMP_EVENT_LOG_PURGE_CRON: ${FMP_EVENT_LOG_PURGE_CRON:-0 0 3 * * *}
-      FMP_EVENT_LOG_PURGE_ZONE: ${FMP_EVENT_LOG_PURGE_ZONE:-UTC}
     ports:
       - "8080:8080"
     healthcheck:
