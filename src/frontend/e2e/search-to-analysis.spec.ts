@@ -36,6 +36,7 @@
 
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { mockAuthSession } from './helpers/auth';
 
 // --- Fixture imports -------------------------------------------------------
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -69,6 +70,13 @@ async function mockAnalysisRoutes(page: Page): Promise<void> {
 // ---------------------------------------------------------------------------
 // Scenario 1 — Happy path: AAPL → TrafficLightPanel con 7 semafori
 // ---------------------------------------------------------------------------
+// /analysis è protetta (route-config TSK-267): semina sessione auth per ogni
+// test (cookie proxy dev + mock POST /api/auth/refresh). Innocuo sulle pagine
+// pubbliche (/, /screener) toccate dai test "search" — nessun test qui usa /login.
+test.beforeEach(async ({ page }) => {
+  await mockAuthSession(page);
+});
+
 test('user searches AAPL and sees Traffic Light panel with 7 rule signals', async ({ page }) => {
   // Mock: search → exact match → navigate to analysis
   await page.route('**/api/search?query=AAPL', (route) =>

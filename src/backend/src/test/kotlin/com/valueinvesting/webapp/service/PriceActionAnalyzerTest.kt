@@ -84,7 +84,7 @@ class PriceActionAnalyzerTest {
                 volume = 1000000,
             )
         }
-        every { fmpAdapter.getHistoricalEodPrices("TEST", 365) } returns prices
+        every { fmpAdapter.getHistoricalEodPrices("TEST", any()) } returns prices
         every { fmpAdapter.getProfile("TEST") } returns ProfileDto(price = 70.0)
 
         val result = priceActionAnalyzer.analyze("TEST")
@@ -106,7 +106,7 @@ class PriceActionAnalyzerTest {
                 volume = 1000000,
             )
         }
-        every { fmpAdapter.getHistoricalEodPrices("FALL", 365) } returns prices
+        every { fmpAdapter.getHistoricalEodPrices("FALL", any()) } returns prices
         every { fmpAdapter.getProfile("FALL") } returns ProfileDto(price = 48.0)
 
         val result = priceActionAnalyzer.analyze("FALL")
@@ -117,7 +117,7 @@ class PriceActionAnalyzerTest {
     @Test
     fun `no deterioration when trend bad but no death cross`() {
         val prices = makeEodPrices(252, 100.0, 0.1)
-        every { fmpAdapter.getHistoricalEodPrices("UP", 365) } returns prices
+        every { fmpAdapter.getHistoricalEodPrices("UP", any()) } returns prices
         every { fmpAdapter.getProfile("UP") } returns ProfileDto(price = 120.0)
 
         val result = priceActionAnalyzer.analyze("UP")
@@ -128,7 +128,7 @@ class PriceActionAnalyzerTest {
     @Test
     fun `insufficient series returns null max52w and flags false`() {
         val prices = makeEodPrices(100, 50.0)
-        every { fmpAdapter.getHistoricalEodPrices("SHORT", 365) } returns prices
+        every { fmpAdapter.getHistoricalEodPrices("SHORT", any()) } returns prices
         every { fmpAdapter.getProfile("SHORT") } returns ProfileDto(price = 50.0)
 
         val result = priceActionAnalyzer.analyze("SHORT")
@@ -143,12 +143,12 @@ class PriceActionAnalyzerTest {
     @Test
     fun `cache hit - second call same day uses cached snapshot`() {
         val prices = makeEodPrices(252, 100.0)
-        every { fmpAdapter.getHistoricalEodPrices("CACHE", 365) } returns prices
+        every { fmpAdapter.getHistoricalEodPrices("CACHE", any()) } returns prices
         every { fmpAdapter.getProfile("CACHE") } returns ProfileDto(price = 100.0)
 
         priceActionAnalyzer.analyze("CACHE")
         priceActionAnalyzer.analyze("CACHE")
 
-        io.mockk.verify(exactly = 1) { fmpAdapter.getHistoricalEodPrices("CACHE", 365) }
+        io.mockk.verify(exactly = 1) { fmpAdapter.getHistoricalEodPrices("CACHE", any()) }
     }
 }

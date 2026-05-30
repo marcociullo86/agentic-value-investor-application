@@ -18,14 +18,14 @@ import {
  * automatically) to silently rehydrate.
  *
  * A non-httpOnly `isAuthenticated` cookie is set on login and cleared
- * on logout — it serves as a hint for the Next.js Edge middleware
+ * on logout — it serves as a hint for the Next.js Edge proxy
  * (TSK-206) to gate protected routes without accessing the httpOnly
  * refresh token.
  *
  * A non-httpOnly `sessionExpired` cookie is written/cleared in sync with
- * the `sessionExpired` flag (TSK-043 / wave A6 fix): the middleware
- * (`middleware.ts §1`) reads it to redirect to `/login?expired=true` and
- * deletes it in the same response. Without this cookie hint the middleware
+ * the `sessionExpired` flag (TSK-043 / wave A6 fix): the proxy
+ * (`proxy.ts §1`) reads it to redirect to `/login?expired=true` and
+ * deletes it in the same response. Without this cookie hint the proxy
  * branch is unreachable from a client-side 401 interceptor.
  *
  * TSK-232/233 (US-081): when the BE returns `{ mfaRequired: true, mfaToken }`,
@@ -110,8 +110,8 @@ function clearAuthHintCookie(): void {
 }
 
 /**
- * Hint cookie consumato dal middleware Edge (`middleware.ts §1`): se presente
- * il middleware redirige a `/login?expired=true` ed elimina il cookie nella
+ * Hint cookie consumato dal proxy Edge (`proxy.ts §1`): se presente
+ * il proxy redirige a `/login?expired=true` ed elimina il cookie nella
  * stessa response (TSK-043).
  */
 function setSessionExpiredCookie(): void {

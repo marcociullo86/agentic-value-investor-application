@@ -76,6 +76,21 @@ class Filing10KQDownloaderService(
         val cached = filingBlobRepository.findByAccessionNumberAndExpiresAtAfter(accessionNumber, now)
         if (cached != null) {
             log.debug("Cache hit for accession={} ticker={}", accessionNumber, ticker)
+            // Self-heal: blob non scaduti possono avere filing_date = EPOCH se
+            // furono scritti da un parser precedente (datetime "yyyy-MM-dd HH:mm:ss"
+            // non gestito → fallback EPOCH). Un re-ingest ("Indicizza filing")
+            // sana la data in place senza riscaricare l'HTML.
+            val healedDate = parseFilingDate(filing)
+            if (cached.filingDate == LocalDate.EPOCH && healedDate != LocalDate.EPOCH) {
+                cached.filingDate = healedDate
+                if (cached.formType.isBlank()) cached.formType = filing.formType ?: cached.formType
+                if (cached.cik.isBlank()) cached.cik = filing.cik ?: cached.cik
+                filingBlobRepository.save(cached)
+                log.info(
+                    "Healed stale filing_date for accession={} ticker={} → {}",
+                    accessionNumber, ticker, healedDate,
+                )
+            }
             return
         }
 
@@ -121,6 +136,13 @@ class Filing10KQDownloaderService(
             existing.fetchedAt = now
             existing.expiresAt = now.plus(CACHE_TTL)
             existing.primaryDocUrl = downloadUrl
+            // Riallinea i metadata dal discovery FMP: su un blob scaduto la data
+            // poteva essere EPOCH (parser legacy). Non sovrascrivere con valori
+            // peggiori: aggiorna solo se FMP fornisce un dato valido.
+            val refreshedDate = parseFilingDate(filing)
+            if (refreshedDate != LocalDate.EPOCH) existing.filingDate = refreshedDate
+            filing.formType?.takeIf { it.isNotBlank() }?.let { existing.formType = it }
+            filing.cik?.takeIf { it.isNotBlank() }?.let { existing.cik = it }
             filingBlobRepository.save(existing)
             log.info("Refreshed expired filing accession={} ticker={}", accessionNumber, ticker)
         } else {
@@ -129,7 +151,7 @@ class Filing10KQDownloaderService(
                 cik = filing.cik ?: "",
                 formType = filing.formType ?: "",
                 accessionNumber = accessionNumber,
-                filingDate = parseFilingDate(filing.filingDate),
+                filingDate = parseFilingDate(filing),
                 primaryDocUrl = downloadUrl,
                 htmlBody = html,
                 htmlSizeBytes = htmlSizeBytes,
@@ -173,17 +195,29 @@ class Filing10KQDownloaderService(
         return "${raw.substring(0, 10)}-${raw.substring(10, 12)}-${raw.substring(12)}"
     }
 
-    private fun parseFilingDate(dateStr: String?): LocalDate {
-        if (dateStr.isNullOrBlank()) return LocalDate.EPOCH
-        // FMP restituisce filingDate sia come "yyyy-MM-dd" sia come datetime
-        // "yyyy-MM-dd HH:mm:ss" (o ISO "yyyy-MM-ddTHH:mm:ss"). Isoliamo la sola
-        // parte data prima del parse per evitare il fallback a EPOCH.
+    // Risolve la filing date dal discovery FMP. Prova `filingDate`, poi
+    // `acceptedDate` come fallback (entrambi possono arrivare come "yyyy-MM-dd"
+    // o datetime "yyyy-MM-dd HH:mm:ss"/"...THH:mm:ss"). Ritorna EPOCH solo se
+    // nessuno dei due è valorizzato/parseabile — sentinella "data non nota".
+    private fun parseFilingDate(filing: SecFilingFmpDto): LocalDate {
+        return parseDateOrNull(filing.filingDate)
+            ?: parseDateOrNull(filing.acceptedDate)
+            ?: run {
+                log.warn(
+                    "Unparseable filing/accepted date: filingDate={} acceptedDate={}",
+                    filing.filingDate, filing.acceptedDate,
+                )
+                LocalDate.EPOCH
+            }
+    }
+
+    private fun parseDateOrNull(dateStr: String?): LocalDate? {
+        if (dateStr.isNullOrBlank()) return null
         val datePart = dateStr.trim().substringBefore(' ').substringBefore('T')
         return try {
             LocalDate.parse(datePart)
         } catch (_: DateTimeParseException) {
-            log.warn("Unparseable filing date: {}", dateStr)
-            LocalDate.EPOCH
+            null
         }
     }
 }

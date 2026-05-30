@@ -44,20 +44,20 @@ Il bundle `out/` viene servito dal backend (vedi ADR-009 `§Dev locale` /
 ## Perimetro auth e routing (ADR-026)
 
 > TL;DR: in **produzione** l'AuthGuard è **client-side** (UX) e l'enforcement
-> reale è **sul backend** (security boundary). `middleware.ts` è **dev-only**.
+> reale è **sul backend** (security boundary). `proxy.ts` è **dev-only**.
 
 Con `output: 'export'` non esiste un runtime Next.js in produzione: il
 bundle statico viene servito dal backend Spring Boot, quindi nessun
-middleware Edge/Node FE può intercettare le richieste. ADR-026 formalizza
+proxy Edge/Node FE può intercettare le richieste. ADR-026 formalizza
 la separazione fra layer di guard e layer di sicurezza:
 
 | Concern | Produzione | Dev locale (`next dev`) |
 |---|---|---|
-| Redirect non autenticato → `/login?returnUrl=…` | `ClientAuthGuard` + `useAuthGuard` | Idem, più fallback `middleware.ts` |
-| Redirect ruolo insufficiente → `/403` | `ClientAuthGuard` | Idem, più fallback `middleware.ts` |
-| Sessione scaduta → logout + login | `useAuthGuard` (`session-expired`) | Idem, più `middleware.ts` |
+| Redirect non autenticato → `/login?returnUrl=…` | `ClientAuthGuard` + `useAuthGuard` | Idem, più fallback `proxy.ts` |
+| Redirect ruolo insufficiente → `/403` | `ClientAuthGuard` | Idem, più fallback `proxy.ts` |
+| Sessione scaduta → logout + login | `useAuthGuard` (`session-expired`) | Idem, più `proxy.ts` |
 | Authz reale (security boundary) | Backend (`@PreAuthorize`, sessione, ruoli) | Idem |
-| CSP | `SecurityHeadersConfig` lato BE (TSK-221) | `middleware.ts` con nonce per-request (parità minima) |
+| CSP | `SecurityHeadersConfig` lato BE (TSK-221) | `proxy.ts` con nonce per-request (parità minima) |
 
 ### Componenti chiave
 
@@ -71,11 +71,12 @@ la separazione fra layer di guard e layer di sicurezza:
   testabile in isolamento (input → decisione).
 - `lib/auth/route-config.ts` — mappa dichiarativa unica dei requisiti
   `requiresAuth` / `roles` (TSK-205 / US-074), consumata sia dal guard
-  client-side che dal middleware dev.
+  client-side che dal proxy dev.
 
-### `middleware.ts` (dev-only)
+### `proxy.ts` (dev-only)
 
-`middleware.ts` resta solo come convenienza per `next dev`: con
+`proxy.ts` (convention `proxy`, ex `middleware` — rinominata in Next.js 16,
+TSK-298) resta solo come convenienza per `next dev`: con
 `output: 'export'` non viene mai incluso nel bundle prodotto in `out/`.
 Per evitare che diventi accidentalmente "il" controllo auth di produzione
 (es. se in futuro qualcuno rimuove `output: 'export'` senza ridisegnare il
@@ -89,7 +90,7 @@ if (process.env.NODE_ENV !== "development") {
 
 Conseguenze operative:
 
-- Build/export statica (`npm run build`) NON dipende da `middleware.ts`.
+- Build/export statica (`npm run build`) NON dipende da `proxy.ts`.
 - I test Vitest (`NODE_ENV=test`) di default vedono solo il pass-through;
   i test dello scenario dev stubbano esplicitamente
   `vi.stubEnv('NODE_ENV', 'development')`.
@@ -103,7 +104,7 @@ Riferimenti:
 
 ### Test E2E AuthGuard (static export)
 
-Valida `ClientAuthGuard` sul bundle `out/` **senza** `next dev` né middleware:
+Valida `ClientAuthGuard` sul bundle `out/` **senza** `next dev` né proxy:
 
 ```bash
 cd src/frontend

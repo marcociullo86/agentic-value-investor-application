@@ -42,6 +42,7 @@
 
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { mockAuthSession } from './helpers/auth';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const defaultFixture = require('./fixtures/top-picks-default.json') as Record<string, unknown>;
@@ -84,6 +85,13 @@ async function mockTopPicksEmpty(page: Page): Promise<void> {
 // Scenario 1 — Default load: table with > 0 rows + header visible
 // ---------------------------------------------------------------------------
 test.describe('/top-picks page', () => {
+
+  // /top-picks è una rotta protetta (route-config TSK-267): semina una sessione
+  // autenticata mockando POST /api/auth/refresh, altrimenti ClientAuthGuard
+  // reindirizza a /login e la pagina non renderizza.
+  test.beforeEach(async ({ page }) => {
+    await mockAuthSession(page);
+  });
 
   test('default load — header present and table has rows', async ({ page }) => {
     await mockTopPicksDefault(page);

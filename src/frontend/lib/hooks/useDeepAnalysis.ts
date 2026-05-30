@@ -207,10 +207,15 @@ export function useDeepAnalysis(ticker: string): UseDeepAnalysisResult {
     }, POLL_INTERVAL_MS);
   }, [clearPolling, mutate]);
 
-  // Stop polling automatically when SWR reports a terminal status.
+  // Auto-poll whenever the latest snapshot is RUNNING — anche al first paint
+  // (es. una run avviata altrove o in una sessione precedente): senza questo,
+  // il polling partiva solo da runNow/runWithLlm e una pagina aperta su uno
+  // stato RUNNING non si aggiornava mai a SUCCESS. startPolling è idempotente;
+  // clearPolling ferma il timer su stato terminale/unmount.
   useEffect(() => {
-    if (!isRunning) clearPolling();
-  }, [isRunning, clearPolling]);
+    if (isRunning) startPolling();
+    else clearPolling();
+  }, [isRunning, startPolling, clearPolling]);
 
   // Cleanup on unmount or ticker change.
   useEffect(() => {

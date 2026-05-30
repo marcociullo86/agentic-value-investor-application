@@ -33,6 +33,7 @@
 
 import { test, expect } from '@playwright/test';
 import type { Page, Route } from '@playwright/test';
+import { mockAuthSession } from './helpers/auth';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const deepAaplFixture = require('./fixtures/deep-analysis-aapl.json') as Record<string, unknown>;
@@ -272,6 +273,9 @@ async function mockStartIngest(
 
 test.describe('Deep Analysis page (async flow)', () => {
   test.beforeEach(async ({ page }) => {
+    // /analysis/deep è protetta (route-config TSK-267): semina sessione auth
+    // (cookie proxy dev + mock POST /api/auth/refresh) altrimenti redirect /login.
+    await mockAuthSession(page);
     // Default ingest stub: every test gets an NONE ingest snapshot unless it
     // installs a more specific handler before this one. The route registered
     // here is checked AFTER per-test routes (last-registered wins in Playwright),

@@ -150,9 +150,14 @@ function DeepAnalysisContent({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => void runNow()}
+              onClick={() =>
+                void (data.mungerReport !== null || data.newsSentiment !== null
+                  ? runWithLlm()
+                  : runNow())
+              }
               disabled={isRunning}
               data-testid="regenerate-button"
+              title="Ri-esegue l’analisi con la stessa modalità del risultato corrente (con o senza LLM)"
             >
               {isRunning ? 'Rigenerazione…' : 'Rigenera'}
             </Button>
@@ -393,8 +398,8 @@ function EmptyState(): React.ReactElement {
         Nessuna esecuzione disponibile.
       </p>
       <p>
-        Premi <strong>Esegui ora</strong> per avviare la deep analysis senza
-        LLM, oppure <strong>Esegui + LLM</strong> per includere il report Munger
+        Premi <strong>Analizza</strong> per avviare la deep analysis senza
+        LLM, oppure <strong>Analizza + LLM</strong> per includere il report Munger
         e il sentiment news.
       </p>
     </div>
@@ -478,7 +483,7 @@ function ErrorPanel({
               disabled={ingestDisabled}
               data-testid="deep-analysis-error-ingest-cta"
             >
-              {ingestDisabled ? 'Indicizzazione…' : 'Indicizza ora'}
+              {ingestDisabled ? 'Indicizzazione…' : 'Indicizza filing'}
             </Button>
           </div>
         </div>

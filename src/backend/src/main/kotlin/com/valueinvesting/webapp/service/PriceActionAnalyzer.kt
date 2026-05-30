@@ -26,18 +26,34 @@ class PriceActionAnalyzer(
         private const val PANIC_THRESHOLD = -30.0
         private const val DETERIORATION_TREND_THRESHOLD = -10.0
         private const val MIN_SERIES_DAYS = 252
+
+        // Finestra di download EOD in giorni di CALENDARIO. Serve a garantire
+        // ≥ MIN_SERIES_DAYS (252) giorni di TRADING: 365 giorni di calendario
+        // rendono solo ~250-252 trading days (weekend + festivi), proprio al
+        // limite della soglia → con un anno "sfortunato" la serie cade sotto 252
+        // e max52w/min52w diventano null (chart "Dati di prezzo non disponibili"
+        // pur avendo il prezzo corrente). 400 giorni di calendario ≈ ~275 trading
+        // days, margine sufficiente. Il calcolo di max/min 52w usa comunque solo
+        // le ultime MIN_SERIES_DAYS sedute (vedi window52w), così la semantica
+        // "52 week" resta esatta nonostante la finestra di download più ampia.
+        private const val EOD_LOOKBACK_CALENDAR_DAYS = 400
     }
 
     @Transactional
     fun analyze(ticker: String): PriceActionSnapshot {
         val today = LocalDate.now()
         val cached = snapshotRepo.findByTickerAndCalcDate(ticker, today)
-        if (cached != null) {
+        // Riusa la cache SOLO se lo snapshot è completo. Uno snapshot degradato
+        // (max52w null = serie EOD insufficiente) NON viene servito dalla cache:
+        // lo ricalcoliamo, così un risultato parziale dovuto a una serie corta
+        // transitoria non resta "congelato" per l'intera giornata (root cause del
+        // box "Dati di prezzo non disponibili" pur avendo il prezzo corrente).
+        if (cached != null && cached.max52w != null) {
             log.debug("Price action cache hit for {} on {}", ticker, today)
             return entityToSnapshot(cached)
         }
 
-        val eodPrices = fmpAdapter.getHistoricalEodPrices(ticker, 365)
+        val eodPrices = fmpAdapter.getHistoricalEodPrices(ticker, EOD_LOOKBACK_CALENDAR_DAYS)
         val profile = fmpAdapter.getProfile(ticker)
         val currentPrice = profile.price
 
@@ -65,8 +81,12 @@ class PriceActionAnalyzer(
                 note = "Serie insufficiente ($seriesDays < $MIN_SERIES_DAYS giorni)",
             )
         } else {
-            val max52w = closePrices.max()
-            val min52w = closePrices.min()
+            // 52w high/low sull'ultimo anno di trading (252 sedute), non
+            // sull'intera serie scaricata (~275 sedute con la finestra a 400gg):
+            // mantiene la semantica "52 week" anche con il margine di download.
+            val window52w = closePrices.takeLast(MIN_SERIES_DAYS)
+            val max52w = window52w.max()
+            val min52w = window52w.min()
             val drawdownPct = (currentPrice - max52w) / max52w * 100.0
 
             val trend3mPct = if (closePrices.size > 63) {
@@ -101,21 +121,23 @@ class PriceActionAnalyzer(
         return snapshot
     }
 
+    // Upsert sulla riga (ticker, calc_date): la tabella ha un unique constraint
+    // uq_price_action_ticker_date, quindi un ricalcolo nello stesso giorno (es.
+    // dopo uno snapshot degradato non servito dalla cache) deve AGGIORNARE la
+    // riga esistente, non inserirne una nuova (che violerebbe il constraint).
     private fun persistSnapshot(ticker: String, calcDate: LocalDate, s: PriceActionSnapshot) {
-        val entity = PriceActionSnapshotEntity(
-            ticker = ticker,
-            calcDate = calcDate,
-            priceNow = s.priceNow?.toBigDecimal()?.setScale(4, RoundingMode.HALF_UP),
-            max52w = s.max52w?.toBigDecimal()?.setScale(4, RoundingMode.HALF_UP),
-            min52w = s.min52w?.toBigDecimal()?.setScale(4, RoundingMode.HALF_UP),
-            drawdownPct = s.drawdownPct?.toBigDecimal()?.setScale(4, RoundingMode.HALF_UP),
-            trend3mPct = s.trend3mPct?.toBigDecimal()?.setScale(4, RoundingMode.HALF_UP),
-            ma50 = s.ma50?.toBigDecimal()?.setScale(4, RoundingMode.HALF_UP),
-            ma200 = s.ma200?.toBigDecimal()?.setScale(4, RoundingMode.HALF_UP),
-            panicDiscount = s.panicDiscount,
-            deteriorationWarning = s.deteriorationWarning,
-            seriesDays = s.seriesDays,
-        )
+        val entity = snapshotRepo.findByTickerAndCalcDate(ticker, calcDate)
+            ?: PriceActionSnapshotEntity(ticker = ticker, calcDate = calcDate)
+        entity.priceNow = s.priceNow?.toBigDecimal()?.setScale(4, RoundingMode.HALF_UP)
+        entity.max52w = s.max52w?.toBigDecimal()?.setScale(4, RoundingMode.HALF_UP)
+        entity.min52w = s.min52w?.toBigDecimal()?.setScale(4, RoundingMode.HALF_UP)
+        entity.drawdownPct = s.drawdownPct?.toBigDecimal()?.setScale(4, RoundingMode.HALF_UP)
+        entity.trend3mPct = s.trend3mPct?.toBigDecimal()?.setScale(4, RoundingMode.HALF_UP)
+        entity.ma50 = s.ma50?.toBigDecimal()?.setScale(4, RoundingMode.HALF_UP)
+        entity.ma200 = s.ma200?.toBigDecimal()?.setScale(4, RoundingMode.HALF_UP)
+        entity.panicDiscount = s.panicDiscount
+        entity.deteriorationWarning = s.deteriorationWarning
+        entity.seriesDays = s.seriesDays
         snapshotRepo.save(entity)
     }
 

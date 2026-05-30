@@ -23,6 +23,12 @@ Conseguenze:
 
 - Tutti i riferimenti `$150` di seguito sono **storici** della v2 originale (2026-05-23). Il default attuale è **$50**.
 - L'admin può alzare/abbassare il cap senza redeploy; ogni modifica genera audit entry `LLM_BUDGET_CAP_CHANGED` con old/new value, admin user, timestamp.
+
+## Aggiornamento 2026-05-30 — Modello default Opus 4.8 + selezione via config
+
+- Il modello di default Anthropic è stato portato da `claude-opus-4-7` a **`claude-opus-4-8`** e reso **configurabile via env `ANTHROPIC_MODEL`** (single source of truth — dettagli in [ADR-017](ADR-017-anthropic-sdk-jvm.md) §Aggiornamento 2026-05-30).
+- I riferimenti a `claude-opus-4-7` di seguito (tabella pricing, esempi colonna `model` del telemetry log) sono **storici/illustrativi** della v2 originale: il telemetry log registra il `model` effettivamente restituito dall'API ad ogni chiamata, quindi traccierà automaticamente `claude-opus-4-8` (o qualunque valore di `ANTHROPIC_MODEL`) senza modifiche al codice.
+- La logica di budget/telemetria (cap, alert, audit) è **indipendente dal modello** e resta invariata. La tabella pricing va riverificata se la tariffa per-token di Opus 4.8 differisce dal tier Opus assunto ($15/$75 per 1M).
 - I 3 TSK proposti diventano 4 con l'aggiunta del nuovo TSK-XXX-D (fe `LlmBudgetAdminPanel`, vedi §"Migration & Rollout").
 
 [^src: management/questions.md decisione utente 2026-05-25]

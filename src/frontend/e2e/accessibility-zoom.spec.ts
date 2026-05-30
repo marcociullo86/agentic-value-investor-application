@@ -21,6 +21,7 @@
 
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { mockAuthSession } from './helpers/auth';
 
 // --- Fixture imports -------------------------------------------------------
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -103,6 +104,7 @@ test.describe('Zoom 200% — WCAG 1.4.10 Reflow', () => {
   });
 
   test('Analysis page: no horizontal overflow at 200% zoom', async ({ page }) => {
+    await mockAuthSession(page); // /analysis protetta (TSK-267)
     await mockAllRoutes(page);
     await page.goto('/analysis/?ticker=AAPL');
 
@@ -117,6 +119,7 @@ test.describe('Zoom 200% — WCAG 1.4.10 Reflow', () => {
   });
 
   test('Top picks page: no horizontal overflow at 200% zoom', async ({ page }) => {
+    await mockAuthSession(page); // /top-picks protetta (TSK-267)
     await mockAllRoutes(page);
     await page.goto('/top-picks');
 

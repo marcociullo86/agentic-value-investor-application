@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /**
- * Unit tests for the Next.js AuthGuard middleware (TSK-206).
+ * Unit tests for the Next.js AuthGuard proxy (ex `middleware`, TSK-206 / TSK-298).
  * Mocks NextRequest/NextResponse to test the decision table in isolation.
  *
  * Reference: TSK-208 §Scenari AuthGuard, US-073 AC.
@@ -61,7 +61,7 @@ function createMockRequest(
   };
 }
 
-describe('AuthGuard middleware (dev runtime)', () => {
+describe('AuthGuard proxy (dev runtime)', () => {
   beforeEach(() => {
     vi.resetModules();
     mockRedirect.mockClear();
@@ -77,16 +77,16 @@ describe('AuthGuard middleware (dev runtime)', () => {
     vi.restoreAllMocks();
   });
 
-  async function importMiddleware() {
-    const mod = await import('../middleware');
-    return mod.middleware;
+  async function importProxy() {
+    const mod = await import('../proxy');
+    return mod.proxy;
   }
 
   it('redirects unauthenticated request to /login with returnUrl (scenario 4)', async () => {
-    const middleware = await importMiddleware();
+    const proxy = await importProxy();
     const request = createMockRequest('/watchlist', {});
 
-    middleware(request as never);
+    proxy(request as never);
 
     expect(mockRedirect).toHaveBeenCalledTimes(1);
     const redirectUrl: URL = mockRedirect.mock.calls[0][0];
@@ -95,10 +95,10 @@ describe('AuthGuard middleware (dev runtime)', () => {
   });
 
   it('redirects unauthenticated request preserving search params in returnUrl', async () => {
-    const middleware = await importMiddleware();
+    const proxy = await importProxy();
     const request = createMockRequest('/watchlist', {}, '?sort=name');
 
-    middleware(request as never);
+    proxy(request as never);
 
     expect(mockRedirect).toHaveBeenCalledTimes(1);
     const redirectUrl: URL = mockRedirect.mock.calls[0][0];
@@ -106,10 +106,10 @@ describe('AuthGuard middleware (dev runtime)', () => {
   });
 
   it('redirects authenticated user visiting /login to / (scenario 5)', async () => {
-    const middleware = await importMiddleware();
+    const proxy = await importProxy();
     const request = createMockRequest('/login', { isAuthenticated: 'true' });
 
-    middleware(request as never);
+    proxy(request as never);
 
     expect(mockRedirect).toHaveBeenCalledTimes(1);
     const redirectUrl: URL = mockRedirect.mock.calls[0][0];
@@ -117,13 +117,13 @@ describe('AuthGuard middleware (dev runtime)', () => {
   });
 
   it('redirects to /403 when user role does not match route requirement (scenario 6)', async () => {
-    const middleware = await importMiddleware();
+    const proxy = await importProxy();
     const request = createMockRequest('/admin', {
       isAuthenticated: 'true',
       userRole: 'user',
     });
 
-    middleware(request as never);
+    proxy(request as never);
 
     expect(mockRedirect).toHaveBeenCalledTimes(1);
     const redirectUrl: URL = mockRedirect.mock.calls[0][0];
@@ -131,33 +131,33 @@ describe('AuthGuard middleware (dev runtime)', () => {
   });
 
   it('allows admin to access /admin route', async () => {
-    const middleware = await importMiddleware();
+    const proxy = await importProxy();
     const request = createMockRequest('/admin', {
       isAuthenticated: 'true',
       userRole: 'admin',
     });
 
-    middleware(request as never);
+    proxy(request as never);
 
     expect(mockNext).toHaveBeenCalledTimes(1);
     expect(mockRedirect).not.toHaveBeenCalled();
   });
 
   it('passes through for public routes without auth (scenario 7)', async () => {
-    const middleware = await importMiddleware();
+    const proxy = await importProxy();
     const request = createMockRequest('/', {});
 
-    middleware(request as never);
+    proxy(request as never);
 
     expect(mockNext).toHaveBeenCalledTimes(1);
     expect(mockRedirect).not.toHaveBeenCalled();
   });
 
   it('redirects unauthenticated /analysis request to /login (TSK-267 — newly protected)', async () => {
-    const middleware = await importMiddleware();
+    const proxy = await importProxy();
     const request = createMockRequest('/analysis', {}, '?ticker=AAPL');
 
-    middleware(request as never);
+    proxy(request as never);
 
     expect(mockRedirect).toHaveBeenCalledTimes(1);
     const redirectUrl = mockRedirect.mock.calls[0]?.[0] as URL;
@@ -166,23 +166,23 @@ describe('AuthGuard middleware (dev runtime)', () => {
   });
 
   it('passes through for /screener public route', async () => {
-    const middleware = await importMiddleware();
+    const proxy = await importProxy();
     const request = createMockRequest('/screener', {});
 
-    middleware(request as never);
+    proxy(request as never);
 
     expect(mockNext).toHaveBeenCalledTimes(1);
     expect(mockRedirect).not.toHaveBeenCalled();
   });
 
   it('handles session expired cookie: redirects to /login?expired=true (scenario 1)', async () => {
-    const middleware = await importMiddleware();
+    const proxy = await importProxy();
     const request = createMockRequest('/watchlist', {
       isAuthenticated: 'true',
       sessionExpired: 'true',
     });
 
-    const response = middleware(request as never);
+    const response = proxy(request as never);
 
     expect(mockRedirect).toHaveBeenCalledTimes(1);
     const redirectUrl: URL = mockRedirect.mock.calls[0][0];
@@ -193,20 +193,20 @@ describe('AuthGuard middleware (dev runtime)', () => {
   });
 
   it('passes through for unknown routes (fail-open on frontend)', async () => {
-    const middleware = await importMiddleware();
+    const proxy = await importProxy();
     const request = createMockRequest('/some-unknown-route', {});
 
-    middleware(request as never);
+    proxy(request as never);
 
     expect(mockNext).toHaveBeenCalledTimes(1);
     expect(mockRedirect).not.toHaveBeenCalled();
   });
 
   it('normalises trailing slash before route lookup', async () => {
-    const middleware = await importMiddleware();
+    const proxy = await importProxy();
     const request = createMockRequest('/watchlist/', {});
 
-    middleware(request as never);
+    proxy(request as never);
 
     expect(mockRedirect).toHaveBeenCalledTimes(1);
     const redirectUrl: URL = mockRedirect.mock.calls[0][0];
@@ -215,7 +215,7 @@ describe('AuthGuard middleware (dev runtime)', () => {
   });
 });
 
-describe('CSP middleware (TSK-222) — dev runtime', () => {
+describe('CSP proxy (TSK-222) — dev runtime', () => {
   const fixedNonce = '00000000-0000-4000-8000-000000000001';
 
   beforeEach(() => {
@@ -234,9 +234,9 @@ describe('CSP middleware (TSK-222) — dev runtime', () => {
     vi.unstubAllGlobals();
   });
 
-  async function importMiddleware() {
-    const mod = await import('../middleware');
-    return mod.middleware;
+  async function importProxy() {
+    const mod = await import('../proxy');
+    return mod.proxy;
   }
 
   function expectCspOnResponse(response: { headers: Headers }): void {
@@ -245,17 +245,17 @@ describe('CSP middleware (TSK-222) — dev runtime', () => {
     // Dev mode CSP always includes per-request nonce + `'unsafe-inline'`
     // for HMR (TSK-222 §dev relaxation). Production CSP — without
     // `'unsafe-inline'` — is emitted by the backend `SecurityHeadersConfig`
-    // (TSK-221), never by this middleware (dev-only per TSK-268).
+    // (TSK-221), never by this proxy (dev-only per TSK-268).
     expect(csp).toContain(`'nonce-${fixedNonce}'`);
     expect(csp).toMatch(/script-src[^;]*'unsafe-inline'/);
     expect(csp).toMatch(/connect-src[^;]*ws:/);
   }
 
   it('adds Content-Security-Policy with nonce on pass-through responses', async () => {
-    const middleware = await importMiddleware();
+    const proxy = await importProxy();
     const request = createMockRequest('/', {});
 
-    const response = middleware(request as never);
+    const response = proxy(request as never);
 
     expect(mockNext).toHaveBeenCalledTimes(1);
     expectCspOnResponse(response);
@@ -266,10 +266,10 @@ describe('CSP middleware (TSK-222) — dev runtime', () => {
   });
 
   it('adds Content-Security-Policy with nonce on redirect responses', async () => {
-    const middleware = await importMiddleware();
+    const proxy = await importProxy();
     const request = createMockRequest('/watchlist', {});
 
-    const response = middleware(request as never);
+    const response = proxy(request as never);
 
     expect(mockRedirect).toHaveBeenCalledTimes(1);
     expectCspOnResponse(response);
@@ -279,14 +279,14 @@ describe('CSP middleware (TSK-222) — dev runtime', () => {
 /**
  * Dev-only guard-rail (TSK-268 / ADR-026).
  *
- * `middleware.ts` is intentionally limited to `next dev` because the
- * production bundle is `output: 'export'` and never executes middleware.
+ * `proxy.ts` is intentionally limited to `next dev` because the
+ * production bundle is `output: 'export'` and never executes the proxy.
  * If a future runtime accidentally invokes this code path with a
  * non-development `NODE_ENV`, it must short-circuit to pass-through
  * without redirects, CSP headers, or any other side-effect — production
  * auth lives in `ClientAuthGuard` (UX) and on the backend (security).
  */
-describe('middleware dev-only guard-rail (TSK-268)', () => {
+describe('proxy dev-only guard-rail (TSK-268)', () => {
   beforeEach(() => {
     vi.resetModules();
     mockRedirect.mockClear();
@@ -298,17 +298,17 @@ describe('middleware dev-only guard-rail (TSK-268)', () => {
     vi.restoreAllMocks();
   });
 
-  async function importMiddleware() {
-    const mod = await import('../middleware');
-    return mod.middleware;
+  async function importProxy() {
+    const mod = await import('../proxy');
+    return mod.proxy;
   }
 
   it('passes through without redirect when NODE_ENV is "production"', async () => {
     vi.stubEnv('NODE_ENV', 'production');
-    const middleware = await importMiddleware();
+    const proxy = await importProxy();
     const request = createMockRequest('/watchlist', {});
 
-    middleware(request as never);
+    proxy(request as never);
 
     expect(mockRedirect).not.toHaveBeenCalled();
     expect(mockNext).toHaveBeenCalledTimes(1);
@@ -316,23 +316,23 @@ describe('middleware dev-only guard-rail (TSK-268)', () => {
 
   it('emits no Content-Security-Policy header outside dev', async () => {
     vi.stubEnv('NODE_ENV', 'production');
-    const middleware = await importMiddleware();
+    const proxy = await importProxy();
     const request = createMockRequest('/', {});
 
-    const response = middleware(request as never);
+    const response = proxy(request as never);
 
     expect(response.headers.get('Content-Security-Policy')).toBeNull();
   });
 
   it('passes through admin route with non-admin role when NODE_ENV !== "development"', async () => {
     vi.stubEnv('NODE_ENV', 'production');
-    const middleware = await importMiddleware();
+    const proxy = await importProxy();
     const request = createMockRequest('/admin', {
       isAuthenticated: 'true',
       userRole: 'user',
     });
 
-    middleware(request as never);
+    proxy(request as never);
 
     expect(mockRedirect).not.toHaveBeenCalled();
     expect(mockNext).toHaveBeenCalledTimes(1);
@@ -340,13 +340,13 @@ describe('middleware dev-only guard-rail (TSK-268)', () => {
 
   it('ignores sessionExpired cookie outside dev (no redirect, no cookie clearing)', async () => {
     vi.stubEnv('NODE_ENV', 'production');
-    const middleware = await importMiddleware();
+    const proxy = await importProxy();
     const request = createMockRequest('/watchlist', {
       isAuthenticated: 'true',
       sessionExpired: 'true',
     });
 
-    const response = middleware(request as never);
+    const response = proxy(request as never);
 
     expect(mockRedirect).not.toHaveBeenCalled();
     expect(mockNext).toHaveBeenCalledTimes(1);
@@ -354,12 +354,12 @@ describe('middleware dev-only guard-rail (TSK-268)', () => {
   });
 
   it('passes through with vitest default NODE_ENV ("test") — guard-rail is strict', async () => {
-    // No stubEnv: vitest default is NODE_ENV='test'. The middleware must
+    // No stubEnv: vitest default is NODE_ENV='test'. The proxy must
     // bail to `NextResponse.next()` since 'test' !== 'development'.
-    const middleware = await importMiddleware();
+    const proxy = await importProxy();
     const request = createMockRequest('/watchlist', {});
 
-    middleware(request as never);
+    proxy(request as never);
 
     expect(mockRedirect).not.toHaveBeenCalled();
     expect(mockNext).toHaveBeenCalledTimes(1);

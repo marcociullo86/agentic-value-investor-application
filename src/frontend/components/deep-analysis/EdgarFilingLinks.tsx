@@ -13,6 +13,21 @@ function buildSecUrl(filing: FilingRef): string {
   return `https://www.sec.gov/Archives/edgar/data/${formatted}/${filing.accessionNumber}-index.htm`;
 }
 
+/**
+ * Formatta la filing date in modo robusto. Il backend può inviare
+ * "1970-01-01" (LocalDate.EPOCH) quando la data non è disponibile o è stata
+ * scritta da un blob stale: in quel caso, e per date assenti/non valide,
+ * mostriamo "n/d" invece di un fuorviante 01/01/1970.
+ */
+function formatFilingDate(raw: string | null | undefined): string {
+  if (raw === null || raw === undefined || raw.length === 0) return 'n/d';
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) return 'n/d';
+  // Epoch (o date pre-1971) = sentinella "data non disponibile".
+  if (parsed.getUTCFullYear() <= 1970) return 'n/d';
+  return parsed.toLocaleDateString('it-IT');
+}
+
 export function EdgarFilingLinks({
   filings,
 }: EdgarFilingLinksProps): React.ReactElement {
@@ -41,7 +56,7 @@ export function EdgarFilingLinks({
                     {filing.accessionNumber}
                   </span>
                   <span className="text-xs text-slate-500 dark:text-slate-400">
-                    {new Date(filing.filingDate).toLocaleDateString('it-IT')}
+                    {formatFilingDate(filing.filingDate)}
                   </span>
                 </div>
                 <a
@@ -49,7 +64,7 @@ export function EdgarFilingLinks({
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                  aria-label={`Apri filing ${filing.formType} del ${filing.filingDate} su SEC.gov`}
+                  aria-label={`Apri filing ${filing.formType} del ${formatFilingDate(filing.filingDate)} su SEC.gov`}
                 >
                   SEC.gov
                   <ExternalLink className="h-3 w-3" aria-hidden="true" />

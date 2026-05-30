@@ -114,6 +114,15 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    // Tutti i suite girano in un unico fork JVM e i numerosi context
+    // @SpringBootTest si accumulano nella Spring TestContext cache (default 32).
+    // Con l'heap di default (512MB) il JVM di test va in OutOfMemoryError
+    // ("Java heap space") in CI. Diamo heap adeguato e limitiamo la cache dei
+    // context così quelli meno usati vengono sfrattati (e i loro Hikari pool
+    // chiusi), tenendo l'impronta memoria sotto controllo.
+    // [ci: run 26671908853 — Gradle Test Executor OOM]
+    maxHeapSize = "2g"
+    systemProperty("spring.test.context.cache.maxSize", "12")
     systemProperty(
         "contract.openapi.canonical",
         repoRoot.resolve("design_&_architecture/api/openapi.yaml").absolutePath,

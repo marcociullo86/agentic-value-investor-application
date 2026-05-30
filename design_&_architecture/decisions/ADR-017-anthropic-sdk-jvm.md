@@ -9,6 +9,8 @@ consulted: [tpm, be-dev]
 ---
 # ADR-017 — Anthropic SDK JVM: adapter pattern + Resilience4j circuit breaker
 
+> **Aggiornamento 2026-05-30 (modello + selezione config).** Il default di prodotto è stato portato da `claude-opus-4-7` a **`claude-opus-4-8`**. Inoltre la selezione del modello è ora **single source of truth via configurazione**: `LlmRequest.model` ha default **blank (`""`)** e non più un literal cablato, quindi `AnthropicRestClient` risolve sempre il modello da `anthropic.model` (env `ANTHROPIC_MODEL`). Cambiare modello non richiede ricompilazione, solo l'env var. Nota correlata: il vincolo "Opus 4.7 rifiuta `temperature`/`top_p`/`top_k` con HTTP 400" è specifico di 4.7 — **Opus 4.8 li accetta di nuovo**, ma il client continua a non inviarli per scelta (nessuna modifica di comportamento richiesta). Il resto del design (adapter pattern, Resilience4j chain, telemetria) resta invariato.
+
 ## Contesto
 
 Tre nuove epiche (EP-010 Graham defensive, EP-011 Deep Analysis 10-K/10-Q, EP-012 Top Value Picks) introducono per la prima volta nel backend Kotlin/Spring Boot chiamate al provider LLM Anthropic Claude Opus 4.7 (`claude-opus-4-7`). Lo stack consolidato è **Kotlin 2.2.x + Spring Boot 3.5.x + Resilience4j 2.2.x** [^src: raw/tech_stack.md §Backend] e il pattern di integrazione provider esterni è già fissato da [ADR-004](ADR-004-fmp-integration.md) §1 (adapter behind interface) + [ADR-016](ADR-016-fmp-operations-throttling.md) (throttling/circuit-breaker chain `RateLimiter → CircuitBreaker → Retry → HTTP`).
@@ -67,8 +69,8 @@ data class LlmRequest(
     val systemPrompt: String,
     val userPrompt: String,
     val maxTokens: Int,                  // 2000 default (agent.py:1458)
-    val model: String = "claude-opus-4-7"
-    // NOTA: temperature/top_p/top_k volutamente assenti — Opus 4.7 li rifiuta (400)
+    val model: String = ""               // blank ⇒ risolto da anthropic.model (ANTHROPIC_MODEL); default claude-opus-4-8
+    // NOTA: temperature/top_p/top_k omessi by design (vincolo storico Opus 4.7; 4.8 li accetta)
 )
 
 data class LlmResponse(
@@ -161,7 +163,7 @@ Property override env:
 |---|---|---|
 | `anthropic.api-key` | — (obbligatorio, fail-fast all'avvio) | `ANTHROPIC_API_KEY` |
 | `anthropic.base-url` | `https://api.anthropic.com/v1` | `ANTHROPIC_BASE_URL` |
-| `anthropic.model` | `claude-opus-4-7` | `ANTHROPIC_MODEL` |
+| `anthropic.model` | `claude-opus-4-8` | `ANTHROPIC_MODEL` (single source of truth: `LlmRequest.model` blank ⇒ usa questo) |
 | `anthropic.timeout-seconds` | `60` | `ANTHROPIC_TIMEOUT_SECONDS` |
 | `anthropic.client.impl` | `rest` | `ANTHROPIC_CLIENT_IMPL` (`rest` \| `sdk`) |
 | `anthropic.rate-limit.per-minute` | `12` | `ANTHROPIC_RATE_LIMIT_PER_MINUTE` |
@@ -187,9 +189,9 @@ Metriche Micrometer (per dashboard cost budget gap `tpm-llm-cost-budget-r2`):
 - `llm.cost.usd.estimate{purpose}` (input_tokens × $0.015/1k + output_tokens × $0.075/1k stima Opus 4.7)
 - `llm.latency.seconds{purpose}` (histogram)
 
-### 7. Configurazione `claude-opus-4-7` — vincoli API
+### 7. Configurazione modello Opus — vincoli API
 
-- **Parametri di sampling vietati**: `temperature`, `top_p`, `top_k` **non devono mai essere inviati** nel request body. Opus 4.7 li rifiuta con HTTP 400. Il modello applica Adaptive Thinking internamente [^src: raw/agent.py:1453-1458].
+- **Parametri di sampling omessi by design**: `temperature`, `top_p`, `top_k` non vengono inviati nel request body. Vincolo storico: Opus 4.7 li rifiutava con HTTP 400 [^src: raw/agent.py:1453-1458]. **Opus 4.8 (default dal 2026-05-30) li accetta di nuovo**, ma il client continua a ometterli per scelta (il modello applica Adaptive Thinking internamente); abilitarli richiederebbe estendere `LlmRequest` e l'`ApiRequest` body.
 - `max_tokens`: default `2000` per Munger inversion (US-041) [^src: raw/agent.py:1458]; `1500` per news sentiment (US-042) [^src: raw/agent.py:1572]; configurabile per chiamata via `LlmRequest.maxTokens`.
 - API version header: `anthropic-version: 2023-06-01` — stabile, non upgrade automatico senza ADR successivo (breaking changes possibili in versioni future).
 

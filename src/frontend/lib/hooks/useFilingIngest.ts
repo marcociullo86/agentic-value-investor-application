@@ -141,10 +141,13 @@ export function useFilingIngest(ticker: string): UseFilingIngestResult {
     }, POLL_INTERVAL_MS);
   }, [clearPolling, mutate]);
 
-  // Stop polling automatically when SWR reports a terminal status.
+  // Auto-poll whenever the latest ingest snapshot is RUNNING — anche al first
+  // paint (ingest avviato altrove): startPolling è idempotente, clearPolling
+  // ferma su stato terminale/unmount.
   useEffect(() => {
-    if (!isRunning) clearPolling();
-  }, [isRunning, clearPolling]);
+    if (isRunning) startPolling();
+    else clearPolling();
+  }, [isRunning, startPolling, clearPolling]);
 
   // Cleanup on unmount or ticker change.
   useEffect(() => {

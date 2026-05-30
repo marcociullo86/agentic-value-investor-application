@@ -8,12 +8,15 @@ import {
 } from "./lib/security/csp";
 
 /**
- * Next.js middleware — **DEV-ONLY by design** (ADR-026 / TSK-268 / US-087).
+ * Next.js proxy — **DEV-ONLY by design** (ADR-026 / TSK-268 / US-087).
+ *
+ * Convention `proxy` (ex `middleware`, rinominata in Next.js 16 — TSK-298):
+ * stessa semantica runtime, firma e `config.matcher` invariati.
  *
  * Production runtime contract:
  *  - `next.config.js` impone `output: 'export'` (ADR-009), quindi il bundle
  *    produzione servito dal backend Spring Boot NON include questo
- *    middleware: nessuna Edge/Node runtime FE in prod.
+ *    proxy: nessuna Edge/Node runtime FE in prod.
  *  - L'AuthGuard di produzione vive interamente client-side: vedi
  *    `components/auth/ClientAuthGuard.tsx` + `hooks/use-auth-guard.ts`
  *    (TSK-266) — UX only, niente security boundary.
@@ -28,7 +31,7 @@ import {
  *  - Tutte le altre invocazioni eventuali (test, build SSR accidentale,
  *    runtime non-export) sono trattate come pass-through esplicito —
  *    vedi `isDevRuntime()` sotto. Questo è il guard-rail che impedisce a
- *    `middleware.ts` di diventare implicitamente "il" controllo auth di
+ *    `proxy.ts` di diventare implicitamente "il" controllo auth di
  *    produzione se qualcuno in futuro rimuove `output: 'export'` senza
  *    ridisegnare il perimetro.
  *
@@ -79,7 +82,7 @@ function isAuthPage(pathname: string): boolean {
 /**
  * Attach per-request CSP + nonce request header (TSK-222 / US-080) — DEV ONLY.
  *
- * In produzione static export (`output: 'export'`, ADR-009) il middleware
+ * In produzione static export (`output: 'export'`, ADR-009) il proxy
  * non gira affatto: la CSP è emessa dal backend tramite
  * `SecurityHeadersConfig` (TSK-221) con policy statica equivalente.
  * Qui il nonce per-request serve solo a mantenere parità minima in
@@ -122,13 +125,13 @@ function redirectWithCsp(
 }
 
 /**
- * AuthGuard middleware (TSK-206 / US-073 / EP-017) — DEV-ONLY (ADR-026 / TSK-268).
+ * AuthGuard proxy (TSK-206 / US-073 / EP-017) — DEV-ONLY (ADR-026 / TSK-268).
  *
  * UX improvement — NOT a security boundary. Every protected backend endpoint
  * independently verifies auth & authz server-side (defense-in-depth).
  *
  * Production runtime:
- *  - Bundle servito dal backend con `output: 'export'`: questo middleware
+ *  - Bundle servito dal backend con `output: 'export'`: questo proxy
  *    NON viene eseguito (nessun runtime FE in prod).
  *  - L'AuthGuard di produzione è implementato client-side: vedi
  *    `components/auth/ClientAuthGuard.tsx` + `hooks/use-auth-guard.ts`
@@ -138,7 +141,7 @@ function redirectWithCsp(
  * Per qualunque runtime diverso da `next dev` (`NODE_ENV !== 'development'`),
  * la funzione esegue un pass-through esplicito senza side-effect: niente
  * lookup route, niente CSP, niente redirect. È un guard-rail di hardening
- * (TSK-268) che impedisce a `middleware.ts` di diventare implicitamente
+ * (TSK-268) che impedisce a `proxy.ts` di diventare implicitamente
  * il controllo auth di produzione se un futuro cambio di config rimuove
  * `output: 'export'` senza ridisegnare il perimetro.
  *
@@ -157,7 +160,7 @@ function redirectWithCsp(
  *  - sessionExpired: "true" when the client-side 401 interceptor detects
  *    an unrecoverable session expiry (set by the Zustand clearSession flow)
  */
-export function middleware(request: NextRequest): NextResponse {
+export function proxy(request: NextRequest): NextResponse {
   if (!isDevRuntime()) {
     return NextResponse.next();
   }

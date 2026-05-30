@@ -24,6 +24,7 @@
 
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { mockAuthSession } from './helpers/auth';
 
 // --- Fixture imports -------------------------------------------------------
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -256,6 +257,7 @@ test.describe('Keyboard accessibility', () => {
   // Flow 2 — Search ticker via keyboard
   // ---------------------------------------------------------------------------
   test('Flow 2: Search ticker completable via keyboard only', async ({ page }) => {
+    await mockAuthSession(page); // /analysis protetta (TSK-267)
     await mockAnalysisRoutes(page);
 
     await page.goto('/');
@@ -282,6 +284,7 @@ test.describe('Keyboard accessibility', () => {
   // Flow 3 — Top picks: filter + navigation via keyboard
   // ---------------------------------------------------------------------------
   test('Flow 3: Top picks filter and row navigation via keyboard', async ({ page }) => {
+    await mockAuthSession(page); // /top-picks protetta (TSK-267)
     await mockTopPicksRoutes(page);
 
     await page.goto('/top-picks');
