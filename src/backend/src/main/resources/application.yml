@@ -4,6 +4,16 @@
 spring:
   application:
     name: value-investing-webapp
+  # Timeout globali del RestClient.Builder auto-config (Spring Boot 3.5).
+  # Si applicano ai client che NON impostano un proprio requestFactory (FMP, HIBP,
+  # SEC EDGAR); Anthropic/Embedding/Turnstile hanno factory dedicati con timeout
+  # propri e NON sono toccati. Senza un read timeout una connessione FMP stallata
+  # bloccherebbe il thread @Async all'infinito (run RUNNING per sempre); con il
+  # timeout lo stallo diventa RestClientException → l'executor marca il run FAILED.
+  http:
+    client:
+      connect-timeout: 10s
+      read-timeout: 30s
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
   autoconfigure:

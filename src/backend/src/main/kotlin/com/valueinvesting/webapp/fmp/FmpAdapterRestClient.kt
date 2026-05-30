@@ -13,14 +13,11 @@ import com.valueinvesting.webapp.fmp.dto.SearchHitDto
 import com.valueinvesting.webapp.fmp.dto.SecFilingFmpDto
 import com.valueinvesting.webapp.fmp.dto.StockNewsItem
 import com.valueinvesting.webapp.fmp.dto.TechnicalIndicatorRecord
-import java.net.http.HttpClient
-import java.time.Duration
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import org.slf4j.LoggerFactory
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpStatusCode
-import org.springframework.http.client.JdkClientHttpRequestFactory
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientException
@@ -44,21 +41,17 @@ class FmpAdapterRestClient(
     // We don't reuse the generic `restClient()` bean because that one has no baseUrl
     // and we want each fetch to be a relative URI against fmp.base-url.
     //
-    // Connect + read timeout OBBLIGATORI: senza, una connessione FMP stallata
-    // (server che non risponde dopo l'handshake) blocca il thread all'infinito —
-    // l'analisi asincrona resta RUNNING per sempre senza log né errore. Con il
-    // read timeout lo stallo diventa una RestClientException → l'executor marca
-    // il run FAILED (errore visibile) invece di appendersi.
+    // Connect + read timeout: NON impostiamo qui un requestFactory custom (romperebbe
+    // MockRestServiceServer.bindTo nei test, che installa il proprio factory mock).
+    // Il timeout arriva dal bean RestClient.Builder auto-configurato via
+    // `spring.http.client.connect-timeout/read-timeout` (application.yml): senza un
+    // read timeout una connessione FMP stallata bloccherebbe il thread all'infinito
+    // (run async RUNNING per sempre). Con il timeout lo stallo diventa una
+    // RestClientException → l'executor marca il run FAILED (errore visibile).
     private val client: RestClient by lazy {
-        val httpClient = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(CONNECT_TIMEOUT_SEC))
-            .build()
-        val factory = JdkClientHttpRequestFactory(httpClient)
-        factory.setReadTimeout(Duration.ofSeconds(READ_TIMEOUT_SEC))
         restClientBuilder
             .baseUrl(appProperties.fmp.baseUrl)
             .defaultHeader("Accept", "application/json")
-            .requestFactory(factory)
             .build()
     }
 
@@ -754,11 +747,6 @@ class FmpAdapterRestClient(
         // NewsSentimentService riduce poi al set rilevante. 50 copre con margine
         // 90 giorni di copertura per un ticker tipico senza scaricare rumore inutile.
         const val NEWS_FETCH_LIMIT = 50
-
-        // Timeout HTTP del client FMP (sync). Connect breve; read generoso per gli
-        // endpoint EOD/financials voluminosi, ma comunque BOUNDED (no hang infinito).
-        const val CONNECT_TIMEOUT_SEC = 10L
-        const val READ_TIMEOUT_SEC = 30L
     }
 
     // Generic GET on /{endpoint}?symbol={ticker}&apikey=...&limit=...
