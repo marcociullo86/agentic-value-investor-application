@@ -39,9 +39,15 @@ async def lifespan(app: FastAPI):
     global model, device
     device = _resolve_device()
     model = SentenceTransformer(MODEL_NAME, device=device)
+    # Su GPU usiamo fp16: dimezza VRAM e calcolo. Indispensabile su schede con
+    # poca memoria (es. T600 4GB), dove fp32 + batch grandi causano CUDA OOM nel
+    # buffer di attention (O(batch * seq^2)). Disattivabile con EMBEDDING_FP16=false.
+    use_fp16 = device == "cuda" and os.getenv("EMBEDDING_FP16", "true").lower() != "false"
+    if use_fp16:
+        model = model.half()
     logger.info(
-        "Embedding model '%s' loaded on device=%s (cuda_available=%s)",
-        MODEL_NAME, device, torch.cuda.is_available(),
+        "Embedding model '%s' loaded on device=%s fp16=%s (cuda_available=%s)",
+        MODEL_NAME, device, use_fp16, torch.cuda.is_available(),
     )
     yield
     del model

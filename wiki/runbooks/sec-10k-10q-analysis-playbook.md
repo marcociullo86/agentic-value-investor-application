@@ -3,7 +3,7 @@ type: runbook
 sources: ["raw/05_Analisi_10K_10Q_e_Regole_Buffett.md", "raw/fmp_docs.md"]
 status: draft
 created: 2026-05-20
-updated: 2026-05-26
+updated: 2026-05-30
 tags: [runbook, value-investing, sec, 10-k, 10-q, buffett, analysis, sec-edgar, filing-cache]
 ---
 # Playbook: Analisi 10-K/10-Q con Metodo Buffett
@@ -21,7 +21,7 @@ tags: [runbook, value-investing, sec, 10-k, 10-q, buffett, analysis, sec-edgar, 
 
 Quando la pipeline EP-011 Deep Analysis è attiva, lo Step 1-5 manuale può essere preceduto da un download automatizzato del filing HTML:
 
-1. **Discovery** via `FmpAdapter.getSecFilings(ticker, ["10-K", "10-Q"], limit=10)`: ritorna metadata `List<SecFilingFmpDto>` con CIK pre-risolto + `finalLink` canonical URL al primary document. Endpoint canonico `GET /stable/sec-filings-search/symbol?symbol={ticker}` (raw/fmp_docs.md:10815).
+1. **Discovery** via `FmpAdapter.getSecFilings(ticker, ["10-K", "10-Q"], limit=10, lookbackMonths=15)`: ritorna metadata `List<SecFilingFmpDto>` con CIK pre-risolto + `finalLink` canonical URL al primary document. Endpoint canonico `GET /stable/sec-filings-search/symbol?symbol={ticker}` (raw/fmp_docs.md:10815). NB: `from`/`to` sono obbligatori (senza → 400; finestra = 15 mesi indietro) e l'endpoint non filtra `formType` server-side → si fa una chiamata per ciascun formType (10-K, 10-Q) con page-limit ampio + filtro client-side. Vedi [[fmp-api]] §Discovery filing SEC — quirk operativi.
 
 2. **Resolve CIK** via `SecEdgarAdapter.resolveCikFromTicker(ticker)` se serve cross-validation autoritativa (cache Caffeine TTL 30gg, populate da `https://www.sec.gov/files/company_tickers.json`).
 

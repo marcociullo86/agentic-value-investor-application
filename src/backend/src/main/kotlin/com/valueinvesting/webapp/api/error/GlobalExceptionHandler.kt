@@ -7,6 +7,7 @@ import com.valueinvesting.webapp.service.AccountLockedException
 import com.valueinvesting.webapp.service.CaptchaRequiredException
 import com.valueinvesting.webapp.service.CompromisedPasswordException
 import com.valueinvesting.webapp.service.EmailAlreadyRegisteredException
+import com.valueinvesting.webapp.service.FilingsNotIndexedException
 import com.valueinvesting.webapp.service.InvalidRecoveryCodeException
 import com.valueinvesting.webapp.service.InvalidRefreshTokenException
 import com.valueinvesting.webapp.service.InvalidTotpCodeException
@@ -545,6 +546,31 @@ class GlobalExceptionHandler(
             extensions = mapOf("ticker" to ex.ticker, "reason" to "no_sec_filings"),
         )
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(problem)
+    }
+
+    // EP-011 split INGEST/ANALYSIS (V028): l'ANALYSIS-with-LLM richiede chunk
+    // già indicizzati. Se l'utente non ha lanciato l'INGEST (o l'INGEST è
+    // FAILED) → 409 Conflict reason=not_indexed così il FE può proporre
+    // "lancia ingest prima di analisi LLM". Distinto da no_sec_filings: qui i
+    // filing potrebbero esserci, è l'embedding store che è vuoto.
+    @ExceptionHandler(FilingsNotIndexedException::class)
+    fun handleFilingsNotIndexed(
+        ex: FilingsNotIndexedException,
+        req: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        log.warn(
+            "Filings not indexed for ticker={} on {} {}",
+            ex.ticker, req.method, req.requestURI,
+        )
+        val problem = mapper.build(
+            status = HttpStatus.CONFLICT,
+            type = "https://api/errors/filings-not-indexed",
+            title = "Filings not indexed",
+            detail = ex.message ?: "Filings not indexed for ticker '${ex.ticker}'",
+            request = req,
+            extensions = mapOf("ticker" to ex.ticker, "reason" to "not_indexed"),
+        )
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(problem)
     }
 
     // ADR-019 §6 — explicit handler for the admin-driven freeze. Distinct from

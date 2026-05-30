@@ -32,6 +32,14 @@ data class DeepAnalysisRunEntity(
     @Column(name = "ticker", length = 16, nullable = false)
     var ticker: String = "",
 
+    // Distinct operation type sharing the same audit row (V028):
+    //   ANALYSIS — deterministic verdict + optional LLM Munger step.
+    //   INGEST   — filing download + embedding only (no verdict, no result).
+    // Default 'ANALYSIS' matches the DB column default so legacy rows backfilled
+    // before V028 (no kind column) keep behaving as combined runs to GET /latest.
+    @Column(name = "kind", length = 16, nullable = false)
+    var kind: String = "ANALYSIS",
+
     @Column(name = "status", length = 20, nullable = false)
     var status: String = "RUNNING",
 

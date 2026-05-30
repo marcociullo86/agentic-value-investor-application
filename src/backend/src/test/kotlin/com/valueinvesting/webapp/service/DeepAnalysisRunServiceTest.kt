@@ -2,6 +2,7 @@ package com.valueinvesting.webapp.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.valueinvesting.webapp.api.model.DeepAnalysisResponse
+import com.valueinvesting.webapp.api.model.IngestSummary
 import com.valueinvesting.webapp.api.model.PriceActionBlock
 import com.valueinvesting.webapp.api.model.RoeBlock
 import com.valueinvesting.webapp.api.model.VerdictBlock
@@ -27,28 +28,33 @@ class DeepAnalysisRunServiceTest {
 
     @BeforeEach
     fun setUp() {
-        // Default: nessuna run pre-esistente.
+        // Default: nessuna run pre-esistente per qualunque combinazione.
         every { repo.findFirstByTickerAndStatusOrderByRequestedAtDesc(any(), any()) } returns null
+        every { repo.findFirstByTickerAndKindAndStatusOrderByRequestedAtDesc(any(), any(), any()) } returns null
         every { repo.findFirstByTickerOrderByRequestedAtDesc(any()) } returns null
+        every { repo.findFirstByTickerAndKindOrderByRequestedAtDesc(any(), any()) } returns null
         // save echo-pattern (mantiene l'id app-side già inizializzato).
         every { repo.save(any<DeepAnalysisRunEntity>()) } answers { firstArg() }
         service = DeepAnalysisRunService(repo, executor, objectMapper)
     }
 
+    // ── enqueueAnalysis ────────────────────────────────────────────────────
+
     @Test
-    fun `enqueue creates new run and invokes async executor when no RUNNING exists`() {
+    fun `enqueueAnalysis creates new run kind ANALYSIS and invokes async executor`() {
         val saved = slot<DeepAnalysisRunEntity>()
         every { repo.save(capture(saved)) } answers { firstArg() }
 
-        val response = service.enqueue("aapl", invokeLlm = true)
+        val response = service.enqueueAnalysis("aapl", invokeLlm = true)
 
         assertThat(response.ticker).isEqualTo("AAPL")
+        assertThat(response.kind).isEqualTo("ANALYSIS")
         assertThat(response.status).isEqualTo("RUNNING")
         assertThat(response.invokeLlm).isTrue()
         assertThat(response.runId).isNotBlank()
 
-        // Persistito con ticker uppercase + status RUNNING + invokeLlm propagato.
         assertThat(saved.captured.ticker).isEqualTo("AAPL")
+        assertThat(saved.captured.kind).isEqualTo("ANALYSIS")
         assertThat(saved.captured.status).isEqualTo("RUNNING")
         assertThat(saved.captured.invokeLlm).isTrue()
         assertThat(saved.captured.requestedAt).isBeforeOrEqualTo(Instant.now())
@@ -57,23 +63,24 @@ class DeepAnalysisRunServiceTest {
     }
 
     @Test
-    fun `enqueue deduplicates when a RUNNING run already exists for ticker`() {
+    fun `enqueueAnalysis deduplicates only on RUNNING ANALYSIS for same ticker`() {
         val existingId = UUID.randomUUID()
         val existing = DeepAnalysisRunEntity(
             id = existingId,
             ticker = "MSFT",
+            kind = "ANALYSIS",
             status = "RUNNING",
             invokeLlm = false,
             requestedAt = Instant.now().minusSeconds(30),
         )
         every {
-            repo.findFirstByTickerAndStatusOrderByRequestedAtDesc("MSFT", "RUNNING")
+            repo.findFirstByTickerAndKindAndStatusOrderByRequestedAtDesc("MSFT", "ANALYSIS", "RUNNING")
         } returns existing
 
-        val response = service.enqueue("msft", invokeLlm = true)
+        val response = service.enqueueAnalysis("msft", invokeLlm = true)
 
-        // Stesso runId della pre-esistente; nessuna save né executor.execute.
         assertThat(response.runId).isEqualTo(existingId.toString())
+        assertThat(response.kind).isEqualTo("ANALYSIS")
         assertThat(response.status).isEqualTo("RUNNING")
         assertThat(response.ticker).isEqualTo("MSFT")
         // L'invokeLlm riflette la run esistente, NON il parametro request:
@@ -85,10 +92,108 @@ class DeepAnalysisRunServiceTest {
     }
 
     @Test
-    fun `getLatest returns NONE when no run exists for ticker`() {
-        every { repo.findFirstByTickerOrderByRequestedAtDesc("UNK") } returns null
+    fun `enqueueAnalysis NON deduplica se l'unica RUNNING e di kind INGEST`() {
+        // Una run INGEST in corso non deve bloccare l'avvio di una ANALYSIS:
+        // sono operazioni indipendenti. Il dedupe è per-kind.
+        val existingIngest = DeepAnalysisRunEntity(
+            id = UUID.randomUUID(),
+            ticker = "AAPL",
+            kind = "INGEST",
+            status = "RUNNING",
+            invokeLlm = false,
+            requestedAt = Instant.now().minusSeconds(5),
+        )
+        // findByTickerAndKindAndStatus per ANALYSIS RUNNING → null
+        every {
+            repo.findFirstByTickerAndKindAndStatusOrderByRequestedAtDesc("AAPL", "ANALYSIS", "RUNNING")
+        } returns null
+        // (mai chiesto INGEST in questa chiamata, ma esiste comunque nello stato)
+        every {
+            repo.findFirstByTickerAndKindAndStatusOrderByRequestedAtDesc("AAPL", "INGEST", "RUNNING")
+        } returns existingIngest
 
-        val latest = service.getLatest("unk")
+        val response = service.enqueueAnalysis("AAPL", invokeLlm = false)
+
+        assertThat(response.kind).isEqualTo("ANALYSIS")
+        verify(exactly = 1) { repo.save(any<DeepAnalysisRunEntity>()) }
+        verify(exactly = 1) { executor.execute(any()) }
+    }
+
+    // ── enqueueIngest ──────────────────────────────────────────────────────
+
+    @Test
+    fun `enqueueIngest creates new run kind INGEST con invokeLlm sempre false`() {
+        val saved = slot<DeepAnalysisRunEntity>()
+        every { repo.save(capture(saved)) } answers { firstArg() }
+
+        val response = service.enqueueIngest("aapl")
+
+        assertThat(response.ticker).isEqualTo("AAPL")
+        assertThat(response.kind).isEqualTo("INGEST")
+        assertThat(response.status).isEqualTo("RUNNING")
+        // INGEST non chiama mai LLM — il flag è hard-coded a false per costruzione.
+        assertThat(response.invokeLlm).isFalse()
+
+        assertThat(saved.captured.kind).isEqualTo("INGEST")
+        assertThat(saved.captured.invokeLlm).isFalse()
+
+        verify(exactly = 1) { executor.execute(saved.captured.id) }
+    }
+
+    @Test
+    fun `enqueueIngest deduplicates only on RUNNING INGEST for same ticker`() {
+        val existingId = UUID.randomUUID()
+        val existing = DeepAnalysisRunEntity(
+            id = existingId,
+            ticker = "AAPL",
+            kind = "INGEST",
+            status = "RUNNING",
+            invokeLlm = false,
+            requestedAt = Instant.now().minusSeconds(10),
+        )
+        every {
+            repo.findFirstByTickerAndKindAndStatusOrderByRequestedAtDesc("AAPL", "INGEST", "RUNNING")
+        } returns existing
+
+        val response = service.enqueueIngest("aapl")
+
+        assertThat(response.runId).isEqualTo(existingId.toString())
+        assertThat(response.kind).isEqualTo("INGEST")
+        verify(exactly = 0) { repo.save(any<DeepAnalysisRunEntity>()) }
+        verify(exactly = 0) { executor.execute(any()) }
+    }
+
+    @Test
+    fun `enqueueIngest NON deduplica se l'unica RUNNING e di kind ANALYSIS`() {
+        val existingAnalysis = DeepAnalysisRunEntity(
+            id = UUID.randomUUID(),
+            ticker = "AAPL",
+            kind = "ANALYSIS",
+            status = "RUNNING",
+            invokeLlm = true,
+            requestedAt = Instant.now().minusSeconds(5),
+        )
+        every {
+            repo.findFirstByTickerAndKindAndStatusOrderByRequestedAtDesc("AAPL", "INGEST", "RUNNING")
+        } returns null
+        every {
+            repo.findFirstByTickerAndKindAndStatusOrderByRequestedAtDesc("AAPL", "ANALYSIS", "RUNNING")
+        } returns existingAnalysis
+
+        val response = service.enqueueIngest("AAPL")
+
+        assertThat(response.kind).isEqualTo("INGEST")
+        verify(exactly = 1) { repo.save(any<DeepAnalysisRunEntity>()) }
+        verify(exactly = 1) { executor.execute(any()) }
+    }
+
+    // ── getLatestAnalysis ──────────────────────────────────────────────────
+
+    @Test
+    fun `getLatestAnalysis returns NONE when no ANALYSIS run exists for ticker`() {
+        every { repo.findFirstByTickerAndKindOrderByRequestedAtDesc("UNK", "ANALYSIS") } returns null
+
+        val latest = service.getLatestAnalysis("unk")
 
         assertThat(latest.ticker).isEqualTo("UNK")
         assertThat(latest.status).isEqualTo("NONE")
@@ -98,12 +203,13 @@ class DeepAnalysisRunServiceTest {
     }
 
     @Test
-    fun `getLatest deserializes result_json into DeepAnalysisResponse on SUCCESS`() {
+    fun `getLatestAnalysis deserializes result_json into DeepAnalysisResponse on SUCCESS`() {
         val payload = sampleDeepAnalysisResponse("AAPL")
         val json = objectMapper.writeValueAsString(payload)
         val entity = DeepAnalysisRunEntity(
             id = UUID.randomUUID(),
             ticker = "AAPL",
+            kind = "ANALYSIS",
             status = "SUCCESS",
             invokeLlm = true,
             requestedAt = Instant.parse("2026-05-29T10:00:00Z"),
@@ -111,9 +217,9 @@ class DeepAnalysisRunServiceTest {
             completedAt = Instant.parse("2026-05-29T10:05:00Z"),
             resultJson = json,
         )
-        every { repo.findFirstByTickerOrderByRequestedAtDesc("AAPL") } returns entity
+        every { repo.findFirstByTickerAndKindOrderByRequestedAtDesc("AAPL", "ANALYSIS") } returns entity
 
-        val latest = service.getLatest("aapl")
+        val latest = service.getLatestAnalysis("aapl")
 
         assertThat(latest.status).isEqualTo("SUCCESS")
         assertThat(latest.runId).isEqualTo(entity.id.toString())
@@ -125,47 +231,154 @@ class DeepAnalysisRunServiceTest {
     }
 
     @Test
-    fun `getLatest exposes error info on FAILED status`() {
+    fun `getLatestAnalysis exposes error info on FAILED status`() {
         val entity = DeepAnalysisRunEntity(
             id = UUID.randomUUID(),
             ticker = "AAPL",
+            kind = "ANALYSIS",
             status = "FAILED",
-            invokeLlm = false,
+            invokeLlm = true,
             requestedAt = Instant.parse("2026-05-29T10:00:00Z"),
             completedAt = Instant.parse("2026-05-29T10:00:30Z"),
-            errorReason = "no_sec_filings",
-            errorMessage = "No SEC filings available for ticker: AAPL",
+            errorReason = "not_indexed",
+            errorMessage = "Filings not indexed for ticker 'AAPL'. Run INGEST before requesting LLM analysis.",
         )
-        every { repo.findFirstByTickerOrderByRequestedAtDesc("AAPL") } returns entity
+        every { repo.findFirstByTickerAndKindOrderByRequestedAtDesc("AAPL", "ANALYSIS") } returns entity
 
-        val latest = service.getLatest("AAPL")
+        val latest = service.getLatestAnalysis("AAPL")
 
         assertThat(latest.status).isEqualTo("FAILED")
         assertThat(latest.result).isNull()
         assertThat(latest.error).isNotNull()
-        assertThat(latest.error!!.reason).isEqualTo("no_sec_filings")
-        assertThat(latest.error!!.message).contains("No SEC filings")
+        assertThat(latest.error!!.reason).isEqualTo("not_indexed")
+        assertThat(latest.error!!.message).contains("not indexed")
     }
 
     @Test
-    fun `getLatest downgrades SUCCESS with unparseable JSON to FAILED internal_error`() {
+    fun `getLatestAnalysis downgrades SUCCESS with unparseable JSON to FAILED internal_error`() {
         val entity = DeepAnalysisRunEntity(
             id = UUID.randomUUID(),
             ticker = "AAPL",
+            kind = "ANALYSIS",
             status = "SUCCESS",
             invokeLlm = false,
             requestedAt = Instant.now(),
             completedAt = Instant.now(),
             resultJson = "{not a valid DeepAnalysisResponse json}",
         )
-        every { repo.findFirstByTickerOrderByRequestedAtDesc("AAPL") } returns entity
+        every { repo.findFirstByTickerAndKindOrderByRequestedAtDesc("AAPL", "ANALYSIS") } returns entity
 
-        val latest = service.getLatest("AAPL")
+        val latest = service.getLatestAnalysis("AAPL")
 
         assertThat(latest.status).isEqualTo("FAILED")
         assertThat(latest.result).isNull()
         assertThat(latest.error).isNotNull()
         assertThat(latest.error!!.reason).isEqualTo("internal_error")
+    }
+
+    // ── getLatestIngest ────────────────────────────────────────────────────
+
+    @Test
+    fun `getLatestIngest returns NONE when no INGEST run exists for ticker`() {
+        every { repo.findFirstByTickerAndKindOrderByRequestedAtDesc("UNK", "INGEST") } returns null
+
+        val latest = service.getLatestIngest("unk")
+
+        assertThat(latest.ticker).isEqualTo("UNK")
+        assertThat(latest.status).isEqualTo("NONE")
+        assertThat(latest.runId).isNull()
+        assertThat(latest.summary).isNull()
+        assertThat(latest.error).isNull()
+    }
+
+    @Test
+    fun `getLatestIngest deserializes summary on SUCCESS`() {
+        val summary = IngestSummary(
+            filingsTotal = 3,
+            chunksIndexed = 42,
+            chunksSkipped = 1,
+            indexedAt = Instant.parse("2026-05-29T11:00:00Z"),
+        )
+        val json = objectMapper.writeValueAsString(summary)
+        val entity = DeepAnalysisRunEntity(
+            id = UUID.randomUUID(),
+            ticker = "AAPL",
+            kind = "INGEST",
+            status = "SUCCESS",
+            invokeLlm = false,
+            requestedAt = Instant.parse("2026-05-29T10:55:00Z"),
+            completedAt = Instant.parse("2026-05-29T11:00:00Z"),
+            resultJson = json,
+        )
+        every { repo.findFirstByTickerAndKindOrderByRequestedAtDesc("AAPL", "INGEST") } returns entity
+
+        val latest = service.getLatestIngest("aapl")
+
+        assertThat(latest.status).isEqualTo("SUCCESS")
+        assertThat(latest.summary).isNotNull()
+        assertThat(latest.summary!!.filingsTotal).isEqualTo(3)
+        assertThat(latest.summary!!.chunksIndexed).isEqualTo(42)
+        assertThat(latest.summary!!.chunksSkipped).isEqualTo(1)
+        assertThat(latest.error).isNull()
+    }
+
+    @Test
+    fun `getLatestIngest exposes error info on FAILED status`() {
+        val entity = DeepAnalysisRunEntity(
+            id = UUID.randomUUID(),
+            ticker = "NOFIL",
+            kind = "INGEST",
+            status = "FAILED",
+            invokeLlm = false,
+            requestedAt = Instant.now(),
+            completedAt = Instant.now(),
+            errorReason = "no_sec_filings",
+            errorMessage = "No SEC filings available for ticker: NOFIL",
+        )
+        every { repo.findFirstByTickerAndKindOrderByRequestedAtDesc("NOFIL", "INGEST") } returns entity
+
+        val latest = service.getLatestIngest("nofil")
+
+        assertThat(latest.status).isEqualTo("FAILED")
+        assertThat(latest.summary).isNull()
+        assertThat(latest.error).isNotNull()
+        assertThat(latest.error!!.reason).isEqualTo("no_sec_filings")
+    }
+
+    @Test
+    fun `getLatestIngest downgrades SUCCESS with unparseable JSON to FAILED internal_error`() {
+        val entity = DeepAnalysisRunEntity(
+            id = UUID.randomUUID(),
+            ticker = "AAPL",
+            kind = "INGEST",
+            status = "SUCCESS",
+            invokeLlm = false,
+            requestedAt = Instant.now(),
+            completedAt = Instant.now(),
+            resultJson = "{garbage}",
+        )
+        every { repo.findFirstByTickerAndKindOrderByRequestedAtDesc("AAPL", "INGEST") } returns entity
+
+        val latest = service.getLatestIngest("AAPL")
+
+        assertThat(latest.status).isEqualTo("FAILED")
+        assertThat(latest.summary).isNull()
+        assertThat(latest.error!!.reason).isEqualTo("internal_error")
+    }
+
+    @Test
+    fun `getLatestAnalysis ignora le run INGEST anche se piu recenti`() {
+        // Filtra-per-kind: una INGEST appena conclusa NON deve apparire come
+        // ultima ANALYSIS — il repo è chiamato con kind=ANALYSIS, mockato a null.
+        every { repo.findFirstByTickerAndKindOrderByRequestedAtDesc("AAPL", "ANALYSIS") } returns null
+        // (la presenza dell'INGEST non viene letta dal getLatestAnalysis, ma
+        // il test esiste per documentare l'invariante: kind filter strict.)
+
+        val latest = service.getLatestAnalysis("AAPL")
+
+        assertThat(latest.status).isEqualTo("NONE")
+        // Verifichiamo che NON sia stata chiamata la query no-kind legacy.
+        verify(exactly = 0) { repo.findFirstByTickerOrderByRequestedAtDesc(any()) }
     }
 
     // ── helpers ─────────────────────────────────────────────────────────

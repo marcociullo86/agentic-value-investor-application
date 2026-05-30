@@ -13,6 +13,12 @@ interface FilingChunkRepository : JpaRepository<FilingChunkEntity, Long> {
 
     fun countByFilingBlobId(filingBlobId: Long): Long
 
+    // Gate per il ramo LLM di DeepAnalysisService.analyze: se per il ticker
+    // non esiste alcun chunk indicizzato (zero righe in filing_chunks) significa
+    // che nessun INGEST è andato a buon fine e MungerInversionAnalyzer non
+    // potrebbe trovare contesto → FilingsNotIndexedException.
+    fun countByTicker(ticker: String): Long
+
     @Modifying
     @Query(
         value = """

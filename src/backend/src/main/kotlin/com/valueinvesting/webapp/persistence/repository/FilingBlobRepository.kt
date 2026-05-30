@@ -17,4 +17,11 @@ interface FilingBlobRepository : JpaRepository<FilingBlobEntity, Long> {
         ticker: String,
         now: Instant,
     ): List<FilingBlobEntity>
+
+    // Variante senza filtro di scadenza, usata da DeepAnalysisService.analyze
+    // per popolare `filingsUsed` nel response: l'ANALYSIS NON deve scaricare
+    // né reindicizzare (lo fa l'INGEST), quindi qui ci serve la lista di
+    // qualunque blob già in cache per ticker, scaduto o no — il dato è solo
+    // di reporting (accession number / form type / data filing).
+    fun findByTickerOrderByFilingDateDesc(ticker: String): List<FilingBlobEntity>
 }

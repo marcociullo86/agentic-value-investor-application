@@ -41,7 +41,23 @@
       "PowerShell(podman machine ssh \"podman run --rm --device nvidia.com/gpu=all docker.io/nvidia/cuda:12.4.0-base-ubuntu22.04 nvidia-smi 2>&1 | tail -20\")",
       "PowerShell(\"--- podman compose ---\"; podman compose version 2>&1 | Select-Object -First 3; \"--- podman-compose ---\"; \\(Get-Command podman-compose -ErrorAction SilentlyContinue\\).Source; podman-compose --version 2>&1 | Select-Object -First 2)",
       "PowerShell(\"----- branch -----\")",
-      "PowerShell(git push application master)"
+      "PowerShell(git push application master)",
+      "PowerShell(Get-Content \"C:\\\\Users\\\\marco.ciullo\\\\.claude\\\\projects\\\\c--Users-marco-ciullo-PycharmProjects-agentic-value-investor-app\\\\31565890-8e99-4c6a-8874-4404ecdcfb12\\\\tool-results\\\\toolu_01VLkcFwRpcaAhw4W4GUminf.txt\" | ForEach-Object { if \\($_ -match 'id: TSK-\\(\\\\d+\\)'\\) { [int]$matches[1] } } | Sort-Object | Select-Object -Last 5)",
+      "Bash(where rg *)",
+      "PowerShell($py = \\(Get-Command python -ErrorAction SilentlyContinue\\); if \\($py\\) { python -c \"import yaml,sys; d=yaml.safe_load\\(open\\(r'c:\\\\Users\\\\marco.ciullo\\\\PycharmProjects\\\\agentic-value-investor-app\\\\design_&_architecture\\\\api\\\\openapi.yaml',encoding='utf-8'\\)\\); print\\('YAML OK'\\); print\\('paths:', len\\(d['paths']\\)\\); print\\('ingest path:', '/api/analysis/{ticker}/deep/ingest' in d['paths']\\); print\\('ingest/latest path:', '/api/analysis/{ticker}/deep/ingest/latest' in d['paths']\\); print\\('IngestSummary:', 'IngestSummary' in d['components']['schemas']\\); print\\('IngestStatusResponse:', 'IngestStatusResponse' in d['components']['schemas']\\); print\\('kind in DARSResponse:', 'kind' in d['components']['schemas']['DeepAnalysisRunStatusResponse']['properties']\\)\" } else { Write-Output \"python not found\" })",
+      "PowerShell(python -c \"import yaml; d=yaml.safe_load\\(open\\(r'c:\\\\Users\\\\marco.ciullo\\\\PycharmProjects\\\\agentic-value-investor-app\\\\design_&_architecture\\\\api\\\\openapi.yaml',encoding='utf-8'\\)\\); print\\('deep:', '/api/analysis/{ticker}/deep' in d['paths']\\); print\\('deep/runs:', '/api/analysis/{ticker}/deep/runs' in d['paths']\\); print\\('deep/latest:', '/api/analysis/{ticker}/deep/latest' in d['paths']\\); print\\('not_indexed in RunError desc:', 'not_indexed' in d['components']['schemas']['RunError']['properties']['reason']['description']\\)\")",
+      "Bash(npx --no-install tsc --noEmit)",
+      "Bash(powershell -NoProfile -Command \"Set-Location 'c:/Users/marco.ciullo/PycharmProjects/agentic-value-investor-app/src/frontend'; npx --no-install tsc --noEmit 2>&1\")",
+      "Bash(where npx *)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\marco.ciullo\\\\PycharmProjects\\\\agentic-value-investor-app\" -Directory)",
+      "Bash(Select-Object -ExpandProperty Name)",
+      "Bash(\"c:/Program Files/Git/usr/bin/grep.exe\" -n \"deep\" \"c:/Users/marco.ciullo/PycharmProjects/agentic-value-investor-app/design_&_architecture/api/openapi.yaml\")",
+      "Bash(\"c:/Program Files/Git/usr/bin/grep.exe\" -nA 25 \"DeepAnalysisRunStatusResponse:\" \"c:/Users/marco.ciullo/PycharmProjects/agentic-value-investor-app/design_&_architecture/api/openapi.yaml\")",
+      "Bash(\"c:/Program Files/Git/usr/bin/grep.exe\" -nA 5 \"DeepAnalysisRunKind:\" \"c:/Users/marco.ciullo/PycharmProjects/agentic-value-investor-app/design_&_architecture/api/openapi.yaml\")",
+      "Bash(\"c:/Program Files/Git/usr/bin/grep.exe\" -nA 20 \"IngestStatusResponse:\" \"c:/Users/marco.ciullo/PycharmProjects/agentic-value-investor-app/design_&_architecture/api/openapi.yaml\")",
+      "Bash(\"c:/Program Files/Git/usr/bin/grep.exe\" -n \"indexFiling\\\\|DeepAnalysisRunStatusResponse\" \"c:/Users/marco.ciullo/PycharmProjects/agentic-value-investor-app/src/backend/src/test/kotlin/com/valueinvesting/webapp/service/MungerInversionAnalyzerTest.kt\")",
+      "Bash(\"c:/Program Files/Git/usr/bin/grep.exe\" -nE \"DeepAnalysisRunEntity\\\\\\(\" \"c:/Users/marco.ciullo/PycharmProjects/agentic-value-investor-app/src/backend/src/test/kotlin/com/valueinvesting/webapp/service/DeepAnalysisRunExecutorTest.kt\")",
+      "PowerShell($g = Get-Command gradle -ErrorAction SilentlyContinue; if \\($g\\) { $g.Source } else { \"NO_GRADLE\" })"
     ]
   }
 }

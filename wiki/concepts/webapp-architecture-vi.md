@@ -3,7 +3,7 @@ type: concept
 sources: ["raw/06_Documento_Funzionale_WebApp_Value_Investing.md"]
 status: draft
 created: 2026-05-20
-updated: 2026-05-28
+updated: 2026-05-30
 tags: [product-spec, architecture, kotlin, spring-boot, spa, postgresql, fmp, caching, rest]
 ---
 # Architettura WebApp Value Investing
@@ -201,6 +201,12 @@ Il `ClientAuthGuard.tsx` (TSK-266) replica tutti e 4 i comportamenti del middlew
 **E2E coverage:** `playwright.config.static.ts` (TSK-269) — 11 test che verificano i redirect client-side su server statico, non solo in `next dev`. [^src: management/kanban/EP-017-protezione-rotte-sessione/US-087-authguard-client-side-static-export/TSK-269.md]
 
 Dettaglio completo: [[auth-guard-frontend]] §Aggiornamenti (v2026-05-28).
+
+## Aggiornamenti (v2026-05-30) — Deep analysis async + sidecar embeddings GPU
+
+**Deep analysis asincrona e split INGEST/ANALYSIS.** Gli endpoint `/api/analysis/{ticker}/deep/*` sono ora asincroni (POST → 202 + polling su `latest`) con execution persistita nella tabella `deep_analysis_run` (migration V027). La pipeline è separata in due operazioni (colonna `kind`, V028): **INGEST** (download filing + embedding, idempotente) e **ANALYSIS** (verdetto deterministico, opzionalmente +LLM Munger che riusa gli embedding). La UI espone 3 azioni: Indicizza filing / Analizza / Analizza + LLM. Dettaglio: [[analysis-api-pipeline]] §Aggiornamenti (v2026-05-30). [^src: src/backend/src/main/kotlin/com/valueinvesting/webapp/api/DeepAnalysisController.kt]
+
+**Sidecar embeddings — trasporto + GPU.** Il client `EmbeddingService` usa `SimpleClientHttpRequestFactory` (fix del 422 da body vuoto con `JdkClientHttpRequestFactory`). Il sidecar supporta GPU NVIDIA via Podman + CDI (`docker-compose.gpu.yml`, override sopra al compose base che resta CPU-safe); su VRAM piccola (es. T600 4GB) si usa fp16 + batch-size basso + `expandable_segments`. `torch` è pinnato al canale CUDA cu126. Gli script di avvio (`start-agentic-value-investor.{ps1,sh}`) chiedono CPU/GPU e selezionano il compose adeguato. Dettaglio: [[arctic-embed-l-v2]] §Aggiornamenti (v2026-05-30). [^src: src/docker/docker-compose.gpu.yml]
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->

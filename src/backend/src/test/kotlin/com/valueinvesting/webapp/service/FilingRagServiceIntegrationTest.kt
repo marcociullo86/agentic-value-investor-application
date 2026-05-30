@@ -7,6 +7,7 @@ import com.valueinvesting.webapp.persistence.repository.FilingBlobRepository
 import com.valueinvesting.webapp.persistence.repository.FilingChunkRepository
 import com.valueinvesting.webapp.persistence.repository.StockRepository
 import io.mockk.every
+import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -113,7 +114,10 @@ class FilingRagServiceIntegrationTest {
     @Test
     fun `indexFiling persists chunks with embeddings`() {
         val blob = createBlob("AAPL", 60000)
-        filingRagService.indexFiling(blob.id!!)
+        val result = filingRagService.indexFiling(blob.id!!)
+
+        assertThat(result.skipped).isFalse()
+        assertThat(result.chunksIndexed).isGreaterThanOrEqualTo(10)
 
         val persisted = filingChunkRepository.findByFilingBlobId(blob.id!!)
         assertThat(persisted).isNotEmpty
@@ -130,6 +134,50 @@ class FilingRagServiceIntegrationTest {
         val countSecond = filingChunkRepository.countByFilingBlobId(blob.id!!)
 
         assertThat(countSecond).isEqualTo(countFirst)
+    }
+
+    @Test
+    fun `indexFiling salta se gia indicizzato e non chiama embed`() {
+        // Post EP-011 split (V028): un re-INGEST sullo stesso blob non deve
+        // rispendere embedding — countByFilingBlobId>0 attiva lo short-circuit
+        // e EmbeddingService non viene chiamato la seconda volta.
+        val blob = createBlob("AAPL", 30000)
+
+        val first = filingRagService.indexFiling(blob.id!!)
+        assertThat(first.skipped).isFalse()
+        assertThat(first.chunksIndexed).isGreaterThan(0)
+
+        // Reset del counter di chiamate per isolare il secondo indexFiling.
+        io.mockk.clearMocks(embeddingService, answers = false, recordedCalls = true)
+        every { embeddingService.embed(any()) } answers {
+            val texts = firstArg<List<String>>()
+            texts.map { FloatArray(1024) { Random.nextFloat() } }
+        }
+
+        val second = filingRagService.indexFiling(blob.id!!)
+        assertThat(second.skipped).isTrue()
+        assertThat(second.chunksIndexed).isZero()
+
+        // Il punto cruciale: l'idempotency deve essere a monte di embed().
+        verify(exactly = 0) { embeddingService.embed(any()) }
+    }
+
+    @Test
+    fun `indexFiling force ignora lo skip e ricalcola embedding`() {
+        // Override esplicito per scenari di re-embed (cambio modello, ecc.).
+        val blob = createBlob("MSFT", 20000)
+        filingRagService.indexFiling(blob.id!!)
+
+        io.mockk.clearMocks(embeddingService, answers = false, recordedCalls = true)
+        every { embeddingService.embed(any()) } answers {
+            val texts = firstArg<List<String>>()
+            texts.map { FloatArray(1024) { Random.nextFloat() } }
+        }
+
+        val forced = filingRagService.indexFiling(blob.id!!, force = true)
+        assertThat(forced.skipped).isFalse()
+        assertThat(forced.chunksIndexed).isGreaterThan(0)
+        verify(atLeast = 1) { embeddingService.embed(any()) }
     }
 
     @Test

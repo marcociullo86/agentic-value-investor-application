@@ -8,14 +8,16 @@ import com.valueinvesting.webapp.fmp.FmpFixtureLoader
 import com.valueinvesting.webapp.fmp.dto.BalanceSheetDto
 import com.valueinvesting.webapp.fmp.dto.IncomeStatementDto
 import com.valueinvesting.webapp.persistence.entity.FilingBlobEntity
+import com.valueinvesting.webapp.persistence.repository.FilingBlobRepository
+import com.valueinvesting.webapp.persistence.repository.FilingChunkRepository
 import com.valueinvesting.webapp.service.Filing10KQDownloaderService
 import com.valueinvesting.webapp.service.FilingRagService
+import com.valueinvesting.webapp.service.IndexResult
 import com.valueinvesting.webapp.service.PriceActionAnalyzer
 import com.valueinvesting.webapp.service.PriceActionSnapshot
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.clearMocks
 import io.mockk.every
-import io.mockk.justRun
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.data.Offset
 import org.junit.jupiter.api.BeforeEach
@@ -85,12 +87,24 @@ class DeepAnalysisIntegrationTest {
     @MockkBean
     private lateinit var filingRagService: FilingRagService
 
+    // Post EP-011 split (V028): analyze() legge i blob già in cache da
+    // FilingBlobRepository (per `filingsUsed`) e — sul ramo LLM — il numero
+    // di chunk indicizzati. Mockati per evitare di popolare la cache filing
+    // a livello DB in test che si concentrano su ROE/verdetto.
+    @MockkBean
+    private lateinit var filingBlobRepository: FilingBlobRepository
+
+    @MockkBean
+    private lateinit var filingChunkRepository: FilingChunkRepository
+
     @MockkBean
     private lateinit var priceActionAnalyzer: PriceActionAnalyzer
 
     @BeforeEach
     fun resetMocks() {
-        clearMocks(fmpAdapter, filing10KQDownloaderService, filingRagService, priceActionAnalyzer, answers = false, recordedCalls = true)
+        clearMocks(fmpAdapter, filing10KQDownloaderService, filingRagService,
+            filingBlobRepository, filingChunkRepository, priceActionAnalyzer,
+            answers = false, recordedCalls = true)
     }
 
     // ── Full data (10-year history) ──
@@ -250,23 +264,45 @@ class DeepAnalysisIntegrationTest {
     // ── Error handling ──
 
     @Nested
-    @DisplayName("Error scenarios (TSK-118)")
+    @DisplayName("Error scenarios (post EP-011 split V028)")
     inner class Errors {
 
-        @Test
-        fun `ticker with no SEC filings returns 422 with reason no_sec_filings`() {
-            stubWithControlledRoe("NOSEC", 5, 100.0, 500.0)
-            every { filing10KQDownloaderService.fetchAndCache("NOSEC") } returns emptyList()
+        // Pre-split (TSK-118): analyze() chiamava fetchAndCache e lanciava
+        // NoSecFilingsException quando vuoto → 422 reason=no_sec_filings.
+        // Post-split (V028): analyze() NON scarica più filing; il ramo
+        // deterministico produce verdetto anche con filingsUsed vuoto, e il
+        // ramo LLM senza chunk indicizzati lancia FilingsNotIndexedException
+        // → 409 reason=not_indexed. Manteniamo i due casi a documentare
+        // entrambe le invarianti.
 
-            val result = mockMvc.get("/api/analysis/NOSEC/deep") {
+        @Test
+        fun `deterministic branch ritorna 200 anche con cache filing vuota`() {
+            stubWithControlledRoe("NOSEC", 5, 100.0, 500.0)
+            // Override post-controllata: cache vuota → filingsUsed=[]
+            every { filingBlobRepository.findByTickerOrderByFilingDateDesc("NOSEC") } returns emptyList()
+
+            mockMvc.get("/api/analysis/NOSEC/deep") {
                 accept(MediaType.APPLICATION_JSON)
             }.andExpect {
-                status { isUnprocessableEntity() }
+                status { isOk() }
+            }
+        }
+
+        @Test
+        fun `llm branch senza chunk indicizzati ritorna 409 reason not_indexed`() {
+            stubWithControlledRoe("NOIDX", 5, 100.0, 500.0)
+            every { filingBlobRepository.findByTickerOrderByFilingDateDesc("NOIDX") } returns emptyList()
+            every { filingChunkRepository.countByTicker("NOIDX") } returns 0L
+
+            val result = mockMvc.get("/api/analysis/NOIDX/deep?invoke_llm=true") {
+                accept(MediaType.APPLICATION_JSON)
+            }.andExpect {
+                status { isConflict() }
                 content { contentType(MediaType.APPLICATION_PROBLEM_JSON) }
             }.andReturn()
 
             val body = JSON.readTree(result.response.contentAsString)
-            assertThat(body.get("reason")?.asText()).isEqualTo("no_sec_filings")
+            assertThat(body.get("reason")?.asText()).isEqualTo("not_indexed")
         }
     }
 
@@ -366,8 +402,14 @@ class DeepAnalysisIntegrationTest {
             accessionNumber = "0000320193-24-000081",
             filingDate = LocalDate.of(2024, 11, 1),
         )
+        // Post V028 split: analyze() interroga filingBlobRepository (non più
+        // fetchAndCache) per popolare il blocco reporting `filingsUsed`.
+        every { filingBlobRepository.findByTickerOrderByFilingDateDesc(ticker) } returns listOf(blob)
+        every { filingChunkRepository.countByTicker(ticker) } returns 1L
+        // fetchAndCache + indexFiling restano stubbati: vivono nel ramo INGEST
+        // (non esercitato qui), li teniamo per simmetria con E2eTest.
         every { filing10KQDownloaderService.fetchAndCache(ticker) } returns listOf(blob)
-        justRun { filingRagService.indexFiling(any()) }
+        every { filingRagService.indexFiling(any(), any()) } returns IndexResult(0, true)
         every { priceActionAnalyzer.analyze(ticker) } returns PriceActionSnapshot(
             ticker = ticker,
             priceNow = 175.0,

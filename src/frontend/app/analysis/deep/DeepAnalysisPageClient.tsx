@@ -3,8 +3,10 @@
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useDeepAnalysis } from '@/lib/hooks/useDeepAnalysis';
+import { useFilingIngest } from '@/lib/hooks/useFilingIngest';
 import { Button } from '@/components/ui/Button';
 import { analysisUrl } from '@/lib/utils/analysis-url';
+import type { IngestStatus, IngestSummary } from '@/lib/api/deep-analysis';
 import {
   DeepVerdictBadge,
   MungerReportCollapsible,
@@ -19,12 +21,15 @@ import {
  * Ticker from query param (?ticker=AAPL), aligned with ADR-013.
  *
  * Behaviour:
- *  - On mount / return to the page, fetch GET /latest and render whatever the
- *    backend has (SUCCESS → full result, FAILED → error, RUNNING → banner +
- *    polling, NONE → empty state). No auto-rerun.
- *  - "Esegui ora" → POST runs with invoke_llm=false then 3s polling.
- *  - "Esegui + LLM" → POST runs with invoke_llm=true then 3s polling.
- *  - Buttons disabled while isRunning (backend deduplicates anyway).
+ *  - On mount / return to the page, fetch GET /latest (analysis) + GET
+ *    /ingest/latest and render whatever the backend has. No auto-rerun.
+ *  - "Indicizza filing" → POST /deep/ingest then 3s polling (useFilingIngest).
+ *  - "Analizza"          → POST runs with invoke_llm=false then 3s polling.
+ *  - "Analizza + LLM"    → POST runs with invoke_llm=true then 3s polling.
+ *  - Run buttons disabled while the corresponding job is RUNNING (backend
+ *    deduplicates anyway).
+ *  - If analysis FAILED with reason `not_indexed`, the error panel shows a
+ *    dedicated hint pointing to the "Indicizza filing" button.
  */
 
 export function DeepAnalysisPageClient(): React.ReactElement {
@@ -57,11 +62,20 @@ function DeepAnalysisContent({
     isLoading,
     error,
     isFrozenByAdmin,
+    isNotIndexed,
     requestedAt,
     completedAt,
     runNow,
     runWithLlm,
   } = useDeepAnalysis(ticker);
+
+  const {
+    status: ingestStatus,
+    isRunning: ingestRunning,
+    summary: ingestSummary,
+    requestedAt: ingestRequestedAt,
+    runIngest,
+  } = useFilingIngest(ticker);
 
   return (
     <main
@@ -73,9 +87,17 @@ function DeepAnalysisContent({
       <ManualRunBar
         ticker={ticker}
         isRunning={isRunning}
+        ingestRunning={ingestRunning}
+        ingestStatus={ingestStatus}
+        ingestSummary={ingestSummary}
+        onIngest={() => void runIngest()}
         onRun={() => void runNow()}
         onRunWithLlm={() => void runWithLlm()}
       />
+
+      {ingestRunning ? (
+        <IngestRunningBanner requestedAt={ingestRequestedAt} />
+      ) : null}
 
       {isRunning ? (
         <RunningBanner requestedAt={requestedAt} />
@@ -84,7 +106,13 @@ function DeepAnalysisContent({
       {isLoading && !isRunning ? <SkeletonLoader /> : null}
 
       {!isRunning && error !== undefined && data === undefined ? (
-        <ErrorPanel status={error.status} message={error.message} />
+        <ErrorPanel
+          status={error.status}
+          message={error.message}
+          isNotIndexed={isNotIndexed}
+          onIngest={() => void runIngest()}
+          ingestDisabled={ingestRunning}
+        />
       ) : null}
 
       {!isRunning &&
@@ -183,11 +211,19 @@ function DeepAnalysisHeader({
 function ManualRunBar({
   ticker,
   isRunning,
+  ingestRunning,
+  ingestStatus,
+  ingestSummary,
+  onIngest,
   onRun,
   onRunWithLlm,
 }: {
   readonly ticker: string;
   readonly isRunning: boolean;
+  readonly ingestRunning: boolean;
+  readonly ingestStatus: IngestStatus;
+  readonly ingestSummary: IngestSummary | null;
+  readonly onIngest: () => void;
   readonly onRun: () => void;
   readonly onRunWithLlm: () => void;
 }): React.ReactElement {
@@ -195,42 +231,90 @@ function ManualRunBar({
     <section
       data-testid="deep-analysis-manual-run-bar"
       aria-label={`Esecuzione manuale deep analysis ${ticker}`}
-      className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-900"
+      className="flex flex-col gap-2 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-900"
     >
-      <div className="flex flex-col">
-        <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
-          Esegui job on-demand
-        </span>
-        <span className="text-xs text-slate-600 dark:text-slate-400">
-          Rilancia la pipeline deep analysis per <code>{ticker}</code> senza
-          attendere il batch schedulato.
-        </span>
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col">
+          <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
+            Esegui job on-demand
+          </span>
+          <span className="text-xs text-slate-600 dark:text-slate-400">
+            Indicizza i filing SEC e lancia la deep analysis per{' '}
+            <code>{ticker}</code> senza attendere il batch schedulato.
+          </span>
+        </div>
+        <div className="ml-auto flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={onIngest}
+            disabled={ingestRunning}
+            data-testid="deep-analysis-ingest-run"
+            title="Scarica e indicizza gli ultimi 10-K/10-Q dalla SEC"
+          >
+            {ingestRunning ? 'Indicizzazione…' : 'Indicizza filing'}
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={onRun}
+            disabled={isRunning}
+            data-testid="deep-analysis-manual-run"
+          >
+            {isRunning ? 'In esecuzione…' : 'Analizza'}
+          </Button>
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            onClick={onRunWithLlm}
+            disabled={isRunning}
+            data-testid="deep-analysis-manual-run-llm"
+            title="Include Munger LLM (più lento, costo)"
+          >
+            {isRunning ? 'In esecuzione…' : 'Analizza + LLM'}
+          </Button>
+        </div>
       </div>
-      <div className="ml-auto flex gap-2">
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={onRun}
-          disabled={isRunning}
-          data-testid="deep-analysis-manual-run"
-        >
-          {isRunning ? 'In esecuzione…' : 'Esegui ora'}
-        </Button>
-        <Button
-          type="button"
-          variant="primary"
-          size="sm"
-          onClick={onRunWithLlm}
-          disabled={isRunning}
-          data-testid="deep-analysis-manual-run-llm"
-          title="Include Munger LLM (più lento, costo)"
-        >
-          {isRunning ? 'In esecuzione…' : 'Esegui + LLM'}
-        </Button>
-      </div>
+      <IngestStatusLine status={ingestStatus} summary={ingestSummary} />
     </section>
   );
+}
+
+function IngestStatusLine({
+  status,
+  summary,
+}: {
+  readonly status: IngestStatus;
+  readonly summary: IngestSummary | null;
+}): React.ReactElement | null {
+  if (status === 'NONE') {
+    return (
+      <p
+        data-testid="deep-analysis-ingest-status"
+        className="text-xs text-slate-500 dark:text-slate-400"
+      >
+        Mai indicizzato
+      </p>
+    );
+  }
+  if (status === 'SUCCESS' && summary !== null) {
+    const indexedLabel =
+      summary.indexedAt !== null
+        ? new Date(summary.indexedAt).toLocaleString('it-IT')
+        : '—';
+    return (
+      <p
+        data-testid="deep-analysis-ingest-status"
+        className="text-xs text-slate-600 dark:text-slate-400"
+      >
+        Ultima indicizzazione: {indexedLabel} · {summary.filingsTotal} filing
+      </p>
+    );
+  }
+  return null;
 }
 
 /* ------------------------------------------------------------------ */
@@ -260,6 +344,35 @@ function RunningBanner({
       />
       <span>
         Esecuzione in corso…
+        {startedLabel !== null ? ` (avviata alle ${startedLabel})` : ''}
+      </span>
+    </div>
+  );
+}
+
+function IngestRunningBanner({
+  requestedAt,
+}: {
+  readonly requestedAt: string | null;
+}): React.ReactElement {
+  const startedLabel =
+    requestedAt !== null
+      ? new Date(requestedAt).toLocaleTimeString('it-IT')
+      : null;
+  return (
+    <div
+      data-testid="deep-analysis-ingest-running"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+      className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100"
+    >
+      <span
+        aria-hidden="true"
+        className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-amber-500 border-t-transparent"
+      />
+      <span>
+        Indicizzazione in corso…
         {startedLabel !== null ? ` (avviata alle ${startedLabel})` : ''}
       </span>
     </div>
@@ -320,11 +433,23 @@ function SkeletonLoader(): React.ReactElement {
 function ErrorPanel({
   status,
   message,
+  isNotIndexed = false,
+  onIngest,
+  ingestDisabled = false,
 }: {
   readonly status: number | null;
   readonly message: string;
+  readonly isNotIndexed?: boolean;
+  readonly onIngest?: () => void;
+  readonly ingestDisabled?: boolean;
 }): React.ReactElement {
-  const icon = status === 404 ? '🔍' : status === 422 ? '📄' : '⚠️';
+  const icon = isNotIndexed
+    ? '📚'
+    : status === 404
+      ? '🔍'
+      : status === 422
+        ? '📄'
+        : '⚠️';
 
   return (
     <div
@@ -338,7 +463,27 @@ function ErrorPanel({
         </span>
         {message}
       </p>
-      {status === 404 ? (
+      {isNotIndexed && onIngest !== undefined ? (
+        <div className="flex flex-col gap-2">
+          <p className="text-xs text-red-700 dark:text-red-300">
+            Premi <strong>Indicizza filing</strong> nella barra in alto per
+            scaricare i 10-K/10-Q dalla SEC, poi rilancia l’analisi.
+          </p>
+          <div>
+            <Button
+              type="button"
+              variant="primary"
+              size="sm"
+              onClick={onIngest}
+              disabled={ingestDisabled}
+              data-testid="deep-analysis-error-ingest-cta"
+            >
+              {ingestDisabled ? 'Indicizzazione…' : 'Indicizza ora'}
+            </Button>
+          </div>
+        </div>
+      ) : null}
+      {status === 404 && !isNotIndexed ? (
         <Link
           href="/screener"
           className="text-sm font-medium text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"

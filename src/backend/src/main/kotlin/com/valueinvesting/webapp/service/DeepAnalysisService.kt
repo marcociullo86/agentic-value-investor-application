@@ -2,6 +2,7 @@ package com.valueinvesting.webapp.service
 
 import com.valueinvesting.webapp.api.model.DeepAnalysisResponse
 import com.valueinvesting.webapp.api.model.FilingRef
+import com.valueinvesting.webapp.api.model.IngestSummary
 import com.valueinvesting.webapp.api.model.InversionItem
 import com.valueinvesting.webapp.api.model.MungerReportBlock
 import com.valueinvesting.webapp.api.model.NewsSentimentBlock
@@ -15,6 +16,8 @@ import com.valueinvesting.webapp.fmp.FmpTickerNotFoundException
 import com.valueinvesting.webapp.llm.LlmException
 import com.valueinvesting.webapp.persistence.entity.DeepAnalysisEventLogEntity
 import com.valueinvesting.webapp.persistence.repository.DeepAnalysisEventLogRepository
+import com.valueinvesting.webapp.persistence.repository.FilingBlobRepository
+import com.valueinvesting.webapp.persistence.repository.FilingChunkRepository
 import com.valueinvesting.webapp.ruleengine.RuleEngineService
 import com.valueinvesting.webapp.ruleengine.calculators.DcfCalculator
 import com.valueinvesting.webapp.ruleengine.calculators.RoeCalculator
@@ -24,15 +27,29 @@ import java.time.Instant
 
 // Orchestrates the deep-analysis pipeline for a single ticker (US-045).
 //
-// Pipeline steps (deterministic always, LLM opt-in):
-//   1. Profile + financial dataset via FMP (for ROE + rule engine)
-//   2. Filing download + RAG indexing
-//   3. Munger inversion LLM analysis (opt-in via invoke_llm)
-//   4. News sentiment LLM classification (opt-in via invoke_llm)
-//   5. Price action analysis (deterministic)
-//   6. Rule engine evaluation (13 rules)
-//   7. Verdict cascade via MungerDecisionService
-//   8. Position sizing via PositionSizeCalculator
+// Post EP-011 split (V028) la pipeline è suddivisa in due operazioni
+// indipendenti che condividono questo service:
+//
+//   ingest(ticker)         — fetchAndCache dei 10-K/10-Q + indicizzazione
+//                            embedding via FilingRagService (idempotente).
+//                            Non valuta regole, non chiama LLM, non produce
+//                            verdetto. Lancia NoSecFilingsException se SEC
+//                            non restituisce filing (situazione legittima
+//                            di errore per l'INGEST: senza filing non c'è
+//                            nulla da indicizzare).
+//
+//   analyze(ticker, llm)   — verdetto deterministico (rule engine + DCF +
+//                            price action) e — solo se invokeLlm=true —
+//                            Munger inversion che RIUSA gli embedding già
+//                            persistiti da un INGEST precedente. NON
+//                            scarica filing, NON re-indicizza. Sul ramo
+//                            deterministico ritorna verdetto anche con
+//                            `filingsUsed` vuoto (NESSUN NoSecFilingsException
+//                            qui). Sul ramo LLM, se filing_chunks è vuoto
+//                            per il ticker → FilingsNotIndexedException.
+//
+// `filingsUsed` viene popolato leggendo i blob già in cache (senza filtro
+// di scadenza) — è puro reporting per il FE; non guida alcuna decisione.
 //
 // [^src: wiki/concepts/analysis-api-pipeline.md §Pipeline]
 // [^src: wiki/runbooks/sec-10k-10q-analysis-playbook.md §Step 1-5]
@@ -43,6 +60,8 @@ class DeepAnalysisService(
     private val fmpAdapter: FmpAdapter,
     private val filing10KQDownloaderService: Filing10KQDownloaderService,
     private val filingRagService: FilingRagService,
+    private val filingBlobRepository: FilingBlobRepository,
+    private val filingChunkRepository: FilingChunkRepository,
     private val mungerInversionAnalyzer: MungerInversionAnalyzer,
     private val newsSentimentService: NewsSentimentService,
     private val priceActionAnalyzer: PriceActionAnalyzer,
@@ -54,6 +73,54 @@ class DeepAnalysisService(
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
+
+    // Operazione INGEST della pipeline post-split (V028).
+    //
+    // Idempotente per costruzione: FilingRagService.indexFiling salta i filing
+    // già indicizzati (countByFilingBlobId>0). Un re-ingest dello stesso ticker
+    // non rispende embedding sui blob noti.
+    //
+    // Errori:
+    //  - FmpTickerNotFoundException: propagata (ticker invalido)
+    //  - NoSecFilingsException: SEC non restituisce filing → INGEST è in
+    //    errore legittimo, lo stesso comportamento del pre-split per non
+    //    rompere chi consuma la reason `no_sec_filings`.
+    fun ingest(ticker: String): IngestSummary {
+        val startMs = System.currentTimeMillis()
+        val t = ticker.uppercase()
+
+        val filingBlobs = filing10KQDownloaderService.fetchAndCache(t)
+        if (filingBlobs.isEmpty()) {
+            throw NoSecFilingsException(t)
+        }
+
+        var chunksIndexed = 0
+        var filingsSkipped = 0
+        for (blob in filingBlobs) {
+            val blobId = blob.id ?: continue
+            val result = filingRagService.indexFiling(blobId)
+            if (result.skipped) {
+                filingsSkipped++
+            } else {
+                chunksIndexed += result.chunksIndexed
+            }
+        }
+
+        val durationMs = System.currentTimeMillis() - startMs
+        log.info(
+            "Deep analysis INGEST complete for {}: filings={} chunksIndexed={} filingsSkipped={} durationMs={}",
+            t, filingBlobs.size, chunksIndexed, filingsSkipped, durationMs,
+        )
+
+        return IngestSummary(
+            filingsTotal = filingBlobs.size,
+            chunksIndexed = chunksIndexed,
+            // Adottata semantica "numero di filing skippati": è la metrica
+            // significativa per l'idempotency (quanti blob hanno evitato re-embed).
+            chunksSkipped = filingsSkipped,
+            indexedAt = Instant.now(),
+        )
+    }
 
     fun analyze(ticker: String, invokeLlm: Boolean = false): DeepAnalysisResponse {
         val startMs = System.currentTimeMillis()
@@ -77,18 +144,13 @@ class DeepAnalysisService(
             tenYearDataPoints = roe10y.dataPoints,
         )
 
-        // Step 2: Filing download + indexing
-        val filingBlobs = filing10KQDownloaderService.fetchAndCache(t)
-        if (filingBlobs.isEmpty()) {
-            throw NoSecFilingsException(t)
-        }
-
-        for (blob in filingBlobs) {
-            val blobId = blob.id ?: continue
-            filingRagService.indexFiling(blobId)
-        }
-
-        val filingsUsed = filingBlobs.map { blob ->
+        // Step 2 (post-split V028): NIENTE fetchAndCache, NIENTE indexFiling.
+        // `filingsUsed` è solo reporting per il FE — leggiamo i blob già in
+        // cache (qualunque scadenza), e accettiamo lista vuota: il ramo
+        // deterministico produce comunque verdetto. Il ramo LLM si gate-a
+        // più sotto su filingChunkRepository.countByTicker.
+        val cachedBlobs = filingBlobRepository.findByTickerOrderByFilingDateDesc(t)
+        val filingsUsed = cachedBlobs.map { blob ->
             FilingRef(
                 accessionNumber = blob.accessionNumber,
                 formType = blob.formType,
@@ -102,6 +164,14 @@ class DeepAnalysisService(
         var llmStatus = "NOT_INVOKED"
 
         if (invokeLlm) {
+            // Gate: l'analisi LLM riusa gli embedding di un INGEST precedente.
+            // Se filing_chunks è vuoto per il ticker non c'è contesto per la
+            // similarity search → FilingsNotIndexedException, che il
+            // GlobalExceptionHandler mappa a 409 reason=not_indexed.
+            val chunkCount = filingChunkRepository.countByTicker(t)
+            if (chunkCount == 0L) {
+                throw FilingsNotIndexedException(t)
+            }
             try {
                 val report = mungerInversionAnalyzer.analyze(
                     ticker = t,

@@ -41,7 +41,7 @@ data class AnthropicProperties(
 
     companion object {
         const val DEFAULT_BASE_URL = "https://api.anthropic.com/v1"
-        const val DEFAULT_MODEL = "claude-opus-4-7"
+        const val DEFAULT_MODEL = "claude-opus-4-8"
         const val DEFAULT_TIMEOUT_SECONDS = 60L
         const val DEFAULT_RATE_LIMIT_PER_MINUTE = 12
     }

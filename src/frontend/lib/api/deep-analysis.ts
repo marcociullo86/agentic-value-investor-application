@@ -218,3 +218,76 @@ export async function getLatestDeepAnalysis(
   );
   return result.data;
 }
+
+/* ------------------------------------------------------------------ */
+/*  Filings ingest run/latest API                                      */
+/* ------------------------------------------------------------------ */
+
+/** Status di un singolo ingest run. */
+export type IngestStatus = 'RUNNING' | 'SUCCESS' | 'FAILED' | 'NONE';
+
+/** Riassunto deterministico restituito dal backend solo su SUCCESS. */
+export interface IngestSummary {
+  readonly filingsTotal: number;
+  readonly chunksIndexed: number;
+  readonly chunksSkipped: number;
+  readonly indexedAt: string | null;
+}
+
+/** Errore strutturato emesso dall'ingest job in caso di FAILED. */
+export interface IngestError {
+  readonly reason: string;
+  readonly message: string | null;
+}
+
+/** Payload restituito da POST /api/analysis/{ticker}/deep/ingest (HTTP 202). */
+export interface IngestRunDto {
+  readonly runId: string;
+  readonly ticker: string;
+  readonly status: 'RUNNING' | 'SUCCESS' | 'FAILED';
+  readonly invokeLlm: false;
+  readonly kind: 'INGEST';
+}
+
+/** Payload restituito da GET /api/analysis/{ticker}/deep/ingest/latest. */
+export interface LatestIngest {
+  readonly ticker: string;
+  readonly status: IngestStatus;
+  readonly runId: string | null;
+  readonly requestedAt: string | null;
+  readonly completedAt: string | null;
+  /** Valorizzato solo quando `status === 'SUCCESS'`. */
+  readonly summary: IngestSummary | null;
+  /** Valorizzato solo quando `status === 'FAILED'`. */
+  readonly error: IngestError | null;
+}
+
+/**
+ * POST /api/analysis/{ticker}/deep/ingest
+ *
+ * Avvia un nuovo job di indicizzazione dei filing SEC. La response 202 conferma
+ * l'accettazione del job; lo stato successivo va recuperato via
+ * {@link getLatestIngest}. Il backend deduplica POST concorrenti.
+ */
+export async function startIngest(ticker: string): Promise<IngestRunDto> {
+  const normalized = ticker.trim().toUpperCase();
+  const result: ApiResult<IngestRunDto> = await apiPost<IngestRunDto>(
+    `/api/analysis/${encodeURIComponent(normalized)}/deep/ingest`,
+  );
+  return result.data;
+}
+
+/**
+ * GET /api/analysis/{ticker}/deep/ingest/latest
+ *
+ * Restituisce l'ultimo ingest noto per il ticker (qualsiasi status). Quando non
+ * esiste alcun job, il backend restituisce `status === 'NONE'` con
+ * `runId/summary/error/requestedAt/completedAt` a null.
+ */
+export async function getLatestIngest(ticker: string): Promise<LatestIngest> {
+  const normalized = ticker.trim().toUpperCase();
+  const result: ApiResult<LatestIngest> = await apiGet<LatestIngest>(
+    `/api/analysis/${encodeURIComponent(normalized)}/deep/ingest/latest`,
+  );
+  return result.data;
+}

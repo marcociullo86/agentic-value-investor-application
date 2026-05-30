@@ -4,7 +4,7 @@ type: entity
 sources: ["raw/fmp_docs.md", "raw/fmp_docs.json"]
 status: draft
 created: 2026-05-20
-updated: 2026-05-22
+updated: 2026-05-30
 tags: [fmp, api, stable, entity, provider, financial-data, operations]
 ---
 # Financial Modeling Prep (FMP) — API Stable
@@ -83,7 +83,7 @@ Il rule engine value investing usa questi endpoint:
 | `/stable/cash-flow-statement` | CapEx, OCF, Owner Earnings (10 anni) | Financial Statements |
 | `/stable/key-metrics` | ROIC, BVPS, Graham Number inputs | Key Metrics & Ratios |
 | `/stable/dividends` | Storico dividendi per continuità Graham (20y) | Earnings, Dividends, Splits |
-| `/stable/sec-filings-search/symbol` | Discovery filing SEC (10-K, 10-Q) per ticker | Sec Filings |
+| `/stable/sec-filings-search/symbol` | Discovery filing SEC (10-K, 10-Q) per ticker — `from`/`to` obbligatori | Sec Filings |
 | `/stable/news/stock` | News per ticker, sentiment classifier (90gg) | News & Media |
 | `/stable/historical-price-eod/full` | Storico EOD per price action analyzer (52w) | Quotes |
 
@@ -124,6 +124,18 @@ Runbook [[fmp-api-quickstart]] espone sezioni esplicite per rate limiting, URL b
 | Stime analisti (consensus EPS, price target) | Non trovate nella sezione stable | `fmp-stable-analyst-estimates` aperto |
 
 Default throttling e path MVP in configurazione applicativa: ADR-016 (non citazione provider). Dettaglio: [[fmp-api-quickstart]] § Rate limiting, § URL base, § Errori HTTP, § Limitazioni documentazione.
+
+## Discovery filing SEC — quirk operativi (`/stable/sec-filings-search/symbol`)
+
+Comportamento reale verificato sul campo (ticker TTD, maggio 2026), non documentato nella doc ufficiale ma load-bearing per l'integrazione EP-011:
+
+- **`from`/`to` sono OBBLIGATORI**: senza finestra temporale l'endpoint risponde `400 BAD_REQUEST`. Il client applica `to = oggi`, `from = oggi - lookbackMonths` con `lookbackMonths=15` (15 mesi indietro: copre l'ultimo 10-K annuale + gli ultimi 10-Q, con margine per ritardi di deposito).
+- **Nessun filtro `formType` server-side**: l'endpoint ritorna TUTTI i form type (Form-4, 8-K, SC 13G, 10-K, 10-Q...) ordinati DESC per `filingDate`; passare `formType` è innocuo (forward-compatible) ma il filtro 10-K/10-Q va applicato **client-side**. Conseguenza pratica: i 10-K/10-Q (pochi) sono annegati tra decine di Form-4/8-K più recenti → un `limit` basso (es. 10) li escluderebbe dalla pagina (root cause del bug "No SEC filings"). Si usa quindi un page-limit ampio (1000) per chiamata.
+- **Una chiamata per formType**: per ogni form type richiesto (10-K, 10-Q) si emette una chiamata distinta al `/symbol` con quel `formType` in querystring + filtro client-side, poi si fa union deduplicata per link canonico, ordinata DESC per `filingDate` e troncata a `limit` (cap totale).
+- **L'endpoint gemello `/sec-filings-search/form-type` IGNORA il `symbol`** (ritorna i filing di TUTTE le aziende) → inutilizzabile per ticker singolo.
+- **Parsing data tollerante**: `filingDate` può arrivare come `yyyy-MM-dd` o come datetime `yyyy-MM-dd HH:mm:ss` (o ISO `T`); il downloader isola la sola parte data prima del parse per evitare il fallback a EPOCH.
+
+Error policy per chiamata: `429 → FmpUnavailableException(429)` (route Resilience4j), `5xx → FmpUnavailableException(status)`, `4xx` non-429 → trattato come "nessun filing per quel tipo" (emptyList). [^src: src/backend/src/main/kotlin/com/valueinvesting/webapp/fmp/FmpAdapterRestClient.kt §getSecFilings] [^src: src/backend/src/main/kotlin/com/valueinvesting/webapp/service/Filing10KQDownloaderService.kt §parseFilingDate]
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->

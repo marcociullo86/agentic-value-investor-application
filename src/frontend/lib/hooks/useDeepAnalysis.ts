@@ -117,6 +117,13 @@ function fromLatestFailure(
         'Servizio analisi temporaneamente non disponibile. Riprova più tardi.',
     };
   }
+  if (reason === 'NOT_INDEXED' || reason === 'not_indexed') {
+    return {
+      status: 409,
+      reason,
+      message: 'Indicizza prima i filing per usare l’analisi LLM.',
+    };
+  }
   return {
     status: null,
     reason,
@@ -139,6 +146,8 @@ export interface UseDeepAnalysisResult {
   readonly error: DeepAnalysisError | undefined;
   /** Vero se l'errore è dovuto al freeze admin del budget LLM. */
   readonly isFrozenByAdmin: boolean;
+  /** Vero se l'errore è dovuto a filing mai indicizzati per il ticker. */
+  readonly isNotIndexed: boolean;
   /** ISO timestamp di inizio run (presente per RUNNING/SUCCESS/FAILED). */
   readonly requestedAt: string | null;
   /** ISO timestamp di fine run (presente per SUCCESS/FAILED). */
@@ -267,6 +276,9 @@ export function useDeepAnalysis(ticker: string): UseDeepAnalysisResult {
 
   const isFrozenByAdmin: boolean =
     parsedError?.reason === 'LLM_FROZEN_BY_ADMIN';
+  const isNotIndexed: boolean =
+    parsedError?.reason === 'NOT_INDEXED' ||
+    parsedError?.reason === 'not_indexed';
 
   const data =
     latest !== undefined && latest.status === 'SUCCESS'
@@ -280,6 +292,7 @@ export function useDeepAnalysis(ticker: string): UseDeepAnalysisResult {
     isLoading,
     error: parsedError,
     isFrozenByAdmin,
+    isNotIndexed,
     requestedAt: latest?.requestedAt ?? null,
     completedAt: latest?.completedAt ?? null,
     runNow,

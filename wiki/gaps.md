@@ -103,6 +103,8 @@ utente mostrerà lista vuota senza errori. Nessun impatto su funzionalità core.
 
 **Risolto parzialmente:** 2026-05-23 — `wiki/concepts/munger-inversion-rag.md` + `wiki/concepts/value-investor-bot-architecture.md` documentano la metodologia di porting: download HTML diretto da SEC EDGAR via `finalLink` (endpoint FMP `/stable/sec-filings-search/symbol`), chunking FAISS RAG, analisi Munger inversion. La metodologia esiste e funziona in agent.py v2.6.1. Rimane gap implementativo lato Kotlin (EP-011 lo colmera' con US-041 + TSK relativi). Chiusura completa riservata al completamento di EP-011.
 
+**Risolto:** 2026-05-30 — pipeline Kotlin EP-011 funzionante end-to-end: discovery FMP `getSecFilings` (con quirk `from`/`to` obbligatori, finestra 15 mesi, una chiamata per formType + filtro client-side — root cause del bug "No SEC filings" risolta), download HTML SEC EDGAR via `Filing10KQDownloaderService` (parsing data tollerante `yyyy-MM-dd` / `yyyy-MM-dd HH:mm:ss`), embedding pgvector (sidecar fix trasporto `SimpleClientHttpRequestFactory` che elimina il 422 da body vuoto) e analisi LLM Munger. Il testo narrativo dei report (Item 1/1A/7 + Note) è ora accessibile programmaticamente alla pipeline RAG, automatizzando gli Step 1-3 e 5 del playbook che prima richiedevano EDGAR manuale. Discovery quirk documentati in [[fmp-api]] §Discovery filing SEC; deep analysis async + split INGEST/ANALYSIS in [[analysis-api-pipeline]] §Aggiornamenti (v2026-05-30); sidecar GPU/trasporto in [[arctic-embed-l-v2]] §Aggiornamenti (v2026-05-30). [^src: src/backend/src/main/kotlin/com/valueinvesting/webapp/fmp/FmpAdapterRestClient.kt §getSecFilings]
+
 ---
 
 ## 2026-05-20 14:00 — vi-webapp-owner-earnings-formula

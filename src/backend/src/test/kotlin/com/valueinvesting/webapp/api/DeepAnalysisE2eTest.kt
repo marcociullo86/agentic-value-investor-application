@@ -7,14 +7,16 @@ import com.valueinvesting.webapp.fmp.FmpFixtureFactory
 import com.valueinvesting.webapp.fmp.FmpTickerNotFoundException
 import com.valueinvesting.webapp.persistence.entity.FilingBlobEntity
 import com.valueinvesting.webapp.persistence.repository.DeepAnalysisEventLogRepository
+import com.valueinvesting.webapp.persistence.repository.FilingBlobRepository
+import com.valueinvesting.webapp.persistence.repository.FilingChunkRepository
 import com.valueinvesting.webapp.service.Filing10KQDownloaderService
 import com.valueinvesting.webapp.service.FilingRagService
+import com.valueinvesting.webapp.service.IndexResult
 import com.valueinvesting.webapp.service.PriceActionAnalyzer
 import com.valueinvesting.webapp.service.PriceActionSnapshot
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.clearMocks
 import io.mockk.every
-import io.mockk.justRun
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -90,12 +92,23 @@ class DeepAnalysisE2eTest {
     @MockkBean
     private lateinit var filingRagService: FilingRagService
 
+    // Post EP-011 split (V028) DeepAnalysisService.analyze legge i blob già
+    // in cache da questo repo (per popolare filingsUsed) e — sul ramo LLM —
+    // conta i chunk indicizzati per ticker. Mockati per non dover persistere
+    // realmente filing nei test che si concentrano sull'orchestrazione.
+    @MockkBean
+    private lateinit var filingBlobRepository: FilingBlobRepository
+
+    @MockkBean
+    private lateinit var filingChunkRepository: FilingChunkRepository
+
     @MockkBean
     private lateinit var priceActionAnalyzer: PriceActionAnalyzer
 
     @BeforeEach
     fun resetMocks() {
-        clearMocks(fmpAdapter, filing10KQDownloaderService, filingRagService, priceActionAnalyzer,
+        clearMocks(fmpAdapter, filing10KQDownloaderService, filingRagService,
+            filingBlobRepository, filingChunkRepository, priceActionAnalyzer,
             answers = false, recordedCalls = true)
         eventLogRepo.deleteAll()
     }
@@ -276,33 +289,57 @@ class DeepAnalysisE2eTest {
         }
     }
 
-    // ── No SEC filings: 422 problem+json ──
+    // ── No filings: ramo deterministico OK, ramo LLM 409 not_indexed ──
 
     @Nested
-    @DisplayName("No SEC filings → 422 problem+json")
-    inner class NoSecFilings {
+    @DisplayName("Post EP-011 split (V028): analyze deterministic NON scarica filing")
+    inner class NoFilingsInCache {
 
+        // Pre-split: filing assenti su SEC → 422 no_sec_filings dal ramo
+        // deterministico (analyze chiamava fetchAndCache). Post-split lo
+        // scarico è solo nell'INGEST: il ramo deterministico produce verdetto
+        // anche con filingsUsed vuoto.
         @Test
-        @DisplayName("ticker with no SEC filings returns 422 with all RFC 9457 fields")
-        fun `no SEC filings returns 422 with full problem details`() {
+        @DisplayName("ramo deterministico ritorna 200 con filingsUsed vuoto anche senza ingest precedente")
+        fun `deterministic branch returns 200 with empty filingsUsed when no cached blobs`() {
             FmpFixtureFactory.stubSuccessfulFmp(fmpAdapter, "NOFILING")
             stubPipelineDeps("NOFILING")
-            every { filing10KQDownloaderService.fetchAndCache("NOFILING") } returns emptyList()
+            // Nessun blob in cache → filingsUsed=[] nel response.
+            every { filingBlobRepository.findByTickerOrderByFilingDateDesc("NOFILING") } returns emptyList()
+            // Ramo deterministico: countByTicker non viene letto.
 
-            val result = mockMvc.get("/api/analysis/NOFILING/deep") {
+            val body = callDeepAndParse("NOFILING")
+
+            assertThat(body.get("ticker").asText()).isEqualTo("NOFILING")
+            val filings = body.get("filingsUsed")
+            assertThat(filings.isArray).isTrue()
+            assertThat(filings.size()).isZero()
+            // Verdetto deterministico comunque presente.
+            assertThat(body.get("verdict").isObject).isTrue()
+        }
+
+        // Il ramo LLM richiede invece chunk indicizzati: senza INGEST
+        // precedente → 409 reason=not_indexed (NON 422 no_sec_filings).
+        @Test
+        @DisplayName("ramo LLM senza chunk indicizzati ritorna 409 reason not_indexed")
+        fun `llm branch returns 409 not_indexed when no chunks for ticker`() {
+            FmpFixtureFactory.stubSuccessfulFmp(fmpAdapter, "NOIDX")
+            stubPipelineDeps("NOIDX")
+            every { filingBlobRepository.findByTickerOrderByFilingDateDesc("NOIDX") } returns emptyList()
+            every { filingChunkRepository.countByTicker("NOIDX") } returns 0L
+
+            val result = mockMvc.get("/api/analysis/NOIDX/deep?invoke_llm=true") {
                 accept(MediaType.APPLICATION_JSON)
             }.andExpect {
-                status { isUnprocessableEntity() }
+                status { isConflict() }
                 content { contentType(MediaType.APPLICATION_PROBLEM_JSON) }
             }.andReturn()
 
             val body = JSON.readTree(result.response.contentAsString)
-            assertThat(body.get("title").asText()).isEqualTo("No SEC filings available")
-            assertThat(body.get("status").asInt()).isEqualTo(422)
-            assertThat(body.get("reason").asText()).isEqualTo("no_sec_filings")
-            assertThat(body.get("ticker").asText()).isEqualTo("NOFILING")
-            assertThat(body.get("detail").asText()).contains("NOFILING")
-            assertThat(body.get("type").asText()).contains("no-sec-filings")
+            assertThat(body.get("status").asInt()).isEqualTo(409)
+            assertThat(body.get("reason").asText()).isEqualTo("not_indexed")
+            assertThat(body.get("ticker").asText()).isEqualTo("NOIDX")
+            assertThat(body.get("type").asText()).contains("filings-not-indexed")
         }
     }
 
@@ -365,16 +402,22 @@ class DeepAnalysisE2eTest {
         }
 
         @Test
-        @DisplayName("event log is NOT created on 422 error (no SEC filings)")
-        fun `no event log on 422 error`() {
-            FmpFixtureFactory.stubSuccessfulFmp(fmpAdapter, "NOSEC")
-            stubPipelineDeps("NOSEC")
-            every { filing10KQDownloaderService.fetchAndCache("NOSEC") } returns emptyList()
+        @DisplayName("event log NOT created on 409 not_indexed (LLM branch senza ingest precedente)")
+        fun `no event log on 409 not_indexed error`() {
+            // Post-split: il caso pre-esistente "422 no_sec_filings dal
+            // deterministico" non esiste più (il deterministico ora ritorna
+            // 200 con filingsUsed vuoto). Il caso negativo equivalente per
+            // l'event-log è il ramo LLM senza chunk indicizzati → 409
+            // not_indexed; analyze fallisce prima di persistere event_log.
+            FmpFixtureFactory.stubSuccessfulFmp(fmpAdapter, "NOIDX2")
+            stubPipelineDeps("NOIDX2")
+            every { filingBlobRepository.findByTickerOrderByFilingDateDesc("NOIDX2") } returns emptyList()
+            every { filingChunkRepository.countByTicker("NOIDX2") } returns 0L
 
-            mockMvc.get("/api/analysis/NOSEC/deep") {
+            mockMvc.get("/api/analysis/NOIDX2/deep?invoke_llm=true") {
                 accept(MediaType.APPLICATION_JSON)
             }.andExpect {
-                status { isUnprocessableEntity() }
+                status { isConflict() }
             }
 
             assertThat(eventLogRepo.count()).isZero()
@@ -397,6 +440,10 @@ class DeepAnalysisE2eTest {
         FmpFixtureFactory.stubSuccessfulFmp(fmpAdapter, t)
         stubPipelineDeps(t)
 
+        // Post V028 split: analyze() NON chiama più fetchAndCache. Per
+        // mantenere `filingsUsed` non-vuoto nel response (asserito dai test
+        // ColdCall e ContractTest) stubbiamo il repo che il service ora
+        // interroga per popolare il blocco di reporting.
         val blob = FilingBlobEntity(
             id = 1L,
             ticker = t,
@@ -405,8 +452,17 @@ class DeepAnalysisE2eTest {
             accessionNumber = "0000320193-24-000081",
             filingDate = LocalDate.of(2024, 11, 1),
         )
+        every { filingBlobRepository.findByTickerOrderByFilingDateDesc(t) } returns listOf(blob)
+        // Il ramo deterministico (invoke_llm=false) non legge countByTicker;
+        // stubbiamo a un valore non-zero come default difensivo per i test
+        // che potrebbero accidentalmente passare invokeLlm=true.
+        every { filingChunkRepository.countByTicker(t) } returns 1L
+
+        // fetchAndCache + indexFiling vivono ora SOLO nel ramo INGEST.
+        // Li stubbiamo comunque per coprire eventuali test di INGEST/E2E
+        // futuri che condividano questo helper.
         every { filing10KQDownloaderService.fetchAndCache(t) } returns listOf(blob)
-        justRun { filingRagService.indexFiling(any()) }
+        every { filingRagService.indexFiling(any(), any()) } returns IndexResult(0, true)
     }
 
     private fun stubPipelineDeps(ticker: String) {

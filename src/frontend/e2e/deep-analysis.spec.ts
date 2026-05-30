@@ -18,11 +18,15 @@
  *
  * Scenarios covered:
  *  - Latest SUCCESS at first paint → render full result (no auto-rerun).
- *  - Latest NONE → empty state with hint to press "Esegui ora".
+ *  - Latest NONE → empty state with hint to press "Analizza".
  *  - Manual run → POST runs + GET latest sequence RUNNING → SUCCESS.
  *  - Latest FAILED with reason not_found (404 equivalent) → error panel.
  *  - Latest FAILED with reason no_sec_filings → dedicated message.
+ *  - Latest FAILED with reason not_indexed → hint + ingest CTA.
  *  - Buttons disabled while RUNNING (double-click guard, FE side).
+ *  - 3-button manual run bar (Indicizza filing, Analizza, Analizza + LLM).
+ *  - Ingest run → POST /deep/ingest + ingest/latest RUNNING → SUCCESS with
+ *    status line updated to "Ultima indicizzazione …  · N filing".
  *  - Page title contains ticker.
  *  - Accessibility: aria-label on verdict badge.
  */
@@ -47,6 +51,23 @@ interface LatestPayload {
   requestedAt: string | null;
   completedAt: string | null;
   result: Record<string, unknown> | null;
+  error: { reason: string; message: string | null } | null;
+}
+
+interface IngestSummary {
+  filingsTotal: number;
+  chunksIndexed: number;
+  chunksSkipped: number;
+  indexedAt: string | null;
+}
+
+interface IngestLatestPayload {
+  ticker: string;
+  status: 'RUNNING' | 'SUCCESS' | 'FAILED' | 'NONE';
+  runId: string | null;
+  requestedAt: string | null;
+  completedAt: string | null;
+  summary: IngestSummary | null;
   error: { reason: string; message: string | null } | null;
 }
 
@@ -154,11 +175,121 @@ async function mockStartRun(
   return { getCount: (): number => postCount };
 }
 
+function ingestNonePayload(ticker: string): IngestLatestPayload {
+  return {
+    ticker,
+    status: 'NONE',
+    runId: null,
+    requestedAt: null,
+    completedAt: null,
+    summary: null,
+    error: null,
+  };
+}
+
+function ingestRunningPayload(ticker: string): IngestLatestPayload {
+  return {
+    ticker,
+    status: 'RUNNING',
+    runId: 'ing-run-1',
+    requestedAt: '2026-05-22T09:59:55Z',
+    completedAt: null,
+    summary: null,
+    error: null,
+  };
+}
+
+function ingestSuccessPayload(ticker: string): IngestLatestPayload {
+  return {
+    ticker,
+    status: 'SUCCESS',
+    runId: 'ing-run-1',
+    requestedAt: '2026-05-22T09:59:55Z',
+    completedAt: '2026-05-22T10:00:30Z',
+    summary: {
+      filingsTotal: 12,
+      chunksIndexed: 480,
+      chunksSkipped: 3,
+      indexedAt: '2026-05-22T10:00:30Z',
+    },
+    error: null,
+  };
+}
+
+async function mockIngestLatestSequence(
+  page: Page,
+  ticker: string,
+  sequence: readonly IngestLatestPayload[],
+): Promise<{ readonly getCalls: () => number }> {
+  let i = 0;
+  await page.route(
+    `**/api/analysis/${ticker}/deep/ingest/latest`,
+    (route: Route) => {
+      const idx = Math.min(i, sequence.length - 1);
+      const payload = sequence[idx] ?? sequence[sequence.length - 1];
+      i++;
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(payload),
+      });
+    },
+  );
+  return { getCalls: (): number => i };
+}
+
+async function mockStartIngest(
+  page: Page,
+  ticker: string,
+): Promise<{ readonly getCount: () => number }> {
+  let postCount = 0;
+  await page.route(
+    `**/api/analysis/${ticker}/deep/ingest`,
+    (route: Route) => {
+      if (route.request().method() !== 'POST') {
+        return route.fallback();
+      }
+      postCount++;
+      return route.fulfill({
+        status: 202,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          runId: `ing-${postCount}`,
+          ticker,
+          status: 'RUNNING',
+          invokeLlm: false,
+          kind: 'INGEST',
+        }),
+      });
+    },
+  );
+  return { getCount: (): number => postCount };
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
 test.describe('Deep Analysis page (async flow)', () => {
+  test.beforeEach(async ({ page }) => {
+    // Default ingest stub: every test gets an NONE ingest snapshot unless it
+    // installs a more specific handler before this one. The route registered
+    // here is checked AFTER per-test routes (last-registered wins in Playwright),
+    // so per-test handlers always take precedence.
+    await page.route(
+      /\/api\/analysis\/[^/]+\/deep\/ingest\/latest/,
+      (route) => {
+        const m = route.request().url().match(/\/analysis\/([^/]+)\/deep/);
+        const ticker = m?.[1] ?? 'AAPL';
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(ingestNonePayload(ticker)),
+        });
+      },
+    );
+  });
+
   test('happy path AAPL — latest SUCCESS renders verdict + 5 sections', async ({ page }) => {
     await mockLatestSequence(page, 'AAPL', [
       successPayload('AAPL', deepAaplFixture),
@@ -376,5 +507,100 @@ test.describe('Deep Analysis page (async flow)', () => {
     await expect(title).toBeVisible({ timeout: 15_000 });
     await expect(title).toContainText('AAPL');
     await expect(title).toContainText('Deep Analysis');
+  });
+
+  test('manual run bar exposes 3 buttons (Indicizza filing, Analizza, Analizza + LLM)', async ({
+    page,
+  }) => {
+    await mockLatestSequence(page, 'AAPL', [nonePayload('AAPL')]);
+
+    await page.goto('/analysis/deep?ticker=AAPL');
+
+    const ingestBtn = page.getByTestId('deep-analysis-ingest-run');
+    const runBtn = page.getByTestId('deep-analysis-manual-run');
+    const runLlmBtn = page.getByTestId('deep-analysis-manual-run-llm');
+
+    await expect(ingestBtn).toBeVisible({ timeout: 15_000 });
+    await expect(runBtn).toBeVisible();
+    await expect(runLlmBtn).toBeVisible();
+
+    await expect(ingestBtn).toHaveText(/Indicizza filing/);
+    await expect(runBtn).toHaveText(/Analizza$/);
+    await expect(runLlmBtn).toHaveText(/Analizza \+ LLM/);
+
+    // NONE ingest → status line shows "Mai indicizzato".
+    await expect(page.getByTestId('deep-analysis-ingest-status')).toContainText(
+      /Mai indicizzato/,
+    );
+  });
+
+  test('ingest run — POST /deep/ingest then poll RUNNING → SUCCESS, status line updates', async ({
+    page,
+  }) => {
+    await mockLatestSequence(page, 'AAPL', [nonePayload('AAPL')]);
+    const ingestPosts = await mockStartIngest(page, 'AAPL');
+    await mockIngestLatestSequence(page, 'AAPL', [
+      ingestNonePayload('AAPL'),
+      ingestRunningPayload('AAPL'),
+      ingestSuccessPayload('AAPL'),
+      ingestSuccessPayload('AAPL'),
+      ingestSuccessPayload('AAPL'),
+    ]);
+
+    await page.goto('/analysis/deep?ticker=AAPL');
+
+    const ingestBtn = page.getByTestId('deep-analysis-ingest-run');
+    await expect(ingestBtn).toBeEnabled({ timeout: 15_000 });
+
+    // Initial status line "Mai indicizzato".
+    await expect(page.getByTestId('deep-analysis-ingest-status')).toContainText(
+      /Mai indicizzato/,
+    );
+
+    await ingestBtn.click();
+
+    await expect.poll(() => ingestPosts.getCount(), { timeout: 5_000 }).toBe(1);
+
+    // Running banner specific to ingest, button disabled while RUNNING.
+    await expect(page.getByTestId('deep-analysis-ingest-running')).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(ingestBtn).toBeDisabled();
+
+    // After polling cycles, status flips to SUCCESS: banner gone, status line
+    // shows "Ultima indicizzazione …  · 12 filing".
+    await expect(page.getByTestId('deep-analysis-ingest-running')).toHaveCount(
+      0,
+      { timeout: 30_000 },
+    );
+    await expect(page.getByTestId('deep-analysis-ingest-status')).toContainText(
+      /Ultima indicizzazione: .* · 12 filing/,
+      { timeout: 30_000 },
+    );
+  });
+
+  test('analysis FAILED not_indexed — error panel shows hint + ingest CTA', async ({
+    page,
+  }) => {
+    await mockLatestSequence(page, 'NEWTICK', [
+      failedPayload('NEWTICK', 'not_indexed', 'Filings non indicizzati'),
+    ]);
+    const ingestPosts = await mockStartIngest(page, 'NEWTICK');
+    await mockIngestLatestSequence(page, 'NEWTICK', [
+      ingestNonePayload('NEWTICK'),
+    ]);
+
+    await page.goto('/analysis/deep?ticker=NEWTICK');
+
+    const errorPanel = page.getByTestId('deep-analysis-error');
+    await expect(errorPanel).toBeVisible({ timeout: 15_000 });
+    await expect(errorPanel).toContainText(/Indicizza prima i filing/);
+
+    const cta = page.getByTestId('deep-analysis-error-ingest-cta');
+    await expect(cta).toBeVisible();
+    await expect(cta).toBeEnabled();
+    await cta.click();
+
+    await expect.poll(() => ingestPosts.getCount(), { timeout: 5_000 }).toBe(1);
   });
 });

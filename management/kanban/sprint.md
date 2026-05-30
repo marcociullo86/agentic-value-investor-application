@@ -447,6 +447,24 @@ dichiarazione formale PCI-DSS non applicabile. ADR-025. DB: mfa_secrets + login_
 
 ---
 
+## Follow-up EP-011 — Deep Analysis async/split + hardening discovery & embeddings (post-Sprint 8)
+
+**Stato:** COMPLETATO — 5/5 TSK `done`. Hardening e refactor della pipeline deep analysis (EP-011) emersi durante la messa in esercizio, su US già chiuse (US-039, US-040, US-045/046). Non altera i totali storici di Sprint 7/8.
+
+| TSK | Titolo | Layer | Consumer | Est. | US | `depends_on` | Status |
+|-----|--------|-------|----------|------|----|--------------|--------|
+| TSK-293 | BE Deep analysis run-model asincrono — V027 + DeepAnalysisRun + AsyncExecutor + enqueue/dedupe/getLatest + 2 endpoint | be | agent | M | US-045 | TSK-118 | done |
+| TSK-294 | BE Split deep analysis INGEST vs ANALYSIS — V028 colonna kind + skip idempotente + dispatch executor + 2 endpoint ingest + not_indexed | be | agent | M | US-045 | TSK-293 | done |
+| TSK-295 | BE Fix discovery filing SEC via FMP getSecFilings — from/to obbligatori, finestra 15 mesi, una chiamata per formType + filtro client-side | be | agent | S | US-039 | TSK-094 | done |
+| TSK-296 | BE Fix trasporto EmbeddingService → SimpleClientHttpRequestFactory (body JSON vuoto via JdkClient → 422) | be | agent | S | US-040 | TSK-100 | done |
+| TSK-297 | INFRA Sidecar embeddings su GPU NVIDIA via Podman CDI — override compose, app.py device+fp16, /health device, torch cu126, script CPU/GPU | infra | agent | M | US-040 | TSK-099 | done |
+
+**Totale follow-up EP-011:** 5 TSK (4 be, 1 infra) — tutte `done`.
+
+**Note di coerenza FE (US-046):** la tab Deep Analysis espone 3 tasti ("Indicizza filing" → `POST .../deep/ingest`, "Analizza" → `POST .../deep/runs?invoke_llm=false`, "Analizza + LLM" → `POST .../deep/runs?invoke_llm=true`), riga "ultima indicizzazione" da `GET .../deep/ingest/latest` e hint guidato su `error.reason = "not_indexed"`. Coperta dalle note datate 2026-05-29/30 in US-046 (FE già implementato; nessun nuovo TSK FE richiesto in questo follow-up).
+
+---
+
 ## Sprint 9 — Top Value Picks batch (EP-012)
 
 **Stato:** COMPLETATO — 17/17 TSK `done`. US-047..US-051 chiuse. EP-012 `done`.
@@ -595,6 +613,7 @@ dichiarazione formale PCI-DSS non applicabile. ADR-025. DB: mfa_secrets + login_
 | R2.0 | 6 | 0 | 1 | 8 | 1 | 8 | **18** | done |
 | R2.0 | 7 | 1 | 6 | 17 | 0 | 13 | **37** | done |
 | R2.0 | 8 | 0 | 0 | 0 | 5 | 2 | **7** | done |
+| R2.0 | EP-011 follow-up | 1 | 0 | 4 | 0 | 0 | **5** | done |
 | R2.0 | 9 | 1 | 1 | 7 | 2 | 6 | **17** | done |
 | R2.1 | 10 | 0 | 0 | 3 | 2 | 1 | **6** | done |
 | R3.0 | 11 | 1 | 0 | 7 | 0 | 6 | **14** | done |
@@ -606,7 +625,7 @@ dichiarazione formale PCI-DSS non applicabile. ADR-025. DB: mfa_secrets + login_
 | R3.1 | 16 | 0 | 1 | 7 | 3 | 15 | **25** | done |
 | R3.0 | 17 | 0 | 0 | 0 | 3 | 1 | **4** | done |
 | R3.2 | 18 | 0 | 1 | 8 | 1 | 11 | **21** | 0 done, 21 todo |
-| | **TOTALE** | **10** | **18** | **100** | **56** | **109** | **293** | 269 done, 24 todo |
+| | **TOTALE** | **11** | **18** | **104** | **56** | **109** | **298** | 274 done, 24 todo |
 
 ---
 

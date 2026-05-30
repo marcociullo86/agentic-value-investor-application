@@ -6,7 +6,8 @@ sources:
   - "raw/agent.py"
 status: review
 created: 2026-05-25
-tags: [embedding, llm, qwen3, arctic-embed, pgvector, rag, ep-011, a-b-test]
+updated: 2026-05-30
+tags: [embedding, llm, qwen3, arctic-embed, pgvector, rag, ep-011, a-b-test, gpu, cuda]
 ---
 # Modello di Embedding — Qwen3-Embedding-0.6B (e A/B test con Arctic Embed L v2.0)
 
@@ -119,6 +120,45 @@ Consumer RAG: `FilingRagService` (TSK-102) esegue 10 query Munger inversion, ogn
 | Retry | max 3 tentativi, backoff `1s → 2s → 4s`, retry su 503/5xx (cold start), mai su 400 |
 | Bulkhead | semaphore 8 concurrent calls |
 | Timeout HTTP | 30s |
+
+## Aggiornamenti (v2026-05-30) — Fix trasporto HTTP + supporto GPU NVIDIA
+
+### Fix trasporto: `SimpleClientHttpRequestFactory`
+
+Il client Kotlin `EmbeddingService` costruisce il suo `RestClient` con **`SimpleClientHttpRequestFactory`** (HttpURLConnection) invece di `JdkClientHttpRequestFactory`. Razionale: `JdkClientHttpRequestFactory` usa un body-publisher in streaming dell'oggetto e, quando la `Content-Length` non è nota a priori, può inviare `noBody()` → il sidecar FastAPI riceve un body JSON **vuoto** e risponde `422` (`{"loc":["body"],"msg":"Field required","input":null}`). `SimpleClientHttpRequestFactory` bufferizza interamente il body e imposta `Content-Length` prima dell'invio, eliminando il 422. I timeout connect+read (TSK-100) sono preservati così un sidecar bloccato non pinna i thread RAG. [^src: src/backend/src/main/kotlin/com/valueinvesting/webapp/service/EmbeddingService.kt §buildRequestFactory]
+
+### Endpoint reale `/health` con `device`
+
+Il sidecar espone `GET /health` → `{"status":"ok","model":"...","device":"cuda"|"cpu"}`. Il campo `device` è auto-rilevato al boot da `app.py`: usa CUDA se la GPU è raggiungibile, altrimenti CPU; override manuale con `EMBEDDING_DEVICE`. [^src: src/embeddings-sidecar/app.py §_resolve_device]
+
+### GPU NVIDIA via Podman + CDI
+
+Il compose base resta CPU-safe (CI e dev senza GPU non devono fallire). La modalità GPU è un override separato `docker-compose.gpu.yml` da layerare sopra al base solo sulle macchine con GPU configurata.
+
+Prerequisiti host (one-time, dentro la podman machine):
+
+```
+nvidia-container-toolkit installato
+sudo nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml
+nvidia-ctk cdi list   → nvidia.com/gpu=all
+```
+
+`nvidia.com/gpu=all` è un **device CDI**, non un path host → passato come `--device nvidia.com/gpu=all` (forma `devices:` per `podman-compose`, o `deploy.resources.reservations.devices` con `driver: cdi` per `podman compose` compose-spec). [^src: src/docker/docker-compose.gpu.yml]
+
+### Vincolo VRAM e tuning (fp16, batch, allocatore)
+
+Su GPU piccole (es. NVIDIA T600 4GB) si usa **fp16** (`model.half()`, default su `cuda`, disattivabile con `EMBEDDING_FP16=false`): dimezza VRAM e calcolo. Indispensabile perché il buffer di attention cresce con O(batch · seq²) → fp32 + batch grandi causano CUDA OOM. Si imposta anche `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` per ridurre la frammentazione dell'allocatore CUDA.
+
+| Modalità | batch-size | timeout sidecar | precisione |
+|---|---|---|---|
+| CPU (compose base) | 4 | 1800s | fp32 |
+| GPU (override) | 4 | 300s | fp16 |
+
+Il batch resta 4 anche su GPU per via dei 4GB del T600; su schede più capienti si può alzare. Le env `EMBEDDINGS_BATCH_SIZE` / `EMBEDDINGS_SIDECAR_TIMEOUT_SECONDS` (relaxed-binding Spring) hanno precedenza su `application.yaml` e vincono quando l'override GPU è attivo. [^src: src/docker/docker-compose.gpu.yml] [^src: src/embeddings-sidecar/app.py §lifespan]
+
+### `torch` pinnato al canale CUDA cu126
+
+Il wheel `torch` di default richiedeva una CUDA più nuova del driver installato (errore "NVIDIA driver too old"). Si pinna `torch` al canale **CUDA cu126**, forward-compatible col driver. Gli script di avvio (`.ps1` / `.sh`) chiedono CPU o GPU e selezionano il compose adeguato (base, oppure base + `docker-compose.gpu.yml`).
 
 ## Riferimento al prototipo agent.py
 

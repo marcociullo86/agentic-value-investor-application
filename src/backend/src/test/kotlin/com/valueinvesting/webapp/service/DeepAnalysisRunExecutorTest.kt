@@ -2,6 +2,7 @@ package com.valueinvesting.webapp.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.valueinvesting.webapp.api.model.DeepAnalysisResponse
+import com.valueinvesting.webapp.api.model.IngestSummary
 import com.valueinvesting.webapp.api.model.PriceActionBlock
 import com.valueinvesting.webapp.api.model.RoeBlock
 import com.valueinvesting.webapp.api.model.VerdictBlock
@@ -32,12 +33,15 @@ class DeepAnalysisRunExecutorTest {
         executor = DeepAnalysisRunExecutor(deepAnalysisService, repo, objectMapper)
     }
 
+    // ── ANALYSIS dispatch ───────────────────────────────────────────────
+
     @Test
-    fun `execute SUCCESS path persists status SUCCESS with serialized result_json`() {
+    fun `execute ANALYSIS SUCCESS path persists status SUCCESS with serialized DeepAnalysisResponse`() {
         val runId = UUID.randomUUID()
         val initial = DeepAnalysisRunEntity(
             id = runId,
             ticker = "AAPL",
+            kind = "ANALYSIS",
             status = "RUNNING",
             invokeLlm = true,
             requestedAt = Instant.now(),
@@ -60,13 +64,10 @@ class DeepAnalysisRunExecutorTest {
 
         executor.execute(runId)
 
-        // Verifica progressione di stati: deve esserci almeno una save RUNNING
-        // (markRunning) e poi una save SUCCESS (markSuccess).
         val statuses = savedSnapshots.map { it.status }
         assertThat(statuses).contains("RUNNING", "SUCCESS")
 
         val finalSave = savedSnapshots.last { it.status == "SUCCESS" }
-        assertThat(finalSave.status).isEqualTo("SUCCESS")
         assertThat(finalSave.resultJson).isNotNull()
         assertThat(finalSave.errorReason).isNull()
         assertThat(finalSave.completedAt).isNotNull()
@@ -77,21 +78,69 @@ class DeepAnalysisRunExecutorTest {
         assertThat(roundtrip.verdict.verdettoClasse).isEqualTo(VerdictClass.APPROVATO)
 
         verify(exactly = 1) { deepAnalysisService.analyze("AAPL", true) }
+        verify(exactly = 0) { deepAnalysisService.ingest(any()) }
     }
 
+    // ── INGEST dispatch ─────────────────────────────────────────────────
+
     @Test
-    fun `execute FAILED path on NoSecFilingsException sets reason no_sec_filings`() {
+    fun `execute INGEST SUCCESS path chiama ingest e serializza IngestSummary in result_json`() {
         val runId = UUID.randomUUID()
         val initial = DeepAnalysisRunEntity(
             id = runId,
-            ticker = "ZZZZ",
+            ticker = "AAPL",
+            kind = "INGEST",
             status = "RUNNING",
             invokeLlm = false,
             requestedAt = Instant.now(),
         )
         every { repo.findById(runId) } returns Optional.of(initial)
-        every { deepAnalysisService.analyze("ZZZZ", false) } throws
-            NoSecFilingsException(ticker = "ZZZZ")
+
+        val summary = IngestSummary(
+            filingsTotal = 4,
+            chunksIndexed = 120,
+            chunksSkipped = 1,
+            indexedAt = Instant.parse("2026-05-29T11:00:00Z"),
+        )
+        every { deepAnalysisService.ingest("AAPL") } returns summary
+
+        val savedSnapshots = mutableListOf<DeepAnalysisRunEntity>()
+        every { repo.save(any<DeepAnalysisRunEntity>()) } answers {
+            val e = firstArg<DeepAnalysisRunEntity>()
+            savedSnapshots.add(e.copy())
+            e
+        }
+
+        executor.execute(runId)
+
+        val finalSave = savedSnapshots.last { it.status == "SUCCESS" }
+        assertThat(finalSave.resultJson).isNotNull()
+        assertThat(finalSave.errorReason).isNull()
+        assertThat(finalSave.completedAt).isNotNull()
+
+        val roundtrip = objectMapper.readValue(finalSave.resultJson, IngestSummary::class.java)
+        assertThat(roundtrip.filingsTotal).isEqualTo(4)
+        assertThat(roundtrip.chunksIndexed).isEqualTo(120)
+        assertThat(roundtrip.chunksSkipped).isEqualTo(1)
+
+        // Il dispatch deve essere per kind: ANALYSIS branch non chiamato.
+        verify(exactly = 1) { deepAnalysisService.ingest("AAPL") }
+        verify(exactly = 0) { deepAnalysisService.analyze(any(), any()) }
+    }
+
+    @Test
+    fun `execute INGEST FAILED on NoSecFilingsException sets reason no_sec_filings`() {
+        val runId = UUID.randomUUID()
+        val initial = DeepAnalysisRunEntity(
+            id = runId,
+            ticker = "NOFIL",
+            kind = "INGEST",
+            status = "RUNNING",
+            invokeLlm = false,
+            requestedAt = Instant.now(),
+        )
+        every { repo.findById(runId) } returns Optional.of(initial)
+        every { deepAnalysisService.ingest("NOFIL") } throws NoSecFilingsException(ticker = "NOFIL")
 
         val savedSlots = mutableListOf<DeepAnalysisRunEntity>()
         every { repo.save(capture(savedSlots)) } answers { firstArg() }
@@ -99,19 +148,19 @@ class DeepAnalysisRunExecutorTest {
         executor.execute(runId)
 
         val finalSave = savedSlots.last { it.status == "FAILED" }
-        assertThat(finalSave.status).isEqualTo("FAILED")
         assertThat(finalSave.errorReason).isEqualTo("no_sec_filings")
-        assertThat(finalSave.errorMessage).contains("ZZZZ")
-        assertThat(finalSave.completedAt).isNotNull()
-        assertThat(finalSave.resultJson).isNull()
+        assertThat(finalSave.errorMessage).contains("NOFIL")
     }
 
+    // ── ANALYSIS error paths ────────────────────────────────────────────
+
     @Test
-    fun `execute FAILED path on FmpTickerNotFoundException sets reason not_found`() {
+    fun `execute ANALYSIS FAILED path on FmpTickerNotFoundException sets reason not_found`() {
         val runId = UUID.randomUUID()
         val initial = DeepAnalysisRunEntity(
             id = runId,
             ticker = "NOPE",
+            kind = "ANALYSIS",
             status = "RUNNING",
             invokeLlm = false,
             requestedAt = Instant.now(),
@@ -130,11 +179,41 @@ class DeepAnalysisRunExecutorTest {
     }
 
     @Test
-    fun `execute FAILED path on LlmUnavailableException sets reason llm_unavailable`() {
+    fun `execute ANALYSIS FAILED path on FilingsNotIndexedException sets reason not_indexed`() {
+        // Post EP-011 split (V028): se l'utente lancia ANALYSIS-with-LLM
+        // senza INGEST precedente, il service alza FilingsNotIndexedException;
+        // l'executor deve mapparla alla reason `not_indexed`, distinta da
+        // `no_sec_filings` (che indica assenza di filing presso SEC).
         val runId = UUID.randomUUID()
         val initial = DeepAnalysisRunEntity(
             id = runId,
             ticker = "AAPL",
+            kind = "ANALYSIS",
+            status = "RUNNING",
+            invokeLlm = true,
+            requestedAt = Instant.now(),
+        )
+        every { repo.findById(runId) } returns Optional.of(initial)
+        every { deepAnalysisService.analyze("AAPL", true) } throws
+            FilingsNotIndexedException(ticker = "AAPL")
+
+        val savedSlots = mutableListOf<DeepAnalysisRunEntity>()
+        every { repo.save(capture(savedSlots)) } answers { firstArg() }
+
+        executor.execute(runId)
+
+        val finalSave = savedSlots.last { it.status == "FAILED" }
+        assertThat(finalSave.errorReason).isEqualTo("not_indexed")
+        assertThat(finalSave.errorMessage).contains("AAPL")
+    }
+
+    @Test
+    fun `execute ANALYSIS FAILED path on LlmUnavailableException sets reason llm_unavailable`() {
+        val runId = UUID.randomUUID()
+        val initial = DeepAnalysisRunEntity(
+            id = runId,
+            ticker = "AAPL",
+            kind = "ANALYSIS",
             status = "RUNNING",
             invokeLlm = true,
             requestedAt = Instant.now(),
@@ -153,11 +232,12 @@ class DeepAnalysisRunExecutorTest {
     }
 
     @Test
-    fun `execute FAILED path on EmbeddingServiceUnavailableException sets reason embedding_unavailable`() {
+    fun `execute ANALYSIS FAILED path on EmbeddingServiceUnavailableException sets reason embedding_unavailable`() {
         val runId = UUID.randomUUID()
         val initial = DeepAnalysisRunEntity(
             id = runId,
             ticker = "AAPL",
+            kind = "ANALYSIS",
             status = "RUNNING",
             invokeLlm = false,
             requestedAt = Instant.now(),
@@ -176,11 +256,12 @@ class DeepAnalysisRunExecutorTest {
     }
 
     @Test
-    fun `execute FAILED path on generic Exception sets reason internal_error`() {
+    fun `execute ANALYSIS FAILED path on generic Exception sets reason internal_error`() {
         val runId = UUID.randomUUID()
         val initial = DeepAnalysisRunEntity(
             id = runId,
             ticker = "AAPL",
+            kind = "ANALYSIS",
             status = "RUNNING",
             invokeLlm = false,
             requestedAt = Instant.now(),
@@ -207,6 +288,7 @@ class DeepAnalysisRunExecutorTest {
         executor.execute(runId)
 
         verify(exactly = 0) { deepAnalysisService.analyze(any(), any()) }
+        verify(exactly = 0) { deepAnalysisService.ingest(any()) }
         verify(exactly = 0) { repo.save(any<DeepAnalysisRunEntity>()) }
     }
 

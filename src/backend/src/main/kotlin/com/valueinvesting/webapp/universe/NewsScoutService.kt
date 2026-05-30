@@ -49,8 +49,9 @@ import org.springframework.stereotype.Component
 //      fluff prima/dopo (canonico per Claude su prompt JSON-only).
 //   7. Cap finale a `news-scout.max-results` (default 50).
 //
-// LLM MODEL — Mantiene Claude Opus 4.7 via AnthropicClient (LlmRequest default
-// model = "claude-opus-4-7"). ADR-019 v2 raccomanda Gemini 2.5 Flash per cost
+// LLM MODEL — Usa il modello configurato in anthropic.model (env ANTHROPIC_MODEL,
+// default claude-opus-4-8) via AnthropicClient: LlmRequest non forza un model,
+// quindi il client risolve dalla config. ADR-019 v2 raccomanda Gemini 2.5 Flash per cost
 // optimization news scout; drift documentato in log: "Gemini 2.5 Flash
 // improvement out-of-scope, AnthropicClient sufficiente con budget gate".
 //

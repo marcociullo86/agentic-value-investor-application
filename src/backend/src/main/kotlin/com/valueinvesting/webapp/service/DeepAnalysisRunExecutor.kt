@@ -50,27 +50,56 @@ class DeepAnalysisRunExecutor(
         }
         val ticker = run.ticker
         val invokeLlm = run.invokeLlm
+        val kind = run.kind
 
-        log.info("DeepAnalysis async start: runId={} ticker={} invokeLlm={}", runId, ticker, invokeLlm)
+        log.info(
+            "DeepAnalysis async start: runId={} ticker={} kind={} invokeLlm={}",
+            runId, ticker, kind, invokeLlm,
+        )
 
         markRunning(runId)
 
         var settled = false
         try {
-            val response = deepAnalysisService.analyze(ticker, invokeLlm)
-            val json = objectMapper.writeValueAsString(response)
+            // Dispatch per kind (V028 split). Entrambi i rami serializzano il
+            // proprio result domain object in result_json: ANALYSIS produce
+            // DeepAnalysisResponse, INGEST produce IngestSummary. I rispettivi
+            // GET deserializzano in modo type-safe — niente ambiguità perché
+            // anche `kind` viaggia con la row.
+            val json = when (kind) {
+                "INGEST" -> {
+                    val summary = deepAnalysisService.ingest(ticker)
+                    objectMapper.writeValueAsString(summary)
+                }
+                "ANALYSIS" -> {
+                    val response = deepAnalysisService.analyze(ticker, invokeLlm)
+                    objectMapper.writeValueAsString(response)
+                }
+                else -> {
+                    // Difensivo: il CHECK lato DB (V028) garantisce solo
+                    // INGEST|ANALYSIS, ma se arriva un valore inatteso
+                    // marchiamo FAILED invece di bloccarci.
+                    throw IllegalStateException("Unknown deep_analysis_run.kind='$kind'")
+                }
+            }
             markSuccess(runId, json)
             settled = true
             val durationMs = System.currentTimeMillis() - startMs
             log.info(
-                "DeepAnalysis async SUCCESS: runId={} ticker={} durationMs={}",
-                runId, ticker, durationMs,
+                "DeepAnalysis async SUCCESS: runId={} ticker={} kind={} durationMs={}",
+                runId, ticker, kind, durationMs,
             )
         } catch (ex: FmpTickerNotFoundException) {
             markFailedSafe(runId, ticker, "not_found", ex)
             settled = true
         } catch (ex: NoSecFilingsException) {
             markFailedSafe(runId, ticker, "no_sec_filings", ex)
+            settled = true
+        } catch (ex: FilingsNotIndexedException) {
+            // INGEST mai eseguito (o FAILED) prima di una ANALYSIS-with-LLM.
+            // Reason `not_indexed` distinta da `no_sec_filings`: qui i filing
+            // potrebbero esistere, è l'embedding store ad essere vuoto.
+            markFailedSafe(runId, ticker, "not_indexed", ex)
             settled = true
         } catch (ex: LlmUnavailableException) {
             markFailedSafe(runId, ticker, "llm_unavailable", ex)

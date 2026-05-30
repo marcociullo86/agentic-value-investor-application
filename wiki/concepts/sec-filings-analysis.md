@@ -3,7 +3,7 @@ type: concept
 sources: ["raw/05_Analisi_10K_10Q_e_Regole_Buffett.md", "raw/fmp_docs.md"]
 status: draft
 created: 2026-05-20
-updated: 2026-05-26
+updated: 2026-05-30
 tags: [value-investing, sec, 10-k, 10-q, financial-analysis, management-quality, off-balance-sheet, sec-edgar, filing-cache]
 ---
 # Analisi dei Report SEC (10-K e 10-Q)
@@ -59,7 +59,9 @@ Resilience4j: RateLimiter 10 req/s (hard-cap SEC fair-access policy) + CircuitBr
 
 **2. FmpAdapter.getSecFilings (US-039, TSK-094 — discovery rapida)**
 
-Estensione di FmpAdapter ([[fmp-api]]) che chiama `GET /stable/sec-filings-search/symbol?symbol={ticker}&limit={N}` (endpoint canonico verificato in `raw/fmp_docs.md:10815`, SEC Filings By Symbol API). Ritorna `List<SecFilingFmpDto>` con metadata arricchiti (CIK pre-risolto, `link`/`finalLink` canonical URL, `filingDate` ISO). NON ritorna il body HTML — quello viene scaricato via `SecEdgarAdapter.downloadFilingHtml`.
+Estensione di FmpAdapter ([[fmp-api]]) che chiama `GET /stable/sec-filings-search/symbol?symbol={ticker}&formType={ft}&from={from}&to={to}` (endpoint canonico verificato in `raw/fmp_docs.md:10815`, SEC Filings By Symbol API). Ritorna `List<SecFilingFmpDto>` con metadata arricchiti (CIK pre-risolto, `link`/`finalLink` canonical URL, `filingDate` ISO). NON ritorna il body HTML — quello viene scaricato via `SecEdgarAdapter.downloadFilingHtml`.
+
+Quirk operativi load-bearing (verificati sul campo, mag 2026): `from`/`to` sono **obbligatori** (senza → 400; finestra applicata = 15 mesi indietro, `lookbackMonths=15`); l'endpoint **non filtra `formType` server-side** e ritorna tutti i form type ordinati DESC → si fa **una chiamata per ciascun formType** (10-K, 10-Q) con page-limit ampio (1000) + filtro client-side, poi union deduplicata per link. L'endpoint gemello `/sec-filings-search/form-type` ignora il `symbol` → inutilizzabile per ticker singolo. Dettaglio completo in [[fmp-api]] §Discovery filing SEC — quirk operativi. [^src: src/backend/src/main/kotlin/com/valueinvesting/webapp/fmp/FmpAdapterRestClient.kt §getSecFilings]
 
 **Cache HTML body (TSK-095)**
 

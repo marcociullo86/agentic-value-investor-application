@@ -103,7 +103,7 @@ EP-011 estende la pipeline con un secondo endpoint orchestratore che incorpora l
 | `verdict_payload` | oggetto (US-044) | Sempre (`partial_basis=true` se LLM non invocato) | [[value-investing-rule-engine]] cascade routing |
 | `rule_engine_results` | `List<RuleSignal>` (13 ruleId) | Sempre | EP-010 + EP-003 |
 | `price_action_snapshot` | oggetto (US-043) | Sempre | FMP `/stable/historical-price-eod/full` 12 mesi |
-| `deep_analysis_report` | `String` (testo Markdown) | Solo se `invoke_llm=true` | US-041 — Munger inversion LLM (Claude Opus 4.7) |
+| `deep_analysis_report` | `String` (testo Markdown) | Solo se `invoke_llm=true` | US-041 — Munger inversion LLM (Claude Opus, default `claude-opus-4-8`, configurabile via `ANTHROPIC_MODEL`) |
 | `sentiment_summary` | oggetto (US-042) | Solo se `invoke_llm=true` | US-042 — classificazione news (`TEMPORARY_PANIC` \| `STRUCTURAL_DAMAGE` \| `NEUTRAL`) |
 | `filings_used` | `List<FilingRef>` (id, form, filed_at) | Sempre (vuoto se no filing) | US-039 — filing_blob |
 | `llm_status` | `String` enum | Sempre | `"INVOKED"` \| `"NOT_INVOKED"` \| `"CACHE_HIT"` \| `"BUDGET_FROZEN"` |
@@ -146,6 +146,35 @@ sequenceDiagram
 ### Audit log
 
 Ogni esecuzione logga in `deep_analysis_event_log`: `(ticker, generated_at, cache_hits, llm_calls, total_duration_ms)`. [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-045-endpoint-deep-analysis/US-045.md §Business Rules]
+
+## Aggiornamenti (v2026-05-30) — Deep analysis ASINCRONA + split INGEST/ANALYSIS
+
+La deep analysis è passata da sincrona (`GET .../deep`, che resta disponibile per usi semplici) a un modello **asincrono** con execution persistita, e poi è stata **separata in due operazioni distinte** (INGEST vs ANALYSIS) per disaccoppiare il costo di indicizzazione dal verdetto. Le due migration coinvolte sono `V027__deep_analysis_run.sql` (tabella run + result cache) e `V028__deep_analysis_run_kind.sql` (colonna discriminante `kind`). [^src: src/backend/src/main/resources/db/migration/V027__deep_analysis_run.sql] [^src: src/backend/src/main/resources/db/migration/V028__deep_analysis_run_kind.sql]
+
+### Modello asincrono (V027 — `deep_analysis_run`)
+
+I POST tornano **202 Accepted** con `run-id` + `status` e lavorano in background; il client polla i rispettivi endpoint `latest`. Una sola riga per run nella tabella `deep_analysis_run`; il risultato (serializzato `DeepAnalysisResponse`) è persistito in `result_json` solo su `SUCCESS`. Stati: `RUNNING → SUCCESS | FAILED`. Dedup: se esiste già una run dello stesso `kind` in stato `RUNNING` per il ticker, l'enqueue ritorna quella invece di crearne una nuova. `error_reason` allineato alle reason di `GlobalExceptionHandler`: `not_found | no_sec_filings | llm_unavailable | embedding_unavailable | internal_error`. Indici su `(ticker, requested_at DESC)`, `(ticker, status)`, `(ticker, kind, requested_at DESC)`. [^src: src/backend/src/main/resources/db/migration/V027__deep_analysis_run.sql]
+
+### Split INGEST vs ANALYSIS (V028 — colonna `kind`)
+
+| `kind` | Cosa fa | Embedding | Costo LLM |
+|--------|---------|-----------|-----------|
+| `INGEST` | Scarica i filing 10-K/10-Q e **calcola/salva gli embedding** via `FilingRagService`. **Idempotente**: salta i filing già indicizzati. | Produce e persiste | nessuno |
+| `ANALYSIS` | Verdetto **deterministico** (rule engine + cascade, NESSUN embedding) oppure, con `invoke_llm=true`, lo step LLM Munger inversion che **RIUSA** gli embedding già persistiti da un INGEST precedente. | Solo consuma (ramo LLM) | solo se `invoke_llm=true` |
+
+Punto chiave: **gli embedding servono SOLO al ramo LLM**. L'ANALYSIS senza LLM produce comunque un verdetto senza toccare pgvector. Se si richiede l'ANALYSIS-con-LLM senza aver prima indicizzato, la pipeline ritorna l'errore guidato `not_indexed` — **niente auto-ingest** (l'indicizzazione è un'azione esplicita dell'utente). Backfill V028: le righe pre-split sono marcate `ANALYSIS` (default) così le query `GET /latest` continuano a combaciare. [^src: src/backend/src/main/resources/db/migration/V028__deep_analysis_run_kind.sql]
+
+### Endpoint async (`DeepAnalysisController`)
+
+| Metodo / path | Esito | Note |
+|---|---|---|
+| `POST /api/analysis/{ticker}/deep/ingest` | 202 | Enqueue INGEST (download + embedding). Da chiamare PRIMA di un ANALYSIS-con-LLM. |
+| `GET /api/analysis/{ticker}/deep/ingest/latest` | 200 | Stato ultima INGEST + summary (filings/chunks/skipped) su SUCCESS. |
+| `POST /api/analysis/{ticker}/deep/runs?invoke_llm=` | 202 | Enqueue ANALYSIS (deterministica o +LLM). NON scarica/indicizza filing. |
+| `GET /api/analysis/{ticker}/deep/latest` | 200 | Ultima run ANALYSIS persistita; `status=NONE` se assente. Le run INGEST sono filtrate fuori. |
+| `GET /api/analysis/{ticker}/deep` | 200 | Variante sincrona originale (invariata). |
+
+Tutti gli endpoint impostano `Cache-Control: no-store`. La UI espone 3 azioni distinte mappate su questi endpoint: **Indicizza filing** (INGEST), **Analizza** (ANALYSIS deterministica), **Analizza + LLM** (ANALYSIS `invoke_llm=true`). [^src: src/backend/src/main/kotlin/com/valueinvesting/webapp/api/DeepAnalysisController.kt]
 
 ---
 

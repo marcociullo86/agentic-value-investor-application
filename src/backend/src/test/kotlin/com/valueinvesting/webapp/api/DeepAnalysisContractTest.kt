@@ -8,14 +8,16 @@ import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.valueinvesting.webapp.fmp.FmpAdapter
 import com.valueinvesting.webapp.fmp.FmpFixtureFactory
 import com.valueinvesting.webapp.persistence.entity.FilingBlobEntity
+import com.valueinvesting.webapp.persistence.repository.FilingBlobRepository
+import com.valueinvesting.webapp.persistence.repository.FilingChunkRepository
 import com.valueinvesting.webapp.service.Filing10KQDownloaderService
 import com.valueinvesting.webapp.service.FilingRagService
+import com.valueinvesting.webapp.service.IndexResult
 import com.valueinvesting.webapp.service.PriceActionAnalyzer
 import com.valueinvesting.webapp.service.PriceActionSnapshot
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.clearMocks
 import io.mockk.every
-import io.mockk.justRun
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -86,6 +88,15 @@ class DeepAnalysisContractTest {
     @MockkBean
     private lateinit var filingRagService: FilingRagService
 
+    // Post EP-011 split (V028): mockati come negli altri test integration
+    // perché analyze() ora interroga questi due repo invece di chiamare
+    // fetchAndCache + indexFiling.
+    @MockkBean
+    private lateinit var filingBlobRepository: FilingBlobRepository
+
+    @MockkBean
+    private lateinit var filingChunkRepository: FilingChunkRepository
+
     @MockkBean
     private lateinit var priceActionAnalyzer: PriceActionAnalyzer
 
@@ -94,7 +105,9 @@ class DeepAnalysisContractTest {
 
     @BeforeEach
     fun resetMocks() {
-        clearMocks(fmpAdapter, filing10KQDownloaderService, filingRagService, priceActionAnalyzer, answers = false, recordedCalls = true)
+        clearMocks(fmpAdapter, filing10KQDownloaderService, filingRagService,
+            filingBlobRepository, filingChunkRepository, priceActionAnalyzer,
+            answers = false, recordedCalls = true)
         FmpFixtureFactory.stubSuccessfulFmp(fmpAdapter, "AAPL")
         stubDeepAnalysisDeps("AAPL")
     }
@@ -571,8 +584,12 @@ class DeepAnalysisContractTest {
             accessionNumber = "0000320193-24-000081",
             filingDate = LocalDate.of(2024, 11, 1),
         )
+        // Post V028 split: analyze legge la cache filing dal repo (non più
+        // via fetchAndCache); il contract test assertea filingsUsed non-vuoto.
+        every { filingBlobRepository.findByTickerOrderByFilingDateDesc(t) } returns listOf(blob)
+        every { filingChunkRepository.countByTicker(t) } returns 1L
         every { filing10KQDownloaderService.fetchAndCache(t) } returns listOf(blob)
-        justRun { filingRagService.indexFiling(any()) }
+        every { filingRagService.indexFiling(any(), any()) } returns IndexResult(0, true)
         every { priceActionAnalyzer.analyze(t) } returns PriceActionSnapshot(
             ticker = t,
             priceNow = 175.0,

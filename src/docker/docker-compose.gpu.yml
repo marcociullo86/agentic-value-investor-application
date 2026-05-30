@@ -31,9 +31,13 @@ services:
   embeddings-sidecar:
     devices:
       - nvidia.com/gpu=all
-    # Forza esplicitamente CUDA (app.py auto-rileva comunque la GPU iniettata).
     environment:
+      # Forza CUDA (app.py auto-rileva comunque la GPU iniettata).
       EMBEDDING_DEVICE: cuda
+      # fp16 attivo (default in app.py su cuda) per stare nei 4GB del T600.
+      EMBEDDING_FP16: "true"
+      # Riduce la frammentazione dell'allocatore CUDA → meno OOM su VRAM piccola.
+      PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
 
   # Tuning lato app per la modalità GPU: il sidecar su GPU è veloce, quindi
   # batch più grandi e timeout più corto. Queste env (relaxed-binding Spring)
@@ -44,5 +48,8 @@ services:
   #   EMBEDDINGS_SIDECAR_TIMEOUT_SECONDS → embeddings.sidecar.timeout-seconds
   app:
     environment:
-      EMBEDDINGS_BATCH_SIZE: "32"
+      # batch-size 4 anche su GPU: il T600 ha solo 4GB di VRAM e l'attention
+      # cresce con O(batch * seq^2). Con fp16 + batch 4 + chunk ~1500 token si
+      # resta nei 4GB. Su una GPU più capiente questo valore si può alzare.
+      EMBEDDINGS_BATCH_SIZE: "4"
       EMBEDDINGS_SIDECAR_TIMEOUT_SECONDS: "300"

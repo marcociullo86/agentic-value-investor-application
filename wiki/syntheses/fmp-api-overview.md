@@ -65,6 +65,7 @@ Oppure inline: `...?symbol=AAPL&period=annual&limit=10&apikey=YOUR_API_KEY`
 3. **`period` parameter**: `annual` o `quarter` (non `FY`/`Q` come in v3).
 4. **`netIncomePerShare` vs `eps`**: non equivalenti. Usare `income-statement.eps` per Graham Number.
 5. **Stable vs v3**: la stable rimuove duplicati e simboli rinominati.
+6. **`sec-filings-search/symbol`**: `from`/`to` OBBLIGATORI (senza → 400) e nessun filtro `formType` server-side → una chiamata per formType + filtro client-side. Dettaglio in [[fmp-api]] §Discovery filing SEC.
 
 ---
 

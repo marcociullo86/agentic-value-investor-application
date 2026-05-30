@@ -224,6 +224,34 @@ describe('useDeepAnalysis — async run/latest flow', () => {
     expect(result.current.error?.status).toBe(503);
   });
 
+  it('maps FAILED reason not_indexed to dedicated message and flags isNotIndexed', async () => {
+    mockedGetLatest.mockResolvedValueOnce(
+      failedPayload('not_indexed', 'Filings non indicizzati'),
+    );
+
+    const { result } = renderHook(() => useDeepAnalysis('AAPL'), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.isNotIndexed).toBe(true);
+    });
+    expect(result.current.error?.status).toBe(409);
+    expect(result.current.error?.message).toMatch(
+      /Indicizza prima i filing per usare l’analisi LLM\./,
+    );
+    expect(result.current.isFrozenByAdmin).toBe(false);
+  });
+
+  it('handles NOT_INDEXED (uppercase) reason identically', async () => {
+    mockedGetLatest.mockResolvedValueOnce(failedPayload('NOT_INDEXED'));
+
+    const { result } = renderHook(() => useDeepAnalysis('AAPL'), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.isNotIndexed).toBe(true);
+    });
+    expect(result.current.error?.status).toBe(409);
+  });
+
   it('runNow POSTs invoke_llm=false then polls until SUCCESS', async () => {
     // 1st GET (initial mount) = NONE
     // After POST: optimistic RUNNING, then SWR revalidates → RUNNING → SUCCESS

@@ -403,6 +403,59 @@ paths:
             application/problem+json:
               schema: { $ref: '#/components/schemas/ProblemDetails' }
 
+  /api/analysis/{ticker}/deep/ingest:
+    post:
+      tags: [analysis]
+      summary: Avvia l'INGEST ASINCRONO dei filing SEC (download + embedding) (US-045)
+      description: |
+        Avvio fire-and-enqueue dell'indicizzazione: scarica i filing SEC e calcola/
+        salva gli embedding, SENZA invocare l'LLM. Risponde 202 Accepted
+        immediatamente; l'esecuzione prosegue in background (stesso executor @Async,
+        dispatch per kind) e popola la tabella deep_analysis_run con kind=INGEST.
+        Idempotente: i filing già presenti in filing_chunks vengono saltati
+        (chunksSkipped). Dedupe: se per il ticker esiste già un INGEST in stato
+        RUNNING, NON ne avvia uno nuovo e restituisce il runId di quello in corso.
+        Gli embedding persistiti sono poi riusati dall'analisi LLM
+        (POST .../deep/runs?invoke_llm=true).
+      parameters:
+        - $ref: '#/components/parameters/Ticker'
+      responses:
+        '202':
+          description: INGEST avviato (o INGEST RUNNING esistente riusato per dedupe)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeepAnalysisRunStatusResponse'
+        '404':
+          description: Ticker non trovato
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+
+  /api/analysis/{ticker}/deep/ingest/latest:
+    get:
+      tags: [analysis]
+      summary: Ultima indicizzazione (INGEST asincrono) dei filing per il ticker (US-045)
+      description: |
+        Restituisce l'ultimo INGEST persistito in deep_analysis_run (kind=INGEST)
+        per il ticker. status=NONE quando non esiste ancora alcun INGEST; summary
+        (IngestSummary) è popolato solo quando status=SUCCESS; error solo quando
+        status=FAILED.
+      parameters:
+        - $ref: '#/components/parameters/Ticker'
+      responses:
+        '200':
+          description: Stato dell'ultima indicizzazione
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IngestStatusResponse'
+        '404':
+          description: Ticker non trovato
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+
   # ---------------- EP-005 historical + moat ----------------
   /api/historical/{ticker}:
     get:
@@ -1478,20 +1531,76 @@ components:
       required: [reason, message]
       description: Dettaglio errore di un run FAILED. reason = codice dominio (RFC 9457).
       properties:
-        reason:  { type: string, description: "Codice motivo dominio (es. no_sec_filings, llm_unavailable)" }
+        reason:  { type: string, description: "Codice motivo dominio (es. no_sec_filings, llm_unavailable, not_indexed). not_indexed = analisi LLM richiesta su un ticker mai indicizzato (lanciare prima POST .../deep/ingest)." }
         message: { type: string }
+
+    DeepAnalysisRunKind:
+      type: string
+      description: |
+        Tipo di operazione async sulla tabella deep_analysis_run (US-045,
+        2026-05-30). INGEST = download filing SEC + embedding (no LLM); ANALYSIS =
+        verdetto/analisi che riusa gli embedding persistiti.
+      enum: [INGEST, ANALYSIS]
 
     DeepAnalysisRunStatusResponse:
       type: object
-      required: [runId, ticker, status, invokeLlm]
+      required: [runId, ticker, status, invokeLlm, kind]
       description: |
-        Risposta 202 di POST /api/analysis/{ticker}/deep/runs. In caso di dedupe
-        runId è quello del run RUNNING già in corso per il ticker.
+        Risposta 202 di POST /api/analysis/{ticker}/deep/runs (kind=ANALYSIS) e di
+        POST /api/analysis/{ticker}/deep/ingest (kind=INGEST, invokeLlm=false). In
+        caso di dedupe runId è quello del run RUNNING già in corso per il ticker.
       properties:
         runId:     { type: string, format: uuid }
         ticker:    { type: string }
         status:    { $ref: '#/components/schemas/DeepAnalysisRunStatus' }
         invokeLlm: { type: boolean }
+        kind:      { $ref: '#/components/schemas/DeepAnalysisRunKind' }
+
+    IngestSummary:
+      type: object
+      required: [filingsTotal, chunksIndexed, chunksSkipped, indexedAt]
+      description: |
+        Esito di un INGEST riuscito. chunksSkipped > 0 quando alcuni filing erano
+        già indicizzati (skip idempotente, nessun ri-embedding).
+      properties:
+        filingsTotal:  { type: integer, description: "Filing SEC considerati" }
+        chunksIndexed: { type: integer, description: "Chunk nuovi calcolati ed embeddati" }
+        chunksSkipped: { type: integer, description: "Chunk saltati perché già presenti in filing_chunks" }
+        indexedAt:     { type: string, format: date-time, description: "Timestamp del completamento indicizzazione" }
+
+    IngestStatusResponse:
+      type: object
+      required: [ticker, status]
+      description: |
+        Risposta 200 di GET /api/analysis/{ticker}/deep/ingest/latest. runId/
+        requestedAt/completedAt sono null quando status=NONE. summary
+        (IngestSummary) è valorizzato solo quando status=SUCCESS; error solo
+        quando status=FAILED.
+      properties:
+        ticker:      { type: string }
+        status:      { $ref: '#/components/schemas/LatestDeepAnalysisStatus' }
+        runId:
+          type: string
+          format: uuid
+          nullable: true
+        requestedAt:
+          type: string
+          format: date-time
+          nullable: true
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        summary:
+          allOf:
+            - $ref: '#/components/schemas/IngestSummary'
+          nullable: true
+          description: Esito indicizzazione, presente solo quando status=SUCCESS
+        error:
+          allOf:
+            - $ref: '#/components/schemas/RunError'
+          nullable: true
+          description: Dettaglio errore, presente solo quando status=FAILED
 
     LatestDeepAnalysisResponse:
       type: object

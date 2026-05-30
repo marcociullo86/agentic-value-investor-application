@@ -258,13 +258,15 @@ top-picks:
   warning-duration-minutes: 180
   abort-fmp-unavailable-minutes: 30
 
-# Anthropic Claude Opus 4.7 (ADR-017 / TSK-104)
+# Anthropic Claude Opus 4.8 (ADR-017 / TSK-104)
 # API key MUST be set via ANTHROPIC_API_KEY env var in production.
 # Blank value activates the AnthropicClientStub fallback (dev/test).
+# Modello configurabile via env ANTHROPIC_MODEL (single source of truth: i caller
+# costruiscono LlmRequest senza model, quindi vince sempre questo valore).
 anthropic:
   api-key: ${ANTHROPIC_API_KEY:}
   base-url: ${ANTHROPIC_BASE_URL:https://api.anthropic.com/v1}
-  model: ${ANTHROPIC_MODEL:claude-opus-4-7}
+  model: ${ANTHROPIC_MODEL:claude-opus-4-8}
   timeout-seconds: ${ANTHROPIC_TIMEOUT_SECONDS:60}
   client:
     impl: ${ANTHROPIC_CLIENT_IMPL:rest}

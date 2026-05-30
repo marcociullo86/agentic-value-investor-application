@@ -20,8 +20,26 @@ class FilingRagService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
+    // Idempotente: se per il filing esistono già chunk indicizzati salta
+    // chunking + embedding (evita re-spesa LLM/sidecar su INGEST ripetuti per
+    // lo stesso ticker). Usa `force=true` per riprocessare comunque (utile
+    // dopo un cambio di chunking strategy o di modello di embedding).
+    //
+    // Pre-EP-011-split: il metodo veniva chiamato sempre, senza skip, dentro
+    // DeepAnalysisService.analyze. Adesso l'unica chiamata viene da
+    // DeepAnalysisService.ingest e i re-INGEST devono essere idempotenti per
+    // costruzione.
     @Transactional
-    fun indexFiling(filingBlobId: Long) {
+    fun indexFiling(filingBlobId: Long, force: Boolean = false): IndexResult {
+        val existingCount = filingChunkRepository.countByFilingBlobId(filingBlobId)
+        if (existingCount > 0 && !force) {
+            log.info(
+                "Filing {} already indexed ({} chunks), skip (force=false)",
+                filingBlobId, existingCount,
+            )
+            return IndexResult(chunksIndexed = 0, skipped = true)
+        }
+
         val blob = filingBlobRepository.findById(filingBlobId)
             .orElseThrow { IllegalArgumentException("FilingBlob not found: $filingBlobId") }
 
@@ -48,6 +66,7 @@ class FilingRagService(
         }
 
         log.info("Filing {} indexed: {} chunks persisted", filingBlobId, chunks.size)
+        return IndexResult(chunksIndexed = chunks.size, skipped = false)
     }
 
     fun similaritySearch(queryText: String, ticker: String, topK: Int = 8): List<FilingChunkResult> {
@@ -76,4 +95,12 @@ data class FilingChunkResult(
     val content: String,
     val distance: Double,
     val filingBlobId: Long,
+)
+
+// Esito di una singola chiamata a FilingRagService.indexFiling.
+// `chunksIndexed` = chunk effettivamente persistiti; 0 se l'indicizzazione è
+// stata saltata perché già presente (skipped=true).
+data class IndexResult(
+    val chunksIndexed: Int,
+    val skipped: Boolean,
 )

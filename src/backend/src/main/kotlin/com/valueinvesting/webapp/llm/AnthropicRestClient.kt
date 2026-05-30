@@ -23,8 +23,9 @@ import java.time.Duration
 //   x-api-key: ${ANTHROPIC_API_KEY}
 //   anthropic-version: 2023-06-01
 //
-// Request body never contains temperature/top_p/top_k — Opus 4.7 rejects them
-// with HTTP 400 (Adaptive Thinking is applied internally by the model).
+// Request body omits temperature/top_p/top_k by default (Adaptive Thinking is
+// applied internally by the model). Model is resolved from anthropic.model
+// (env ANTHROPIC_MODEL) unless LlmRequest.model is explicitly set.
 //
 // Resilience chain applied programmatically (same rationale as FmpAdapterRestClient):
 //   RateLimiter → CircuitBreaker → Retry → HTTP call

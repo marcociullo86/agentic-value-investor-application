@@ -73,7 +73,7 @@ class MungerInversionAnalyzerTest {
             inputTokens = 500,
             outputTokens = 200,
             stopReason = "end_turn",
-            model = "claude-opus-4-7",
+            model = "claude-opus-4-8",
         )
     }
 

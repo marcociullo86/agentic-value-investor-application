@@ -3,7 +3,7 @@ type: concept
 sources: ["raw/agent.py", "raw/09_agent_py_method_analysis.md"]
 status: draft
 created: 2026-05-23
-updated: 2026-05-23
+updated: 2026-05-30
 tags: [value-investing, munger, inversion, rag, faiss, 10k, 10q, sec-edgar, llm, qualitative-analysis]
 ---
 # Munger Inversion RAG — Analisi Qualitativa 10-K/10-Q
@@ -23,7 +23,7 @@ Charlie Munger ha reso celebre l'inversione come strumento di analisi: "Dimmi do
 4. BSHTMLLoader + RecursiveCharacterTextSplitter → chunks 1500 token
 5. FAISS vectorstore (embeddings BAAI/bge-large-en o gemini-embedding-001)
 6. 10 query Munger-style → retrieval top-K chunks per ogni query
-7. Concatenazione contesto (max 8000 token) → prompt Claude Opus 4.7
+7. Concatenazione contesto (max 8000 token) → prompt Claude Opus (4.8 nel WebApp; 4.7 nel prototipo agent.py)
 8. Risposta strutturata: RISCHIO_ESTREMO + MOTIVAZIONE + RISCHI + FORZE + SEGNALI_10Q
 ```
 
@@ -101,7 +101,7 @@ Questo e' particolarmente rilevante per:
 - **Vectorstore**: FAISS (in-memory, non persistito — ricalcolato per ogni ticker).
 - **Embeddings**: `BAAI/bge-large-en-v1.5` in modalita' locale (default, gratis) o `gemini-embedding-001` cloud.
 - **Retrieval**: top-K chunks per ogni delle 10 query; contesto aggregato troncato a 8000 token per rispettare il context window del prompt.
-- **LLM**: Claude Opus 4.7 — scelto per il minor tasso di allucinazioni su compiti finanziari vs altri modelli.
+- **LLM**: Claude Opus — scelto per il minor tasso di allucinazioni su compiti finanziari vs altri modelli. Il WebApp (EP-011) usa di default `claude-opus-4-8`, **configurabile via env `ANTHROPIC_MODEL`** (single source of truth: i caller costruiscono `LlmRequest` senza forzare un modello, quindi vince sempre il valore di `anthropic.model`). Il prototipo `agent.py` usava `claude-opus-4-7`.
 
 [^src: raw/agent.py:58-65] [^src: raw/09_agent_py_method_analysis.md §1]
 
@@ -110,7 +110,7 @@ Questo e' particolarmente rilevante per:
 Per analisi 10-K + 10-Q completa (estimato maggio 2026):
 - Input: ~8000 token (contesto RAG + prompt)
 - Output: ~2000 token (risposta strutturata)
-- Costo Claude Opus 4.7: ~$0.12 (input) + $0.15 (output) = **~$0.27/ticker**
+- Costo Claude Opus (tier Opus, stima): ~$0.12 (input) + $0.15 (output) = **~$0.27/ticker**
 
 Con cache 90gg per filing (TSK-095 V011__filing_blob): solo aggiornamenti trimestrali producono refresh → **costo reale ridotto significativamente** rispetto al run daily. [^src: raw/09_agent_py_method_analysis.md §9]
 
@@ -120,7 +120,7 @@ Il porting Kotlin della Deep Analysis (US-041) deve replicare:
 1. `SecFilingsAdapter.getLatest10K(ticker)` + `getLatest10Q(ticker)` — via FMP `/stable/sec-filings-search/symbol` + download HTML SEC
 2. `FilingChunker.chunk(html)` — RecursiveCharacterTextSplitter equivalente JVM
 3. `VectorStore.embed(chunks)` — sidecar Python sentence-transformers o djl-huggingface
-4. `MungerInversionService.analyze(chunks, metrics)` — 10 query + Claude Opus 4.7 via `AnthropicClient`
+4. `MungerInversionService.analyze(chunks, metrics)` — 10 query + Claude Opus (default `claude-opus-4-8`, configurabile via `ANTHROPIC_MODEL`) via `AnthropicClient`
 5. Parsing della risposta strutturata → `MungerAnalysisResult`
 
 Vedi gap `tpm-embeddings-sidecar-vs-djl` per la decisione architetturale sull'embedding service.
@@ -137,8 +137,8 @@ Vedi gap `tpm-embeddings-sidecar-vs-djl` per la decisione architetturale sull'em
 [[benjamin-graham]]
 [[intelligent-investor]]
 [[seven-criteria-defensive-stock-selection]]
-- [ADR-017](../../design_&_architecture/decisions/ADR-017-anthropic-sdk-jvm.md) — Anthropic Claude Opus 4.7 integration (adapter pattern + Resilience4j chain per US-041)
-- [ADR-019](../../design_&_architecture/decisions/ADR-019-llm-cost-budget-telemetry.md) — LLM cost budget R2 + telemetry + kill-switch automatico (containment spesa Claude Opus 4.7 per US-041/042/047)
+- [ADR-017](../../design_&_architecture/decisions/ADR-017-anthropic-sdk-jvm.md) — Anthropic Claude Opus integration (adapter pattern + Resilience4j chain per US-041; modello configurabile via `ANTHROPIC_MODEL`, default `claude-opus-4-8`)
+- [ADR-019](../../design_&_architecture/decisions/ADR-019-llm-cost-budget-telemetry.md) — LLM cost budget R2 + telemetry + kill-switch automatico (containment spesa Claude Opus per US-041/042/047)
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->

@@ -61,7 +61,7 @@ const VERDICT_MAP: Readonly<Record<VerdictClass, VerdictPresentation>> = {
 };
 
 const LLM_TOOLTIP =
-  'Lo step LLM analizza in profondità 10-K e 10-Q via Claude Opus 4.7. ' +
+  'Lo step LLM analizza in profondità 10-K e 10-Q via Claude Opus 4.8. ' +
   'Costo a tuo carico (budget condiviso, gestito dall\u2019amministratore). ' +
   'Risultato salvato in cache per il mese corrente.';
 

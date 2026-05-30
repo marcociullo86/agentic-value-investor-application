@@ -106,7 +106,9 @@ SEC EDGAR download (US-039)
   → indice HNSW aggiornato automaticamente
 ```
 
-Il sidecar Python FastAPI (`embeddings-sidecar`) espone `POST /embed` e restituisce vettori 1024-dim normalizzati L2. Vedi [[arctic-embed-l-v2]] per la spec del modello. Vedi [ADR-018](../../design_&_architecture/decisions/ADR-018-embeddings-inference-architecture.md) per l'architettura completa del sidecar.
+Il sidecar Python FastAPI (`embeddings-sidecar`) espone `POST /embed` e restituisce vettori 1024-dim normalizzati L2. Vedi [[arctic-embed-l-v2]] per la spec del modello, il fix di trasporto del client e il supporto GPU. Vedi [ADR-018](../../design_&_architecture/decisions/ADR-018-embeddings-inference-architecture.md) per l'architettura completa del sidecar.
+
+Nota (split EP-011 V028): l'embedding è prodotto e persistito **solo durante l'operazione INGEST** della deep analysis async; l'ANALYSIS deterministica non tocca pgvector e solo il ramo ANALYSIS-con-LLM (Munger inversion) **riusa** gli embedding già indicizzati per il retrieval. Vedi [[analysis-api-pipeline]] §Aggiornamenti (v2026-05-30). [^src: src/backend/src/main/resources/db/migration/V028__deep_analysis_run_kind.sql]
 
 ## Query similarity (retrieval RAG)
 
