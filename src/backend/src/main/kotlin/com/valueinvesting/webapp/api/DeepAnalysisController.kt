@@ -4,8 +4,11 @@ import com.valueinvesting.webapp.api.model.DeepAnalysisResponse
 import com.valueinvesting.webapp.api.model.DeepAnalysisRunStatusResponse
 import com.valueinvesting.webapp.api.model.IngestStatusResponse
 import com.valueinvesting.webapp.api.model.LatestDeepAnalysisResponse
+import com.valueinvesting.webapp.api.model.TickerResetRequest
+import com.valueinvesting.webapp.api.model.TickerResetResult
 import com.valueinvesting.webapp.service.DeepAnalysisRunService
 import com.valueinvesting.webapp.service.DeepAnalysisService
+import com.valueinvesting.webapp.service.TickerResetService
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -13,6 +16,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -22,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController
 class DeepAnalysisController(
     private val deepAnalysisService: DeepAnalysisService,
     private val deepAnalysisRunService: DeepAnalysisRunService,
+    private val tickerResetService: TickerResetService,
 ) {
 
     @GetMapping("/{ticker}/deep", produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -89,5 +94,19 @@ class DeepAnalysisController(
         return ResponseEntity.ok()
             .header(HttpHeaders.CACHE_CONTROL, "no-store")
             .body(latest)
+    }
+
+    // POST /api/analysis/{ticker}/deep/reset — reset distruttivo (admin) dei dati
+    // deep-analysis del ticker (cache + filing + report + run + news + price).
+    // Gated da master password nel body. 403 se la password è errata.
+    @PostMapping("/{ticker}/deep/reset", produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun resetTicker(
+        @PathVariable ticker: String,
+        @RequestBody request: TickerResetRequest,
+    ): ResponseEntity<TickerResetResult> {
+        val result = tickerResetService.reset(ticker, request.masterPassword)
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CACHE_CONTROL, "no-store")
+            .body(result)
     }
 }

@@ -4,3 +4,4 @@ export { MungerReportCollapsible } from './MungerReportCollapsible';
 export { NewsSentimentChip } from './NewsSentimentChip';
 export { DrawdownChart } from './DrawdownChart';
 export { EdgarFilingLinks } from './EdgarFilingLinks';
+export { ResetTickerButton } from './ResetTickerButton';

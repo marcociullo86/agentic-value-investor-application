@@ -456,6 +456,35 @@ paths:
             application/problem+json:
               schema: { $ref: '#/components/schemas/ProblemDetails' }
 
+  /api/analysis/{ticker}/deep/reset:
+    post:
+      tags: [analysis]
+      summary: Reset distruttivo dei dati deep-analysis del ticker (admin, EP-020)
+      description: |
+        Cancella cache e dati derivati del ticker (filing_blob, filing_chunks,
+        deep_analysis_report, deep_analysis_run, deep_analysis_event_log,
+        news_classification, price_action_snapshot) così che una successiva
+        analisi riparta da zero. Gated da master password (BCrypt in tabella
+        master_password). 403 se la master password è errata.
+      parameters:
+        - $ref: '#/components/parameters/Ticker'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TickerResetRequest' }
+      responses:
+        '200':
+          description: Reset eseguito; righe cancellate per tabella
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TickerResetResult' }
+        '403':
+          description: Master password non valida
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+
   # ---------------- EP-005 historical + moat ----------------
   /api/historical/{ticker}:
     get:
@@ -1557,6 +1586,25 @@ components:
         2026-05-30). INGEST = download filing SEC + embedding (no LLM); ANALYSIS =
         verdetto/analisi che riusa gli embedding persistiti.
       enum: [INGEST, ANALYSIS]
+
+    TickerResetRequest:
+      type: object
+      required: [masterPassword]
+      description: Richiesta di reset distruttivo dati deep-analysis di un ticker (EP-020).
+      properties:
+        masterPassword: { type: string, description: "Master password admin" }
+
+    TickerResetResult:
+      type: object
+      required: [ticker, deletedByTable, totalDeleted]
+      description: Esito del reset — righe cancellate per tabella.
+      properties:
+        ticker: { type: string }
+        deletedByTable:
+          type: object
+          additionalProperties: { type: integer }
+          description: "Righe cancellate per ciascuna tabella impattata"
+        totalDeleted: { type: integer }
 
     DeepAnalysisRunStatusResponse:
       type: object

@@ -13,6 +13,7 @@ import {
   NewsSentimentChip,
   DrawdownChart,
   EdgarFilingLinks,
+  ResetTickerButton,
 } from '@/components/deep-analysis';
 
 /**
@@ -281,6 +282,10 @@ function ManualRunBar({
           >
             {isRunning ? 'In esecuzione…' : 'Analizza + LLM'}
           </Button>
+          <ResetTickerButton
+            ticker={ticker}
+            onResetDone={() => window.location.reload()}
+          />
         </div>
       </div>
       <IngestStatusLine status={ingestStatus} summary={ingestSummary} />

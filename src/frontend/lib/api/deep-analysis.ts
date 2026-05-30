@@ -304,3 +304,34 @@ export async function getLatestIngest(ticker: string): Promise<LatestIngest> {
   );
   return result.data;
 }
+
+/* ------------------------------------------------------------------ */
+/*  Reset distruttivo ticker (admin, EP-020 / master password)         */
+/* ------------------------------------------------------------------ */
+
+/** Esito del reset: righe cancellate per tabella. */
+export interface TickerResetResult {
+  readonly ticker: string;
+  readonly deletedByTable: Readonly<Record<string, number>>;
+  readonly totalDeleted: number;
+}
+
+/**
+ * POST /api/analysis/{ticker}/deep/reset
+ *
+ * Reset distruttivo (admin) di cache + filing + dati deep-analysis del ticker.
+ * Gated da master password. 403 se la password è errata.
+ */
+export async function resetTicker(
+  ticker: string,
+  masterPassword: string,
+): Promise<TickerResetResult> {
+  const normalized = ticker.trim().toUpperCase();
+  const result: ApiResult<TickerResetResult> = await apiPost<
+    TickerResetResult,
+    { masterPassword: string }
+  >(`/api/analysis/${encodeURIComponent(normalized)}/deep/reset`, {
+    masterPassword,
+  });
+  return result.data;
+}
