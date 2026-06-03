@@ -13,6 +13,7 @@ import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.slot
 import io.mockk.verify
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -80,7 +81,7 @@ class SearchControllerWebMvcTest {
 
         // La normalizzazione avviene NEL service (single source of truth);
         // il controller delega: assertion che il valore raw arrivi al service.
-        assert(captured.captured == "aapl")
+        assertThat(captured.captured).isEqualTo("aapl")
         verify { searchService.search("aapl") }
     }
 
@@ -206,7 +207,7 @@ class SearchControllerWebMvcTest {
 
         // Il controller passa il @PathVariable raw; la normalizzazione è nel
         // service. Verifichiamo il payload (companyName mappato già su AAPL).
-        assert(captured.captured == "aapl")
+        assertThat(captured.captured).isEqualTo("aapl")
     }
 
     // Ticker invalido (es. caratteri non ammessi) → 400.

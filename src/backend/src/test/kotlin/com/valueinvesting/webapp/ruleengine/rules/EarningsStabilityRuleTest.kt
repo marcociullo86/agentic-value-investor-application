@@ -100,9 +100,8 @@ class EarningsStabilityRuleTest {
 
         assertAll(
             { assertThat(result.signal).isEqualTo(Signal.INDETERMINATE) },
-            { assertThat(result.signal).isNotEqualTo(Signal.RED) },
             { assertThat(result.observedValue).isNull() },
-            { assertThat(result.rationale).contains("8") },
+            { assertThat(result.rationale).contains("8 esercizi disponibili") },
         )
     }
 

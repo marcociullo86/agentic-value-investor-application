@@ -11,6 +11,7 @@ import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.slot
 import io.mockk.verify
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -79,9 +80,9 @@ class ScreenerControllerWebMvcTest {
 
         verify { searchService.screen(any()) }
         // limite default 50 propagato
-        assert(capturedCriteria.captured.limit == 50)
-        assert(capturedCriteria.captured.marketCapBands.size == 1)
-        assert(capturedCriteria.captured.sectors.size == 1)
+        assertThat(capturedCriteria.captured.limit).isEqualTo(50)
+        assertThat(capturedCriteria.captured.marketCapBands.size).isEqualTo(1)
+        assertThat(capturedCriteria.captured.sectors.size).isEqualTo(1)
     }
 
     // DoD #2: nessun filtro → 200 + criteria con limit=50 default e liste vuote.
@@ -100,11 +101,11 @@ class ScreenerControllerWebMvcTest {
             jsonPath("$.items.length()") { value(0) }
         }
 
-        assert(capturedCriteria.captured.limit == 50)
-        assert(capturedCriteria.captured.marketCapBands.isEmpty())
-        assert(capturedCriteria.captured.sectors.isEmpty())
-        assert(!capturedCriteria.captured.excludeHardToPredict)
-        assert(capturedCriteria.captured.cursor == null)
+        assertThat(capturedCriteria.captured.limit).isEqualTo(50)
+        assertThat(capturedCriteria.captured.marketCapBands).isEmpty()
+        assertThat(capturedCriteria.captured.sectors).isEmpty()
+        assertThat(capturedCriteria.captured.excludeHardToPredict).isFalse()
+        assertThat(capturedCriteria.captured.cursor).isNull()
     }
 
     // DoD #3: filtro senza match → 200 + items: [] (NON 404).
@@ -173,6 +174,6 @@ class ScreenerControllerWebMvcTest {
             status { isOk() }
         }
 
-        assert(capturedCriteria.captured.excludeHardToPredict)
+        assertThat(capturedCriteria.captured.excludeHardToPredict).isTrue()
     }
 }

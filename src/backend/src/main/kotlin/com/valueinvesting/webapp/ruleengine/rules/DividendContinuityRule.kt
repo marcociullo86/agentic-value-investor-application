@@ -136,7 +136,7 @@ class DividendContinuityRule : ValuationRule {
 
         // Metadata for rationale (TSK-085 §Cosa fare 5).
         val firstDividendDate: LocalDate = parsed.minOf { it.first }
-        val mostRecent: Pair<LocalDate, DividendRecord> = parsed.maxByOrNull { it.first }!!
+        val mostRecent: Pair<LocalDate, DividendRecord> = parsed.maxBy { it.first }
         val lastDividendDate: LocalDate = mostRecent.first
         val lastDividendAmount: Double? = mostRecent.second.dividend
             ?: mostRecent.second.adjDividend

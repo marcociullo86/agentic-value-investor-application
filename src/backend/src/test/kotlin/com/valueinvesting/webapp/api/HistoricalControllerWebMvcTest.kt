@@ -11,6 +11,7 @@ import com.valueinvesting.webapp.service.HistoricalSeriesService
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.slot
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -105,7 +106,7 @@ class HistoricalControllerWebMvcTest {
         }
 
         // Path passthrough come SearchController: la normalizzazione e' nel service.
-        assert(captured.captured == "aapl")
+        assertThat(captured.captured).isEqualTo("aapl")
     }
 
     // ---- Test 4 — FMP unavailable -> 503 ProblemDetails. ---------------------

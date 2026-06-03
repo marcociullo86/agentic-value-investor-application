@@ -271,8 +271,8 @@ test.describe('Cutover R1.1 smoke — STAGING ONLY', () => {
     // Navigate to three key pages
     for (const path of ['/', '/analysis?ticker=AAPL', '/top-picks']) {
       await page.goto(`${STAGING}${path}`, { timeout: PAGE_LOAD_TIMEOUT });
-      // Brief wait for async JS to settle
-      await page.waitForTimeout(1_000);
+      // Wait for network to settle so async JS errors surface before next nav
+      await page.waitForLoadState('networkidle');
     }
 
     expect(errors, `JS page errors: ${errors.join(' | ')}`).toHaveLength(0);

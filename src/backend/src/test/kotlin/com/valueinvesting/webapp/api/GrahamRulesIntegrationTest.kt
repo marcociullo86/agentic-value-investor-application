@@ -9,6 +9,7 @@ import com.ninjasquad.springmockk.MockkBean
 import io.mockk.clearMocks
 import io.mockk.every
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.within
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -171,14 +172,31 @@ class GrahamRulesIntegrationTest {
         }
     }
 
-    private fun analyzeAndGetSignals(ticker: String): Map<String, String> {
-        val result = mockMvc.get("/api/analysis/$ticker") {
+    /** Parses the HTTP response body and returns a map of { ruleId -> observedValue }.
+     *  Signals with null `observedValue` in JSON (INDETERMINATE / NOT_CALCULABLE) are excluded. */
+    private fun parseObservedValues(result: MvcResult): Map<String, Double> {
+        val root: JsonNode = JSON.readTree(result.response.contentAsString)
+        val signals = root.get("signals") ?: return emptyMap()
+        return buildMap {
+            signals.forEach { node ->
+                val ruleId = node.get("ruleId")?.asText() ?: return@forEach
+                val observedValueNode = node.get("observedValue") ?: return@forEach
+                if (!observedValueNode.isNull) {
+                    put(ruleId, observedValueNode.asDouble())
+                }
+            }
+        }
+    }
+
+    private fun analyze(ticker: String): MvcResult =
+        mockMvc.get("/api/analysis/$ticker") {
             accept(MediaType.APPLICATION_JSON)
         }.andExpect {
             status { isOk() }
         }.andReturn()
-        return parseSignals(result)
-    }
+
+    private fun analyzeAndGetSignals(ticker: String): Map<String, String> =
+        parseSignals(analyze(ticker))
 
     // ─────────────────────────────────────────────────────────────────────────────
     // Test 1: AAPL response has all 13 ruleId in signals
@@ -239,6 +257,10 @@ class GrahamRulesIntegrationTest {
     // coerenti con la fixture". The TSK description's alternative "only 12y →
     // INDETERMINATE" referred to a shorter hypothetical fixture; our fixture is
     // the actual dividends-aapl-20y.json whose oldest entry is 2005-02-15.
+    //
+    // TSK-288 (US-037 F-288-01): DoD requires consecutiveYears in response body.
+    // DividendContinuityRule.evaluate sets observedValue = consecutiveYears.toDouble().
+    // Fixture years 2005-2024 all have entries → consecutiveYears = 20, observedValue = 20.0.
     // ─────────────────────────────────────────────────────────────────────────────
 
     @Test
@@ -246,10 +268,15 @@ class GrahamRulesIntegrationTest {
     fun `AAPL DIVIDEND_CONTINUITY_20Y is GREEN twenty consecutive years`() {
         stubAapl()
 
-        val signals = analyzeAndGetSignals("AAPL")
+        val result = analyze("AAPL")
+        val signals = parseSignals(result)
+        val observedValues = parseObservedValues(result)
 
         assertThat(signals["DIVIDEND_CONTINUITY_20Y"])
             .isEqualTo("GREEN")
+        assertThat(observedValues["DIVIDEND_CONTINUITY_20Y"])
+            .isNotNull()
+            .isCloseTo(20.0, within(0.5))
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
@@ -319,6 +346,11 @@ class GrahamRulesIntegrationTest {
 
     // ─────────────────────────────────────────────────────────────────────────────
     // Test 9: AAPL PE_3Y_AVG RED (price=150, avg_eps_3y≈6.14, PE≈24.4 > 20)
+    //
+    // TSK-282 (US-035 F-01): DoD requires pe3yAvg in response body.
+    // Fixture: income 2022-2024 eps = [6.15, 6.16, 6.11], avg = 6.1400;
+    // pe3yAvg = 150 / 6.14 ≈ 24.43. observedValue tolerance ±0.5 covers
+    // floating-point variance in the EPS average.
     // ─────────────────────────────────────────────────────────────────────────────
 
     @Test
@@ -326,10 +358,15 @@ class GrahamRulesIntegrationTest {
     fun `AAPL PE_3Y_AVG is RED`() {
         stubAapl()
 
-        val signals = analyzeAndGetSignals("AAPL")
+        val result = analyze("AAPL")
+        val signals = parseSignals(result)
+        val observedValues = parseObservedValues(result)
 
         assertThat(signals["PE_3Y_AVG"])
             .isEqualTo("RED")
+        assertThat(observedValues["PE_3Y_AVG"])
+            .isNotNull()
+            .isCloseTo(24.4, within(0.5))
     }
 
     // ─────────────────────────────────────────────────────────────────────────────

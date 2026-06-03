@@ -103,6 +103,23 @@ class Pe3yAvgRuleTest {
         )
     }
 
+    // ------------------------------------------------------------------ INDETERMINATE: avgEps3y == 0.0 (boundary)
+
+    @Test
+    fun `INDETERMINATE when avgEps3y is exactly zero — boundary of the avgEps3y le 0 guard`() {
+        // eps=[0,0,0], avgEps=0.0 -> INDETERMINATE (guard: avgEps3y <= 0.0)
+        // This is the exact boundary case: the production guard is `avgEps3y <= 0.0`,
+        // which was previously only tested for the strictly negative side.
+        val dataset = uniformEpsDataset(currentPrice = 150.0, eps = 0.0)
+
+        val result = rule.evaluate(dataset)
+
+        assertAll(
+            { assertThat(result.signal).isEqualTo(Signal.INDETERMINATE) },
+            { assertThat(result.observedValue).isNull() },
+        )
+    }
+
     // ------------------------------------------------------------------ INDETERMINATE: null price
 
     @Test

@@ -316,6 +316,17 @@ class FmpAdapterRestClient(
                 cause = ex,
                 httpStatus = ex.statusCode.value(),
             )
+        } catch (ex: RestClientException) {
+            // Connection timeout o errore di decode body (es. shape inattesa) non
+            // sono sottotipi di RestClientResponseException: degradiamo come
+            // hard-failure controllata invece di propagare un'eccezione non gestita.
+            // Modello: getStockNews piu' sotto.
+            log.warn("FMP dividends decode/transport error for ticker={}: {}", upperTicker, ex.message)
+            throw FmpUnavailableException(
+                "FMP dividends transport/decode error for $upperTicker: ${ex.message}",
+                cause = ex,
+                httpStatus = null,
+            )
         }
 
         if (result.isNullOrEmpty()) {
