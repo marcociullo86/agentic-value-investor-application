@@ -484,6 +484,8 @@ ADR-007 §Error format dichiara RFC 9457 §3.2 (extensions al top-level). Quattr
 **Impatto:** In produzione il widget Turnstile fallisce silenziosamente (CSP block); la verifica server-side (TSK-230 `BruteForceProtectionService.guardLogin`) continua a richiedere il token e ritorna 401 `captchaRequired=true` ma il FE non può fornirlo. Net effect: dopo 10+ failure/IP, l'utente è permanentemente lockato finché il contatore IP non scade (5 min). In `next dev` il flusso funziona perché la CSP del middleware è applicata. Bloccante per AC US-081 in produzione.
 **TSK correlati:** TSK-238 (FE widget + FE CSP), TSK-230 (BE BruteForceProtectionService + Turnstile siteverify), TSK-221 (BE SecurityHeadersConfig).
 
+**Risolto:** 2026-06-03 — TSK-270 done + review_status=passed (commit 83a125c "feat(security): BE CSP allow-list Cloudflare Turnstile (TSK-270, US-081)"). `SecurityHeadersConfig.kt` dichiara `TURNSTILE_ORIGIN = "https://challenges.cloudflare.com"` e lo allow-lista in tutte e tre le direttive rilevanti per entrambe le varianti CSP: `script-src 'self' 'unsafe-inline' $TURNSTILE_ORIGIN` (widget loader), `frame-src $TURNSTILE_ORIGIN` (challenge iframe), `connect-src 'self' $TURNSTILE_ORIGIN` (telemetria); identico nella variante strict (`STRICT_CONTENT_SECURITY_POLICY`). In produzione (`output: 'export'`, ADR-009) la CSP applicata è quella del BE — il widget Turnstile può ora rendersi e l'AC US-081 "CAPTCHA dopo soglia" è operativo. [^src: src/backend/src/main/kotlin/com/valueinvesting/webapp/config/SecurityHeadersConfig.kt §TURNSTILE_ORIGIN]
+
 ---
 
 ## 2026-05-29 — sprint18-us037-db-tsk-duplicate-of-sprint6
