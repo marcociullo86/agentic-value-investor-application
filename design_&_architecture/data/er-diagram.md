@@ -43,6 +43,7 @@ erDiagram
         varchar token_value UK
         timestamptz expires_at
         timestamptz revoked_at
+        timestamptz first_issued_at "ADR-010 sliding+cap; ADR-027 family identifier per cascade revocation"
     }
 
     WATCHLISTS {
@@ -94,7 +95,7 @@ erDiagram
         uuid id PK
         varchar ticker FK
         timestamptz evaluated_at
-        jsonb signals
+        jsonb signals "ADR-028 typed oneOf/discriminator su ruleId; ADR-029 estende a 15 ruleId (+NCAV_LATEST, +NET_NET_RATIO)"
         numeric graham_number
         numeric dcf_intrinsic_value
         varchar dcf_method

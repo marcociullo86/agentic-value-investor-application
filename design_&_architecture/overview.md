@@ -89,8 +89,9 @@ Flusso di interazione canonico documentato in [[webapp-architecture-vi]] §Fluss
 
 | Concern | Soluzione | ADR |
 |---|---|---|
-| Autenticazione utenti | JWT stateless + Spring Security + BCrypt | [ADR-006](decisions/ADR-006-authentication.md) |
-| Contratto API | REST + OpenAPI 3.1 generato | [ADR-007](decisions/ADR-007-api-contract.md) |
+| Autenticazione utenti | JWT stateless + Spring Security + BCrypt | [ADR-006](decisions/ADR-006-authentication.md), [ADR-010](decisions/ADR-010-auth-consolidation.md), [ADR-024](decisions/ADR-024-session-lifecycle-credential-storage.md), [ADR-027](decisions/ADR-027-refresh-token-cascade-revocation.md) |
+| Contratto API | REST + OpenAPI 3.1 generato | [ADR-007](decisions/ADR-007-api-contract.md), [ADR-028](decisions/ADR-028-rulesignal-typed-oneof-discriminator.md) (RuleSignal typed) |
+| Rule Engine valutazione | Strategy pattern + 13/15 ValuationRule | [ADR-005](decisions/ADR-005-rule-engine-design.md), [ADR-028](decisions/ADR-028-rulesignal-typed-oneof-discriminator.md) (payload), [ADR-029](decisions/ADR-029-net-net-stocks-ncav.md) (NCAV Graham) |
 | Cache FMP | TTL 24h in PostgreSQL (single source of truth) | [ADR-004](decisions/ADR-004-fmp-integration.md) |
 | Resilienza FMP | Resilience4j (retry + circuit breaker + rate limiter) | [ADR-004](decisions/ADR-004-fmp-integration.md) |
 | Logging / metrics | SLF4J + Logback structured + Micrometer + Actuator | [ADR-008](decisions/ADR-008-observability-logging.md) |
@@ -150,7 +151,7 @@ Flusso di interazione canonico documentato in [[webapp-architecture-vi]] §Fluss
 
 ## Pagine collegate
 
-- [decisions/ADR-001-frontend-stack.md](decisions/ADR-001-frontend-stack.md) … ADR-016, [operations/deploy-runbook-r11.md](operations/deploy-runbook-r11.md)
+- [decisions/ADR-001-frontend-stack.md](decisions/ADR-001-frontend-stack.md) … ADR-029, [operations/deploy-runbook-r11.md](operations/deploy-runbook-r11.md)
 - [api/openapi.yaml](api/openapi.yaml)
 - [data/er-diagram.md](data/er-diagram.md)
 - [components/backend-components.md](components/backend-components.md)
