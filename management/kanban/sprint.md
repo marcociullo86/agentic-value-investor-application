@@ -2,17 +2,17 @@
 ---
 id: sprint
 title: Sprint Plan — R1.0 MVP + R1.1 + R1.1.x + R2.0 + R2.1 + R3.0 + CQRL Bonifica + R3.2
-generated: 2026-05-29
+generated: 2026-06-03
 tpm: tpm
-release: R3.0 EP-018 Sprint 15 (residui wave 2) + EP-017 chiusa (Sprint 14+17) + R3.1 EP-019 chiusa (Sprint 16) + R3.2 Sprint 18 (EP-002 US-031 + EP-010)
+release: R3.0 EP-018 Sprint 15 (chiuso) + EP-017 chiusa (Sprint 14+17) + R3.1 EP-019 chiusa (Sprint 16) + R3.2 Sprint 18 COMPLETATO (EP-002 US-031 + EP-010)
 r10_closed: 2026-05-22
 r11_closed: 2026-05-23
 r11x_closed: 2026-05-26
 r20_closed: 2026-05-26
 r21_closed: 2026-05-26
-r30_target: TBD
-r31_cqrl_target: TBD
-r32_target: TBD
+r30_closed: 2026-05-29
+r31_cqrl_closed: 2026-05-29
+r32_closed: 2026-06-03
 ---
 # Sprint Plan
 
@@ -21,10 +21,55 @@ r32_target: TBD
 > **R1.1.x hotfix chiuso:** Sprint 5.5 — 12/12 TSK `done`. US-052, US-053, US-054 completate.
 > **R2.0 chiuso:** Sprint 6–9 completati — 79/79 TSK `done`, 21/21 US, 3/3 EP (EP-010, EP-011, EP-012).
 > **R2.1 chiuso:** Sprint 10 — EP-013 Mr. Market Context Flags — 6/6 TSK `done`, 2/2 US (US-056, US-057).
-> **R3.0 in corso:** Sprint 15 (EP-018) — **19/22 TSK `done`**. Residui: TSK-235, TSK-270, TSK-271. Sprint 15.5 chiuso (TSK-239). EP-014..016 `done`.
+> **R3.0 chiuso:** Sprint 15 (EP-018) — **22/22 TSK `done`**. Sprint 15.5 chiuso (TSK-239). EP-014..016 `done`. EP-018 `done`.
 > **R3.0 chiuso:** Sprint 14+17 (EP-017) — **18/18 TSK `done`**, 7/7 US (US-073..078 + US-087). EP-017 `done`; ADR-026 `accepted`.
 > **R3.1 chiuso:** Sprint 16 (EP-019 CQRL) — **25/25 TSK `done`**. US-084/085/086 `done`; EP-019 `done`.
-> **R3.2 nuovo:** Sprint 18 — EP-002 US-031 (migrazione FMP /stable) + EP-010 US-032..037 (6 criteri Graham) — **0/21 TSK `done`**.
+> **R3.2 chiuso:** Sprint 18 — EP-002 US-031 (migrazione FMP /stable) + EP-010 US-032..037 (6 criteri Graham) — **21/21 TSK `done`**, review CQRL `passed` su tutti i TSK con copertura CQRL. EP-002 US-031 `done`; EP-010 `done`.
+
+---
+
+## Sprint 18 — FMP /stable migration + Graham Defensive completeness (EP-002 US-031, EP-010) — COMPLETATO
+
+**Obiettivo:**
+- **EP-002 US-031:** Completare la migrazione di `FmpAdapterRestClient` dagli endpoint v3 deprecati ai nuovi `/stable`, aggiornando routing, DTO, fixture WireMock e smoke test container.
+- **EP-010 US-032..037:** Implementare i 6 criteri difensivi di Graham nel Rule Engine (SIZE_LATEST, EARNINGS_STABILITY_10Y, EPS_GROWTH_10Y, PE_3Y_AVG, PB_LATEST, DIVIDEND_CONTINUITY_20Y), portando il TrafficLight a 13 ruleId totali (7 Buffett + 6 Graham).
+
+**Stato:** COMPLETATO — **21/21 TSK `done`**. US-031 `done`. US-032..037 `done`. EP-002 US-031 `done`. EP-010 `done`. CQRL review `passed` su tutti i TSK con copertura (TSK-273..292; TSK-272/TSK-286 DB/BE senza obbligo CQRL esplicito).
+
+**Rationale assegnazione:** EP-002 US-031 e EP-010 US-032..037 assegnati allo stesso Sprint 18 perché (a) US-031 è prerequisito logico di tutti i rule Graham (i rule leggono da FmpAdapter, che deve puntare a `/stable`), (b) i 6 Graham rule hanno dipendenze interne sequenziali per US-037 e parallelizzabili per US-032..036, (c) entrambi gli epic sono BE-heavy. EP-002 TSK priorità P0 (bloccanti per ACs di produzione); EP-010 TSK priorità P1.
+
+### EP-002 US-031 — Migrazione FMP /stable
+
+| TSK | Titolo | Layer | Consumer | Est. | US | `depends_on` | Status |
+|-----|--------|-------|----------|------|----|--------------|--------|
+| TSK-272 | BE Migra FmpAdapterRestClient: endpoint routing + DTO /stable | be | agent | L | US-031 | — | done |
+| TSK-273 | QA Aggiorna WireMock stub e integration test FMP /stable | qa | agent | M | US-031 | TSK-272 | done |
+| TSK-274 | QA Smoke test container: rebuild image + spot-check /stable | qa | agent | S | US-031 | TSK-272, TSK-273 | done |
+
+### EP-010 — Regole Graham (rule per rule)
+
+| TSK | Titolo | Layer | Consumer | Est. | US | `depends_on` | Status |
+|-----|--------|-------|----------|------|----|--------------|--------|
+| TSK-275 | BE Implementa SizeRule (SIZE_LATEST) | be | agent | S | US-032 | TSK-272 | done |
+| TSK-276 | QA Test integrazione SizeRule — 3 scenari | qa | agent | S | US-032 | TSK-275 | done |
+| TSK-277 | BE Implementa EarningsStabilityRule (EARNINGS_STABILITY_10Y) | be | agent | S | US-033 | TSK-272 | done |
+| TSK-278 | QA Test integrazione EarningsStabilityRule — 4 scenari | qa | agent | S | US-033 | TSK-277 | done |
+| TSK-279 | BE Implementa EpsGrowthRule (EPS_GROWTH_10Y) | be | agent | S | US-034 | TSK-272 | done |
+| TSK-280 | QA Test integrazione EpsGrowthRule — 5 scenari | qa | agent | S | US-034 | TSK-279 | done |
+| TSK-281 | BE Implementa Pe3yAvgRule (PE_3Y_AVG) | be | agent | S | US-035 | TSK-272 | done |
+| TSK-282 | QA Test integrazione Pe3yAvgRule — 4 scenari | qa | agent | S | US-035 | TSK-281 | done |
+| TSK-283 | BE Implementa PbLatestRule (PB_LATEST) | be | agent | S | US-036 | TSK-272 | done |
+| TSK-284 | QA Test integrazione PbLatestRule — 4 scenari | qa | agent | S | US-036 | TSK-283 | done |
+| TSK-285 | BE Estendi FmpAdapter con getDividendHistory (/stable/dividends) | be | agent | S | US-037 | TSK-272 | done |
+| TSK-286 | DB Migration V0XX__fmp_dividend_history_snapshot | db | agent | XS | US-037 | — | done |
+| TSK-287 | BE Implementa DividendContinuityRule (DIVIDEND_CONTINUITY_20Y) | be | agent | S | US-037 | TSK-285, TSK-286 | done |
+| TSK-288 | QA Test DividendContinuityRule + contratto adapter getDividendHistory | qa | agent | S | US-037 | TSK-285, TSK-286, TSK-287 | done |
+| TSK-289 | BE Estendi OpenAPI con 6 nuovi ruleId Graham + schema metadati | be | agent | S | cross-EP010 | TSK-275..287 | done |
+| TSK-290 | FE Aggiorna TrafficLight component React a 13 ruleId | fe | agent | S | cross-EP010 | TSK-289 | done |
+| TSK-291 | QA Contract test OpenAPI drift — 13 ruleId Graham + Buffett | qa | agent | XS | cross-EP010 | TSK-289 | done |
+| TSK-292 | QA Integration test E2E EP-010 — fixture AAPL/MSFT/KO | qa | agent | M | cross-EP010 | TSK-276..290 | done |
+
+**Totale Sprint 18:** 21 TSK (8 be, 1 fe, 1 db, 11 qa) — **21/21 `done`**
 
 ---
 
@@ -115,13 +160,13 @@ fuori scope. CI #131 resta riferimento.
 
 ---
 
-## Sprint 15 — Hardening Sicurezza e Compliance (EP-018) — IN PROGRESS
+## Sprint 15 — Hardening Sicurezza e Compliance (EP-018) — COMPLETATO
 
 **Obiettivo:** Defense-in-depth enforcement, CSP nonce + CSRF per cookie auth, MFA TOTP con
 recovery codes, rate limiting + progressive lockout + CAPTCHA threshold, HIBP password check,
 dichiarazione formale PCI-DSS non applicabile. ADR-025. DB: mfa_secrets + login_attempts.
 
-**Stato:** IN PROGRESS — **19/22 TSK `done`**. Wave 1 completata (MFA BE/FE, brute-force, CSP/CSRF QA, HIBP QA). TSK-234 `done` (review_status: passed, iter 1). TSK-238 `done` (review_status: passed, iter 3). Residui: TSK-235, TSK-270, TSK-271.
+**Stato:** COMPLETATO — **22/22 TSK `done`**. Wave 1 + Wave 2 completate. EP-018 `done`.
 
 | TSK | Titolo | Layer | Consumer | Est. | US | Status |
 |-----|--------|-------|----------|------|-----|--------|
@@ -144,69 +189,11 @@ dichiarazione formale PCI-DSS non applicabile. ADR-025. DB: mfa_secrets + login_
 | TSK-236 | QA Test HIBP: password compromessa rifiutata, sicura accettata | qa | agent | S | US-081 | done |
 | TSK-237 | QA Verifica codebase no dati carta + validazione ADR PCI-DSS | qa | agent | S | US-082 | done |
 | TSK-238 | FE Login CAPTCHA Turnstile quando captchaRequired | fe | agent | S | US-081 | done |
-| TSK-270 | BE CSP allow-list Cloudflare Turnstile in SecurityHeadersConfig | be | agent | S | US-081 | todo |
-| TSK-235 | QA Test rate limiting + brute force: delay, CAPTCHA, lockout 30min | qa | agent | M | US-081 | todo |
-| TSK-271 | QA E2E Playwright mocked-tier flusso CAPTCHA login | qa | agent | M | US-081 | todo |
+| TSK-270 | BE CSP allow-list Cloudflare Turnstile in SecurityHeadersConfig | be | agent | S | US-081 | done |
+| TSK-235 | QA Test rate limiting + brute force: delay, CAPTCHA, lockout 30min | qa | agent | M | US-081 | done |
+| TSK-271 | QA E2E Playwright mocked-tier flusso CAPTCHA login | qa | agent | M | US-081 | done |
 
-**Totale Sprint 15:** 22 TSK (9 be, 4 fe, 2 db, 7 qa) — 19 `done`, 3 `todo`
-
-**Ordine residui (wave 2):**
-1. be-dev: **TSK-270** (CSP BE Turnstile — P0, bloccante per AC CAPTCHA in produzione; no dipendenze su TSK-235/TSK-271)
-2. qa-dev: **TSK-271** (Playwright mocked-tier CAPTCHA — P1, può procedere in parallelo a TSK-270; dipende solo da TSK-238 già done)
-3. qa-dev: **TSK-235** (QA rate limiting + brute force — P0; TSK-238 ora done, tutte le dipendenze soddisfatte)
-
----
-
-## Sprint 18 — FMP /stable migration + Graham Defensive completeness (EP-002 US-031, EP-010) — CORRENTE
-
-**Obiettivo:**
-- **EP-002 US-031:** Completare la migrazione di `FmpAdapterRestClient` dagli endpoint v3 deprecati ai nuovi `/stable`, aggiornando routing, DTO, fixture WireMock e smoke test container.
-- **EP-010 US-032..037:** Implementare i 6 criteri difensivi di Graham nel Rule Engine (SIZE_LATEST, EARNINGS_STABILITY_10Y, EPS_GROWTH_10Y, PE_3Y_AVG, PB_LATEST, DIVIDEND_CONTINUITY_20Y), portando il TrafficLight a 13 ruleId totali (7 Buffett + 6 Graham).
-
-**Stato:** TODO — **0/21 TSK `done`**.
-
-**Rationale assegnazione:** EP-002 US-031 e EP-010 US-032..037 sono assegnati allo stesso Sprint 18 perché (a) US-031 è prerequisito logico di tutti i rule Graham (i rule leggono da FmpAdapter, che deve puntare a `/stable`), (b) i 6 Graham rule hanno dipendenze interne sequenziali per US-037 (adapter → migration → rule → test) e parallelizzabili per US-032..036, (c) entrambi gli epic sono BE-heavy, rendendo naturale il raggruppamento. EP-002 TSK hanno priorità P0 (bloccanti per gli ACs di produzione); EP-010 TSK hanno priorità P1 e partono in parallelo sui rule semplici (US-032..036) non appena TSK-272 è completato.
-
-### EP-002 US-031 — Migrazione FMP /stable
-
-| TSK | Titolo | Layer | Consumer | Est. | US | `depends_on` | Status |
-|-----|--------|-------|----------|------|----|--------------|--------|
-| TSK-272 | BE Migra FmpAdapterRestClient: endpoint routing + DTO /stable | be | agent | L | US-031 | — | todo |
-| TSK-273 | QA Aggiorna WireMock stub e integration test FMP /stable | qa | agent | M | US-031 | TSK-272 | todo |
-| TSK-274 | QA Smoke test container: rebuild image + spot-check /stable | qa | agent | S | US-031 | TSK-272, TSK-273 | todo |
-
-### EP-010 — Regole Graham (rule per rule)
-
-| TSK | Titolo | Layer | Consumer | Est. | US | `depends_on` | Status |
-|-----|--------|-------|----------|------|----|--------------|--------|
-| TSK-275 | BE Implementa SizeRule (SIZE_LATEST) | be | agent | S | US-032 | TSK-272 | todo |
-| TSK-276 | QA Test integrazione SizeRule — 3 scenari | qa | agent | S | US-032 | TSK-275 | todo |
-| TSK-277 | BE Implementa EarningsStabilityRule (EARNINGS_STABILITY_10Y) | be | agent | S | US-033 | TSK-272 | todo |
-| TSK-278 | QA Test integrazione EarningsStabilityRule — 4 scenari | qa | agent | S | US-033 | TSK-277 | todo |
-| TSK-279 | BE Implementa EpsGrowthRule (EPS_GROWTH_10Y) | be | agent | S | US-034 | TSK-272 | todo |
-| TSK-280 | QA Test integrazione EpsGrowthRule — 5 scenari | qa | agent | S | US-034 | TSK-279 | todo |
-| TSK-281 | BE Implementa Pe3yAvgRule (PE_3Y_AVG) | be | agent | S | US-035 | TSK-272 | todo |
-| TSK-282 | QA Test integrazione Pe3yAvgRule — 4 scenari | qa | agent | S | US-035 | TSK-281 | todo |
-| TSK-283 | BE Implementa PbLatestRule (PB_LATEST) | be | agent | S | US-036 | TSK-272 | todo |
-| TSK-284 | QA Test integrazione PbLatestRule — 4 scenari | qa | agent | S | US-036 | TSK-283 | todo |
-| TSK-285 | BE Estendi FmpAdapter con getDividendHistory (/stable/dividends) | be | agent | S | US-037 | TSK-272 | todo |
-| TSK-286 | DB Migration V0XX__fmp_dividend_history_snapshot | db | agent | XS | US-037 | — | todo |
-| TSK-287 | BE Implementa DividendContinuityRule (DIVIDEND_CONTINUITY_20Y) | be | agent | S | US-037 | TSK-285, TSK-286 | todo |
-| TSK-288 | QA Test DividendContinuityRule + contratto adapter getDividendHistory | qa | agent | S | US-037 | TSK-285, TSK-286, TSK-287 | todo |
-| TSK-289 | BE Estendi OpenAPI con 6 nuovi ruleId Graham + schema metadati | be | agent | S | cross-EP010 | TSK-275..287 | todo |
-| TSK-290 | FE Aggiorna TrafficLight component React a 13 ruleId | fe | agent | S | cross-EP010 | TSK-289 | todo |
-| TSK-291 | QA Contract test OpenAPI drift — 13 ruleId Graham + Buffett | qa | agent | XS | cross-EP010 | TSK-289 | todo |
-| TSK-292 | QA Integration test E2E EP-010 — fixture AAPL/MSFT/KO | qa | agent | M | cross-EP010 | TSK-276..290 | todo |
-
-**Totale Sprint 18:** 21 TSK (8 be, 1 fe, 1 db, 11 qa) — 0 `done`, 21 `todo`
-
-**Parallelismo (scheduler v2.14, max_parallel=4):**
-- **Wave A (dopo TSK-272 done):** TSK-275, TSK-277, TSK-279, TSK-281, TSK-283, TSK-285 + TSK-286 in parallelo (tutti i rule BE + adapter dividend + migration — nessuna dipendenza reciproca tra US-032..036)
-- **Wave B (dopo Wave A):** TSK-276, TSK-278, TSK-280, TSK-282, TSK-284 in parallelo (QA per ciascun rule) + TSK-287 (dipende da TSK-285+286)
-- **Wave C:** TSK-288 (QA dividend) → TSK-289 (OpenAPI) → TSK-290 (FE) + TSK-291 in parallelo → TSK-292 (E2E finale)
-- **EP-002 track:** TSK-272 → TSK-273 → TSK-274 (seriale, P0, può procedere in parallelo alla Wave A EP-010)
-
-**Gate post-Sprint 18:** chiusura formale EP-010 (US-032..037 tutte `done`) + EP-002 US-031 `done`; commit VCS.
+**Totale Sprint 15:** 22 TSK (9 be, 4 fe, 2 db, 7 qa) — **22/22 `done`**
 
 ---
 
@@ -620,12 +607,12 @@ dichiarazione formale PCI-DSS non applicabile. ADR-025. DB: mfa_secrets + login_
 | R3.0 | 12 | 0 | 0 | 0 | 5 | 5 | **10** | done |
 | R3.0 | 13 | 0 | 0 | 0 | 6 | 5 | **11** | done |
 | R3.0 | 14 | 0 | 0 | 2 | 7 | 5 | **14** | done |
-| R3.0 | 15 | 0 | 2 | 9 | 4 | 7 | **22** | 19 done, 3 todo |
-| R3.0 | 15.5 | 0 | 0 | 0 | 0 | 1 | **1** | 1 done |
+| R3.0 | 15 | 0 | 2 | 9 | 4 | 7 | **22** | done |
+| R3.0 | 15.5 | 0 | 0 | 0 | 0 | 1 | **1** | done |
 | R3.1 | 16 | 0 | 1 | 7 | 3 | 15 | **25** | done |
 | R3.0 | 17 | 0 | 0 | 0 | 3 | 1 | **4** | done |
-| R3.2 | 18 | 0 | 1 | 8 | 1 | 11 | **21** | 0 done, 21 todo |
-| | **TOTALE** | **11** | **18** | **104** | **56** | **109** | **298** | 274 done, 24 todo |
+| R3.2 | 18 | 0 | 1 | 8 | 1 | 11 | **21** | done |
+| | **TOTALE** | **11** | **18** | **104** | **56** | **109** | **298** | **295 done** |
 
 ---
 
@@ -641,7 +628,7 @@ Sprint 12 (EP-016) ✅ ═══╝        │
                                    ├──► Sprint 17 (EP-017 US-087 ADR-026) ✅
                                    │
                                    ▼
-                           Sprint 15 (EP-018) ◄── RESIDUI WAVE 2 (3 TSK)
+                           Sprint 15 (EP-018) ✅ ◄── wave 1+2 completate
                                    │
                                    ├──► Sprint 15.5 (EP-016 hotfix TSK-239) ✅
                                    │
@@ -649,7 +636,10 @@ Sprint 12 (EP-016) ✅ ═══╝        │
                            Sprint 16 (EP-019 CQRL) ✅
                                    │
                                    ▼
-                           Sprint 18 (EP-002 US-031 + EP-010) ◄── CORRENTE
+                           Sprint 18 (EP-002 US-031 + EP-010) ✅ COMPLETATO
+                                   │
+                                   ▼
+                           Sprint 19 (EP-020 LLM trasparenza) ◄── PROSSIMO
 ```
 
 ---
@@ -660,10 +650,10 @@ Sprint 12 (EP-016) ✅ ═══╝        │
 Sprint 14 → Sprint 15: ✅ SODDISFATTA
   TSK-209 (cookie httpOnly auth) ──→ TSK-223 (CSRF per cookie endpoints)
 
-Sprint 5 → Sprint 18 EP-002: SODDISFATTA (base adapter TSK-009/072 done)
+Sprint 5 → Sprint 18 EP-002: ✅ SODDISFATTA (base adapter TSK-009/072 done)
   TSK-009/072 (FmpAdapter v3/stable) ──→ TSK-272 (migrazione routing /stable wave 2)
 
-Sprint 18 EP-002 → Sprint 18 EP-010: INTRA-SPRINT
+Sprint 18 EP-002 → Sprint 18 EP-010: ✅ SODDISFATTA (intra-sprint)
   TSK-272 (routing /stable) ──→ TSK-275..285 (rule Graham leggono da FmpAdapter /stable)
 ```
 
@@ -671,25 +661,9 @@ Sprint 18 EP-002 → Sprint 18 EP-010: INTRA-SPRINT
 
 ## Prossimo /dev suggerito
 
-**Sprint 15 residui (wave 2) — P0 prioritari:**
-1. be-dev: **TSK-270** (CSP BE Turnstile — bloccante per AC CAPTCHA prod)
-2. qa-dev: **TSK-271** (E2E CAPTCHA mocked — parallelo a TSK-270)
-3. qa-dev: **TSK-235** (QA rate limiting + brute force — dipendenze soddisfatte)
+**Sprint 18 completato — tutte le dipendenze soddisfatte per Sprint 19.**
 
-**Sprint 18 — dopo completamento Sprint 15:**
-1. be-dev: **TSK-272** (migrazione FMP /stable routing + DTO — P0, gate per tutti i Graham rule)
-2. qa-dev: **TSK-273** (WireMock stub + IT aggiornamento — dopo TSK-272)
-3. In parallelo dopo TSK-272: be-dev TSK-275, TSK-277, TSK-279, TSK-281, TSK-283, TSK-285 + db-dev TSK-286
-
-**Gate umano post-Sprint 15:** commit VCS, chiusura formale EP-018 (US-079..082 tutte `done`).
-**Gate umano post-Sprint 18:** commit VCS, chiusura EP-010 (US-032..037 `done`) + EP-002 US-031 `done`.
-
-**ADR accepted:** ADR-021, ADR-022, ADR-023, ADR-024, ADR-025, ADR-026.
-
----
-
-<!-- ADDENDUM MANUALE 2026-05-30 — EP-020 (da consolidare al prossimo run tpm) -->
-## Sprint 19 — EP-020 Trasparenza analisi LLM nel verdetto Deep Analysis
+**Sprint 19 — EP-020 Trasparenza analisi LLM nel verdetto Deep Analysis (prossimo sprint):**
 
 Estende EP-011: log interazioni LLM, sintesi narrativa nel verdetto, dettaglio Munger, news analizzate (titolo+testo). Parallelizzazione in 3 wave (scheduler `code_path_conflict: strict`).
 
@@ -697,7 +671,7 @@ Estende EP-011: log interazioni LLM, sintesi narrativa nel verdetto, dettaglio M
 1. be-dev: **TSK-299** (US-088 — logging gated interazioni LLM) — *indipendente*
 2. be-dev: **TSK-300** (US-089 — campo `sintesi` Munger + contratto)
 3. db-dev: **TSK-305** (US-091 — migration V030 `text_excerpt`) → poi be-dev **TSK-306** (US-091 — items news + contratto)
-   - ⚠️ TSK-300 e TSK-306 toccano entrambi `DeepAnalysisService.kt` + `DeepAnalysisResponse.kt` → serializzare l'edit di quei 2 file.
+   - TSK-300 e TSK-306 toccano entrambi `DeepAnalysisService.kt` + `DeepAnalysisResponse.kt` → serializzare l'edit di quei 2 file.
 
 **Wave 2 — frontend (parallela, dopo openapi+tipi FE):**
 4. fe-dev: **TSK-301** (US-089 — paragrafo sintesi nel verdetto)
@@ -711,3 +685,7 @@ Estende EP-011: log interazioni LLM, sintesi narrativa nel verdetto, dettaglio M
 
 **Gate CI:** ogni TSK di contratto mantiene allineati openapi.yaml + DeepAnalysisResponse.kt + deep-analysis.ts (job `contract-check`) e i test BE (`ci`).
 **Retrocompat:** report Munger in cache (TTL 90gg) e righe `news_classification` esistenti → nuovi campi nullable.
+
+**Gate umano post-Sprint 18 (da eseguire):** commit VCS con chiusura formale EP-010 (US-032..037 `done`) + EP-002 US-031 `done`. (EP-002 e EP-010 già `done` nel frontmatter.)
+
+**ADR accepted:** ADR-021, ADR-022, ADR-023, ADR-024, ADR-025, ADR-026.
