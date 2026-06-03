@@ -8,7 +8,7 @@ tags: [fmp, stable, news, media, press-release]
 ---
 # FMP — News & Media (stable)
 
-[^src: raw/fmp_docs.md §News] [^src: raw/fmp_docs.json §News]
+[^src: raw/fmp_docs.md §News] [^src: raw/fmp_docs.json sezione="News"]
 
 Sezione dell'API FMP stable con notizie finanziarie, articoli FMP, comunicati stampa e notizie per ticker specifico.
 
