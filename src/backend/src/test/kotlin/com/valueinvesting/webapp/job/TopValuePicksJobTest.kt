@@ -321,7 +321,7 @@ class TopValuePicksJobTest {
 
         // Existing day's picks left untouched: no DELETE-then-INSERT upsert.
         verify(exactly = 0) { topValuePickRepository.deleteAllById(any()) }
-        verify(exactly = 0) { topValuePickRepository.saveAll(any()) }
+        verify(exactly = 0) { topValuePickRepository.saveAll(any<List<TopValuePickEntity>>()) }
     }
 
     // -------------------------------------------------------------------------
