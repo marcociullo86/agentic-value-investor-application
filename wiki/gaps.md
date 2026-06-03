@@ -22,6 +22,27 @@ di vita.
 
 ## Gap aperti
 
+### 2026-06-03 — rulesignal-typed-metadata-deferred
+
+**Origine:** code-reviewer @ CQRL Sprint 18 (TSK-289 iter-1, finding F-289-1 medium)
+**Gap:** TSK-289 DoD item 2 richiedeva metadati tipati per-ruleId nello schema OpenAPI
+`RuleEngineResultItem` (es. `revenueLatest`/`thresholdUsd` per SIZE_LATEST;
+`yearsPositive`/`yearsAvailable`/`lossYears` per EARNINGS_STABILITY_10Y; `pe3yAvg`,
+`pbLatest`, `consecutiveYears`, ecc.). L'implementazione ha **deferito** lo schema
+tipato (`oneOf`/`additionalProperties`) per non rompere i 7 ruleId Buffett già in
+produzione e i client TS generati: i 6 nuovi ruleId Graham veicolano i metadati come
+stringa `rationale` + numero `observedValue`, non come campi strutturati. La scelta è
+documentata in `openapi.yaml` (RuleSignal.description, righe ~1101-1107, rif. TSK-087/EP-010),
+nei 6 file rule Kotlin e nel commit eb44398, ma non era tracciata come gap formale.
+**Sospetta fonte:** Arch + TPM — richiede un refactor di contratto (breaking) pianificato
+come US/TSK dedicato (proposta nome: `RuleSignal-payload-refactor`).
+**Impatto:** Nessun blocco. FE e API funzionano con rationale+observedValue. Il debito
+emergerà quando un client vorrà i campi tipati senza parsare la stringa. Collegato a
+TSK-290 (subtitle FE derivato da rationale per assenza di campi tipati).
+**Bloccante:** no.
+
+---
+
 ### 2026-05-20 — tpm-profile-snapshot-ttl
 
 **Origine:** tpm @ generazione TSK (L4 fase 2)

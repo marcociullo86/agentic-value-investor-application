@@ -171,4 +171,25 @@ describe('RuleSignalCard', () => {
     ).toBeInTheDocument();
     expect(screen.getByRole('button')).toHaveAttribute('aria-expanded', 'true');
   });
+
+  it('Test 9 — observedSubtitle visibile su faccia collapsed quando fornito (TSK-290)', () => {
+    render(
+      <RuleSignalCard
+        signal={makeSignal({ ruleId: 'PB_LATEST' })}
+        observedSubtitle="P/B: 1.2"
+      />,
+    );
+    // Card collapsed (defaultExpanded omesso = false).
+    expect(screen.getByRole('button')).toHaveAttribute('aria-expanded', 'false');
+    const subtitle = screen.getByTestId('rule-signal-subtitle-PB_LATEST');
+    expect(subtitle).toBeInTheDocument();
+    expect(subtitle).toHaveTextContent('P/B: 1.2');
+  });
+
+  it('Test 9b — observedSubtitle assente quando prop non fornita (default Buffett)', () => {
+    render(<RuleSignalCard signal={makeSignal()} />);
+    expect(
+      screen.queryByTestId('rule-signal-subtitle-profitability.roe'),
+    ).not.toBeInTheDocument();
+  });
 });

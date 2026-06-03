@@ -297,13 +297,46 @@ describe('TrafficLightPanel', () => {
       ...BUFFETT_IDS,
       ...GRAHAM_IDS,
     ].map((id, idx) => makeSignal(id, pickSignal(idx)));
-    const { container } = render(<TrafficLightPanel signals={signals} />);
-    expect(container.firstChild).toBeTruthy();
+    render(<TrafficLightPanel signals={signals} />);
+    // F-290-2: asserzione strutturale significativa (panel montato + separator
+    // hr tra Buffett e Graham) al posto del vacuo container.firstChild toBeTruthy.
+    expect(screen.getByTestId('traffic-light-panel')).toBeInTheDocument();
     expect(
       screen.getByTestId('traffic-light-section-buffett-grid').children,
     ).toHaveLength(7);
     expect(
       screen.getByTestId('traffic-light-section-graham-grid').children,
     ).toHaveLength(6);
+  });
+
+  it('Test 11 — Graham cards rendono observedSubtitle (rationale) sulla faccia collapsed (TSK-290 DoD item 3)', () => {
+    // 1 Buffett + 2 Graham con rationale distinti → asserisce che le Graham
+    // espongano il subtitle visibile (sotto il signal badge) senza espandere
+    // la card, mentre la Buffett NON lo espone (comportamento invariato).
+    const signals: ReadonlyArray<RuleSignal> = [
+      { ruleId: 'ROE_10Y_AVG', signal: 'GREEN', observedValue: 0.18, threshold: 'ROE ≥ 15%', rationale: 'ROE 10y media 18.0%' },
+      { ruleId: 'PB_LATEST', signal: 'GREEN', observedValue: 1.2, threshold: 'P/B ≤ 1.5', rationale: 'P/B: 1.2' },
+      { ruleId: 'EARNINGS_STABILITY_10Y', signal: 'YELLOW', observedValue: 8, threshold: 'Anni positivi ≥ 10/10', rationale: 'Anni positivi: 8/10' },
+    ];
+    render(<TrafficLightPanel signals={signals} />);
+
+    // Le 2 Graham mostrano il subtitle sulla card collapsed (no expand).
+    const pbSubtitle = screen.getByTestId('rule-signal-subtitle-PB_LATEST');
+    expect(pbSubtitle).toBeInTheDocument();
+    expect(pbSubtitle).toHaveTextContent('P/B: 1.2');
+
+    const esSubtitle = screen.getByTestId('rule-signal-subtitle-EARNINGS_STABILITY_10Y');
+    expect(esSubtitle).toBeInTheDocument();
+    expect(esSubtitle).toHaveTextContent('Anni positivi: 8/10');
+
+    // La Buffett NON deve avere il subtitle (prop invariata = undefined).
+    expect(
+      screen.queryByTestId('rule-signal-subtitle-ROE_10Y_AVG'),
+    ).not.toBeInTheDocument();
+
+    // Sanity: il details panel della Graham NON è ancora montato (collapsed).
+    expect(
+      screen.queryByTestId('rule-signal-details-PB_LATEST'),
+    ).not.toBeInTheDocument();
   });
 });

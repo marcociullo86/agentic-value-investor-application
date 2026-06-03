@@ -41,6 +41,13 @@ export interface RuleSignalCardProps {
   readonly signal: RuleSignal;
   /** Stato iniziale (default `false`). */
   readonly defaultExpanded?: boolean;
+  /**
+   * Sottotitolo opzionale con il valore osservato formattato (es. "P/B: X.X",
+   * "Anni positivi: X/10"). Visibile sulla faccia COMPRESSA, sotto il signal
+   * badge. Introdotto da TSK-290 (DoD item 3) per le 6 card Graham Defensive.
+   * Le card Buffett NON ricevono questa prop → comportamento invariato.
+   */
+  readonly observedSubtitle?: string;
 }
 
 interface SignalPresentation {
@@ -141,7 +148,7 @@ function formatObservedValue(value: number | null): string {
 }
 
 export function RuleSignalCard(props: RuleSignalCardProps): React.ReactElement {
-  const { signal: ruleSignal, defaultExpanded = false } = props;
+  const { signal: ruleSignal, defaultExpanded = false, observedSubtitle } = props;
   const [expanded, setExpanded] = useState<boolean>(defaultExpanded);
   const detailsId = useId();
 
@@ -192,6 +199,14 @@ export function RuleSignalCard(props: RuleSignalCardProps): React.ReactElement {
           >
             {presentation.label}
           </span>
+          {observedSubtitle !== undefined && observedSubtitle.length > 0 ? (
+            <span
+              data-testid={`rule-signal-subtitle-${ruleSignal.ruleId}`}
+              className="mt-1 truncate text-xs text-slate-500 dark:text-slate-400"
+            >
+              {observedSubtitle}
+            </span>
+          ) : null}
         </div>
         <span
           aria-hidden="true"

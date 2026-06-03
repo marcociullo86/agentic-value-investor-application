@@ -448,4 +448,99 @@ class GrahamRulesIntegrationTest {
         assertThat(signals["EPS_GROWTH_10Y"])
             .isEqualTo("GREEN")
     }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Test 15 (F-001): KO PE_3Y_AVG RED (premium-valued — price=60, avg EPS 3y≈2.38, PE≈25.25)
+    //
+    // KO is a premium-priced consumer staples franchise — PE well above Graham's
+    // moderate-P/E threshold.  DoD TSK-292 originally stated GREEN (PE≤15) which
+    // was erroneous: the fixture yields PE≈25.25 → RED (>20 threshold in Pe3yAvgRule).
+    // Fixture: income 2022-2024 eps = [2.19, 2.47, 2.47], avg = 2.3767;
+    // price = 60.0 (graham-profile-ko.json); pe3yAvg = 60 / 2.3767 ≈ 25.25.
+    // observedValue tolerance ±0.5 covers floating-point EPS-average variance.
+    //
+    // [^src: management/kanban/EP-010-graham-defensive-completeness/TSK-292.md §Spec correction]
+    // ─────────────────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("KO: PE_3Y_AVG RED (price=60, avg EPS 3y≈2.38, PE≈25.25 > 20 — premium-valued franchise)")
+    fun `KO PE_3Y_AVG is RED with observedValue approx 25 point 25`() {
+        stubKo()
+
+        val result = analyze("KO")
+        val signals = parseSignals(result)
+        val observedValues = parseObservedValues(result)
+
+        assertThat(signals["PE_3Y_AVG"])
+            .isEqualTo("RED")
+        assertThat(observedValues["PE_3Y_AVG"])
+            .isNotNull()
+            .isCloseTo(25.25, within(0.5))
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Test 16 (F-001): KO PB_LATEST RED (price=60, bookValuePerShare=2.08, P/B≈28.85)
+    //
+    // KO trades at a massive premium to book value due to intangible brand capital
+    // not reflected in GAAP book value (decades of share buybacks and goodwill).
+    // Fixture: keymetrics latest (2024-12-31) bookValuePerShare=2.08;
+    // price=60.0; pbLatest = 60 / 2.08 ≈ 28.846 → RED (>3.0 threshold in PbLatestRule).
+    // DoD TSK-292 originally stated YELLOW — corrected per iter-1 code-review finding F-001.
+    // observedValue tolerance ±0.5 covers floating-point variance.
+    //
+    // [^src: management/kanban/EP-010-graham-defensive-completeness/TSK-292.md §Spec correction]
+    // ─────────────────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("KO: PB_LATEST RED (price=60, bookValuePerShare=2.08, P/B≈28.85 > 3.0 — premium-to-book)")
+    fun `KO PB_LATEST is RED with observedValue approx 28 point 85`() {
+        stubKo()
+
+        val result = analyze("KO")
+        val signals = parseSignals(result)
+        val observedValues = parseObservedValues(result)
+
+        assertThat(signals["PB_LATEST"])
+            .isEqualTo("RED")
+        assertThat(observedValues["PB_LATEST"])
+            .isNotNull()
+            .isCloseTo(28.85, within(0.5))
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Test 17 (F-002): MSFT EARNINGS_STABILITY_10Y GREEN (10/10 years positive netIncome)
+    //
+    // MSFT income fixture 2015-2024: all 10 years have positive netIncome.
+    // Fixture data confirms netIncome > 0 every year → rule returns GREEN.
+    // ─────────────────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("MSFT: EARNINGS_STABILITY_10Y GREEN (10/10 years positive netIncome)")
+    fun `MSFT EARNINGS_STABILITY_10Y is GREEN`() {
+        stubMsft()
+
+        val signals = analyzeAndGetSignals("MSFT")
+
+        assertThat(signals["EARNINGS_STABILITY_10Y"])
+            .isEqualTo("GREEN")
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Test 18 (F-002): KO EARNINGS_STABILITY_10Y GREEN (10/10 years positive netIncome)
+    //
+    // KO income fixture 2015-2024: all 10 years have positive netIncome.
+    // Minimum netIncome in fixture is 6,000,000,000 (2017) → well above 0.
+    // Rule returns GREEN (deterministic, no threshold ambiguity).
+    // ─────────────────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("KO: EARNINGS_STABILITY_10Y GREEN (10/10 years positive netIncome)")
+    fun `KO EARNINGS_STABILITY_10Y is GREEN`() {
+        stubKo()
+
+        val signals = analyzeAndGetSignals("KO")
+
+        assertThat(signals["EARNINGS_STABILITY_10Y"])
+            .isEqualTo("GREEN")
+    }
 }

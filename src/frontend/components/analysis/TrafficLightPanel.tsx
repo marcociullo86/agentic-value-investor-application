@@ -91,6 +91,30 @@ export interface TrafficLightPanelProps {
   readonly signals: ReadonlyArray<RuleSignal>;
 }
 
+/**
+ * Lunghezza massima del subtitle Graham sulla faccia collapsed (TSK-290 DoD item 3).
+ * Le stringhe formattate dal BE (es. "Revenue: $123B", "Anni positivi: 8/10")
+ * sono già sintetiche; il cap serve come safety net per rationale più verbosi
+ * (taglio con ellissi). Empiricamente ~48 char copre i 6 format canonici.
+ */
+const GRAHAM_SUBTITLE_MAX_LEN = 48;
+
+/**
+ * Deriva il subtitle Graham per la faccia COMPRESSA. Il BE (TSK-289 openapi.yaml
+ * §RuleSignal.rationale) emette stringhe già formattate ("P/B: X.X" ecc.); qui
+ * troncoliamo se eccede {@link GRAHAM_SUBTITLE_MAX_LEN}. NB: metadati tipati
+ * per-ruleId sono deferiti (gap `rulesignal-typed-metadata-deferred`), quindi
+ * non possiamo riformattare dall'observedValue in modo type-safe per ogni rule.
+ */
+function deriveGrahamSubtitle(signal: RuleSignal): string | undefined {
+  const r = signal.rationale;
+  if (r === undefined || r === null) return undefined;
+  const trimmed = r.trim();
+  if (trimmed.length === 0) return undefined;
+  if (trimmed.length <= GRAHAM_SUBTITLE_MAX_LEN) return trimmed;
+  return `${trimmed.slice(0, GRAHAM_SUBTITLE_MAX_LEN - 1)}…`;
+}
+
 interface CounterEntry {
   readonly signal: Signal;
   readonly label: string;
@@ -269,6 +293,11 @@ export function TrafficLightPanel(
               <RuleSignalCard
                 key={ruleSignal.ruleId}
                 signal={ruleSignal}
+                observedSubtitle={
+                  section.id === 'graham'
+                    ? deriveGrahamSubtitle(ruleSignal)
+                    : undefined
+                }
               />
             ))}
           </div>
