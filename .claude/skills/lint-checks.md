@@ -51,6 +51,103 @@ Per ogni `TSK-*.md` (v2.7):
 - Ogni US referenzia una pagina wiki: la pagina esiste?
 - Ogni `## Storie collegate` in wiki ha solo storie esistenti?
 
+### 4m — Coerenza `risk_classification` ↔ Risk Registry (v2.16 opt-in, PATTERN §3/§5)
+
+**WARNING-only — nessun ERROR meccanico** (R.P3 opt-in totale). Il check non blocca
+mai `/lint`. Eventuale promozione a ERROR è candidato v2.17+ post-evidenza.
+
+**Pre-condizioni di silenzio** (no-op se):
+- l'artefatto EP/US/TSK **non** ha il blocco `risk_classification:` nel frontmatter → no-op totale;
+- `management/risk-registry.md` **non** esiste → 4m.1 e 4m.2 si skippano (il Registry è opt-in); solo 4m.3 (broken ref) può ancora scattare.
+
+Tre sotto-check (per ogni artefatto con `risk_classification:` valorizzato):
+
+- **4m.1 — Drift tier**: se `tier` MATCHES `/^tiger-/` e una sezione del Registry per quel target esiste, ma il tier nel Registry ≠ tier nel frontmatter → **WARNING `drift_tier`**.
+- **4m.2 — Missing Registry row**: se `tier` MATCHES `/^tiger-/`, il Registry esiste, ma non c'è alcuna sezione/riga per quel target → **WARNING `missing_registry_row`** (suggerimento: esegui `/premortem <target>`).
+- **4m.3 — Broken premortem_ref**: se `premortem_ref` è valorizzato e `(path, anchor)` non è risolvibile (file inesistente o anchor assente) → **WARNING `broken_premortem_ref`**.
+
+**Output format** (sezione `## WARNING (igiene)` del report):
+
+```
+- [WARNING][risk_classification][4m.1] EP-042: drift_tier — frontmatter=tiger-launch-blocking, registry=tiger-fast-follow (suggerimento: riconciliare)
+- [WARNING][risk_classification][4m.2] US-017: missing_registry_row — esegui /premortem US-017
+- [WARNING][risk_classification][4m.3] TSK-103: broken_premortem_ref — management/risk-registry.md#pm-inesistente
+```
+
+**Numerazione**: «4m» è il check del pattern Premortem (v2.16). La lettera segue la
+serie OCL/CCL prevista in v2.14 (4k/4l); non collide con alcun check esistente in
+questo file (4b–4g). Mai `heal-eligible` (WARNING-only, giudizio semantico).
+
+### 4n — Granularità TSK FE (State Matrix DoD, EP-006 US-022, ADR-011)
+
+**Pattern allineato a Check 4m (EP-002 US-007)**: WARNING-only, opt-in via flag config,
+soglie configurabili, nessun ERROR meccanico. Check 4n eredita la stessa shape per
+coerenza framework.
+
+**Severità: WARNING-only — mai ERROR** (R.P3 opt-in totale + decisione TPM). La
+scomposizione di un task è decisione del TPM/Arch, non automatizzabile: il lint informa,
+non blocca mai `/lint` né il Develop. Mai `heal-eligible` (giudizio semantico).
+
+**Trigger (AND — tutte e 5 le condizioni devono essere vere; più conservativo del prompt
+OR in `scrivi-task`)**:
+
+```
+TSK.layer == 'fe'
+AND factory.config.yaml.fe_correctness.granularity_lint == true
+AND TSK ha sezione '## DoD FE — stati obbligatori'
+AND TSK.estimate > granularity.max_estimate_hours
+AND states_checked(TSK) > granularity.max_states
+```
+
+L'AND (non OR) è intenzionale: in fase di review il lint deve restare silente sui TSK che
+violano solo una delle due dimensioni (es. 16h con 1 stato = task complesso a singola
+dimensione; 4h con 5 stati = piccolo ma multi-variante). Il warning cattura solo il caso
+patologico «grosso E complesso UI». Il prompt `scrivi-task` resta in forma OR (preventivo);
+il lint è AND (curativo, riduce false positive). [^src: ADR-011 §Decisione + §Rationale]
+
+**`states_checked(TSK)`**: numero di righe che MATCHANO la regex `^\s*-\s*\[x\]\s+` (checkbox
+markdown checked, qualunque indentazione/label) **all'interno della sezione** `## DoD FE —
+stati obbligatori` del TSK.
+
+**Pre-condizione di silenzio** (sezione assente = check non si applica):
+- se la sezione `## DoD FE — stati obbligatori` è **assente** → check **non si applica**, nessun
+  warning. Un TSK FE legacy senza la sezione (US-021 non adottata) ha `states_checked == 0`,
+  quindi il lato AND `states_checked > max_states` è sempre falso e il check degenera
+  correttamente a no-op. Il Check 4n serve solo se il TPM ha già adottato la State Matrix.
+
+**Gate**: `factory.config.yaml.fe_correctness.granularity_lint: false` (default off, opt-in
+totale, backward compat). Se assente o `false` → no-op totale.
+
+**Soglie configurabili**: `factory.config.yaml.fe_correctness.granularity.{max_estimate_hours,
+max_states}`, default `{8, 3}`. Confronto **strict `>`** (non `≥`): boundary `estimate ==
+max_estimate_hours` o `states_checked == max_states` → no warning.
+
+**Messaggio (template verbatim, placeholder `<id>`, `<X>h`, `<N>`)**:
+
+```
+TSK <id> ha `estimate: <X>h` (> {max_estimate_hours}) e copre <N> stati FE (> {max_states}): considerare scomposizione. Vedi US-022 / fe-agent-correctness-strategy §Leva 5
+```
+
+**Output format** (sezione `## WARNING (igiene)` del report):
+
+```
+- [WARNING][granularity][4n] TSK-051: ha estimate: 16h (> 8) e copre 5 stati FE (> 3): considerare scomposizione. Vedi US-022 / fe-agent-correctness-strategy §Leva 5
+```
+
+**Scenari di verifica** (6 test case, ADR-011 §Conseguenze):
+
+| # | layer | estimate | states_checked | flag `granularity_lint` | soglie | sezione DoD | esito atteso |
+|---|---|---|---|---|---|---|---|
+| 1 | fe | 16h | 5 | `true` | `{8,3}` | presente | **WARNING** (tutte le 5 condizioni AND vere) |
+| 2 | fe | 16h | 1 | `true` | `{8,3}` | presente | no warning (AND non soddisfatto: `1 > 3` falso) |
+| 3 | fe | 4h | 5 | `true` | `{8,3}` | presente | no warning (AND non soddisfatto: `4 > 8` falso) |
+| 4 | fe | 16h | 5 | `false` | `{8,3}` | presente | no warning (gate off) |
+| 5 | fe | 16h | — | `true` | `{8,3}` | **assente** | no warning (precondition fallita, check non si applica) |
+| 6 | fe | 16h | 5 | `true` | `{16,5}` | presente | no warning (boundary: `>` strict non `≥`, `16 > 16` e `5 > 5` falsi) |
+
+**Numerazione**: «4n» segue «4m» (Premortem v2.16) nella serie alfabetica; non collide con
+alcun check esistente in questo file.
+
 ### 4g — Coerenza scheduler/depends_on (v2.11, PATTERN §18)
 
 Solo se almeno un EP/US/TSK in `management/kanban/**` ha frontmatter `depends_on:` valorizzato:

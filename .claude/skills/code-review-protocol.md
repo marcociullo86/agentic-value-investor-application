@@ -39,6 +39,31 @@ PROMPT_TEMPERATURE       = 0.2                  # bassa per coerenza output JSON
    - `review_status ∈ {pending, conditional}` → procedi; altrimenti STOP no-op.
    - `review_iter < max_iterations` → procedi; altrimenti forza verdict `reject` (sezione
      "Loop exhausted" sotto).
+   - **Precondition additiva visual oracle (opt-in, ADR-009 §Conseguenze + ADR-013 §Punto 2):**
+
+     ```
+     Fase 0 precondition additiva (opt-in):
+       IF TSK.layer == 'fe' AND factory.config.yaml.fe_correctness.enabled == true:
+         IF TSK.frontmatter.visual_status != 'pass':
+           ABORT "Visual oracle non ancora passato (visual_status: {value}).
+                  Eseguire /visual-oracle <TSK-id> o attendere completamento
+                  della Fase 4-bis di dev-protocol prima di invocare /review.
+                  Vedi ADR-009, ADR-013."
+     ```
+
+     Questa precondition formalizza l'ordering `develop → visual-oracle → review`
+     (ADR-013): la review del codice di un TSK FE è bloccata finché il rendering non
+     è stato validato dal visual oracle. Pattern coerente con come la Fase 0 già
+     verifica `review_status` e `review_iter`.
+
+     **No-op a flag spento (backward compat totale).** Con
+     `factory.config.yaml.fe_correctness.enabled: false` (**default**) la precondition
+     **non si valuta** (il primo termine dell'`AND` è falso) → la Fase 0 si comporta
+     **identica a v2.16**. Anche per `TSK.layer != 'fe'` con flag acceso la precondition
+     è skip (trigger `layer == 'fe'` fallito) → review BE/DB/QA parte normalmente. Una
+     factory che non opta-in vede un comportamento immutato. Vedi
+     [ADR-009](../../design_&_architecture/decisions/ADR-009.md),
+     [ADR-013](../../design_&_architecture/decisions/ADR-013.md).
 4. Calcola `current_iter = review_iter + 1` (incrementa per la nuova passata).
 5. Determina `files_in_scope`:
    - Se `tsk.code_path` valorizzato → usa quei glob.
@@ -140,6 +165,45 @@ Focus: error handling, edge case, resource leak, concorrenza, validazione input,
 timeout/retry. Filtro regole: `applies_to.context` include "robustness" o "reliability".
 **Scope explicit** nel prompt: «Non valutare security (SAST, secret, dependency
 scanning). Quella è scope di un layer dedicato — vedi PATTERN §19.6 R.Q7».
+
+### Passata 4 — Premortem on Merge (condizionale, opt-in v2.16, ADR-005)
+
+**Pass aggiuntivo, additivo e non distruttivo**: non sostituisce le 3 passate
+primarie né modifica la logica del verdict aggregator. Eseguito **solo** se attivato.
+
+**Pre-condizione** (silenzia tutto il pass):
+
+```
+IF "premortem-on-merge" NOT IN factory.config.yaml.code_quality.passes:
+    SKIP   # default off (R.P3 + ADR-005) — comportamento identico a v2.15
+```
+
+**Invocazione della skill `premortem-protocol`** (mini-premortem, non Fase 3 completa):
+
+| Parametro | Valore |
+|---|---|
+| `target` | «diff of TSK-<id>» |
+| `context` | file toccati dal diff (`files_in_scope`) — **no full TSK body** |
+| `timeframe` | `3mo` (hardcoded — orizzonte "regression in production") |
+| `scope` | `"regression in production"` |
+| `max_findings` | `5` (mini-premortem: max 3-5 finding, non la Sintesi Fase 5 completa) |
+
+**Output**: una sotto-sezione `### Premortem on Merge` (max 3-5 finding) **dentro il
+verdict standard**. Non è un verdict separato; è contesto aggiuntivo per l'umano e
+per il dev-agent. Il risultato della skill è un mini-Risk-Registry, non la Sintesi
+completa.
+
+**Touchpoint #3** (in-scope US-012): dopo l'aggregator, se
+`verdict_aggregator == "conditional"` **AND** il TSK ha
+`risk_classification.tier` MATCHES `/^tiger-/` → aggiungi nel `task_package`
+consegnato al dev-agent la riga:
+
+```
+Considera /premortem prima del re-Develop (TSK tagged tiger-*)
+```
+
+**Touchpoint #2** (out-of-scope, **v2.17+ candidate**): il routing dei finding del
+premortem verso un tier specifico via `feedback-router` non è implementato in v2.16.
 
 ## Fase 3 — Aggregator (deterministico + mini-prompt)
 

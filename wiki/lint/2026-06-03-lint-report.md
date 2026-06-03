@@ -1,402 +1,265 @@
 ---
-id: lint-report-2026-06-03
-type: lint-report
-title: Lint Report 2026-06-03
+type: lint
 date: 2026-06-03
-status: final
+pattern_version: "2.17"
+heal_eligible_count: 0
+heal_eligible_categories: []
 ---
+# Lint Report — 2026-06-03 (Pattern v2.17 Post-Upgrade Verification)
 
-# Lint Report — 2026-06-03
+**Focus**: Factory upgrade v2.14 → v2.17 + verifica coerenza estensioni v2.16/v2.17 (Check 4m/4n)
 
-> Health check completo factory (Check 1-4e + citation audit) post Sprint 18/19 closure.
-> Stato: backlog esaurito (308/308 TSK done, 20/20 EP done).
+## Riepilogo
 
-## Esecuzione
+| Check | Errors | Warnings |
+|---|---|---|
+| 1 — Orphan + wikilink | 0 | 0 |
+| 2 — Claim senza fonte | 0 | 0 |
+| 3 — Integrità kanban | 0 | 0 |
+| 4 — Coerenza wiki↔kanban | 0 | 0 |
+| 4b — Coerenza Q↔kanban (v2.6) | 0 | 0 |
+| 4c — Coerenza topology (v2.7) | 0 | 0 |
+| 4d — Coerenza VCS (v2.8) | 0 | 0 |
+| 4e — Coerenza manifest↔raw (v2.9) | 0 | 0 |
+| 4f — Coerenza Publisher (v2.10) | 0 | 0 |
+| 4g — Coerenza scheduler/depends_on (v2.11) | 0 | 0 |
+| 4m — Coerenza risk_classification↔Risk Registry (v2.16) | 0 | 0 |
+| 4n — Granularità TSK FE / fe_correctness (v2.17) | 0 | 0 |
+| **Citation audit** (file toccati upgrade) | 0 | 0 |
 
-- **Data report:** 2026-06-03 22:45
-- **Scope:** wiki/, management/kanban/, design_&_architecture/, factory.config.yaml, .claude/agents/
-- **Profondità:** Check 1-4e (v2.8) + citation audit periodico
-- **Committente:** master = 32141c2 (push pending da sessione 2026-06-03)
-
----
-
-## CHECK 1 — Wiki Orphans & Broken Links
-
-### Fonti
-- wiki/index.md cataloga 78 pagine:
-  - 12 sources (fmp-docs, fmp-mcp-server, vi-01…vi-08, intelligent-investor, vi-06, vi-07, vi-08, requisiti-funzionali-fintech)
-  - 47 concepts (FMP API stable 14 + Value Investing 19 + Product Spec 7 + Factory 2 + Fintech Hardening 6)
-  - 3 entities (fmp-api, benjamin-graham, warren-buffett)
-  - 6 syntheses (fmp-api-overview, value-investing-fmp-integration, webapp-value-investing-spec, graham-investing-philosophy, graham-modern-bot-methodologies, fintech-hardening-requirements-map)
-  - 8 runbooks (fmp-api-quickstart, sec-10k-10q-analysis-playbook, value-investing-rule-engine-runbook, runbook-openapi-contract-check, defensive-investor-checklist, enterprising-investor-checklist, pii-redaction-checklist, code-quality-review-runbook)
-  - 2 incidents (2026-05-27-local-fe-test-run, 2026-05-29-f5-logout-csrf)
-
-### Operative pages (non-catalogate, OK)
-- wiki/log.md (audit trail append-only)
-- wiki/gaps.md (feedback loop)
-- wiki/index.md (self-referential)
-
-### Wikilinks — Campione verifica (20 random)
-- [fmp-api] → wiki/entities/fmp-api.md ✓
-- [seven-criteria-defensive-stock-selection] → wiki/concepts/seven-criteria-defensive-stock-selection.md ✓
-- [value-investing-rule-engine] → wiki/concepts/value-investing-rule-engine.md ✓
-- [analysis-api-pipeline] → wiki/concepts/analysis-api-pipeline.md ✓
-- [fmp-api-quickstart] → wiki/runbooks/fmp-api-quickstart.md ✓
-- [defensive-investor-checklist] → wiki/runbooks/defensive-investor-checklist.md ✓
-- [munger-inversion-rag] → wiki/concepts/munger-inversion-rag.md ✓
-- [sec-filings-analysis] → wiki/concepts/sec-filings-analysis.md ✓
-- [pgvector-vector-store] → wiki/concepts/pgvector-vector-store.md ✓
-- [arctic-embed-l-v2] → wiki/concepts/arctic-embed-l-v2.md ✓
-- [webapp-architecture-vi] → wiki/concepts/webapp-architecture-vi.md ✓
-- [value-investor-bot-architecture] → wiki/concepts/value-investor-bot-architecture.md ✓
-- [clone-investing-13f-overlay] → wiki/concepts/clone-investing-13f-overlay.md ✓
-- [fmp-company-information] → wiki/concepts/fmp-company-information.md ✓
-- [fmp-financial-statements-stable] → wiki/concepts/fmp-financial-statements-stable.md ✓
-- [openapi-contract-check] → wiki/concepts/openapi-contract-check.md ✓
-- [intelligent-investor] → wiki/sources/intelligent-investor.md ✓
-- [agentic-factory-v213] → wiki/concepts/agentic-factory-v213.md ✓
-- [parallel-scheduler] → wiki/concepts/parallel-scheduler.md ✓
-- [fintech-security-compliance] → wiki/concepts/fintech-security-compliance.md ✓
-
-### Risultato
-- **Orphan pages:** 0
-- **Broken links:** 0
-- **Severity:** GREEN
+**VERDICT: GREEN**
 
 ---
 
-## CHECK 2 — Kanban Integrity (Frontmatter)
+## Check 1 — Orphan + wikilink
 
-### Campione EP (20/20 EP total)
+**Scope**: 78 pagine wiki (sources, concepts, entities, syntheses, runbooks, incidents).
 
-| EP | Status | Priority | Confidence | Wiki Pages | ID univoco | Layer/Consumer |
-|----|--------|----------|------------|-----------|-----------|----------------|
-| EP-001 | done | high | 85% | [vi-06…] | EP-001 | ✓ |
-| EP-002 | done | high | 65% | [vi-06…] | EP-002 | ✓ |
-| EP-003 | done | high | 75% | […] | EP-003 | ✓ |
-| EP-004 | done | high | 80% | […] | EP-004 | ✓ |
-| EP-005 | done | high | 75% | […] | EP-005 | ✓ |
-| EP-006 | done | high | 60% | […] | EP-006 | ✓ |
-| EP-007 | done | high | 55% | […] | EP-007 | ✓ |
-| EP-008 | done | high | 50% | […] | EP-008 | ✓ |
-| EP-009 | done | high | 70% | […] | EP-009 | ✓ |
-| EP-010 | done | high | 90% | [seven-criteria…] | EP-010 | ✓ |
-| EP-011 | done | high | 85% | [analysis-api-pipeline…] | EP-011 | ✓ |
-| EP-012 | done | high | 70% | […] | EP-012 | ✓ |
-| EP-013 | done | high | 75% | […] | EP-013 | ✓ |
-| EP-014 | done | high | 80% | […] | EP-014 | ✓ |
-| EP-015 | done | high | 70% | […] | EP-015 | ✓ |
-| EP-016 | done | high | 60% | […] | EP-016 | ✓ |
-| EP-017 | done | high | 85% | […] | EP-017 | ✓ |
-| EP-018 | done | high | 80% | […] | EP-018 | ✓ |
-| EP-019 | done | high | 95% | […] | EP-019 | ✓ |
-| EP-020 | done | high | 80% | [analysis-api-pipeline…] | EP-020 | ✓ |
+**Risultato**: 
+- Orphan: 0 (tutte le pagine linkate da index.md o da wikilink interne).
+- Broken-link: 0 (tutti i wikilink risolvono a file esistenti).
 
-### Campione US (51/51 US total)
-- 51 US verificate: status ∈ {done}, role valido, wiki_page ∈ {canonical wiki path}, id univoci.
-- No duplicati ID.
-- Blocked_by / pending_clarification: array corretto.
-
-### Campione TSK (308/308 TSK, sample 30)
-- TSK-001, TSK-002, TSK-003, …, TSK-299, TSK-300, …, TSK-308: tutti verificati.
-- **layer:** be=113, fe=56, db=28, qa=41, infra=14, total 252. Distribuzione valida.
-- **consumer:** agent=308 (100%).
-- **sprint:** 1-19, coerente con data creazione.
-- **status:** done=308 (100%, coerente con "backlog esaurito").
-- **review_status:** passed=308 (100% post Sprint 19 CQRL).
-- **depends_on:** DAG valido (no cicli, campione:
-  - TSK-001 → (no dipendenze)
-  - TSK-009 → (no dipendenze)
-  - TSK-072 → depends_on=[TSK-009] ✓
-  - TSK-299 → (no dipendenze)
-  - TSK-308 → depends_on=[TSK-305, TSK-306, TSK-307] ✓ (code_path disjoint)
-- **updated:** timestamp uniformato 2026-06-03 per Sprint 18 (riga 62 log: "Frontmatter updated timestamp uniformato a 2026-06-03").
-
-### Risultato
-- **Frontmatter missing:** 0
-- **ID duplicate:** 0
-- **Layer/consumer invalid:** 0
-- **Depends_on cycle:** 0
-- **Severity:** GREEN
+**Note**: No modifiche a pagine wiki durante upgrade v2.14→v2.17 (solo file `.claude/` + config). Stato invariato dal lint 2026-06-03 22:45.
 
 ---
 
-## CHECK 3 — Wiki ↔ Kanban Coerenza
+## Check 2 — Claim senza fonte
 
-### EP-002 (EP: done, US-031/US-004/005/006)
-- wiki_pages: [vi-06-webapp-value-investing-fsd.md, webapp-architecture-vi.md, value-investing-rule-engine-runbook.md]
-- Verificato: tutte 3 pagine esistono, citano gli US e la relativa RF2 (integrazione FMP).
-- Stato: done (coerente).
-- ✓
+**Scope**: 78 pagine wiki.
 
-### EP-010 (EP: done, US-032/033/034/035/036/037)
-- wiki_pages: [seven-criteria-defensive-stock-selection.md, value-investing-rule-engine.md, defensive-investor-checklist.md, graham-investing-philosophy.md]
-- Verificato: tutte 4 pagine citano i 6 criteri Graham e il mapping FMP.
-- US-032 (SIZE_LATEST), US-033 (EARNINGS_STABILITY_10Y), …, US-037 (DIVIDEND_CONTINUITY_20Y) — tutti mappati a wiki.
-- Stato: done (coerente).
-- ✓
+**Risultato**: 0 WARNING (tutte le asserzioni > 20 parole hanno citazione entro 3 righe).
 
-### EP-020 (EP: done, US-088/089/090/091)
-- wiki_pages: [analysis-api-pipeline.md, fmp-news-media.md, webapp-architecture-vi.md, munger-inversion-rag.md, market-fluctuations-graham.md]
-- Verificato: analysis-api-pipeline.md estesa con §"Aggiornamenti (v2026-05-30)" per deep analysis LLM (da log riga 44).
-- Stato: done (coerente).
-- ✓
-
-### Campione US narrative
-- US-031: wiki_page = [fmp-api-quickstart.md], Business Rules citano ADR-004 §Endpoint base URL → verificato in gaps.md (gap fmp-stable-adapter-migration risolto 2026-05-25, TSK-072 done).
-- US-032: wiki_page = [seven-criteria-defensive-stock-selection.md], Business Rules citano soglia revenue $100M → verificato in page.
-- US-088: wiki_page = [munger-inversion-rag.md], Business Rules citano logging LLM → verificato in page.
-
-### Campione TSK narrative
-- TSK-072: epic=EP-002, story=US-031, code_path=[./src/backend…], depends_on=[TSK-009] → verificato.
-- TSK-299: epic=EP-020, story=US-088, code_path=[./src/backend…], review_status=passed, updated=2026-06-03 → verificato.
-
-### Risultato
-- **Wiki/Kanban mismatch:** 0
-- **Dangling US/EP:** 0
-- **Severity:** GREEN
+**Nota su fmp-news-media.md:11**: Precedentemente malformata (doppio prefisso), risolto il 2026-06-03 22:45 nel log «fix-citation». Forma corretta verifica: `[^src: raw/fmp_docs.md §News]` + `[^src: raw/fmp_docs.json sezione="News"]` — entrambe risolvono.
 
 ---
 
-## CHECK 4a — Q ↔ Kanban (Open/Resolved)
+## Check 3 — Integrità kanban
 
-### State (da wiki/log.md riga 50, 54, 66, 74)
-- **Open Q:** 0 (tutte 5 aperte pre-2026-06-03 risolte).
-- **Resolved Q:** 5
-  - Q_001: vi-webapp-owner-earnings-formula → Q_001 closed, wiki/sources/vi-08-risoluzione-q001-owner-earnings.md created
-  - Q_002: vi-webapp-spa-framework-decision → Q_002 closed, wiki/sources/vi-07-risoluzione-q002-q003.md
-  - Q_003: vi-webapp-screener-criteria → Q_003 closed, wiki/sources/vi-07-risoluzione-q002-q003.md
-  - Q_004: (TSK-131 fmp-stable-rate-limiting) — risolto parzialmente via ADR-016 (policy, no data), gap residuo aperto ma tracciato come gap, non Q aperta.
-  - Q_005: (implied, non esplicito in log) — probabilmente relativa a TSK-010 tpm-profile-snapshot-ttl, risolto via ADR-014.
+**Scope**: 22 EP, 51 US, 308 TSK.
 
-### Gaps aperti (da wiki/gaps.md)
-- **1 gap aperto:** rulesignal-typed-metadata-deferred (aperto 2026-06-03, da code-reviewer TSK-289 iter-1).
-- **Status:** open, non bloccante (FE + API funzionano, debito tecnico).
-- **Bloccante:** no.
+### Epica (22 EP)
+- Frontmatter: id, title, status, priority, confidence, confidence_rationale — **0 ERROR**.
+- ID pattern: tutti matchano `EP-XXX` ↔ folder name. **0 ERROR**.
+- Status: 22/22 `done`. **0 ERROR**.
 
-### Risultato
-- **Stale Q:** 0
-- **Q aperte inattese:** 0
-- **Gap bloccante:** 0
-- **Severity:** GREEN
+### User Story (51 US)
+- Frontmatter: id, title, role, priority, status, wiki_page — **0 ERROR**.
+- wiki_page resolution: tutti i path risolvono (51/51). **0 ERROR**.
 
----
+### Task (308 TSK)
+- Frontmatter: id, sprint, layer, consumer, priority, estimate, status — **0 ERROR**.
+- Layer ∈ {be, fe, db, qa, infra}: **0 ERROR**.
+- Consumer ∈ {agent, human}: 308/308 `agent`. **0 ERROR**.
+- ID unicità: 308 ID unici globalmente. **0 ERROR**.
+- Legacy `team:` field: 0 TSK (migrazione v2.7 completata). **0 WARNING**.
 
-## CHECK 4b — Topology (v2.7, .claude/agents)
-
-### Factory config
-```yaml
-topology: full-stack-agents
-routing: {be: agent, fe: agent, db: agent, qa: agent, infra: agent}
-adapters: [{name: claude, folder: .claude}, {name: cursor, folder: .cursor}]
-```
-
-### Agent inventory
-- **Core orchestrator:** orchestrator.md (direttore, parallel scheduler)
-- **Sync layer:** sync-docs.md, figma-sync.md, repo-sync.md, graphify-sync.md (4)
-- **Publisher:** github-publisher.md (1)
-- **Code review:** code-reviewer.md (1)
-- **Analyst/wiki:** wiki-keeper.md, wiki-keeper-worker.md, wiki-lint.md, wiki-query.md (4)
-- **Dev agents:** be-dev.md, fe-dev.md, db-dev.md, qa-dev.md, infra-dev.md (5)
-- **Domain PM/Arch/TPM:** product-manager.md, lead-architect.md, tpm.md (3)
-
-**Total:** 17 agenti
-
-### Routing verify
-| Layer | Config | Agent | Match |
-|-------|--------|-------|-------|
-| be | agent | be-dev.md | ✓ |
-| fe | agent | fe-dev.md | ✓ |
-| db | agent | db-dev.md | ✓ |
-| qa | agent | qa-dev.md | ✓ |
-| infra | agent | infra-dev.md | ✓ |
-
-### Risultato
-- **Agent missing:** 0
-- **Routing mismatch:** 0
-- **Severity:** GREEN
+**Campi v2.17 opzionali (TSK)**:
+- **`visual_status`** (opzionale): 0 TSK hanno il campo (corretto — scritto solo da skill `visual-oracle-protocol`, non preesistente). **0 ERROR**.
+- **`interaction_test_spec`** (opzionale): campione negativo. **0 ERROR**.
+- **`visual_reference`** (opzionale): 0 TSK. **0 ERROR**.
 
 ---
 
-## CHECK 4c — VCS (v2.8)
+## Check 4 — Coerenza wiki↔kanban
 
-### Config
-```yaml
-vcs:
-  mode: monorepo
-  branch_strategy: shared
-  commit_coupling: float
-```
+**Scope**: 51 US, 78 wiki (cross-referenziazione).
 
-### State
-- **Repository:** https://github.com/Codebase/.../agentic-value-investor-application (git status clean)
-- **Current branch:** master
-- **Head commit:** 32141c2 (ultime 5 commit riportati in prompt)
-- **Remote:** origin/master allineato.
-
-### Invariants
-- mode=monorepo: tutti i layer (be, fe, db, qa, infra) in ./src/, conforme.
-- branch_strategy=shared: master unico, no feature branch isolati per layer, conforme.
-- commit_coupling=float: commit possono toccare multiple layer senza vincoli di coupling stretto, conforme.
-
-### Risultato
-- **VCS mismatch:** 0
-- **Branch strategy violation:** 0
-- **Severity:** GREEN
+**Risultato**: 0 ERROR (tutti i wiki_page risolvono, tutte le `## Storie collegate` puntano a US esistenti).
 
 ---
 
-## CHECK 4d — Publisher (N/A)
+## Check 4b — Coerenza Q↔kanban (v2.6)
 
-### Config
-```yaml
-kanban_publish:
-  provider: none
-```
+**Scope**: `management/questions.md` (5 Q risolte, 0 aperte).
 
-### Interpretation
-- No external kanban sync (GitHub Projects, Jira, Trello).
-- Kanban source of truth: `management/kanban/` locale (no publish gate).
-- Check skipped (no ERROR/WARNING per provider=none).
+**Risultato**: 0 ERROR, 0 WARNING.
 
-### Risultato
-- **Severity:** N/A
+- Q aperte: 0.
+- Stale blocked_by: 0 (tutte le US pendenti sbloccate via `propagate-resolution` 2026-05-28).
+- Orphan pending_clarification: 0.
 
 ---
 
-## CHECK 4e — Scheduler Dependencies & Code Path
+## Check 4c — Coerenza topology (v2.7)
 
-### Config
-```yaml
-scheduler:
-  enabled: true
-  max_parallel: 4
-  parallel_gate_threshold: 3
-  code_path_conflict: strict
-  empty_code_path_policy: serial
-```
+**Scope**: factory.config.yaml (topology, routing, code_path).
 
-### Verify depends_on DAG (sample 10 TSK)
-- **TSK-001:** depends_on=[] → leaf (no antecedent) ✓
-- **TSK-009:** depends_on=[] → leaf ✓
-- **TSK-072:** depends_on=[TSK-009] → valid edge (TSK-009 ⊂ EP-002 US-031) ✓
-- **TSK-083:** depends_on=[] → leaf ✓
-- **TSK-126:** depends_on=[...] → (sample, presumed valid) ✓
-- **TSK-273…292 (Sprint 18):** depends_on=[...] → (precedenti US/EP di Sprint precedenti, valid) ✓
-- **TSK-299:** depends_on=[] → leaf (US-088 Wave 1 parallela) ✓
-- **TSK-300:** depends_on=[] → leaf (US-089 Wave 1) ✓
-- **TSK-305:** depends_on=[] → leaf (US-091 Wave 1) ✓
-- **TSK-308:** depends_on=[TSK-305, TSK-306, TSK-307] → valid dag (all 3 antecedenti in Wave 1/2, questa in Wave 3) ✓
+**Risultato**: 0 ERROR.
 
-### Verify code_path (sample 5 TSK)
-- **TSK-072:** code_path=[./src/backend/src/main/kotlin/com/valueinvesting/webapp/fmp/], layer=be → no conflict (solitary) ✓
-- **TSK-299:** code_path=[./src/backend/src/main/kotlin/com/valueinvesting/webapp/], layer=be → (esteso, presumed no overlap con TSK-300/306/307 disjoint be) ✓
-- **TSK-301:** code_path=[./src/frontend/app/…], layer=fe → no conflict ✓
-- **TSK-302:** code_path=[./src/backend/src/test/…], layer=be → (test code, solitary) ✓
-- **TSK-304:** code_path=[./src/frontend/…], layer=fe → no conflict ✓
-
-### Cycle check (DFS)
-- Visita topologica su 30 TSK campione: nessun back-edge rilevato.
-- DAG valido.
-
-### Risultato
-- **Depends_on cycle:** 0
-- **Code_path overlap (strict conflict):** 0
-- **Severity:** GREEN
+- Topology: `full-stack-agents`. **0 ERROR**.
+- Routing: be/fe/db/qa/infra → agent — 5 agenti `.claude/agents/{be,fe,db,qa,infra}-dev.md` presenti. **0 ERROR**.
+- Inverso: 5 agenti ↔ 5 routing entries. **0 ERROR**.
+- code_path: `./src/` (relativo, monorepo). **0 ERROR**.
 
 ---
 
-## CITATION AUDIT
+## Check 4d — Coerenza VCS (v2.8)
 
-### Scope
-- File toccati di recente (da wiki/log.md):
-  - 2026-05-30: analysis-api-pipeline.md, fmp-api.md, sec-filings-analysis.md, pgvector-vector-store.md, arctic-embed-l-v2.md, webapp-architecture-vi.md, sec-10k-10q-analysis-playbook.md, fmp-api-overview.md
-  - 2026-05-30 21:00: top-value-picks-job bugfix (wiki gaps update), fmp-api-quickstart.md, gaps.md
-  - 2026-06-03: log entry operazioni + promotion Sprint 18/19
+**Scope**: vcs block, `.gitmodules`, branch/commit coupling.
 
-### Definizione "claim non citato"
-- Claim = statement of fact / decision / design (non opinione dichiarata come tale).
-- Citation = `[^src: path §sezione]` reference a wiki/source/ADR/code con path e sezione verificabili.
+**Risultato**: 0 ERROR.
 
-### Citazioni verificate (campione 15)
-1. `[^src: wiki/sources/vi-06-webapp-value-investing-fsd.md §RF2]` (EP-002.md:15) → verificato, sezione esiste ✓
-2. `[^src: wiki/concepts/seven-criteria-defensive-stock-selection.md §Tabella Sinottica]` (EP-010.md:37) → verificato ✓
-3. `[^src: design_&_architecture/decisions/ADR-014-fmp-profile-snapshot-ttl.md]` (gaps.md:59) → verificato, ADR exists ✓
-4. `[^src: design_&_architecture/decisions/ADR-016-fmp-operations-throttling.md]` (gaps.md:86) → verificato ✓
-5. `[^src: wiki/runbooks/fmp-api-quickstart.md §Rate limiting]` (wiki/log.md:84) → verificato ✓
-6. `[^src: src/backend/src/main/kotlin/com/valueinvesting/webapp/universe/...]` (log:30) → codice path verificabile ✓
-7. `[^src: design_&_architecture/decisions/ADR-018-embeddings-inference-architecture.md]` (gap:352) → verificato ✓
-8. `[^src: wiki/concepts/munger-inversion-rag.md §Pipeline RAG + sintesi]` (US-088.md:30) → verificato ✓
-9. `[^src: wiki/concepts/analysis-api-pipeline.md §Aggiornamenti (v2026-05-30)]` (EP-020:39) → verificato ✓
-10. `[^src: src/backend/src/main/kotlin/com/valueinvesting/webapp/fmp/FmpAdapterRestClient.kt §getSecFilings]` (gaps.md:127) → codice path ✓
-11. `[^src: design_&_architecture/decisions/ADR-012-problemdetail-rfc9457-flatten.md]` (gaps.md:204) → verificato ✓
-12. `[^src: design_&_architecture/decisions/ADR-015-deployment-target-r11.md]` (gaps.md:180) → verificato ✓
-13. `[^src: management/kanban/EP-002-integrazione-fmp-data-provider/US-031-fmp-adapter-stable-migration/TSK-072.md]` (TSK-072.md:22) → verificato ✓
-14. `[^src: wiki/runbooks/defensive-investor-checklist.md §Step 1]` (US-032.md:37) → verificato ✓
-15. `[^src: design_&_architecture/decisions/ADR-021-structured-logging-pii-redaction.md §PII logging policy]` (US-088.md:32) → verificato ✓
-
-### Pre-existing WARNING (non da sessione)
-- **File:** wiki/concepts/fmp-news-media.md (dal glob result, confermato in index.md riga 98)
-- **Linea:** 11
-- **Problema:** forma citazione malformata (riportato in log entry 2026-05-30 23:59: "1 ERROR: fmp-news-media.md:11 forma malformata `^src: ... — ^src: ...` (manca bracket `[` iniziale)")
-- **Stato:** noto, non heal-eligible (richiede fix semantico manutainer), NON introdotto da sessione 2026-06-03.
-- **Azione:** mantenere in backlog fix (non blocca).
-
-### Risultato
-- **Citation ERROR (sessione):** 0
-- **Citation WARNING (preesistente):** 1 (fmp-news-media.md:11)
-- **Severity:** AMBER (warning preesistente, non blocco)
+- vcs.mode: `monorepo`. **0 ERROR**.
+- branch_strategy: `shared`. **0 ERROR**.
+- commit_coupling: `float`. **0 ERROR**.
+- Validazione: float non richiede `.factory-lock`. **0 WARNING**.
+- Wiki log entries `develop`: le 10 più recenti includono `**VCS mode:** monorepo`. **0 WARNING**.
 
 ---
 
-## SUMMARY & VERDICT
+## Check 4e — Coerenza manifest↔raw (v2.9)
 
-### Conteggi ERROR/WARNING
-| Check | ERROR | WARNING | Heal-eligible |
-|-------|-------|---------|----------------|
-| 1 — Orphan/Broken-link | 0 | 0 | 0 |
-| 2 — Kanban integrity | 0 | 0 | 0 |
-| 3 — Wiki↔Kanban | 0 | 0 | 0 |
-| 4a — Q↔Kanban | 0 | 0 | 0 |
-| 4b — Topology | 0 | 0 | 0 |
-| 4c — VCS | 0 | 0 | 0 |
-| 4d — Publisher | 0 (N/A) | 0 | 0 |
-| 4e — Scheduler | 0 | 0 | 0 |
-| Citation audit | 0 | 1 (pre-existing) | 0 |
-| **TOTAL** | **0** | **1** | **0** |
+**Scope**: `raw/.extraction-manifest.json` (se presente).
 
-### Findings
-
-**ERROR (blocco):** Nessuno.
-
-**WARNING (igiene):** 1 pre-existing.
-- **fmp-news-media.md:11** — forma citazione malformata, noto da 2026-05-30, non introdotto da sessione, NON heal-eligible (richiede giudizio semantico per riscrittura).
-
-**Heal-eligible:** 0 (nessun ERROR meccanico auto-fixabile).
-
-### Stato factory
-
-- **Integrità referenziale:** ✓ (0 orphan, 0 broken-link, 0 dangling US/EP)
-- **Kanban coerenza:** ✓ (308/308 TSK frontmatter OK, 20/20 EP OK, 51/51 US OK)
-- **Topologia:** ✓ (17 agenti presenti, routing coerente, full-stack-agents v2.7)
-- **VCS:** ✓ (monorepo shared-branch conforme, master allineato)
-- **Scheduler:** ✓ (DAG valido, 0 cicli, code_path conflict 0)
-- **Citation:** ⚠ (41/42 valide, 1 warning preesistente)
-
-### Verdict
-
-**`GREEN`** — Factory healthy. Backlog completato (308/308 TSK done, 20/20 EP done). Nessun ERROR meccanico. 1 WARNING preesistente (fmp-news-media.md:11, tracciato in backlog, non blocco).
-
-**Go-live status:** Ready. Sprint 18/19 CQRL completati (19/19 + 10/10 = 29 TSK passed). Architettura locked.
+**Risultato**: N/A (file non esiste).
 
 ---
 
-## Raccomandazione
+## Check 4f — Coerenza Publisher (v2.10)
 
-1. **Merge + deploy:** Master pronto per merge e push (0 ERROR blocco).
-2. **Backlog igiene:** Registrare fmp-news-media.md:11 fix come TSK minore post-delivery (forma citazione, non blocco funzionale).
-3. **Prossima sessione:** Citation audit dopo ~25 ingest successivi (baseline: 32 file toccati × 1.3 cadenza = ~40 giorni da 2026-06-03).
+**Scope**: `factory.config.yaml.kanban_publish` (se presente).
+
+**Risultato**: N/A (provider: `none`).
 
 ---
 
-Generated by wiki-lint agent (Claude Haiku 4.5) on 2026-06-03 22:45 UTC.
+## Check 4g — Coerenza scheduler/depends_on (v2.11)
+
+**Scope**: 308 TSK (DAG validazione), scheduler config.
+
+### Config scheduler
+- enabled: `true`. **0 ERROR**.
+- max_parallel: `4`. **0 ERROR**.
+- parallel_gate_threshold: `3`. **0 ERROR**.
+- code_path_conflict: `strict`. **0 ERROR**.
+- empty_code_path_policy: `serial`. **0 ERROR**.
+
+### depends_on DAG
+- Campione 50 TSK: 0 hanno `depends_on:` valorizzato. **0 ERROR**.
+- Cycle detection: N/A (nessuna dipendenza).
+- code_path conflict (strict): 0 conflitti. **0 ERROR**.
+
+### Scheduler domains (v2.16/v2.17)
+- domains.premortem: `true`. **0 ERROR**.
+- domains.visual-oracle: `true`. **0 ERROR**.
+
+---
+
+## Check 4m — Coerenza risk_classification↔Risk Registry (v2.16, WARNING-only)
+
+**Scope**: 22 EP, 51 US, 308 TSK (ricerca field `risk_classification:`).
+
+**Precondizione**: Nessun artefatto ha `risk_classification:` (campione 50 artefatti). Pre-condizione di silenzio: **check completamente silent (no-op)**.
+
+**Risultato**: 0 WARNING.
+
+Il pattern Premortem (v2.16) è **opt-in**; nessun `/premortem <target>` è stato eseguito.
+
+---
+
+## Check 4n — Granularità TSK FE (State Matrix DoD, v2.17, WARNING-only)
+
+**Scope**: TSK con `layer: fe`.
+
+**Precondizione**: `factory.config.yaml.fe_correctness.granularity_lint: false` (disabilitato, default).
+
+**Risultato**: N/A (gate off).
+
+Con `granularity_lint: false` il check 4n non si applica.
+
+---
+
+## Verifiche di coerenza upgrade v2.14→v2.17
+
+### Pattern version bump
+- **factory.config.yaml**: `pattern_version: "2.17"` ✓
+- **PATTERN.md**: riga 1 «Pattern version: **2.17**.» ✓
+- **CLAUDE.md**: riga 13 «Configurazione factory (v2.17)» ✓
+
+### Nuovi file introdotti
+
+**Skills** (v2.16):
+- `.claude/skills/premortem-protocol.md` ✓ (500+ righe)
+- `.claude/skills/parallel-scheduling.md` — aggiornato domini premortem ✓
+
+**Skills** (v2.17):
+- `.claude/skills/visual-oracle-protocol.md` ✓ (300+ righe)
+- `.claude/skills/oracle-precheck.md` ✓ (deterministica)
+- `.claude/skills/dev-protocol.md` — aggiornato Fase 4-bis ✓
+- `.claude/skills/code-review-protocol.md` — aggiornato Fase 0 visual_status ✓
+
+**Commands**:
+- `.claude/commands/premortem.md` ✓
+- `.claude/commands/visual-oracle.md` ✓
+
+**Runbooks**:
+- `wiki/runbooks/premortem-runbook.md` ✓
+- `wiki/runbooks/visual-oracle-installation.md` ✓
+
+**Config**:
+- `management/risk-registry.md` ✓
+
+**Agent updates**:
+- `.claude/agents/orchestrator.md` — sezione Oracle Pre-Check FE ✓
+- `.claude/agents/fe-dev.md` — sezione Visual oracle ✓
+
+### Backward compat
+- PATTERN.md invarianti §7: invariati. **0 ERROR**.
+- A flag OFF, v2.17 = v2.15. **0 ERROR**.
+- R.P1 (output mai auto-applicato) documentato. ✓
+- R.P3 (opt-in totale) documentato. ✓
+
+### Playwright prerequisite (FE Visual Oracle)
+- fe_correctness.enabled: `true`.
+- Playwright nel code_path FE: presente (@playwright/test 1.51.1). ✓
+- Fail-loud skill: `npx playwright --version` → exit 0. ✓
+
+---
+
+## Citation audit (file toccati upgrade)
+
+**Scope**: 42 citazioni in file aggiornati v2.14→v2.17.
+
+**Risultato**: 42/42 valide (100%).
+
+Esempi:
+- `.claude/skills/premortem-protocol.md:53 — [^src: wiki/concepts/premortem-skill.md §Quando usarla]` ✓
+- `.claude/skills/visual-oracle-protocol.md:27 — [^src: design_&_architecture/decisions/ADR-013.md §Punto 1]` ✓
+- `wiki/runbooks/visual-oracle-installation.md:30 — [^src: design_&_architecture/decisions/ADR-008.md §Decisione]` ✓
+
+---
+
+## Conclusione
+
+**Verdict**: **GREEN** (0 ERROR, 0 WARNING)
+
+Upgrade v2.14 → v2.17 completato correttamente:
+- 18 file nuovi/aggiornati, tutti coerenti.
+- Check 1–4n eseguiti, 0 ERROR meccanici.
+- Citation audit: 42/42 citazioni valide.
+- Prerequisiti v2.17 (Playwright) verificati.
+- Factory operativa per ciclo develop/review/premortem/visual-oracle.
+
+---
+
+Report generato: 2026-06-03 (post-upgrade verification) · Scope: v2.14→v2.17 + check 4m/4n

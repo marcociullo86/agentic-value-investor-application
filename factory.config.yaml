@@ -1,4 +1,4 @@
-pattern_version: "2.14"
+pattern_version: "2.17"
 topology: full-stack-agents
 
 # v2.12 multi-repo: legacy code_path auto-promosso se code_paths assente
@@ -62,6 +62,31 @@ scheduler:
     publish: false
     sync: true
     review: true
+    premortem: true       # v2.16 — /premortem su target distinti in parallelo (default parallel, ADR-004); composizione N×M con cap interno Fase 4 (max_parallel: 8 hardcoded, ADR-001)
+    visual-oracle: true   # v2.17 — sub-step di L2 (develop) per TSK FE; attivo perché fe_correctness.enabled: true (ADR-012 §F)
+
+# FE Visual Oracle (v2.17, PATTERN §3 variante di Develop FE) — opt-in, qui ATTIVO.
+# Chiude il loop visivo del frontend: render headless (Playwright) + screenshot
+# multi-viewport/tema + critica visiva LLM (pattern evaluator-optimizer, come CQRL).
+# Ordering: develop → visual-oracle → review. Single-writer di visual_status = skill
+# visual-oracle-protocol. Prerequisito: Playwright nel code_path FE (vedi
+# wiki/runbooks/visual-oracle-installation.md) — fail-loud se assente.
+fe_correctness:
+  enabled: true              # master switch: Fase 4-bis Visual Verification in dev-protocol
+  max_iterations: 3          # bound loop conditional (analogo R.Q4 di CQRL)
+  viewports:
+    - { name: mobile,  width: 375  }
+    - { name: desktop, width: 1280 }
+  themes:
+    - light
+    - dark
+  checks: []                 # opt-in: [visual-regression, axe-a11y, interaction-test]
+  state_matrix_inject: false # scrivi-task inietta State Matrix nei TSK FE
+  granularity_lint: false    # Lint Check 4n WARNING-only
+  granularity:
+    max_estimate_hours: 8
+    max_states: 3
+  dispatch_gate: false       # Orchestrator Oracle Pre-Check FE
 
 code_quality:
   enabled: true
@@ -75,6 +100,7 @@ code_quality:
     idiomaticity: true
     design: true
     robustness: true
+    premortem-on-merge: true   # v2.16 — 4° pass: mini-premortem sul diff (timeframe 3mo, max 3-5 finding) come sotto-sezione del verdict (ADR-005)
   router:
     strategy: severity-tiered
     max_diff_lines: 80
