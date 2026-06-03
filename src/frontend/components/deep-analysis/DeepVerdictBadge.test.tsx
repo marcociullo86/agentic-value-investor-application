@@ -65,7 +65,7 @@ function makeData(
   };
 }
 
-describe('DeepVerdictBadge (TSK-157)', () => {
+describe('DeepVerdictBadge', () => {
   const onInvokeLlm = vi.fn().mockResolvedValue(undefined);
 
   beforeEach(() => {
@@ -119,6 +119,30 @@ describe('DeepVerdictBadge (TSK-157)', () => {
       />,
     );
     expect(screen.queryByTestId('verdict-llm-synthesis')).toBeNull();
+  });
+
+  describe('US-089 LLM synthesis', () => {
+    it('omits the synthesis paragraph when sintesi is empty string', () => {
+      render(
+        <DeepVerdictBadge
+          data={makeData({
+            mungerReport: {
+              livelloRischio: 'RISCHIO_MODERATO',
+              sintesi: '',
+              rischiPrincipali: [],
+              puntiDiForza: [],
+              segnaliRecenti10Q: [],
+              filingComboHash: 'abc123',
+              llmCallsCount: 11,
+            },
+          })}
+          isValidating={false}
+          isFrozenByAdmin={false}
+          onInvokeLlm={onInvokeLlm}
+        />,
+      );
+      expect(screen.queryByTestId('verdict-llm-synthesis')).toBeNull();
+    });
   });
 
   it('shows cost estimate with null → no cost in label', () => {

@@ -26,6 +26,12 @@ class LlmInteractionLogger(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
+    init {
+        // CQRL TSK-299 F-05: fail fast on misconfig (e.g. DEEP_ANALYSIS_LLM_LOG_MAX_CHARS=0)
+        // would otherwise reduce every log line to the truncation suffix only.
+        require(maxChars > 0) { "deep-analysis.llm.log-max-chars must be > 0, got $maxChars" }
+    }
+
     fun log(
         context: String,
         systemPrompt: String?,

@@ -40,6 +40,68 @@ const deepAaplFixture = require('./fixtures/deep-analysis-aapl.json') as Record<
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const deepValueTrapFixture = require('./fixtures/deep-analysis-value-trap.json') as Record<string, unknown>;
 
+/**
+ * Fixture for TSK-304 / US-090 / US-091: deep result WITH mungerReport.sintesi
+ * (narrative string) and newsSentiment.items[] (title + excerpt per item).
+ *
+ * Built inline so we don't pollute shared fixtures consumed by other tests.
+ */
+const deepAaplWithLlmFixture: Record<string, unknown> = {
+  ...deepAaplFixture,
+  mungerReport: {
+    livelloRischio: 'RISCHIO_BASSO',
+    sintesi:
+      'Apple mantiene un vantaggio competitivo strutturale grazie al suo ecosistema chiuso e ai margini di servizio in crescita. Il rischio principale rimane la concentrazione geografica nei mercati asiatici.',
+    rischiPrincipali: [
+      { testo: 'Concentrazione revenue su iPhone (>50%).', chunkIndex: 3 },
+      { testo: 'Rischio regolatorio antitrust EU e US.', chunkIndex: 7 },
+    ],
+    puntiDiForza: [
+      { testo: 'Ecosistema lock-in con margini elevati.', chunkIndex: 1 },
+      { testo: 'Cash flow operativo > $100B annuo.', chunkIndex: 5 },
+    ],
+    segnaliRecenti10Q: [
+      { testo: 'Revenue Services in crescita del 14% YoY.', chunkIndex: 2 },
+    ],
+    filingComboHash: 'abc123def456',
+    llmCallsCount: 3,
+  },
+  newsSentiment: {
+    total: 3,
+    panicCount: 1,
+    structuralCount: 0,
+    neutralCount: 2,
+    dominantClass: 'NEUTRAL',
+    items: [
+      {
+        headline: 'Apple reports record Q2 revenue',
+        textExcerpt:
+          'Apple Inc. posted record revenue for the March quarter, driven by strong Services growth.',
+        sentimentClass: 'NEUTRAL',
+        motivazione: 'Risultati in linea con le attese di mercato.',
+        url: 'https://example.com/apple-q2',
+      },
+      {
+        headline: 'iPhone sales disappoint in China',
+        textExcerpt:
+          'Shipments to China fell 10% YoY amid rising competition from Huawei.',
+        sentimentClass: 'TEMPORARY_PANIC',
+        motivazione: 'Fattore congiunturale, non strutturale.',
+        url: null,
+      },
+      {
+        headline: 'EU antitrust fine expected',
+        textExcerpt:
+          'Regulators are finalising a multi-billion euro fine over App Store practices.',
+        sentimentClass: 'NEUTRAL',
+        motivazione: null,
+        url: null,
+      },
+    ],
+  },
+  llmStatus: 'INVOKED',
+};
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -606,5 +668,142 @@ test.describe('Deep Analysis page (async flow)', () => {
     await cta.click();
 
     await expect.poll(() => ingestPosts.getCount(), { timeout: 5_000 }).toBe(1);
+  });
+
+  // ---------------------------------------------------------------------------
+  // TSK-304 / US-090 / US-091 — Munger synthesis + news items on detail page
+  // ---------------------------------------------------------------------------
+
+  test('TSK-304 — verdict section shows verdict-llm-synthesis when munger sintesi present', async ({
+    page,
+  }) => {
+    // The verdict-llm-synthesis panel in DeepVerdictBadge is rendered directly
+    // (no toggle required) whenever data.mungerReport.sintesi is truthy.
+    await mockLatestSequence(page, 'AAPL', [
+      successPayload('AAPL', deepAaplWithLlmFixture, true),
+    ]);
+
+    await page.goto('/analysis/deep?ticker=AAPL');
+
+    // Wait for page to settle on the verdict badge.
+    await expect(page.getByTestId('verdict-badge')).toBeVisible({
+      timeout: 15_000,
+    });
+
+    // verdict-llm-synthesis must be visible without any toggle click.
+    const llmSynthesis = page.getByTestId('verdict-llm-synthesis');
+    await expect(llmSynthesis).toBeVisible();
+    await expect(llmSynthesis).toContainText(
+      /Apple mantiene un vantaggio competitivo strutturale/,
+    );
+  });
+
+  test('TSK-304 — Munger report section expands and shows munger-synthesis paragraph', async ({
+    page,
+  }) => {
+    // munger-synthesis lives inside MungerReportCollapsible which starts
+    // collapsed. Must click data-testid="munger-toggle-button" to reveal it.
+    await mockLatestSequence(page, 'AAPL', [
+      successPayload('AAPL', deepAaplWithLlmFixture, true),
+    ]);
+
+    await page.goto('/analysis/deep?ticker=AAPL');
+
+    await expect(page.getByTestId('munger-report-section')).toBeVisible({
+      timeout: 15_000,
+    });
+
+    // Before expansion the synthesis section is not present in the DOM.
+    await expect(page.getByTestId('munger-synthesis')).toHaveCount(0);
+
+    // Expand the Munger report collapsible.
+    await page.getByTestId('munger-toggle-button').click();
+
+    // Now munger-synthesis must be visible and contain the narrative text.
+    const synthesis = page.getByTestId('munger-synthesis');
+    await expect(synthesis).toBeVisible();
+    await expect(synthesis).toContainText(
+      /Apple mantiene un vantaggio competitivo strutturale/,
+    );
+  });
+
+  test('TSK-304 — news sentiment section renders items after toggling news-sentiment-toggle', async ({
+    page,
+  }) => {
+    // news-item-{idx} elements live inside NewsSentimentChip, which starts
+    // collapsed. Must click data-testid="news-sentiment-toggle" to reveal them.
+    await mockLatestSequence(page, 'AAPL', [
+      successPayload('AAPL', deepAaplWithLlmFixture, true),
+    ]);
+
+    await page.goto('/analysis/deep?ticker=AAPL');
+
+    await expect(page.getByTestId('news-sentiment-section')).toBeVisible({
+      timeout: 15_000,
+    });
+
+    // Before expansion, news items must not be rendered.
+    await expect(page.getByTestId('news-items-list')).toHaveCount(0);
+    await expect(page.getByTestId('news-item-0')).toHaveCount(0);
+
+    // The toggle button must be present (fixture has 3 items).
+    const toggle = page.getByTestId('news-sentiment-toggle');
+    await expect(toggle).toBeVisible();
+
+    // Expand the news list.
+    await toggle.click();
+
+    // After expansion: the list container and at least the first two items
+    // (matching our 3-item fixture) must be visible.
+    await expect(page.getByTestId('news-items-list')).toBeVisible();
+
+    const item0 = page.getByTestId('news-item-0');
+    await expect(item0).toBeVisible();
+    await expect(item0).toContainText('Apple reports record Q2 revenue');
+    await expect(item0).toContainText(
+      'Apple Inc. posted record revenue for the March quarter',
+    );
+
+    const item1 = page.getByTestId('news-item-1');
+    await expect(item1).toBeVisible();
+    await expect(item1).toContainText('iPhone sales disappoint in China');
+    await expect(item1).toContainText(
+      'Shipments to China fell 10% YoY',
+    );
+
+    const item2 = page.getByTestId('news-item-2');
+    await expect(item2).toBeVisible();
+    await expect(item2).toContainText('EU antitrust fine expected');
+
+    // Collapsing again hides the list.
+    await toggle.click();
+    await expect(page.getByTestId('news-items-list')).toHaveCount(0);
+  });
+
+  test('TSK-304 — all three detail testids present in a single fully-LLM SUCCESS run', async ({
+    page,
+  }) => {
+    // Composite smoke test: verdict-llm-synthesis, munger-synthesis (after toggle),
+    // and news-item-0 (after toggle) all come from the same mocked /deep/latest.
+    await mockLatestSequence(page, 'AAPL', [
+      successPayload('AAPL', deepAaplWithLlmFixture, true),
+    ]);
+
+    await page.goto('/analysis/deep?ticker=AAPL');
+
+    await expect(page.getByTestId('verdict-badge')).toBeVisible({
+      timeout: 15_000,
+    });
+
+    // 1. verdict-llm-synthesis — no toggle needed.
+    await expect(page.getByTestId('verdict-llm-synthesis')).toBeVisible();
+
+    // 2. munger-synthesis — requires munger-toggle-button click.
+    await page.getByTestId('munger-toggle-button').click();
+    await expect(page.getByTestId('munger-synthesis')).toBeVisible();
+
+    // 3. news-item-0 — requires news-sentiment-toggle click.
+    await page.getByTestId('news-sentiment-toggle').click();
+    await expect(page.getByTestId('news-item-0')).toBeVisible();
   });
 });

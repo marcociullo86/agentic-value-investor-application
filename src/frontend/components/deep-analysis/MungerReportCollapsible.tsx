@@ -142,7 +142,7 @@ export function MungerReportCollapsible({
                     <h3 className="mb-2 text-sm font-semibold text-slate-800 dark:text-slate-200">
                       Motivazione
                     </h3>
-                    <p className="whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-300">
+                    <p className="whitespace-pre-wrap break-words text-sm text-slate-700 dark:text-slate-300">
                       {report.sintesi}
                     </p>
                   </section>

@@ -25,6 +25,10 @@ describe('MungerReportCollapsible (US-090)', () => {
     expect(screen.getByTestId('munger-synthesis')).toHaveTextContent(
       'Sintesi Munger di prova',
     );
+    // AC 'Liste invariate': verifica che le liste restino renderizzate
+    // accanto alla sintesi (no regressione visibilità lista).
+    expect(screen.getByTestId('munger-risks-list')).toBeInTheDocument();
+    expect(screen.getByTestId('munger-strengths-list')).toBeInTheDocument();
   });
 
   it('omits the sintesi paragraph when sintesi is null', () => {

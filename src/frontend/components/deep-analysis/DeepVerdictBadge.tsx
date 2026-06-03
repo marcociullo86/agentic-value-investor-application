@@ -122,7 +122,7 @@ export function DeepVerdictBadge({
             <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-400">
               Perché questo verdetto
             </p>
-            <p className="whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-300">
+            <p className="whitespace-pre-wrap break-words text-sm text-slate-700 dark:text-slate-300">
               {data.mungerReport.sintesi}
             </p>
           </div>

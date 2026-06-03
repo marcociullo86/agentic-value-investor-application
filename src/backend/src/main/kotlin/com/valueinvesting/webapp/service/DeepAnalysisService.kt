@@ -14,6 +14,7 @@ import com.valueinvesting.webapp.api.model.VerdictBlock
 import com.valueinvesting.webapp.fmp.FmpAdapter
 import com.valueinvesting.webapp.fmp.FmpCacheService
 import com.valueinvesting.webapp.fmp.FmpTickerNotFoundException
+import com.valueinvesting.webapp.fmp.FmpUnavailableException
 import com.valueinvesting.webapp.llm.LlmException
 import com.valueinvesting.webapp.persistence.entity.DeepAnalysisEventLogEntity
 import com.valueinvesting.webapp.persistence.repository.DeepAnalysisEventLogRepository
@@ -235,6 +236,13 @@ class DeepAnalysisService(
                 )
             } catch (ex: LlmException) {
                 throw LlmUnavailableException(t, cause = ex)
+            } catch (ex: FmpUnavailableException) {
+                // TSK-306 F2: l'outage di FMP/news (circuit open, rate-limit,
+                // 4xx-5xx) NON deve abortire l'intera analyze() — Munger +
+                // deterministici sono già pronti. Degrado grazioso, coerente
+                // col path invokeLlm=false: newsSentiment resta null,
+                // dominantSentiment resta NEUTRAL.
+                log.warn("News sentiment step degraded for {}: FMP unavailable: {}", t, ex.message)
             }
         }
 

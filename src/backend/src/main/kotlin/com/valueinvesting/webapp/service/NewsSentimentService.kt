@@ -8,6 +8,7 @@ import com.valueinvesting.webapp.llm.LlmInteractionLogger
 import com.valueinvesting.webapp.persistence.entity.NewsClassificationEntity
 import com.valueinvesting.webapp.persistence.repository.NewsClassificationRepository
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -39,7 +40,7 @@ import java.time.ZoneOffset
 class NewsSentimentService(
     private val fmpAdapter: FmpAdapter,
     private val anthropicClient: AnthropicClient,
-    private val newsRepo: NewsClassificationRepository,
+    private val cacheStore: NewsClassificationCacheStore,
     private val llmInteractionLogger: LlmInteractionLogger = LlmInteractionLogger(),
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -81,7 +82,13 @@ class NewsSentimentService(
         ).map { Regex(it, RegexOption.IGNORE_CASE) }
     }
 
-    @Transactional
+    // NOTA: classify() è intenzionalmente NON-@Transactional (TSK-306 F1).
+    // Le chiamate esterne (FMP HTTP + sintesi LLM Anthropic, 10-30s) NON devono
+    // stare dentro un boundary transazionale: terrebbero pinned uno slot del
+    // connection pool DB per l'intera durata della I/O di rete, esaurendolo
+    // sotto concorrenza. Solo le fasi DB read/write delegate a [cacheStore]
+    // sono @Transactional, ciascuna in una tx short-lived via Spring proxy
+    // (cacheStore è un bean separato → niente self-invocation).
     fun classify(ticker: String): NewsSentimentResult {
         val rawNews = fmpAdapter.getStockNews(ticker, NEWS_WINDOW_DAYS)
         if (rawNews.isEmpty()) return emptyResult(ticker)
@@ -93,8 +100,9 @@ class NewsSentimentService(
         // Cache: se tutto il set curato è già classificato entro la TTL, ricostruisci
         // senza chiamare l'LLM (US-042: 2ª analisi entro 24h non riconsuma LLM).
         val cutoff = Instant.now().minusSeconds(CACHE_TTL_HOURS * 3600)
-        val cachedRows = curated.map { newsRepo.findByNewsId(newsKey(it)) }
-        val allFresh = cachedRows.all { it != null && it.classifiedAt.isAfter(cutoff) }
+        val keys = curated.map { newsKey(it) }
+        val cachedRows = cacheStore.findFreshByKeys(keys, cutoff)
+        val allFresh = cachedRows.size == curated.size && cachedRows.all { it != null }
 
         val classified: List<ClassifiedItem> = if (allFresh) {
             cachedRows.filterNotNull().map {
@@ -108,16 +116,25 @@ class NewsSentimentService(
                 )
             }
         } else {
+            // External I/O (LLM synthesis) FUORI dal boundary transazionale.
             val synthesis = synthesize(ticker, curated)
-            curated.mapIndexed { idx, item ->
-                val classe = synthesis.classOf(idx)
-                val entity = persistClassification(
-                    ticker, item, newsKey(item), classe, synthesis.motivazioneOf(idx),
-                )
+            // Persist phase: una sola tx short-lived per l'intero batch.
+            val persisted = cacheStore.persistClassifications(
+                ticker,
+                curated.mapIndexed { idx, item ->
+                    NewsClassificationDraft(
+                        item = item,
+                        newsId = keys[idx],
+                        classe = synthesis.classOf(idx),
+                        motivazione = synthesis.motivazioneOf(idx),
+                    )
+                },
+            )
+            persisted.map { entity ->
                 ClassifiedItem(
                     newsId = entity.newsId,
                     headline = entity.headline,
-                    sentimentClass = classe,
+                    sentimentClass = SentimentClass.valueOf(entity.sentimentClass),
                     textExcerpt = entity.textExcerpt,
                     motivazione = entity.motivazione,
                     url = entity.url,
@@ -263,26 +280,6 @@ class NewsSentimentService(
     private fun newsKey(item: StockNewsItem): String =
         (item.newsId ?: item.url ?: item.title ?: "").take(NEWS_ID_MAX)
 
-    private fun persistClassification(
-        ticker: String,
-        item: StockNewsItem,
-        newsId: String,
-        classe: SentimentClass,
-        motivazione: String?,
-    ): NewsClassificationEntity {
-        val entity = newsRepo.findByNewsId(newsId) ?: NewsClassificationEntity()
-        entity.ticker = ticker
-        entity.newsId = newsId.take(NEWS_ID_MAX)
-        entity.publishedAt = item.publishedDate?.toInstant(ZoneOffset.UTC)
-        entity.headline = item.title
-        entity.url = item.url
-        entity.sentimentClass = classe.name
-        entity.motivazione = motivazione?.take(MOTIVAZIONE_MAX)
-        entity.textExcerpt = item.text?.take(SNIPPET_LEN)
-        entity.classifiedAt = Instant.now()
-        return newsRepo.save(entity)
-    }
-
     private fun emptyResult(ticker: String) = NewsSentimentResult(
         ticker = ticker,
         total = 0,
@@ -333,3 +330,62 @@ data class NewsClassificationSummary(
     val motivazione: String? = null,
     val url: String? = null,
 )
+
+// Draft passato dall'orchestrator al cache store per il batch persist.
+data class NewsClassificationDraft(
+    val item: StockNewsItem,
+    val newsId: String,
+    val classe: SentimentClass,
+    val motivazione: String?,
+)
+
+/**
+ * Boundary @Transactional dei DB op della news classification (TSK-306 F1).
+ *
+ * Estratto come @Component separato (non come metodo private della stessa
+ * classe) per garantire l'intercettazione del proxy Spring: i metodi
+ * @Transactional invocati via self-invocation NON sono intercettati e
+ * l'annotazione viene ignorata. Tenere il boundary qui consente a
+ * [NewsSentimentService.classify] di restare NON-@Transactional ed eseguire
+ * le chiamate esterne (FMP HTTP + LLM Anthropic, 10-30s) FUORI dal tx scope,
+ * evitando di pinnare uno slot del connection pool per l'intera durata della
+ * I/O di rete.
+ *
+ * Allineato al pattern già usato in [BruteForceProtectionService] (helper
+ * @Transactional invocato via proxy esposto come bean) ed equivalente
+ * funzionale al persistClassification originario, ma con una sola tx per
+ * l'intero batch invece di una per item.
+ */
+@Component
+class NewsClassificationCacheStore(
+    private val newsRepo: NewsClassificationRepository,
+) {
+    companion object {
+        private const val NEWS_ID_MAX = 512
+        private const val MOTIVAZIONE_MAX = 250
+        private const val SNIPPET_LEN = 300
+    }
+
+    @Transactional(readOnly = true)
+    fun findFreshByKeys(keys: List<String>, cutoff: Instant): List<NewsClassificationEntity?> =
+        keys.map { newsRepo.findByNewsId(it) }
+            .map { row -> if (row != null && row.classifiedAt.isAfter(cutoff)) row else null }
+
+    @Transactional
+    fun persistClassifications(
+        ticker: String,
+        drafts: List<NewsClassificationDraft>,
+    ): List<NewsClassificationEntity> = drafts.map { draft ->
+        val entity = newsRepo.findByNewsId(draft.newsId) ?: NewsClassificationEntity()
+        entity.ticker = ticker
+        entity.newsId = draft.newsId.take(NEWS_ID_MAX)
+        entity.publishedAt = draft.item.publishedDate?.toInstant(ZoneOffset.UTC)
+        entity.headline = draft.item.title
+        entity.url = draft.item.url
+        entity.sentimentClass = draft.classe.name
+        entity.motivazione = draft.motivazione?.take(MOTIVAZIONE_MAX)
+        entity.textExcerpt = draft.item.text?.take(SNIPPET_LEN)
+        entity.classifiedAt = Instant.now()
+        newsRepo.save(entity)
+    }
+}

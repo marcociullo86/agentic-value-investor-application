@@ -13,8 +13,15 @@ import com.valueinvesting.webapp.persistence.repository.FilingChunkRepository
 import com.valueinvesting.webapp.service.Filing10KQDownloaderService
 import com.valueinvesting.webapp.service.FilingRagService
 import com.valueinvesting.webapp.service.IndexResult
+import com.valueinvesting.webapp.service.LivelloRischio
+import com.valueinvesting.webapp.service.MungerInversionAnalyzer
+import com.valueinvesting.webapp.service.MungerInversionReport
+import com.valueinvesting.webapp.service.NewsClassificationSummary
+import com.valueinvesting.webapp.service.NewsSentimentResult
+import com.valueinvesting.webapp.service.NewsSentimentService
 import com.valueinvesting.webapp.service.PriceActionAnalyzer
 import com.valueinvesting.webapp.service.PriceActionSnapshot
+import com.valueinvesting.webapp.service.SentimentClass
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.clearMocks
 import io.mockk.every
@@ -100,6 +107,16 @@ class DeepAnalysisContractTest {
     @MockkBean
     private lateinit var priceActionAnalyzer: PriceActionAnalyzer
 
+    // Mockati per il contract test "invoke_llm=true" (TSK-308 F1): l'analyze
+    // con ramo LLM invoca questi due collaboratori; per asserire la shape di
+    // newsSentiment.items a runtime li stubbiamo qui senza toccare i bean
+    // reali (LLM/embedding/FMP).
+    @MockkBean
+    private lateinit var mungerInversionAnalyzer: MungerInversionAnalyzer
+
+    @MockkBean
+    private lateinit var newsSentimentService: NewsSentimentService
+
     @Value("\${contract.openapi.canonical}")
     private lateinit var canonicalOpenApiPath: String
 
@@ -107,6 +124,7 @@ class DeepAnalysisContractTest {
     fun resetMocks() {
         clearMocks(fmpAdapter, filing10KQDownloaderService, filingRagService,
             filingBlobRepository, filingChunkRepository, priceActionAnalyzer,
+            mungerInversionAnalyzer, newsSentimentService,
             answers = false, recordedCalls = true)
         FmpFixtureFactory.stubSuccessfulFmp(fmpAdapter, "AAPL")
         stubDeepAnalysisDeps("AAPL")
@@ -563,6 +581,103 @@ class DeepAnalysisContractTest {
         assertThat(body.get("llmCalls").isInt).isTrue()
         assertThat(body.has("totalDurationMs")).isTrue()
         assertThat(body.get("totalDurationMs").isNumber).isTrue()
+    }
+
+    // ---- NewsSentimentBlock RUNTIME assertion (TSK-308 AC1 / F1) ----
+
+    @Test
+    @DisplayName("invoke_llm=true: newsSentiment.items is a non-empty NewsItem array at runtime")
+    fun `invoke_llm true returns newsSentiment items array with NewsItem shape`() {
+        // Stub collaboratori LLM per non sollevare FilingsNotIndexedException
+        // né chiamare LLM/FMP reali: il chunkCount è già stubbato a 1L in
+        // stubDeepAnalysisDeps, e qui forniamo Munger + NewsSentiment con
+        // payload deterministico.
+        stubMungerAndNewsSentiment("AAPL")
+
+        val result = mockMvc.get("/api/analysis/AAPL/deep?invoke_llm=true") {
+            accept(MediaType.APPLICATION_JSON)
+        }.andExpect {
+            status { isOk() }
+        }.andReturn()
+        val body = JSON.readTree(result.response.contentAsString)
+
+        // (a) newsSentiment è un oggetto (non null) sul ramo LLM.
+        val news = body.get("newsSentiment")
+        assertThat(news).isNotNull
+        assertThat(news.isObject).isTrue()
+        assertThat(news.isNull).isFalse()
+
+        // (b) items è un array non vuoto.
+        val items = news.get("items")
+        assertThat(items.isArray)
+            .withFailMessage("newsSentiment.items must be array, got: $items")
+            .isTrue()
+        assertThat(items.size())
+            .withFailMessage("newsSentiment.items expected non-empty, got size=${items.size()}")
+            .isGreaterThan(0)
+
+        // (c) ogni item ha la shape NewsItem (headline, textExcerpt,
+        //     sentimentClass, motivazione, url) con i campi richiesti non-null.
+        items.forEach { item ->
+            assertThat(item.has("headline")).isTrue()
+            assertThat(item.has("textExcerpt")).isTrue()
+            assertThat(item.has("sentimentClass")).isTrue()
+            assertThat(item.has("motivazione")).isTrue()
+            assertThat(item.has("url")).isTrue()
+            // textExcerpt + sentimentClass devono essere valorizzati (atteso
+            // dalla US-091): testi non-blank, classe enum valida.
+            assertThat(item.get("textExcerpt").isTextual).isTrue()
+            assertThat(item.get("textExcerpt").asText()).isNotBlank()
+            assertThat(item.get("sentimentClass").isTextual).isTrue()
+            assertThat(item.get("sentimentClass").asText())
+                .isIn("TEMPORARY_PANIC", "STRUCTURAL_DAMAGE", "NEUTRAL")
+            // motivazione + url possono in teoria essere null per certi
+            // payload futuri ma nel nostro stub li popoliamo entrambi.
+            assertThat(item.get("motivazione").asText()).isNotBlank()
+            assertThat(item.get("url").asText()).isNotBlank()
+        }
+    }
+
+    private fun stubMungerAndNewsSentiment(ticker: String) {
+        val t = ticker.uppercase()
+        every {
+            mungerInversionAnalyzer.analyze(any(), any(), any())
+        } returns MungerInversionReport(
+            ticker = t,
+            livelloRischio = LivelloRischio.RISCHIO_MODERATO,
+            rischiPrincipali = emptyList(),
+            puntiDiForza = emptyList(),
+            segnaliRecenti10Q = emptyList(),
+            filingComboHash = "test-hash",
+            llmCallsCount = 1,
+            sintesi = "test synthesis",
+        )
+        every { newsSentimentService.classify(t) } returns NewsSentimentResult(
+            ticker = t,
+            total = 2,
+            panicCount = 1,
+            structuralCount = 0,
+            neutralCount = 1,
+            dominantClass = SentimentClass.TEMPORARY_PANIC,
+            classifications = listOf(
+                NewsClassificationSummary(
+                    newsId = "n1",
+                    headline = "Stock dips on macro fears",
+                    sentimentClass = SentimentClass.TEMPORARY_PANIC,
+                    textExcerpt = "Market sells off on Fed comments; no fundamental impact reported.",
+                    motivazione = "Reazione emotiva senza danno strutturale",
+                    url = "https://example.com/news/1",
+                ),
+                NewsClassificationSummary(
+                    newsId = "n2",
+                    headline = "Routine quarterly update",
+                    sentimentClass = SentimentClass.NEUTRAL,
+                    textExcerpt = "Company reaffirms guidance with no notable changes.",
+                    motivazione = "Aggiornamento routinario",
+                    url = "https://example.com/news/2",
+                ),
+            ),
+        )
     }
 
     private fun callDeepAndParse(ticker: String): JsonNode {

@@ -1,7 +1,9 @@
 'use client';
 
-import { ExternalLink } from 'lucide-react';
+import { useState, useCallback, useId } from 'react';
+import { ChevronDown, ExternalLink } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { cn } from '@/lib/utils/cn';
 import type {
   NewsSentimentBlock,
   NewsItem,
@@ -151,7 +153,17 @@ function SentimentBar({
 export function NewsSentimentChip({
   sentiment,
 }: NewsSentimentChipProps): React.ReactElement {
+  // Collassabile/espandibile coerente con MungerReportCollapsible (AC TSK-307 #2).
+  // E2E: per espandere la lista notizie, click su data-testid="news-sentiment-toggle".
+  const [expanded, setExpanded] = useState(false);
+  const contentId = useId();
+
+  const toggle = useCallback(() => {
+    setExpanded((prev) => !prev);
+  }, []);
+
   const hasSentiment = sentiment !== null;
+  const hasItems = hasSentiment && (sentiment.items?.length ?? 0) > 0;
 
   return (
     <Card data-testid="news-sentiment-section">
@@ -161,21 +173,46 @@ export function NewsSentimentChip({
       <CardContent>
         {hasSentiment ? (
           <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-3">
-              <span
-                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${CLASS_MAP[sentiment.dominantClass].chipColor}`}
-                data-testid="sentiment-dominant-chip"
-                role="status"
-                aria-label={`Classe dominante: ${CLASS_MAP[sentiment.dominantClass].label}`}
-              >
-                {CLASS_MAP[sentiment.dominantClass].label}
-              </span>
-              <span className="text-sm text-slate-600 dark:text-slate-400">
-                {sentiment.total} news analizzate
-              </span>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span
+                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${CLASS_MAP[sentiment.dominantClass].chipColor}`}
+                  data-testid="sentiment-dominant-chip"
+                  role="status"
+                  aria-label={`Classe dominante: ${CLASS_MAP[sentiment.dominantClass].label}`}
+                >
+                  {CLASS_MAP[sentiment.dominantClass].label}
+                </span>
+                <span className="text-sm text-slate-600 dark:text-slate-400">
+                  {sentiment.total} news analizzate
+                </span>
+              </div>
+              {hasItems ? (
+                <button
+                  type="button"
+                  onClick={toggle}
+                  aria-expanded={expanded}
+                  aria-controls={contentId}
+                  className="inline-flex items-center gap-1 rounded px-2 py-1 text-sm font-medium text-slate-600 transition hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-slate-400 dark:hover:bg-slate-800"
+                  data-testid="news-sentiment-toggle"
+                >
+                  {expanded ? 'Nascondi' : 'Espandi'}
+                  <ChevronDown
+                    className={cn(
+                      'h-4 w-4 transition-transform',
+                      expanded ? 'rotate-180' : 'rotate-0',
+                    )}
+                    aria-hidden="true"
+                  />
+                </button>
+              ) : null}
             </div>
             <SentimentBar sentiment={sentiment} />
-            <NewsItemList items={sentiment.items} />
+            {expanded ? (
+              <div id={contentId}>
+                <NewsItemList items={sentiment.items} />
+              </div>
+            ) : null}
           </div>
         ) : (
           <p className="text-sm text-slate-500 dark:text-slate-400">

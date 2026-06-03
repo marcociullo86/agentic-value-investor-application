@@ -19,6 +19,25 @@ import java.time.temporal.ChronoUnit
 
 // [^src: management/kanban/EP-011-deep-analysis-10k-10q/US-041-munger-inversion-llm/TSK-105.md]
 // [^src: wiki/runbooks/sec-10k-10q-analysis-playbook.md §Step 3 — Analisi Munger-inversione]
+/**
+ * Munger-inversion analyzer per la deep analysis 10-K/10-Q.
+ *
+ * NOTE sul costruttore (CQRL TSK-299 F-01 — pattern intenzionale, documentato):
+ * il parametro `llmInteractionLogger` ha un default `= LlmInteractionLogger()`.
+ * Questa scelta è deliberata e supporta due percorsi di istanziazione:
+ *
+ * 1. **Produzione (Spring DI)** — Spring rileva il bean `@Component`
+ *    `LlmInteractionLogger` (con `@Value` su `enabled`/`maxChars` dalla config) e
+ *    lo inietta nel costruttore. Il default-arg viene ignorato, perché Spring passa
+ *    sempre l'argomento esplicitamente.
+ * 2. **Test unitari** — i test che istanziano direttamente `MungerInversionAnalyzer`
+ *    (es. [MungerInversionAnalyzerTest]) NON devono dichiarare un mock del logger
+ *    né configurare un bean: il default-arg fornisce un'istanza con `enabled=false`
+ *    (default `@Value`) che è effettivamente un no-op, mantenendo il setup di test
+ *    minimo e disaccoppiato dalla feature di logging.
+ *
+ * Il behavior del logger (gating + troncamento) è testato in `LlmInteractionLoggerTest`.
+ */
 @Service
 class MungerInversionAnalyzer(
     private val filingRagService: FilingRagService,
@@ -273,7 +292,10 @@ class MungerInversionAnalyzer(
                 segnaliRecenti10Q = dto.segnaliRecenti10Q.map { InversionSignal(it.testo, it.chunkIndex) },
                 filingComboHash = comboHash,
                 llmCallsCount = llmCalls,
-                sintesi = dto.sintesi.ifBlank { null },
+                // CQRL TSK-300 F-01: il system prompt dichiara soft-cap ~1500 char;
+                // applichiamo hard-truncation difensivo a 2000 char (margine) prima
+                // di persistere/ritornare nel caso l'LLM ignori il vincolo.
+                sintesi = dto.sintesi.take(2000).ifBlank { null },
             )
         } catch (ex: Exception) {
             log.error("Failed to parse LLM synthesis response for {}: {}", ticker, ex.message)

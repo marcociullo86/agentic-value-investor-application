@@ -84,9 +84,12 @@ class MungerInversionAnalyzerTest {
         ]}
     """.trimIndent()
 
+    // CQRL TSK-300 F-03 / TSK-302 F-01: synthesisResponseJson ora include "sintesi"
+    // così l'happy-path analyze() copre end-to-end il campo introdotto da US-089.
     private val synthesisResponseJson = """
         {
             "livello_rischio": "RISCHIO_MODERATO",
+            "sintesi": "Moat solido ma valutazione tirata: rischio moderato in attesa di dati 10-Q.",
             "rischi_principali": [
                 {"testo": "Significant debt levels", "chunk_index": 2},
                 {"testo": "Revenue concentration risk", "chunk_index": 5}
@@ -136,6 +139,9 @@ class MungerInversionAnalyzerTest {
             assertThat(report.puntiDiForza).isNotEmpty
             assertThat(report.segnaliRecenti10Q).isNotEmpty
             assertThat(report.llmCallsCount).isEqualTo(11)
+            // CQRL TSK-300 F-03: assert sintesi e2e dall'happy-path
+            assertThat(report.sintesi)
+                .isEqualTo("Moat solido ma valutazione tirata: rischio moderato in attesa di dati 10-Q.")
         }
 
         @Test
@@ -402,6 +408,62 @@ class MungerInversionAnalyzerTest {
 
             assertThat(report.sintesi).isNull()
         }
+
+        // CQRL TSK-302 F-02: AC#3 — un report_json LEGACY (chiave 'sintesi' completamente
+        // ASSENTE, come tutte le righe persistite pre-US-089) deve deserializzare senza
+        // errori e produrre sintesi=null. Differente dal precedente test perché qui
+        // simuliamo il payload raw memorizzato nella colonna report_json, non un response
+        // LLM. La logica di parseSynthesisResponse usa lo stesso ObjectMapper +
+        // SynthesisResponseDto, quindi il check è sufficiente.
+        @Test
+        fun `parseSynthesisResponse handles legacy report_json without sintesi key (TSK-302 F-02)`() {
+            val legacyJsonNoSintesiKey = """
+                {"livello_rischio":"RISCHIO_BASSO","rischi_principali":[],"punti_di_forza":[],"segnali_recenti_10q":[]}
+            """.trimIndent()
+            // Sanity: la chiave NON è presente (ne con valore null, ne con stringa vuota)
+            assertThat(legacyJsonNoSintesiKey).doesNotContain("sintesi")
+
+            val report = analyzer.parseSynthesisResponse(legacyJsonNoSintesiKey, "AAPL", "legacy-hash", 11)
+
+            assertThat(report.sintesi).isNull()
+            assertThat(report.livelloRischio).isEqualTo(LivelloRischio.RISCHIO_BASSO)
+        }
+
+        // CQRL TSK-302 F-03: ifBlank{null} edge cases — empty string e whitespace-only
+        // devono produrre sintesi=null (non una stringa vuota/whitespace nella colonna).
+        @Test
+        fun `parseSynthesisResponse sets sintesi to null when value is empty string (TSK-302 F-03)`() {
+            val json = """
+                {
+                    "livello_rischio": "RISCHIO_MODERATO",
+                    "sintesi": "",
+                    "rischi_principali": [],
+                    "punti_di_forza": [],
+                    "segnali_recenti_10q": []
+                }
+            """.trimIndent()
+
+            val report = analyzer.parseSynthesisResponse(json, "AAPL", "hash", 11)
+
+            assertThat(report.sintesi).isNull()
+        }
+
+        @Test
+        fun `parseSynthesisResponse sets sintesi to null when value is whitespace only (TSK-302 F-03)`() {
+            val json = """
+                {
+                    "livello_rischio": "RISCHIO_MODERATO",
+                    "sintesi": "   ",
+                    "rischi_principali": [],
+                    "punti_di_forza": [],
+                    "segnali_recenti_10q": []
+                }
+            """.trimIndent()
+
+            val report = analyzer.parseSynthesisResponse(json, "AAPL", "hash", 11)
+
+            assertThat(report.sintesi).isNull()
+        }
     }
 
     @Nested
@@ -466,6 +528,9 @@ class MungerInversionAnalyzerTest {
             val report = analyzer.analyze("AAPL")
 
             assertThat(report.livelloRischio).isEqualTo(LivelloRischio.RISCHIO_MODERATO)
+            // CQRL TSK-300 F-02 / TSK-302 F-01: la golden fixture (TSK-107) è
+            // pre-US-089 e non contiene la chiave "sintesi" → retrocompat: null.
+            assertThat(report.sintesi).isNull()
         }
 
         @Test

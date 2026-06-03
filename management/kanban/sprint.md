@@ -1,10 +1,10 @@
 <!-- generated, do not edit — rigenerato da tpm ad ogni run -->
 ---
 id: sprint
-title: Sprint Plan — R1.0 MVP + R1.1 + R1.1.x + R2.0 + R2.1 + R3.0 + CQRL Bonifica + R3.2
+title: Sprint Plan — R1.0 MVP + R1.1 + R1.1.x + R2.0 + R2.1 + R3.0 + CQRL Bonifica + R3.2 + R3.3
 generated: 2026-06-03
 tpm: tpm
-release: R3.0 EP-018 Sprint 15 (chiuso) + EP-017 chiusa (Sprint 14+17) + R3.1 EP-019 chiusa (Sprint 16) + R3.2 Sprint 18 COMPLETATO (EP-002 US-031 + EP-010)
+release: R3.0 EP-018 Sprint 15 (chiuso) + EP-017 chiusa (Sprint 14+17) + R3.1 EP-019 chiusa (Sprint 16) + R3.2 Sprint 18 COMPLETATO (EP-002 US-031 + EP-010) + R3.3 Sprint 19 COMPLETATO (EP-020)
 r10_closed: 2026-05-22
 r11_closed: 2026-05-23
 r11x_closed: 2026-05-26
@@ -13,6 +13,7 @@ r21_closed: 2026-05-26
 r30_closed: 2026-05-29
 r31_cqrl_closed: 2026-05-29
 r32_closed: 2026-06-03
+r33_closed: 2026-06-03
 ---
 # Sprint Plan
 
@@ -25,6 +26,46 @@ r32_closed: 2026-06-03
 > **R3.0 chiuso:** Sprint 14+17 (EP-017) — **18/18 TSK `done`**, 7/7 US (US-073..078 + US-087). EP-017 `done`; ADR-026 `accepted`.
 > **R3.1 chiuso:** Sprint 16 (EP-019 CQRL) — **25/25 TSK `done`**. US-084/085/086 `done`; EP-019 `done`.
 > **R3.2 chiuso:** Sprint 18 — EP-002 US-031 (migrazione FMP /stable) + EP-010 US-032..037 (6 criteri Graham) — **21/21 TSK `done`**, review CQRL `passed` su tutti i TSK con copertura CQRL. EP-002 US-031 `done`; EP-010 `done`.
+> **R3.3 chiuso:** Sprint 19 — EP-020 Trasparenza analisi LLM (US-088..091) — **10/10 TSK `done`**, review CQRL `passed` su tutti i TSK. EP-020 `done`.
+
+---
+
+## Sprint 19 — Trasparenza analisi LLM nel verdetto Deep Analysis (EP-020) — COMPLETATO
+
+**Obiettivo:**
+- **EP-020 US-088:** Log gated delle interazioni LLM (prompt+risposta, 11 call Munger + sintesi news) con flag configurabile e troncamento difensivo.
+- **EP-020 US-089:** Campo `sintesi` narrativo nel report Munger — schema LLM, persistenza in `report_json`, contratto API (openapi+DTO+tipi FE), paragrafo sintesi nel blocco Verdetto.
+- **EP-020 US-090:** `MungerReportCollapsible` con sintesi narrativa in testa; Top Rischi/Punti di Forza/Segnali 10-Q per esteso.
+- **EP-020 US-091:** `NewsSentimentBlock.items[]` con headline+textExcerpt+classe+motivazione — migration V030 `text_excerpt`, persistenza, contratto, UI lista notizie analizzate.
+
+**Stato:** COMPLETATO — **10/10 TSK `done`**. US-088/089/090/091 `done`. EP-020 `done`. CQRL review `passed` su tutti i TSK (TSK-299..308).
+
+**Wave 1 — fondamenta backend/contratto (parallela):**
+
+| TSK | Titolo | Layer | Consumer | Est. | US | `depends_on` | Status |
+|-----|--------|-------|----------|------|----|--------------|--------|
+| TSK-299 | BE Logging gated interazioni LLM (prompt+risposta) | be | agent | M | US-088 | — | done |
+| TSK-300 | BE Campo sintesi narrativa report Munger — schema, persistenza, contratto | be | agent | M | US-089 | — | done |
+| TSK-305 | DB Migration V030 text_excerpt su news_classification | db | agent | S | US-091 | — | done |
+| TSK-306 | BE NewsSentimentBlock.items — snippet + esposizione lista news | be | agent | M | US-091 | TSK-305 | done |
+
+**Wave 2 — frontend (parallela, dopo contratto):**
+
+| TSK | Titolo | Layer | Consumer | Est. | US | `depends_on` | Status |
+|-----|--------|-------|----------|------|----|--------------|--------|
+| TSK-301 | FE Paragrafo sintesi narrativa nel blocco Verdetto | fe | agent | S | US-089 | TSK-300 | done |
+| TSK-303 | FE MungerReportCollapsible con sintesi in testa | fe | agent | S | US-090 | TSK-300 | done |
+| TSK-307 | FE Lista notizie analizzate (titolo+testo) nel blocco Sentiment News | fe | agent | M | US-091 | TSK-306 | done |
+
+**Wave 3 — QA/test/E2E (parallela):**
+
+| TSK | Titolo | Layer | Consumer | Est. | US | `depends_on` | Status |
+|-----|--------|-------|----------|------|----|--------------|--------|
+| TSK-302 | QA Test contratto + service per il campo sintesi Munger | qa | agent | S | US-089 | TSK-300 | done |
+| TSK-308 | QA Test contratto + service per NewsSentimentBlock.items | qa | agent | S | US-091 | TSK-305, TSK-306 | done |
+| TSK-304 | QA E2E — pagina dettaglio mostra sintesi Munger + news analizzate | qa | agent | S | US-090 | TSK-301, TSK-303, TSK-307 | done |
+
+**Totale Sprint 19:** 10 TSK (3 be, 3 fe, 1 db, 3 qa) — **10/10 `done`**
 
 ---
 
@@ -612,7 +653,8 @@ dichiarazione formale PCI-DSS non applicabile. ADR-025. DB: mfa_secrets + login_
 | R3.1 | 16 | 0 | 1 | 7 | 3 | 15 | **25** | done |
 | R3.0 | 17 | 0 | 0 | 0 | 3 | 1 | **4** | done |
 | R3.2 | 18 | 0 | 1 | 8 | 1 | 11 | **21** | done |
-| | **TOTALE** | **11** | **18** | **104** | **56** | **109** | **298** | **295 done** |
+| R3.3 | 19 | 0 | 1 | 3 | 3 | 3 | **10** | done |
+| | **TOTALE** | **11** | **19** | **107** | **59** | **112** | **308** | **308 done** |
 
 ---
 
@@ -639,7 +681,10 @@ Sprint 12 (EP-016) ✅ ═══╝        │
                            Sprint 18 (EP-002 US-031 + EP-010) ✅ COMPLETATO
                                    │
                                    ▼
-                           Sprint 19 (EP-020 LLM trasparenza) ◄── PROSSIMO
+                           Sprint 19 (EP-020 LLM trasparenza) ✅ COMPLETATO
+                                   │
+                                   ▼
+                           [BACKLOG ESAURITO — nessun EP/US in attesa]
 ```
 
 ---
@@ -655,37 +700,18 @@ Sprint 5 → Sprint 18 EP-002: ✅ SODDISFATTA (base adapter TSK-009/072 done)
 
 Sprint 18 EP-002 → Sprint 18 EP-010: ✅ SODDISFATTA (intra-sprint)
   TSK-272 (routing /stable) ──→ TSK-275..285 (rule Graham leggono da FmpAdapter /stable)
+
+Sprint 18 → Sprint 19 EP-020: ✅ SODDISFATTA
+  EP-011 pipeline deep analysis (done) ──→ EP-020 estensione trasparenza LLM
 ```
 
 ---
 
-## Prossimo /dev suggerito
+## Stato backlog
 
-**Sprint 18 completato — tutte le dipendenze soddisfatte per Sprint 19.**
+**Tutti gli sprint completati. Backlog attuale: 0 TSK in attesa.**
 
-**Sprint 19 — EP-020 Trasparenza analisi LLM nel verdetto Deep Analysis (prossimo sprint):**
-
-Estende EP-011: log interazioni LLM, sintesi narrativa nel verdetto, dettaglio Munger, news analizzate (titolo+testo). Parallelizzazione in 3 wave (scheduler `code_path_conflict: strict`).
-
-**Wave 1 — fondamenta backend/contratto (parallela, file disgiunti):**
-1. be-dev: **TSK-299** (US-088 — logging gated interazioni LLM) — *indipendente*
-2. be-dev: **TSK-300** (US-089 — campo `sintesi` Munger + contratto)
-3. db-dev: **TSK-305** (US-091 — migration V030 `text_excerpt`) → poi be-dev **TSK-306** (US-091 — items news + contratto)
-   - TSK-300 e TSK-306 toccano entrambi `DeepAnalysisService.kt` + `DeepAnalysisResponse.kt` → serializzare l'edit di quei 2 file.
-
-**Wave 2 — frontend (parallela, dopo openapi+tipi FE):**
-4. fe-dev: **TSK-301** (US-089 — paragrafo sintesi nel verdetto)
-5. fe-dev: **TSK-303** (US-090 — MungerReportCollapsible con sintesi)
-6. fe-dev: **TSK-307** (US-091 — lista news titolo+testo)
-
-**Wave 3 — QA/test/E2E (parallela):**
-7. qa-dev: **TSK-302** (contratto+service sintesi Munger)
-8. qa-dev: **TSK-308** (contratto+service news items)
-9. qa-dev: **TSK-304** (E2E mocked pagina dettaglio arricchita)
-
-**Gate CI:** ogni TSK di contratto mantiene allineati openapi.yaml + DeepAnalysisResponse.kt + deep-analysis.ts (job `contract-check`) e i test BE (`ci`).
-**Retrocompat:** report Munger in cache (TTL 90gg) e righe `news_classification` esistenti → nuovi campi nullable.
-
-**Gate umano post-Sprint 18 (da eseguire):** commit VCS con chiusura formale EP-010 (US-032..037 `done`) + EP-002 US-031 `done`. (EP-002 e EP-010 già `done` nel frontmatter.)
+308/308 TSK `done` su 19 sprint (R1.0→R3.3). Nessun EP aperto rilevato nel kanban.
+Per aggiungere nuove funzionalità aprire un nuovo EP tramite `/run` (product-manager → lead-architect → tpm).
 
 **ADR accepted:** ADR-021, ADR-022, ADR-023, ADR-024, ADR-025, ADR-026.
