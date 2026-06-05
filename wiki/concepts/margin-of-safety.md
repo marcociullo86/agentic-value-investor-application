@@ -4,7 +4,8 @@ sources: ["raw/01_Principi_Fondamentali_Value_Investing.md", "raw/05_Analisi_10K
 status: draft
 created: 2026-05-20
 updated: 2026-05-21
-tags: [value-investing, margin-of-safety, intrinsic-value, graham, buffett]
+tags: [value-investing, margin-of-safety, intrinsic-value, graham, buffett, vi-domain]
+domain: value-investing
 ---
 # Margine di Sicurezza (Margin of Safety)
 

@@ -62,9 +62,12 @@ class DebtToIncomeRule : ValuationRule {
 
     override fun evaluate(dataset: FinancialDataset): RuleSignal {
         if (dataset.balance.isEmpty() || dataset.income.isEmpty()) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.DebtToIncomeLatest(
                 signal = Signal.NOT_CALCULABLE,
+                ratioLatest = null,
+                thresholdGreen = GREEN_THRESHOLD,
+                thresholdYellow = YELLOW_UPPER_BOUND,
+                netIncomePositive = false,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Balance Sheet o Income Statement non disponibili.",
@@ -83,18 +86,24 @@ class DebtToIncomeRule : ValuationRule {
         val netIncome = latestIncome.netIncome
 
         if (longTermDebt == null) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.DebtToIncomeLatest(
                 signal = Signal.INDETERMINATE,
+                ratioLatest = null,
+                thresholdGreen = GREEN_THRESHOLD,
+                thresholdYellow = YELLOW_UPPER_BOUND,
+                netIncomePositive = (netIncome != null && netIncome > 0.0),
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Long-Term Debt mancante per $yearLabel.",
             )
         }
         if (netIncome == null) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.DebtToIncomeLatest(
                 signal = Signal.INDETERMINATE,
+                ratioLatest = null,
+                thresholdGreen = GREEN_THRESHOLD,
+                thresholdYellow = YELLOW_UPPER_BOUND,
+                netIncomePositive = false,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Utile Netto mancante per $yearLabel: rapporto debito/utile non definito.",
@@ -102,9 +111,12 @@ class DebtToIncomeRule : ValuationRule {
         }
         if (netIncome <= 0.0) {
             // US-009 AC verbatim: NEVER classify as RED here.
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.DebtToIncomeLatest(
                 signal = Signal.INDETERMINATE,
+                ratioLatest = null,
+                thresholdGreen = GREEN_THRESHOLD,
+                thresholdYellow = YELLOW_UPPER_BOUND,
+                netIncomePositive = false,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Utile Netto non positivo ($netIncome) per $yearLabel: rapporto debito/utile indeterminato.",
@@ -117,9 +129,12 @@ class DebtToIncomeRule : ValuationRule {
             ratio <= YELLOW_UPPER_BOUND -> Signal.YELLOW
             else -> Signal.RED
         }
-        return RuleSignal(
-            ruleId = ruleId,
+        return RuleSignal.DebtToIncomeLatest(
             signal = signal,
+            ratioLatest = ratio,
+            thresholdGreen = GREEN_THRESHOLD,
+            thresholdYellow = YELLOW_UPPER_BOUND,
+            netIncomePositive = true,
             observedValue = ratio,
             threshold = THRESHOLD_LABEL,
             rationale = "Long-Term Debt / Net Income = %.2f per %s.".format(ratio, yearLabel),

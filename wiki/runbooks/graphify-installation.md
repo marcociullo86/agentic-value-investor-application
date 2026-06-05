@@ -17,7 +17,8 @@ related:
   - knowledge-graph-codebase
   - migration-v214-fase2
   - wiki-as-graph-poc-template
-tags: [runbook, installazione, graphify, v2-14, fase-2, fase-3a, setup]
+tags: [runbook, installazione, graphify, v2-14, fase-2, fase-3a, setup, platform-domain]
+domain: platform
 ---
 
 # Installazione Graphify

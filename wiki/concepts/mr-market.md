@@ -4,7 +4,8 @@ sources: ["raw/01_Principi_Fondamentali_Value_Investing.md", "raw/investitore in
 status: draft
 created: 2026-05-20
 updated: 2026-05-22
-tags: [value-investing, mr-market, behavioral-finance, graham, market-psychology]
+tags: [value-investing, mr-market, behavioral-finance, graham, market-psychology, vi-domain]
+domain: value-investing
 ---
 # Mr. Market
 

@@ -5,7 +5,8 @@ sources: ["raw/fmp_docs.md", "raw/fmp_docs.json"]
 status: draft
 created: 2026-05-20
 updated: 2026-05-30
-tags: [fmp, api, stable, entity, provider, financial-data, operations]
+tags: [fmp, api, stable, entity, provider, financial-data, operations, platform-domain]
+domain: platform
 ---
 # Financial Modeling Prep (FMP) — API Stable
 

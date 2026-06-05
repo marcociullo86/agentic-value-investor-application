@@ -4,7 +4,8 @@ sources: ["raw/investitore intelligente.txt"]
 status: draft
 created: 2026-05-22
 updated: 2026-05-22
-tags: [value-investing, graham, investment, speculation, definition, foundational]
+tags: [value-investing, graham, investment, speculation, definition, foundational, vi-domain]
+domain: value-investing
 ---
 # Investimento vs Speculazione
 

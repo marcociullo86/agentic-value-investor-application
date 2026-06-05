@@ -27,7 +27,8 @@ related:
   - dependency-ordered-dag
   - write-scope
   - multi-agent-factory
-tags: [runbook, migration, v2.11, scheduler, dag, parallelism, antichain, depends_on, code_path, frontmatter]
+tags: [runbook, migration, v2.11, scheduler, dag, parallelism, antichain, depends_on, code_path, frontmatter, platform-domain]
+domain: platform
 ---
 
 # Migrazione v2.10 → v2.11 — Parallel scheduler DAG-driven

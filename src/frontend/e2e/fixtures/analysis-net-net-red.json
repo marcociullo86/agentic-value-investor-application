@@ -1,0 +1,119 @@
+{
+  "ticker": "NNTEST",
+  "evaluatedAt": "2026-06-05T10:00:00Z",
+  "signals": [
+    {
+      "ruleId": "CAPEX_INTENSITY_10Y_AVG",
+      "signal": "GREEN",
+      "observedValue": 0.15,
+      "threshold": "CapEx/NetIncome < 25%",
+      "rationale": "Media 10y CapEx/Utile netto 15%"
+    },
+    {
+      "ruleId": "CURRENT_RATIO_LATEST",
+      "signal": "GREEN",
+      "observedValue": 2.5,
+      "threshold": "Current Ratio >= 2.0",
+      "rationale": "Current Ratio 2.5"
+    },
+    {
+      "ruleId": "DEBT_TO_INCOME_LATEST",
+      "signal": "GREEN",
+      "observedValue": 1.2,
+      "threshold": "LongTermDebt/NetIncome < 4",
+      "rationale": "Rapporto debito/reddito 1.2"
+    },
+    {
+      "ruleId": "GROSS_MARGIN_10Y_AVG",
+      "signal": "GREEN",
+      "observedValue": 0.42,
+      "threshold": "Gross Margin >= 40%",
+      "rationale": "Gross margin medio 10y 42%"
+    },
+    {
+      "ruleId": "NET_MARGIN_10Y_AVG",
+      "signal": "GREEN",
+      "observedValue": 0.12,
+      "threshold": "Net Margin > 10%",
+      "rationale": "Net margin medio 10y 12%"
+    },
+    {
+      "ruleId": "ROE_10Y_AVG",
+      "signal": "GREEN",
+      "observedValue": 0.18,
+      "threshold": "ROE >= 15%",
+      "rationale": "ROE 10y media 18%"
+    },
+    {
+      "ruleId": "ROIC_10Y_AVG",
+      "signal": "GREEN",
+      "observedValue": 0.20,
+      "threshold": "ROIC >= 12%",
+      "rationale": "ROIC medio 10y 20%"
+    },
+    {
+      "ruleId": "SIZE_LATEST",
+      "signal": "GREEN",
+      "observedValue": 150000000,
+      "threshold": "Revenue >= $100M",
+      "rationale": "Revenue: $150M"
+    },
+    {
+      "ruleId": "EARNINGS_STABILITY_10Y",
+      "signal": "GREEN",
+      "observedValue": 10,
+      "threshold": "10/10 anni positivi",
+      "rationale": "10/10 anni positivi"
+    },
+    {
+      "ruleId": "EPS_GROWTH_10Y",
+      "signal": "GREEN",
+      "observedValue": 0.35,
+      "threshold": "EPS CAGR >= 33%",
+      "rationale": "CAGR EPS 10y 35%"
+    },
+    {
+      "ruleId": "PE_3Y_AVG",
+      "signal": "RED",
+      "observedValue": 32.0,
+      "threshold": "P/E 3y <= 15",
+      "rationale": "P/E 3y media 32.0 — sopra soglia"
+    },
+    {
+      "ruleId": "PB_LATEST",
+      "signal": "RED",
+      "observedValue": 2.5,
+      "threshold": "P/B <= 1.5",
+      "rationale": "P/B 2.5 — sopra soglia"
+    },
+    {
+      "ruleId": "DIVIDEND_CONTINUITY_20Y",
+      "signal": "RED",
+      "observedValue": 3,
+      "threshold": "Dividendo 20+ anni consecutivi",
+      "rationale": "Solo 3 anni consecutivi"
+    },
+    {
+      "ruleId": "NCAV_LATEST",
+      "signal": "GREEN",
+      "observedValue": 18.5,
+      "threshold": ">0",
+      "rationale": "NCAV $2.50B (per azione: $18.50)"
+    },
+    {
+      "ruleId": "NET_NET_RATIO",
+      "signal": "RED",
+      "observedValue": 0.85,
+      "threshold": "<0.6667",
+      "rationale": "Ratio: 0,8500 (soglia <0,6667) — prezzo >= 2/3 NCAV"
+    }
+  ],
+  "grahamNumber": 32.10,
+  "dcfIntrinsicValue": null,
+  "dcfMethod": "NOT_APPLICABLE",
+  "dcfMethodSource": "DEFAULT_POLICY",
+  "mosSignal": "RED",
+  "currentPriceAtEval": 15.73,
+  "dataSnapshotAt": "2026-06-05T10:00:00Z",
+  "isStale": false
+}

@@ -91,9 +91,10 @@ class DividendContinuityRule : ValuationRule {
 
     override fun evaluate(dataset: FinancialDataset): RuleSignal {
         if (dataset.dividends.isEmpty()) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.DividendContinuity20y(
                 signal = Signal.INDETERMINATE,
+                consecutiveYears = null,
+                thresholdYears = REQUIRED_YEARS,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Serie storica dividendi non disponibile: continuita' a 20 anni indeterminata.",
@@ -109,9 +110,10 @@ class DividendContinuityRule : ValuationRule {
             }
 
         if (parsed.isEmpty()) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.DividendContinuity20y(
                 signal = Signal.INDETERMINATE,
+                consecutiveYears = null,
+                thresholdYears = REQUIRED_YEARS,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Nessuna data dividendo parseable: continuita' a 20 anni indeterminata.",
@@ -145,9 +147,10 @@ class DividendContinuityRule : ValuationRule {
         // than 20y we cannot confirm Graham criterion 4 even with a perfect
         // streak inside the window. (TSK-085 §Scope 2(f) + US-037 Business Rules.)
         if (totalSpanYears < REQUIRED_YEARS) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.DividendContinuity20y(
                 signal = Signal.INDETERMINATE,
+                consecutiveYears = consecutiveYears,
+                thresholdYears = REQUIRED_YEARS,
                 observedValue = consecutiveYears.toDouble(),
                 threshold = THRESHOLD_LABEL,
                 rationale = buildShortSeriesRationale(
@@ -166,9 +169,10 @@ class DividendContinuityRule : ValuationRule {
             else -> Signal.RED
         }
 
-        return RuleSignal(
-            ruleId = ruleId,
+        return RuleSignal.DividendContinuity20y(
             signal = signal,
+            consecutiveYears = consecutiveYears,
+            thresholdYears = REQUIRED_YEARS,
             observedValue = consecutiveYears.toDouble(),
             threshold = THRESHOLD_LABEL,
             rationale = buildRationale(

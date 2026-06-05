@@ -21,7 +21,8 @@ related:
   - migration-v28
   - write-scope
   - multi-agent-factory
-tags: [runbook, migration, v2.10, publisher, kanban, github, push-only, l3, l4, external-id]
+tags: [runbook, migration, v2.10, publisher, kanban, github, push-only, l3, l4, external-id, platform-domain]
+domain: platform
 ---
 
 # Migrazione v2.9 → v2.10 — Publisher adapters multi-target

@@ -6,7 +6,8 @@ sources:
 status: review
 created: 2026-05-21
 updated: 2026-05-27 (auth schema contract + Testcontainers lifecycle)
-tags: [qa, openapi, contract, springdoc, ci]
+tags: [qa, openapi, contract, springdoc, ci, platform-domain]
+domain: platform
 ---
 # Contract check OpenAPI (springdoc vs openapi.yaml)
 

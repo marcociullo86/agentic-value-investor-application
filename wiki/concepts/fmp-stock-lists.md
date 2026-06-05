@@ -4,7 +4,8 @@ type: concept
 sources: ["raw/fmp_docs.md", "raw/fmp_docs.json"]
 status: draft
 created: 2026-05-22
-tags: [fmp, stable, stock-list, symbols, etf, directory]
+tags: [fmp, stable, stock-list, symbols, etf, directory, platform-domain]
+domain: platform
 ---
 # FMP — Stock Lists (stable)
 

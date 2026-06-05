@@ -2,8 +2,9 @@ package com.valueinvesting.webapp.service
 
 /**
  * Raised by [AuthService.refresh] when the presented refresh token is
- * missing, revoked, sliding-TTL expired, or beyond the absolute 30-day
- * cap from `first_issued_at` (ADR-010 §3 — session inactivity).
+ * missing, revoked, sliding-TTL expired, beyond the absolute 30-day cap
+ * from `first_issued_at` (ADR-010 §3 — session inactivity), or detected
+ * as reused after rotation (ADR-027 §1 — cascade revocation trigger).
  *
  * Mapped to `401 invalid-refresh` by GlobalExceptionHandler. Separating
  * this from BadCredentialsException lets the FE differentiate
@@ -16,12 +17,13 @@ package com.valueinvesting.webapp.service
  * the only value GlobalExceptionHandler may surface to clients. The
  * differentiating cause lives in [reason] (a stable token like
  * `not_found` / `revoked` / `sliding_expired` / `absolute_cap` /
- * `user_unknown`) and is consumed exclusively by server-side log
- * sinks, never propagated to the HTTP body. This prevents an attacker
- * from probing refresh-token state via the `detail` field in the
- * RFC 9457 ProblemDetail.
+ * `user_unknown` / `reuse_detected`) and is consumed exclusively by
+ * server-side log sinks, never propagated to the HTTP body. This
+ * prevents an attacker from probing refresh-token state via the
+ * `detail` field in the RFC 9457 ProblemDetail.
  *
  * [^src: design_&_architecture/decisions/ADR-010-auth-consolidation.md §3]
+ * [^src: design_&_architecture/decisions/ADR-027-refresh-token-cascade-revocation.md §3]
  * [^src: code_quality/reports/TSK-041-iter-1.md §Finding ordinati]
  */
 class InvalidRefreshTokenException(

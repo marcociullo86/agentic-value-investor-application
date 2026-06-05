@@ -29,9 +29,12 @@ class RoicRule : ValuationRule {
         val sample = averageOf(dataset.keyMetrics) { it.roic }
 
         if (sample.average == null) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.Roic10yAvg(
                 signal = Signal.NOT_CALCULABLE,
+                averagePercent = null,
+                yearsAvailable = sample.effectiveYears,
+                thresholdGreenPercent = GREEN_THRESHOLD * 100.0,
+                thresholdYellowPercent = YELLOW_THRESHOLD * 100.0,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Nessun valore di ROIC disponibile nei ${sample.totalYears} esercizi forniti.",
@@ -39,9 +42,12 @@ class RoicRule : ValuationRule {
         }
 
         if (sample.effectiveYears < MIN_YEARS) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.Roic10yAvg(
                 signal = Signal.INDETERMINATE,
+                averagePercent = sample.average * 100.0,
+                yearsAvailable = sample.effectiveYears,
+                thresholdGreenPercent = GREEN_THRESHOLD * 100.0,
+                thresholdYellowPercent = YELLOW_THRESHOLD * 100.0,
                 observedValue = sample.average,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Solo ${sample.effectiveYears} esercizi con ROIC valido (minimo richiesto: $MIN_YEARS).",
@@ -54,9 +60,12 @@ class RoicRule : ValuationRule {
             else -> Signal.RED
         }
         val pct = "%.2f%%".format(sample.average * 100)
-        return RuleSignal(
-            ruleId = ruleId,
+        return RuleSignal.Roic10yAvg(
             signal = signal,
+            averagePercent = sample.average * 100.0,
+            yearsAvailable = sample.effectiveYears,
+            thresholdGreenPercent = GREEN_THRESHOLD * 100.0,
+            thresholdYellowPercent = YELLOW_THRESHOLD * 100.0,
             observedValue = sample.average,
             threshold = THRESHOLD_LABEL,
             rationale = "Media ROIC su ${sample.effectiveYears} esercizi: $pct.",

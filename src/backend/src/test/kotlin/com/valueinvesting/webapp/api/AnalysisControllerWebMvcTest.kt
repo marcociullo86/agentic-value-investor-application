@@ -51,15 +51,77 @@ class AnalysisControllerWebMvcTest {
         val fixture = RuleEngineResultResponse(
             ticker = "AAPL",
             evaluatedAt = Instant.parse("2024-06-01T12:00:00Z"),
-            signals = (1..7).map { i ->
-                RuleSignal(
-                    ruleId = "rule.$i",
+            // TSK-312 (EP-021): RuleSignal e' una sealed interface con sotto-tipi
+            // vincolati ai ruleId canonici (ADR-028 §1). I fixture qui usano i
+            // primi 7 ruleId Buffett-quality (EP-003), costruiti via sotto-tipo
+            // tipato diretto. Legacy fields ancora valorizzati (R+1/R+2).
+            signals = listOf(
+                RuleSignal.Roe10yAvg(
                     signal = Signal.GREEN,
+                    averagePercent = 1.0,
+                    yearsAvailable = 10,
+                    thresholdGreenPercent = 15.0,
+                    thresholdYellowPercent = 10.0,
                     observedValue = 1.0,
                     threshold = "> 0",
                     rationale = "ok",
-                )
-            },
+                ),
+                RuleSignal.Roic10yAvg(
+                    signal = Signal.GREEN,
+                    averagePercent = 1.0,
+                    yearsAvailable = 10,
+                    thresholdGreenPercent = 12.0,
+                    thresholdYellowPercent = 8.0,
+                    observedValue = 1.0,
+                    threshold = "> 0",
+                    rationale = "ok",
+                ),
+                RuleSignal.GrossMargin10yAvg(
+                    signal = Signal.GREEN,
+                    averagePercent = 1.0,
+                    thresholdGreenPercent = 40.0,
+                    thresholdYellowPercent = 30.0,
+                    observedValue = 1.0,
+                    threshold = "> 0",
+                    rationale = "ok",
+                ),
+                RuleSignal.NetMargin10yAvg(
+                    signal = Signal.GREEN,
+                    averagePercent = 1.0,
+                    thresholdGreenPercent = 10.0,
+                    observedValue = 1.0,
+                    threshold = "> 0",
+                    rationale = "ok",
+                ),
+                RuleSignal.CurrentRatioLatest(
+                    signal = Signal.GREEN,
+                    ratioLatest = 1.0,
+                    thresholdGreen = 2.0,
+                    thresholdYellow = 1.5,
+                    observedValue = 1.0,
+                    threshold = "> 0",
+                    rationale = "ok",
+                ),
+                RuleSignal.DebtToIncomeLatest(
+                    signal = Signal.GREEN,
+                    ratioLatest = 1.0,
+                    thresholdGreen = 4.0,
+                    thresholdYellow = 5.0,
+                    netIncomePositive = true,
+                    observedValue = 1.0,
+                    threshold = "> 0",
+                    rationale = "ok",
+                ),
+                RuleSignal.CapexIntensity10yAvg(
+                    signal = Signal.GREEN,
+                    averagePercent = 1.0,
+                    thresholdGreenPercent = 25.0,
+                    thresholdYellowPercent = 30.0,
+                    observedValue = 1.0,
+                    threshold = "> 0",
+                    rationale = "ok",
+                ),
+            ),
             grahamNumber = 47.43,
             dcfIntrinsicValue = 150.0,
             dcfMethod = DcfMethod.GREENWALD,

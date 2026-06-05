@@ -15,7 +15,8 @@ related:
   - fe-agent-correctness-strategy
   - correctness-oracle
   - graphify-installation
-tags: [runbook, installazione, playwright, visual-oracle, ep-005, fe, setup]
+tags: [runbook, installazione, playwright, visual-oracle, ep-005, fe, setup, platform-domain]
+domain: platform
 ---
 
 # Installazione Playwright per Visual Oracle

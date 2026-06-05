@@ -76,9 +76,11 @@ class PbLatestRule : ValuationRule {
 
     override fun evaluate(dataset: FinancialDataset): RuleSignal {
         if (dataset.keyMetrics.isEmpty()) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.PbLatest(
                 signal = Signal.NOT_CALCULABLE,
+                pbLatest = null,
+                thresholdGreen = GREEN_THRESHOLD,
+                thresholdYellow = YELLOW_UPPER_BOUND,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Key Metrics non disponibili: P/B indeterminato.",
@@ -87,9 +89,11 @@ class PbLatestRule : ValuationRule {
 
         val currentPrice = dataset.currentPrice
         if (currentPrice == null) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.PbLatest(
                 signal = Signal.INDETERMINATE,
+                pbLatest = null,
+                thresholdGreen = GREEN_THRESHOLD,
+                thresholdYellow = YELLOW_UPPER_BOUND,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Prezzo corrente non disponibile: P/B indeterminato.",
@@ -98,9 +102,11 @@ class PbLatestRule : ValuationRule {
 
         // Latest-year picker (stesso pattern di SizeRule / CurrentRatioRule).
         val latestKeyMetrics = dataset.keyMetrics.maxByOrNull { it.date ?: it.calendarYear ?: "" }
-            ?: return RuleSignal(
-                ruleId = ruleId,
+            ?: return RuleSignal.PbLatest(
                 signal = Signal.INDETERMINATE,
+                pbLatest = null,
+                thresholdGreen = GREEN_THRESHOLD,
+                thresholdYellow = YELLOW_UPPER_BOUND,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Key Metrics non ordinabili: P/B indeterminato.",
@@ -114,18 +120,22 @@ class PbLatestRule : ValuationRule {
         if (bookValuePerShare == null) {
             // Schema /stable: campo potenzialmente null su /key-metrics
             // (memory/feedback_fmp_doc_refresh.md). No fallback derivativo qui.
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.PbLatest(
                 signal = Signal.INDETERMINATE,
+                pbLatest = null,
+                thresholdGreen = GREEN_THRESHOLD,
+                thresholdYellow = YELLOW_UPPER_BOUND,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Book Value per Share mancante per $yearLabel: P/B indeterminato.",
             )
         }
         if (bookValuePerShare <= 0.0) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.PbLatest(
                 signal = Signal.INDETERMINATE,
+                pbLatest = null,
+                thresholdGreen = GREEN_THRESHOLD,
+                thresholdYellow = YELLOW_UPPER_BOUND,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Book Value per Share non positivo ($bookValuePerShare) per $yearLabel: P/B indeterminato (patrimonio netto negativo o nullo).",
@@ -140,9 +150,11 @@ class PbLatestRule : ValuationRule {
         }
         val rationale = "Prezzo $%.2f / Book Value per Share $%.2f ($yearLabel) = P/B %.2f"
             .format(currentPrice, bookValuePerShare, pbLatest)
-        return RuleSignal(
-            ruleId = ruleId,
+        return RuleSignal.PbLatest(
             signal = signal,
+            pbLatest = pbLatest,
+            thresholdGreen = GREEN_THRESHOLD,
+            thresholdYellow = YELLOW_UPPER_BOUND,
             observedValue = pbLatest,
             threshold = THRESHOLD_LABEL,
             rationale = rationale,

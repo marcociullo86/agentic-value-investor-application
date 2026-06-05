@@ -4,7 +4,8 @@ sources: ["raw/01_Principi_Fondamentali_Value_Investing.md"]
 status: draft
 created: 2026-05-20
 updated: 2026-05-20
-tags: [value-investing, graham, margin-of-safety, mr-market, inflation]
+tags: [value-investing, graham, margin-of-safety, mr-market, inflation, vi-domain]
+domain: value-investing
 ---
 # Source: I Principi Fondamentali del Value Investing
 

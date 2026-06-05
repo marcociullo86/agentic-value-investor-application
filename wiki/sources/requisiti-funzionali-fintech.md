@@ -4,7 +4,8 @@ sources: ["raw/requisiti-funzionali-fintech.md"]
 status: draft
 created: 2026-05-26
 updated: 2026-05-26
-tags: [fintech, hardening, logging, accessibility, security, auth-guard, material-design-3]
+tags: [fintech, hardening, logging, accessibility, security, auth-guard, material-design-3, platform-domain]
+domain: platform
 ---
 # Requisiti Funzionali — Iterazione Fintech
 

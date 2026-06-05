@@ -4,7 +4,8 @@ sources: ["raw/investitore intelligente.txt", "raw/01_Principi_Fondamentali_Valu
 status: draft
 created: 2026-05-22
 updated: 2026-05-22
-tags: [value-investing, graham, philosophy, synthesis, framework, buffett, margin-of-safety, mr-market, superinvestors]
+tags: [value-investing, graham, philosophy, synthesis, framework, buffett, margin-of-safety, mr-market, superinvestors, vi-domain]
+domain: value-investing
 ---
 # Filosofia di Investimento di Benjamin Graham — Sintesi Cross-Domain
 

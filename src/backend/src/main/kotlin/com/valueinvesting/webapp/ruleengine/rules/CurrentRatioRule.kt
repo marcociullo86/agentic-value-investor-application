@@ -44,9 +44,11 @@ class CurrentRatioRule : ValuationRule {
 
     override fun evaluate(dataset: FinancialDataset): RuleSignal {
         if (dataset.balance.isEmpty()) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.CurrentRatioLatest(
                 signal = Signal.NOT_CALCULABLE,
+                ratioLatest = null,
+                thresholdGreen = GREEN_THRESHOLD,
+                thresholdYellow = YELLOW_THRESHOLD,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Nessun esercizio di Balance Sheet disponibile.",
@@ -59,18 +61,22 @@ class CurrentRatioRule : ValuationRule {
         val yearLabel = latest.date ?: latest.calendarYear ?: "ultimo esercizio"
 
         if (assets == null || liabilities == null) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.CurrentRatioLatest(
                 signal = Signal.INDETERMINATE,
+                ratioLatest = null,
+                thresholdGreen = GREEN_THRESHOLD,
+                thresholdYellow = YELLOW_THRESHOLD,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Voci di Current Assets o Current Liabilities mancanti per $yearLabel.",
             )
         }
         if (liabilities <= 0.0) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.CurrentRatioLatest(
                 signal = Signal.INDETERMINATE,
+                ratioLatest = null,
+                thresholdGreen = GREEN_THRESHOLD,
+                thresholdYellow = YELLOW_THRESHOLD,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Current Liabilities non positive ($liabilities) per $yearLabel: ratio non definito.",
@@ -90,9 +96,11 @@ class CurrentRatioRule : ValuationRule {
             else ->
                 "Current Ratio %.2f per %s.".format(ratio, yearLabel)
         }
-        return RuleSignal(
-            ruleId = ruleId,
+        return RuleSignal.CurrentRatioLatest(
             signal = signal,
+            ratioLatest = ratio,
+            thresholdGreen = GREEN_THRESHOLD,
+            thresholdYellow = YELLOW_THRESHOLD,
             observedValue = ratio,
             threshold = THRESHOLD_LABEL,
             rationale = rationale,

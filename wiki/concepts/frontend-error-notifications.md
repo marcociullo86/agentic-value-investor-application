@@ -4,7 +4,8 @@ sources: ["raw/requisiti-funzionali-fintech.md"]
 status: draft
 created: 2026-05-26
 updated: 2026-05-26 (v2026-05-26 fix CI post-Sprint 12/13)
-tags: [frontend, error-handling, accessibility, wcag, toast, notifications, fintech]
+tags: [frontend, error-handling, accessibility, wcag, toast, notifications, fintech, platform-domain]
+domain: platform
 ---
 # Sistema di Notifiche Errori Frontend
 

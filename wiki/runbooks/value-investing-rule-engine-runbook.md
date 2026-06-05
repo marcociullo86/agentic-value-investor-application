@@ -4,7 +4,8 @@ sources: ["raw/06_Documento_Funzionale_WebApp_Value_Investing.md"]
 status: draft
 created: 2026-05-20
 updated: 2026-05-21
-tags: [runbook, rule-engine, value-investing, kotlin, fmp, roe, roic, dcf, margin-of-safety, implementation]
+tags: [runbook, rule-engine, value-investing, kotlin, fmp, roe, roic, dcf, margin-of-safety, implementation, vi-domain]
+domain: value-investing
 ---
 # Runbook: Implementare il Value Investing Rule Engine
 

@@ -4,7 +4,8 @@ type: concept
 sources: ["raw/fmp_docs.md", "raw/fmp_docs.json"]
 status: draft
 created: 2026-05-22
-tags: [fmp, stable, etf, mutual-fund, holdings]
+tags: [fmp, stable, etf, mutual-fund, holdings, platform-domain]
+domain: platform
 ---
 # FMP — ETFs & Mutual Funds (stable)
 

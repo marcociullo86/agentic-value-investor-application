@@ -4,7 +4,8 @@ sources: ["raw/requisiti-funzionali-fintech.md"]
 status: draft
 created: 2026-05-26
 updated: 2026-05-26
-tags: [correlation-id, tracing, observability, backend, frontend, fintech]
+tags: [correlation-id, tracing, observability, backend, frontend, fintech, platform-domain]
+domain: platform
 ---
 # Correlation ID e Tracing End-to-End
 

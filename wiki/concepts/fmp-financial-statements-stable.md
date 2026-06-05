@@ -4,7 +4,8 @@ type: concept
 sources: ["raw/fmp_docs.md", "raw/fmp_docs.json"]
 status: draft
 created: 2026-05-22
-tags: [fmp, stable, financial-statements, income, balance-sheet, cash-flow, ttm]
+tags: [fmp, stable, financial-statements, income, balance-sheet, cash-flow, ttm, platform-domain]
+domain: platform
 ---
 # FMP — Financial Statements (stable)
 

@@ -4,7 +4,8 @@ sources: ["raw/06_Documento_Funzionale_WebApp_Value_Investing.md", "raw/03_Anali
 status: draft
 created: 2026-05-20
 updated: 2026-05-21
-tags: [synthesis, product-spec, value-investing, fmp, rule-engine, webapp, graham, buffett, dcf, margin-of-safety]
+tags: [synthesis, product-spec, value-investing, fmp, rule-engine, webapp, graham, buffett, dcf, margin-of-safety, vi-domain]
+domain: value-investing
 ---
 # Specifica della WebApp Value Investing — Sintesi Cross-Domain
 

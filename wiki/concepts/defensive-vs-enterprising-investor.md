@@ -4,7 +4,8 @@ sources: ["raw/02_L_Investitore_Difensivo_vs_Intraprendente.md", "raw/03_Analisi
 status: draft
 created: 2026-05-20
 updated: 2026-05-20
-tags: [value-investing, graham, defensive-investor, enterprising-investor, asset-allocation, etf]
+tags: [value-investing, graham, defensive-investor, enterprising-investor, asset-allocation, etf, vi-domain]
+domain: value-investing
 ---
 # Investitore Difensivo vs Intraprendente
 

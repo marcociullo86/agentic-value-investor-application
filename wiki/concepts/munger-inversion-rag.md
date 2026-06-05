@@ -4,7 +4,8 @@ sources: ["raw/agent.py", "raw/09_agent_py_method_analysis.md"]
 status: draft
 created: 2026-05-23
 updated: 2026-05-30
-tags: [value-investing, munger, inversion, rag, faiss, 10k, 10q, sec-edgar, llm, qualitative-analysis]
+tags: [value-investing, munger, inversion, rag, faiss, 10k, 10q, sec-edgar, llm, qualitative-analysis, vi-domain]
+domain: value-investing
 ---
 # Munger Inversion RAG — Analisi Qualitativa 10-K/10-Q
 
@@ -142,3 +143,6 @@ Vedi gap `tpm-embeddings-sidecar-vs-djl` per la decisione architetturale sull'em
 
 ## Storie collegate
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->
+
+- [EP-024](../../management/kanban/EP-024-riepilogo-e-technical-analysis-tab/EP-024.md) — Tab Riepilogo (riusa pgvector + arctic-embed indicizzando le pagine wiki come secondo corpus oltre ai filing 10-K/10-Q)
+- [US-103](../../management/kanban/EP-024-riepilogo-e-technical-analysis-tab/US-103-aggregatore-riepilogo-cross-dominio-be/US-103.md) — BE Aggregatore /summary con citazioni RAG cross-dominio (pattern Munger-inversion riusato); Munger `RISCHIO_ESTREMO` overrides anche su VI positivo

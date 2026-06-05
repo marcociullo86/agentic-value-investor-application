@@ -14,12 +14,28 @@ updated: 2026-05-27 (+1 incident run test FE locale)
 updated: 2026-05-27 (doc-sync factory v2.13 + CQRL enabled: +1 concept agentic-factory-v213, +1 sezione Factory/Tooling)
 updated: 2026-05-28 (reconcile L1-L4 post EP-019 CQRL bonifica: update agentic-factory-v213 outcome 224/224 pass, incident allineato TSK-239 done)
 updated: 2026-05-29 (+1 incident F5-logout CSRF bugfix; update auth-guard-frontend + fintech-security-compliance)
+updated: 2026-06-05 (ingest Murphy 1999 OCR: +1 source reale (sostituisce placeholder), +7 concept TA, +1 entity john-murphy; gap murphy-technical-analysis-extraction-failure chiuso)
+updated: 2026-06-05 (+3 syntheses TA timing: ta-entry-timing-stock-detail, ta-stop-placement-position-sizing, ta-vs-vi-decision-layer — layer advisory timing per pagina dettaglio titolo, caso COPART)
 tags: [navigation]
 ---
 # Wiki Index — App Template Demo
 
 > Indice navigabile della knowledge base. Rigenerato dal `wiki-keeper` a ogni
 > ingest (Fase 4 di `ingest-protocol`).
+
+## Convenzione `domain:` (v2026-06-05)
+
+Ogni pagina di contenuto della wiki porta un campo frontmatter `domain:` con uno di tre valori, accompagnato da un tag coerente:
+
+| Valore | Tag | Uso |
+|---|---|---|
+| `value-investing` | `vi-domain` | Pagine Graham/Buffett: intrinsic value, margin of safety, economic moat, owner earnings, graham number, DCF, rule-engine VI, net-net, mr-market, superinvestors, behavioral finance VI, SEC filings analysis, clone investing 13-F. Filtrare: cercare `vi-domain` nei tag o `domain: value-investing` nel frontmatter. |
+| `technical-analysis-trading` | `ta-domain` | Pagine Elder/Murphy: analisi tecnica, triple screen, impulse system, risk management trader, psicologia trading. Filtrare: `ta-domain` o `domain: technical-analysis-trading`. |
+| `platform` | `platform-domain` | Infrastruttura e meta: FMP API (tutti i fmp-* concept ed entity), agentic-factory, parallel-scheduler, correlation-id-tracing, structured-logging, openapi-contract-check, material-design, auth-guard-frontend, fintech-security-compliance, pgvector, arctic-embed, analysis-api-pipeline, webapp-architecture-vi (engineering), value-investor-bot-architecture, runbook migrazioni, CQRL. Filtrare: `platform-domain` o `domain: platform`. |
+
+Regola di filtro rapido: quando una feature value-investing necessita di contesto teorico, filtrare `domain: value-investing`; per contesto infrastrutturale filtrare `domain: platform`; per TA/trading filtrare `domain: technical-analysis-trading`. Le pagine meta-operative (`lint/`, `incidents/`, `log.md`, `gaps.md`, `index.md`) non portano `domain:`.
+
+---
 
 ## Substrate (karpathy-style)
 
@@ -48,7 +64,7 @@ tags: [navigation]
 
 ## Pagine
 
-### Sources (12)
+### Sources (13)
 
 #### FMP API (2)
 
@@ -56,6 +72,12 @@ tags: [navigation]
 |--------|--------------------|-----|
 | [[fmp-docs]] | fmp_docs.md + fmp_docs.json (263 endpoint stable) | fmp, stable, api |
 | [[fmp-mcp-server]] | fmp_mcp-server.txt (annuncio MCP Server FMP) | fmp, mcp, model-context-protocol, llm |
+
+#### Technical Analysis / Trading (1)
+
+| Pagina | Documento sorgente | Tag |
+|--------|--------------------|-----|
+| [[murphy-technical-analysis-financial-markets-1999]] | raw/2026-06-05-technical-analysis-financial-markets-1999.txt (J.J. Murphy, 1999, OCR) | technical-analysis, trading, ta-domain |
 
 #### Value Investing (6)
 
@@ -82,7 +104,7 @@ tags: [navigation]
 |--------|--------------------|-----|
 | [[requisiti-funzionali-fintech]] | requisiti-funzionali-fintech.md | fintech, hardening, logging, accessibility, security, auth-guard, material-design-3 |
 
-### Concepts (47)
+### Concepts (54)
 
 #### FMP API stable (14)
 
@@ -139,6 +161,19 @@ tags: [navigation]
 | [[arctic-embed-l-v2]] | Modello embedding EP-011: `Qwen/Qwen3-Embedding-0.6B` (1024-dim, 32K ctx, MTEB ~64.6); A/B test via `embeddings.model.name`; Arctic Embed L v2.0 come fallback |
 | [[value-investor-bot-architecture]] | Agent.py v2.6.1: architettura LangGraph multi-agente (screener → SEC RAG → news sentiment → DCF → verdetto), prototipo Python delle funzionalità EP-010/011/012 |
 
+#### Technical Analysis / Trading — Murphy (8)
+
+| Pagina | Descrizione |
+|--------|-------------|
+| [[technical-analysis-trading-domain]] | Mappa di separazione dominio TA/value investing: differenze, punti di contatto, avvisi per dev-agent |
+| [[dow-theory]] | 6 principi Dow: market discounts all, tre trend, tre fasi, conferma indici, volume, trend presunto fino a inversione |
+| [[trend-trendlines-support-resistance]] | Definizioni di trend (up/down/sideways), support/resistance, role reversal, trendlines, channels, retracements, gaps |
+| [[chart-patterns-reversal-continuation]] | Reversal: head&shoulders, double/triple top/bottom, saucers, spikes. Continuation: triangoli, flags, pennants, wedge, rectangle. Candlestick patterns. |
+| [[moving-averages-ta]] | SMA/EMA/WMA, dual crossover system, Bollinger Bands, weekly rule, adaptive MA, cicli e armonici |
+| [[oscillators-momentum-rsi]] | Momentum, ROC, MACD+histogram, RSI, Stochastics, Williams %R, CCI, contrary opinion |
+| [[volume-open-interest]] | OBV, regole volume/open-interest per futures, COT report (commercials), blowoffs e selling climaxes |
+| [[intermarket-analysis-murphy]] | Dollar→Commodities→Bonds→Stocks (catena inflazione/deflazione), sector rotation, relative strength analysis |
+
 #### Factory / Tooling (2)
 
 | Pagina | Descrizione |
@@ -157,15 +192,17 @@ tags: [navigation]
 | [[fintech-security-compliance]] | REQ-05: PII policy, token storage, defense-in-depth, PCI-DSS condizionale, threat model, security events |
 | [[correlation-id-tracing]] | Cross-cutting: propagazione X-Correlation-Id end-to-end backend-frontend |
 
-### Entities (3)
+### Entities (5)
 
 | Pagina | Descrizione |
 |--------|-------------|
 | [[fmp-api]] | Financial Modeling Prep — provider REST API stable (263 endpoint, base URL `/stable/`) |
 | [[benjamin-graham]] | Padre fondatore del value investing — biografia, Graham-Newman, allievi, contributi (aggiornato v2026-05-22) |
 | [[warren-buffett]] | Evoluisce Graham con moat, cerchio di competenza, Owner Earnings (aggiornato v2026-05-22) |
+| [[alexander-elder]] | Trader e psichiatra — autore "The New Trading for a Living" (2014); Triple Screen System, psicologia trading |
+| [[john-murphy]] | Technical analyst — autore "Technical Analysis of the Financial Markets" (1999); fondatore analisi intermarket |
 
-### Syntheses (6)
+### Syntheses (9)
 
 | Pagina | Descrizione |
 |--------|-------------|
@@ -175,6 +212,17 @@ tags: [navigation]
 | [[graham-investing-philosophy]] | Sintesi cross-domain: 5 strati del framework Graham, genealogia Graham→Buffett, evidenza Doddsville |
 | [[graham-modern-bot-methodologies]] | Sintesi cross-domain Graham 1973 ↔ pratiche moderne 2026 ↔ agent.py ↔ Rule Engine Kotlin: convergenze, divergenze, scelte metodologiche |
 | [[fintech-hardening-requirements-map]] | Mappa cross-domain: 5 REQ iterazione fintech, dipendenze inter-REQ, impatto sull'architettura esistente |
+| [[ta-entry-timing-stock-detail]] | Timing dell'entry su un titolo promosso dal verdetto VI: Triple Screen Elder, SMA200 + RSI (badge advisory esistenti), support/resistance Murphy per il livello d'ingresso |
+| [[ta-stop-placement-position-sizing]] | Stop placement ancorato a struttura (Murphy) + 2% Rule e 6% Rule Elder: caso COPART, relazione ampiezza stop / dimensione posizione |
+| [[ta-vs-vi-decision-layer]] | TA come layer di timing advisory che completa il verdetto VI: "cosa" (fondamentale) vs "quando" (tecnico), rischi di sovra-affidarsi alla TA, lente di valore applicata |
+
+#### Technical Analysis / Trading — Syntheses (3)
+
+| Pagina | Descrizione |
+|--------|-------------|
+| [[ta-entry-timing-stock-detail]] | Quando comprare: Triple Screen applicato ai badge advisory dell'app, pullback in trend favorevole |
+| [[ta-stop-placement-position-sizing]] | Dove mettere lo stop: struttura vs percentuale; sizing 2% Rule; caso COPART |
+| [[ta-vs-vi-decision-layer]] | TA advisory vs verdetto VI: due layer ortogonali, confine dominio, rischi whipsaw |
 
 ### Runbooks (8)
 

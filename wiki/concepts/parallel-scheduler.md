@@ -8,7 +8,8 @@ updated: 2026-05-28
 sources:
   - PATTERN.md §18
   - factory.config.yaml (blocco scheduler:)
-tags: [factory, orchestration, dag, parallelism, depends_on, code_path]
+tags: [factory, orchestration, dag, parallelism, depends_on, code_path, platform-domain]
+domain: platform
 ---
 
 # Parallel scheduler (DAG-driven dispatch)

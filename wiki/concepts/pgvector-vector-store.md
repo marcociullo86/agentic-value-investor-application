@@ -7,7 +7,8 @@ sources:
   - "raw/agent.py"
 status: review
 created: 2026-05-25
-tags: [pgvector, vector-store, postgresql, rag, ep-011, sec-filings, embedding]
+tags: [pgvector, vector-store, postgresql, rag, ep-011, sec-filings, embedding, platform-domain]
+domain: platform
 ---
 # pgvector Vector Store — `filing_chunks`
 

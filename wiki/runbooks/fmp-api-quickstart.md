@@ -4,7 +4,8 @@ sources: ["raw/fmp_docs.md", "raw/fmp_docs.json"]
 status: draft
 created: 2026-05-20
 updated: 2026-05-23
-tags: [fmp, quickstart, runbook, integration, rate-limit, errors, us-029, us-031, stable]
+tags: [fmp, quickstart, runbook, integration, rate-limit, errors, us-029, us-031, stable, platform-domain]
+domain: platform
 ---
 # Quickstart — Integrazione FMP API (`/stable`)
 

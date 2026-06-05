@@ -4,7 +4,8 @@ sources: ["raw/agent.py", "raw/09_agent_py_method_analysis.md"]
 status: draft
 created: 2026-05-23
 updated: 2026-05-23
-tags: [value-investing, dcf, discount-rate, wacc, risk-free, buffett, methodology]
+tags: [value-investing, dcf, discount-rate, wacc, risk-free, buffett, methodology, vi-domain]
+domain: value-investing
 ---
 # DCF Discount Rate Policy
 

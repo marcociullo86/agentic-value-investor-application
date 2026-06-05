@@ -4,6 +4,8 @@ import net.logstash.logback.argument.StructuredArguments.kv
 import org.slf4j.LoggerFactory
 import org.slf4j.MarkerFactory
 import org.springframework.stereotype.Component
+import java.time.Instant
+import java.util.UUID
 
 /**
  * Typed security-event logger that emits structured log entries with the
@@ -125,6 +127,33 @@ class SecurityEventLogger {
             kv("userId", userId),
             kv("resource", resource),
             kv("currentRole", currentRole),
+        )
+    }
+
+    /**
+     * Cascade revocation triggered by refresh-token reuse detection
+     * (ADR-027 §4). Severity `warn` to flag potential token theft to the
+     * SOC operator; the same `SECURITY_EVENT` marker routes the entry to
+     * the 365-day retention appender (ADR-021 §7).
+     *
+     * - [userId] UUID of the user whose refresh tokens were revoked. UUID
+     *   is not PII (no name / email), so no encoder redaction is required.
+     * - [family] `first_issued_at` of the revoked-and-then-replayed token,
+     *   used as a family identifier so a SOC analyst can correlate the
+     *   compromised chain in the audit trail.
+     * - [revokedCount] number of refresh tokens flipped to `revoked_at = now`
+     *   by the bulk update — `0` on the idempotent second-replay path.
+     *
+     * [^src: design_&_architecture/decisions/ADR-027-refresh-token-cascade-revocation.md §4]
+     */
+    fun refreshTokenReuseDetected(userId: UUID, family: Instant, revokedCount: Int) {
+        log.warn(
+            SECURITY_EVENT,
+            "Refresh token reuse detected — cascade revocation triggered",
+            kv("event", "REFRESH_TOKEN_REUSE_DETECTED"),
+            kv("userId", userId),
+            kv("family", family.toString()),
+            kv("revokedCount", revokedCount),
         )
     }
 }

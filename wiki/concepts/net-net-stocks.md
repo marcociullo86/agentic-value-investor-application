@@ -4,7 +4,8 @@ sources: ["raw/investitore intelligente.txt"]
 status: draft
 created: 2026-05-22
 updated: 2026-05-22
-tags: [value-investing, graham, net-net, working-capital, cigar-butt, liquidation-value, enterprising-investor]
+tags: [value-investing, graham, net-net, working-capital, cigar-butt, liquidation-value, enterprising-investor, vi-domain]
+domain: value-investing
 ---
 # Net-Net Stocks (Azioni sotto il Net Current Asset Value)
 

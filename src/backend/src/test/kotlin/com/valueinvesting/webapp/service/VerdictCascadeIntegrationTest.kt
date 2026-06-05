@@ -193,20 +193,28 @@ class VerdictCascadeIntegrationTest {
         VerdictClass.WATCHLIST -> watchlistInput()
     }
 
-    private fun ruleSignal(id: String, signal: Signal) = RuleSignal(
-        ruleId = id,
-        signal = signal,
-        observedValue = null,
-        threshold = "",
-        rationale = "",
-    )
+    // Test fixtures (TSK-311 EP-021): cycle attraverso i 13 ruleId canonici.
+    // Vedi MungerDecisionServiceTest §CANONICAL_RULE_IDS per il razionale.
+    private fun ruleIdAt(index: Int): String =
+        CANONICAL_RULE_IDS[(index - 1) % CANONICAL_RULE_IDS.size]
+
+    private fun ruleSignal(id: String, signal: Signal): RuleSignal = typedRuleSignal(id, signal)
 
     private fun allGreenRules(count: Int): List<RuleSignal> =
-        (1..count).map { ruleSignal("RULE_$it", Signal.GREEN) }
+        (1..count).map { ruleSignal(ruleIdAt(it), Signal.GREEN) }
 
     private fun rulesWithRedCount(redCount: Int, total: Int): List<RuleSignal> {
         require(redCount <= total)
-        return (1..redCount).map { ruleSignal("RULE_$it", Signal.RED) } +
-            (redCount + 1..total).map { ruleSignal("RULE_$it", Signal.GREEN) }
+        return (1..redCount).map { ruleSignal(ruleIdAt(it), Signal.RED) } +
+            (redCount + 1..total).map { ruleSignal(ruleIdAt(it), Signal.GREEN) }
+    }
+
+    private companion object {
+        val CANONICAL_RULE_IDS: List<String> = listOf(
+            "ROE_10Y_AVG", "ROIC_10Y_AVG", "GROSS_MARGIN_10Y_AVG", "NET_MARGIN_10Y_AVG",
+            "CURRENT_RATIO_LATEST", "DEBT_TO_INCOME_LATEST", "CAPEX_INTENSITY_10Y_AVG",
+            "SIZE_LATEST", "EARNINGS_STABILITY_10Y", "EPS_GROWTH_10Y",
+            "PE_3Y_AVG", "PB_LATEST", "DIVIDEND_CONTINUITY_20Y",
+        )
     }
 }

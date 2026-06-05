@@ -8,6 +8,8 @@ sources:
   - design_&_architecture/proposta-premortem-integration-v216.md
 created: 2026-06-01
 updated: 2026-06-01
+tags: [runbook, premortem, risk, platform-domain]
+domain: platform
 ---
 
 # Runbook — usare `/premortem` in una factory v2.16

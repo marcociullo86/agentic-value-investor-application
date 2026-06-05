@@ -4,7 +4,8 @@ sources: ["raw/06_Documento_Funzionale_WebApp_Value_Investing.md"]
 status: draft
 created: 2026-05-20
 updated: 2026-05-21
-tags: [product-spec, value-investing, rule-engine, roe, roic, margin, current-ratio, dcf, capex]
+tags: [product-spec, value-investing, rule-engine, roe, roic, margin, current-ratio, dcf, capex, vi-domain]
+domain: value-investing
 ---
 # Value Investing Rule Engine
 
@@ -193,3 +194,4 @@ Mapping tra i `ruleId` Kotlin del Rule Engine MVP e i check equivalenti in agent
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->
 - EP-003 (Rule Engine quantitativo): US-007 redditività, US-008 pricing power, US-009 solidità, US-010 capitale intensivo
 - EP-004 (Valore intrinseco e MoS): US-011 Graham Number, US-012 DCF, US-013 Margin of Safety
+- [EP-024](../../management/kanban/EP-024-riepilogo-e-technical-analysis-tab/EP-024.md) — Tab Riepilogo: il verdetto del Rule Engine resta gate primario nel verdetto aggregato; US-103 hardcoda la regola "VI RED → mai ENTER_NOW" e "Munger RISCHIO_ESTREMO → mai ENTER_NOW"

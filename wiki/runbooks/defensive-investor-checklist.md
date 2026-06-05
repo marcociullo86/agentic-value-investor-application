@@ -4,7 +4,8 @@ sources: ["raw/investitore intelligente.txt", "raw/02_L_Investitore_Difensivo_vs
 status: draft
 created: 2026-05-22
 updated: 2026-05-22
-tags: [value-investing, graham, defensive-investor, checklist, stock-selection, fmp, runbook]
+tags: [value-investing, graham, defensive-investor, checklist, stock-selection, fmp, runbook, vi-domain]
+domain: value-investing
 ---
 # Checklist Operativa — Investitore Difensivo (Cap.14)
 

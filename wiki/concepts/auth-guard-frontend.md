@@ -4,7 +4,8 @@ sources: ["raw/requisiti-funzionali-fintech.md"]
 status: draft
 created: 2026-05-26
 updated: 2026-05-29
-tags: [auth, auth-guard, frontend, token, session, security, fintech]
+tags: [auth, auth-guard, frontend, token, session, security, fintech, platform-domain]
+domain: platform
 ---
 # AuthGuard sulle Sezioni Protette del Frontend
 

@@ -4,7 +4,8 @@ sources: ["raw/05_Analisi_10K_10Q_e_Regole_Buffett.md", "raw/04_Gestione_Rischio
 status: draft
 created: 2026-05-20
 updated: 2026-05-20
-tags: [value-investing, buffett, entity, person, investor, berkshire]
+tags: [value-investing, buffett, entity, person, investor, berkshire, vi-domain]
+domain: value-investing
 ---
 # Warren Buffett
 

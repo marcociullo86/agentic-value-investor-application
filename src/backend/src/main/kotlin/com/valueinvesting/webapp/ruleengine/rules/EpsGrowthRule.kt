@@ -80,9 +80,14 @@ class EpsGrowthRule : ValuationRule {
 
     override fun evaluate(dataset: FinancialDataset): RuleSignal {
         if (dataset.income.isEmpty()) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.EpsGrowth10y(
                 signal = Signal.NOT_CALCULABLE,
+                cagrPercent = null,
+                thresholdPercent = GREEN_THRESHOLD * 100.0,
+                epsStart = null,
+                epsEnd = null,
+                yearStart = null,
+                yearEnd = null,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Income Statement non disponibile: crescita EPS non valutabile.",
@@ -97,9 +102,14 @@ class EpsGrowthRule : ValuationRule {
             .sortedByDescending { it.date ?: it.calendarYear ?: "" }
 
         if (sortedDesc.size < REQUIRED_YEARS) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.EpsGrowth10y(
                 signal = Signal.INDETERMINATE,
+                cagrPercent = null,
+                thresholdPercent = GREEN_THRESHOLD * 100.0,
+                epsStart = null,
+                epsEnd = null,
+                yearStart = null,
+                yearEnd = null,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Serie storica insufficiente: ${sortedDesc.size} esercizi disponibili (richiesti $REQUIRED_YEARS).",
@@ -113,19 +123,34 @@ class EpsGrowthRule : ValuationRule {
         // anni 8-9-10 (più recenti, finale)
         val finalEps: List<Double> = window.subList(7, 10).mapNotNull { it.eps }
 
+        // Year endpoints for typed payload (parse YYYY from ISO date, fallback to
+        // calendarYear). Best-effort: null if unparseable.
+        val yearStart: Int? = extractYear(window[0])
+        val yearEnd: Int? = extractYear(window[9])
+
         if (initialEps.size < MIN_NON_NULL_PER_ENDPOINT) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.EpsGrowth10y(
                 signal = Signal.INDETERMINATE,
+                cagrPercent = null,
+                thresholdPercent = GREEN_THRESHOLD * 100.0,
+                epsStart = null,
+                epsEnd = null,
+                yearStart = yearStart,
+                yearEnd = yearEnd,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Dati EPS insufficienti nella triennale iniziale (anni 1-3): ${initialEps.size} valori non-null su 3 (minimo $MIN_NON_NULL_PER_ENDPOINT).",
             )
         }
         if (finalEps.size < MIN_NON_NULL_PER_ENDPOINT) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.EpsGrowth10y(
                 signal = Signal.INDETERMINATE,
+                cagrPercent = null,
+                thresholdPercent = GREEN_THRESHOLD * 100.0,
+                epsStart = initialEps.average(),
+                epsEnd = null,
+                yearStart = yearStart,
+                yearEnd = yearEnd,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Dati EPS insufficienti nella triennale finale (anni 8-10): ${finalEps.size} valori non-null su 3 (minimo $MIN_NON_NULL_PER_ENDPOINT).",
@@ -136,9 +161,14 @@ class EpsGrowthRule : ValuationRule {
         val avgEpsFinal = finalEps.average()
 
         if (avgEpsInitial <= 0.0) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.EpsGrowth10y(
                 signal = Signal.INDETERMINATE,
+                cagrPercent = null,
+                thresholdPercent = GREEN_THRESHOLD * 100.0,
+                epsStart = avgEpsInitial,
+                epsEnd = avgEpsFinal,
+                yearStart = yearStart,
+                yearEnd = yearEnd,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "EPS medio iniziale non significativo (${formatEps(avgEpsInitial)}): crescita non leggibile su baseline ≤ 0.",
@@ -155,13 +185,26 @@ class EpsGrowthRule : ValuationRule {
 
         val rationale = "EPS medio anni 1-3: ${formatEps(avgEpsInitial)} → anni 8-10: ${formatEps(avgEpsFinal)}. Crescita: ${formatGrowth(growth)}."
 
-        return RuleSignal(
-            ruleId = ruleId,
+        return RuleSignal.EpsGrowth10y(
             signal = signal,
+            cagrPercent = growth * 100.0,
+            thresholdPercent = GREEN_THRESHOLD * 100.0,
+            epsStart = avgEpsInitial,
+            epsEnd = avgEpsFinal,
+            yearStart = yearStart,
+            yearEnd = yearEnd,
             observedValue = growth,
             threshold = THRESHOLD_LABEL,
             rationale = rationale,
         )
+    }
+
+    private fun extractYear(row: IncomeStatementDto): Int? {
+        val date = row.date
+        if (date != null && date.length >= 4) {
+            date.substring(0, 4).toIntOrNull()?.let { return it }
+        }
+        return row.calendarYear?.toIntOrNull()
     }
 
     private fun formatEps(value: Double): String = "$%.2f".format(value)

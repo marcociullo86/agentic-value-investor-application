@@ -4,7 +4,8 @@ sources: ["raw/04_Gestione_Rischio_Psicologia_Integrazione.md", "raw/05_Analisi_
 status: draft
 created: 2026-05-20
 updated: 2026-05-20
-tags: [value-investing, economic-moat, competitive-advantage, buffett, pricing-power]
+tags: [value-investing, economic-moat, competitive-advantage, buffett, pricing-power, vi-domain]
+domain: value-investing
 ---
 # Fossato Economico (Economic Moat)
 

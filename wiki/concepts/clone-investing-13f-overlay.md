@@ -4,7 +4,8 @@ sources: ["raw/agent.py", "raw/09_agent_py_method_analysis.md"]
 status: draft
 created: 2026-05-23
 updated: 2026-05-23
-tags: [value-investing, clone-investing, 13f, sec-edgar, pabrai, spier, berkshire, superinvestors, screening]
+tags: [value-investing, clone-investing, 13f, sec-edgar, pabrai, spier, berkshire, superinvestors, screening, vi-domain]
+domain: value-investing
 ---
 # Clone Investing — 13-F Overlay via SEC EDGAR
 

@@ -2,6 +2,10 @@
 
 import { useMemo } from 'react';
 import type { RuleSignal, Signal } from '@/lib/api/analysis';
+import {
+  formatRuleSignal,
+  type RuleSignal as TypedRuleSignal,
+} from '@/lib/rule-signals/formatters';
 import { RuleSignalCard } from './RuleSignalCard';
 
 /**
@@ -93,24 +97,43 @@ export interface TrafficLightPanelProps {
 
 /**
  * Lunghezza massima del subtitle Graham sulla faccia collapsed (TSK-290 DoD item 3).
- * Le stringhe formattate dal BE (es. "Revenue: $123B", "Anni positivi: 8/10")
- * sono già sintetiche; il cap serve come safety net per rationale più verbosi
- * (taglio con ellissi). Empiricamente ~48 char copre i 6 format canonici.
+ * Le stringhe formattate da `formatRuleSignal()` (TSK-319/EP-021) sono sintetiche
+ * (es. "Revenue: $2.30B (soglia $100M)", "8/10 anni positivi"); il cap serve come
+ * safety net per subtitle eccezionalmente lunghi (taglio con ellissi).
+ * Empiricamente ~48 char copre i format typed-driven canonici (6 Graham + 7 Buffett).
  */
 const GRAHAM_SUBTITLE_MAX_LEN = 48;
 
 /**
- * Deriva il subtitle Graham per la faccia COMPRESSA. Il BE (TSK-289 openapi.yaml
- * §RuleSignal.rationale) emette stringhe già formattate ("P/B: X.X" ecc.); qui
- * troncoliamo se eccede {@link GRAHAM_SUBTITLE_MAX_LEN}. NB: metadati tipati
- * per-ruleId sono deferiti (gap `rulesignal-typed-metadata-deferred`), quindi
- * non possiamo riformattare dall'observedValue in modo type-safe per ogni rule.
+ * Deriva il subtitle Graham per la faccia COMPRESSA via formatter typed-driven
+ * (TSK-320 / EP-021 / ADR-028 §6). Sostituisce la precedente lettura diretta di
+ * `signal.rationale` con `formatRuleSignal(signal).subtitle`, che internamente
+ * narrowa per `ruleId` (union discriminata generata da OpenAPI 3.1
+ * `oneOf`+`discriminator`) e degrada su `rationale` legacy solo come last-resort
+ * paranoid fallback (ADR-028 §6, TSK-319 formatters.ts).
+ *
+ * Il cast `as unknown as TypedRuleSignal` ponte tra:
+ *  - `RuleSignal` legacy (analysis.ts, hand-rolled flat) ricevuto via props;
+ *  - `TypedRuleSignal` (schema generato da openapi-typescript, union discriminata).
+ *
+ * I due tipi sono **strutturalmente compatibili** sui campi letti dal formatter:
+ *  - `ruleId: string` (legacy) ⊂ enum discriminator (typed): se il BE emette già
+ *    EP-021 payload tipato, ruleId è uno dei 15 valori noti → narrowing OK;
+ *  - `rationale?: string`: campo legacy presente in entrambi (RuleSignalBase
+ *    deprecated ma ancora nel payload R+1/R+2, ADR-028 §8);
+ *  - i campi typed (es. `revenueLatest`, `pe3yAvg`) sono assenti nel legacy →
+ *    nel formatter sono letti come `undefined` → ramo `legacyFallback(s)` →
+ *    degrada su `rationale` → UI invariata.
+ *
+ * Il cast è necessario perché `RuleSignal` legacy non vincola `ruleId` ai 15
+ * letterali; il formatter ha un fallback runtime (`runtimeFallback`, formatters.ts
+ * §runtimeFallback) per ruleId sconosciuti, quindi il cast non introduce rischio
+ * di eccezione a runtime. Boundary documentata in ADR-028 §6 (transizione R+1/R+2).
  */
 function deriveGrahamSubtitle(signal: RuleSignal): string | undefined {
-  const r = signal.rationale;
-  if (r === undefined || r === null) return undefined;
-  const trimmed = r.trim();
-  if (trimmed.length === 0) return undefined;
+  const { subtitle } = formatRuleSignal(signal as unknown as TypedRuleSignal);
+  const trimmed = subtitle.trim();
+  if (trimmed.length === 0 || trimmed === 'N/A') return undefined;
   if (trimmed.length <= GRAHAM_SUBTITLE_MAX_LEN) return trimmed;
   return `${trimmed.slice(0, GRAHAM_SUBTITLE_MAX_LEN - 1)}…`;
 }

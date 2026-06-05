@@ -4,7 +4,8 @@ type: synthesis
 sources: ["raw/fmp_docs.md", "raw/fmp_docs.json", "raw/01_Principi_Fondamentali_Value_Investing.md", "raw/03_Analisi_Fondamentale_e_Valutazione.md", "raw/05_Analisi_10K_10Q_e_Regole_Buffett.md", "raw/06_Documento_Funzionale_WebApp_Value_Investing.md"]
 status: draft
 created: 2026-05-22
-tags: [fmp, stable, value-investing, rule-engine, integration, adr-004, synthesis]
+tags: [fmp, stable, value-investing, rule-engine, integration, adr-004, synthesis, vi-domain]
+domain: value-investing
 ---
 # Value Investing — Mapping Metriche → Endpoint FMP Stable
 

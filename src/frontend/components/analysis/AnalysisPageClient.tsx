@@ -11,6 +11,7 @@ import { ValuationSummary } from '@/components/analysis/ValuationSummary';
 import { StaleDataBadge } from '@/components/analysis/StaleDataBadge';
 import { MrMarketSentimentBadge } from '@/components/analysis/MrMarketSentimentBadge';
 import { LongTermTrendBadge } from '@/components/analysis/LongTermTrendBadge';
+import { NetNetBadge } from '@/components/analysis/NetNetBadge';
 import { HistoricalChart } from '@/components/charts/HistoricalChart';
 
 /**
@@ -96,12 +97,22 @@ export function AnalysisPageClient(
             Deep Analysis
           </Link>
         </nav>
-        <h1
-          data-testid="analysis-page-title"
-          className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100"
-        >
-          {normalized}
-        </h1>
+        <div className="flex flex-wrap items-center gap-3">
+          <h1
+            data-testid="analysis-page-title"
+            className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100"
+          >
+            {normalized}
+          </h1>
+          {/*
+            EP-023 / TSK-322 — NetNetBadge (ADR-029 §6).
+            Visibile solo se NET_NET_RATIO === GREEN; in tutti gli altri
+            casi (RED, INDETERMINATE, NOT_CALCULABLE, signal assente,
+            response cache pre-EP-023) il componente ritorna null e
+            il flex layout si comporta come prima (header con solo h1).
+          */}
+          <NetNetBadge signals={analysis?.signals ?? []} />
+        </div>
         <p className="text-sm text-slate-600 dark:text-slate-400">
           Verdetto Rule Engine + valutazione fondamentale.
         </p>

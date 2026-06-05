@@ -25,7 +25,8 @@ related:
   - sync-adapters
   - migration-v214
   - migration-v213
-tags: [runbook, migrazione, v2-14-fase2, compression, context, graphify, sync-adapters, opt-in]
+tags: [runbook, migrazione, v2-14-fase2, compression, context, graphify, sync-adapters, opt-in, platform-domain]
+domain: platform
 ---
 
 # Migrazione v2.14 Fase 1 → v2.14 Fase 2 (Context Compression Layer)

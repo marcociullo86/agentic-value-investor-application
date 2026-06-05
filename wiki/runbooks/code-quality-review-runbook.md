@@ -4,7 +4,8 @@ sources: ["raw/code_quality_review_layer.md"]
 status: draft
 created: 2026-05-27
 updated: 2026-05-27
-tags: [code-quality, review, runbook, implementazione, loop-control, batching]
+tags: [code-quality, review, runbook, implementazione, loop-control, batching, platform-domain]
+domain: platform
 ---
 
 # Code Quality Review Layer — Runbook operativo

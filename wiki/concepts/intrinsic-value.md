@@ -4,7 +4,8 @@ sources: ["raw/03_Analisi_Fondamentale_e_Valutazione.md", "raw/05_Analisi_10K_10
 status: draft
 created: 2026-05-20
 updated: 2026-05-20
-tags: [value-investing, intrinsic-value, dcf, owner-earnings, roic, roe, graham]
+tags: [value-investing, intrinsic-value, dcf, owner-earnings, roic, roe, graham, vi-domain]
+domain: value-investing
 ---
 # Valore Intrinseco (Intrinsic Value)
 

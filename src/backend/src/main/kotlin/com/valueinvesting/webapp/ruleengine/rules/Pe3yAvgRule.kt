@@ -92,9 +92,11 @@ class Pe3yAvgRule : ValuationRule {
 
     override fun evaluate(dataset: FinancialDataset): RuleSignal {
         if (dataset.income.isEmpty()) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.Pe3yAvg(
                 signal = Signal.NOT_CALCULABLE,
+                pe3yAvg = null,
+                thresholdGreen = GREEN_THRESHOLD,
+                thresholdYellow = YELLOW_THRESHOLD,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Income Statement non disponibile: P/E triennale non valutabile.",
@@ -103,9 +105,11 @@ class Pe3yAvgRule : ValuationRule {
 
         val currentPrice = dataset.currentPrice
         if (currentPrice == null) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.Pe3yAvg(
                 signal = Signal.INDETERMINATE,
+                pe3yAvg = null,
+                thresholdGreen = GREEN_THRESHOLD,
+                thresholdYellow = YELLOW_THRESHOLD,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Prezzo corrente non disponibile: P/E triennale indeterminato.",
@@ -120,9 +124,11 @@ class Pe3yAvgRule : ValuationRule {
             .sortedByDescending { it.date ?: it.calendarYear ?: "" }
 
         if (sorted.size < REQUIRED_YEARS) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.Pe3yAvg(
                 signal = Signal.INDETERMINATE,
+                pe3yAvg = null,
+                thresholdGreen = GREEN_THRESHOLD,
+                thresholdYellow = YELLOW_THRESHOLD,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Serie storica insufficiente: ${sorted.size} esercizi disponibili (richiesti $REQUIRED_YEARS).",
@@ -133,9 +139,11 @@ class Pe3yAvgRule : ValuationRule {
         val nonNullEps: List<Double> = window.mapNotNull { it.eps }
 
         if (nonNullEps.size < MIN_NON_NULL_EPS) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.Pe3yAvg(
                 signal = Signal.INDETERMINATE,
+                pe3yAvg = null,
+                thresholdGreen = GREEN_THRESHOLD,
+                thresholdYellow = YELLOW_THRESHOLD,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "EPS disponibili insufficienti nei top-$REQUIRED_YEARS esercizi (${nonNullEps.size}/$REQUIRED_YEARS non-null): P/E triennale indeterminato.",
@@ -144,9 +152,11 @@ class Pe3yAvgRule : ValuationRule {
 
         val avgEps3y = nonNullEps.average()
         if (avgEps3y <= 0.0) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.Pe3yAvg(
                 signal = Signal.INDETERMINATE,
+                pe3yAvg = null,
+                thresholdGreen = GREEN_THRESHOLD,
+                thresholdYellow = YELLOW_THRESHOLD,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "EPS medio triennale non positivo (${"%.2f".format(avgEps3y)}): P/E non significativo.",
@@ -162,9 +172,11 @@ class Pe3yAvgRule : ValuationRule {
 
         // TODO: priceTimestamp out-of-scope (ProfileDto non lo espone in /stable)
         val rationale = "Prezzo \$${"%.2f".format(currentPrice)} / EPS medio 3y \$${"%.2f".format(avgEps3y)} = P/E ${"%.2f".format(pe3yAvg)}"
-        return RuleSignal(
-            ruleId = ruleId,
+        return RuleSignal.Pe3yAvg(
             signal = signal,
+            pe3yAvg = pe3yAvg,
+            thresholdGreen = GREEN_THRESHOLD,
+            thresholdYellow = YELLOW_THRESHOLD,
             observedValue = pe3yAvg,
             threshold = THRESHOLD_LABEL,
             rationale = rationale,

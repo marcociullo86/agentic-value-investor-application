@@ -2,16 +2,30 @@
 
 import { useState, useId, useCallback } from 'react';
 import type { RuleSignal, Signal } from '@/lib/api/analysis';
+import {
+  formatRuleSignal,
+  type RuleSignal as TypedRuleSignal,
+} from '@/lib/rule-signals/formatters';
 import { cn } from '@/lib/utils/cn';
 
 /**
- * RuleSignalCard — TSK-021 (US-014).
+ * RuleSignalCard — TSK-021 (US-014); migrato TSK-320 (EP-021 / US-095, ADR-028).
  *
  * Singolo "semaforo" cliccabile che mostra lo stato di una regola del
  * Rule Engine. Espandibile via `useState` + Tailwind transitions (no
  * dipendenza @radix-ui/react-collapsible — non in package.json, evitato
  * per ridurre superficie deps; refactor a Radix in TSK successivo
  * meccanico mantenendo le props pubbliche invariate).
+ *
+ * **EP-021 / TSK-320 — typed-driven formatting**: il dettaglio (subtitle + tooltip)
+ * viene derivato da `formatRuleSignal(signal)` (lib/rule-signals/formatters.ts,
+ * TSK-319) che narrowa su `ruleId` (union discriminata OpenAPI 3.1
+ * `oneOf`+`discriminator`) e legge i campi tipati specifici di ciascun ruleId
+ * (es. `revenueLatest`/`thresholdUsd` per SIZE_LATEST). I campi legacy
+ * `signal.rationale` e `signal.observedValue` NON sono più letti direttamente:
+ * sono ancora presenti nel payload (deprecated, finestra R+1/R+2 ADR-028 §8)
+ * ma il rendering passa per il formatter typed-driven con fallback paranoid
+ * su `rationale` (gestito internamente dal formatter, ADR-028 §6).
  *
  * Riferimento design:
  *   design_&_architecture/components/frontend-components.md
@@ -132,31 +146,45 @@ function humanizeRuleId(ruleId: string): string {
     .join(' — ');
 }
 
-/**
- * Format `observedValue` per la UI espansa.
- * Strategia: numero "raw" 2-decimali (it-IT); la semantica
- * (percentuale / valuta / ratio) dipende dalla regola e NON è esposta
- * dal contratto — lasciamo al testo `threshold` la disambiguazione
- * (es. "ROE ≥ 15%" già contiene l'unità).
- */
-function formatObservedValue(value: number | null): string {
-  if (value === null || !Number.isFinite(value)) return '—';
-  return new Intl.NumberFormat('it-IT', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 4,
-  }).format(value);
-}
-
 export function RuleSignalCard(props: RuleSignalCardProps): React.ReactElement {
   const { signal: ruleSignal, defaultExpanded = false, observedSubtitle } = props;
   const [expanded, setExpanded] = useState<boolean>(defaultExpanded);
   const detailsId = useId();
 
   const presentation = PRESENTATIONS[ruleSignal.signal];
-  const humanName = humanizeRuleId(ruleSignal.ruleId);
-  const observedFormatted = formatObservedValue(ruleSignal.observedValue);
 
-  const ariaLabel = `Regola ${humanName}: ${presentation.label}. Valore osservato ${observedFormatted}. Soglia: ${ruleSignal.threshold}.`;
+  /**
+   * Formatter typed-driven (TSK-319 / ADR-028 §6). Riceve l'union discriminata
+   * generata da OpenAPI 3.1 oneOf+discriminator; il cast `as unknown as
+   * TypedRuleSignal` ponte tra il tipo legacy hand-rolled (analysis.ts) e quello
+   * generato (lib/api/generated/schema.ts). I due sono strutturalmente
+   * compatibili sui campi letti dal formatter (ruleId, signal, rationale legacy);
+   * i campi tipati assenti nel legacy → fallback paranoid su `rationale` interno
+   * al formatter (formatters.ts §legacyFallback). Cast ponte documentato in
+   * ADR-028 §6 (transizione R+1/R+2).
+   */
+  const { title: typedTitle, subtitle: typedSubtitle, tooltip: typedTooltip } =
+    formatRuleSignal(ruleSignal as unknown as TypedRuleSignal);
+
+  /**
+   * Titolo visibile: preferenza al `title` typed (es. "Dimensione", "P/E
+   * moderato") quando disponibile; fallback su `humanizeRuleId(ruleId)` per
+   * ruleId arbitrari/legacy fuori union (mantiene invariante UI per fixture
+   * test/drift). Coerente con runtimeFallback del formatter (formatters.ts
+   * §runtimeFallback).
+   */
+  const humanName =
+    typedTitle && typedTitle !== ruleSignal.ruleId
+      ? typedTitle
+      : humanizeRuleId(ruleSignal.ruleId);
+
+  /**
+   * aria-label completo (WCAG 1.4.1 — Use of Color): il colore NON è l'unico
+   * canale informativo, l'aria-label espone nome regola + stato + sintesi
+   * tipata del valore/soglia (subtitle typed-driven, sostituisce la coppia
+   * legacy "Valore osservato + Soglia").
+   */
+  const ariaLabel = `Regola ${humanName}: ${presentation.label}. ${typedSubtitle}`;
 
   const toggle = useCallback((): void => {
     setExpanded((prev) => !prev);
@@ -224,26 +252,32 @@ export function RuleSignalCard(props: RuleSignalCardProps): React.ReactElement {
           data-testid={`rule-signal-details-${ruleSignal.ruleId}`}
           className="border-t border-slate-200 px-4 py-3 text-sm text-slate-700 dark:border-slate-800 dark:text-slate-300"
         >
+          {/*
+            EP-021 / TSK-320: dettaglio espanso typed-driven.
+             - `Valore osservato`: ora popolata con `subtitle` typed (sintesi
+               metrica + soglia, es. "Revenue: $2.30B (soglia $100M)") al posto
+               della coppia legacy "observedValue numerica + threshold stringa".
+               Il testid `rule-signal-observed-{ruleId}` resta per stabilità test.
+             - `Soglia`: rimossa come riga separata (la soglia è inclusa nel
+               `subtitle` typed; evita duplicazione visiva).
+             - `Razionale`: popolato con `tooltip` typed (citazione fonte
+               Graham/Buffett, ben più informativa del rationale legacy).
+               Testid `rule-signal-rationale-{ruleId}` preservato.
+          */}
           <dl className="grid grid-cols-[max-content_1fr] gap-x-3 gap-y-1">
             <dt className="font-medium text-slate-500 dark:text-slate-400">
               Valore osservato
             </dt>
             <dd data-testid={`rule-signal-observed-${ruleSignal.ruleId}`}>
-              {observedFormatted}
+              {typedSubtitle}
             </dd>
-            <dt className="font-medium text-slate-500 dark:text-slate-400">
-              Soglia
-            </dt>
-            <dd data-testid={`rule-signal-threshold-${ruleSignal.ruleId}`}>
-              {ruleSignal.threshold}
-            </dd>
-            {ruleSignal.rationale !== undefined && ruleSignal.rationale.length > 0 ? (
+            {typedTooltip && typedTooltip.length > 0 ? (
               <>
                 <dt className="font-medium text-slate-500 dark:text-slate-400">
                   Razionale
                 </dt>
                 <dd data-testid={`rule-signal-rationale-${ruleSignal.ruleId}`}>
-                  {ruleSignal.rationale}
+                  {typedTooltip}
                 </dd>
               </>
             ) : null}

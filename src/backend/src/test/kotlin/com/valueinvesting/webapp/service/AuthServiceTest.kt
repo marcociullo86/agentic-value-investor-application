@@ -10,6 +10,7 @@ import com.valueinvesting.webapp.security.JwtService
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
@@ -41,6 +42,7 @@ class AuthServiceTest {
     private lateinit var compromisedPasswordGuard: CompromisedPasswordGuard
     private lateinit var mfaService: MfaService
     private lateinit var bruteForceProtectionService: BruteForceProtectionService
+    private lateinit var securityEventLogger: SecurityEventLogger
     private lateinit var service: AuthService
 
     @BeforeEach
@@ -52,6 +54,7 @@ class AuthServiceTest {
         compromisedPasswordGuard = mockk(relaxed = true)
         mfaService = mockk(relaxed = true)
         bruteForceProtectionService = mockk(relaxed = true)
+        securityEventLogger = mockk(relaxed = true)
         appProperties = AppProperties(
             jwt = AppProperties.Jwt(
                 signingSecret = "test-secret-test-secret-test-secret-test-secret-test-secret",
@@ -69,6 +72,7 @@ class AuthServiceTest {
             compromisedPasswordGuard,
             mfaService,
             bruteForceProtectionService,
+            securityEventLogger,
             clock,
         )
 
@@ -154,22 +158,36 @@ class AuthServiceTest {
     }
 
     @Test
-    fun `refresh fails with 401 invalid-refresh when token already revoked`() {
+    fun `refresh on a revoked token triggers cascade revocation and reuse_detected reason`() {
+        // ADR-027 §1 — a refresh token with revokedAt != null re-presented to
+        // /refresh is the reuse signal: AuthService must (1) bulk-revoke every
+        // still-active token of the user, (2) emit the new security event, and
+        // (3) throw InvalidRefreshTokenException with the new reason code
+        // `reuse_detected` (not the old `revoked`). The client surface stays
+        // opaque (CLIENT_DETAIL is unchanged) — only the server-side reason
+        // discriminates.
         val userId = UUID.randomUUID()
+        val family = now.minusSeconds(86_400)
         val refresh = RefreshToken(
             userId = userId,
             tokenValue = "revoked-refresh",
             expiresAt = now.plusSeconds(86_400),
-            firstIssuedAt = now.minusSeconds(86_400),
+            firstIssuedAt = family,
             revokedAt = now.minusSeconds(60),
         )
         every { refreshTokenRepository.findByTokenValue("revoked-refresh") } returns refresh
+        every { refreshTokenRepository.revokeAllActiveByUserId(userId, now) } returns 3
 
         assertThatThrownBy { service.refresh("revoked-refresh") }
             .isInstanceOf(InvalidRefreshTokenException::class.java)
             .hasMessage(InvalidRefreshTokenException.CLIENT_DETAIL)
             .extracting { (it as InvalidRefreshTokenException).reason }
-            .isEqualTo("revoked")
+            .isEqualTo("reuse_detected")
+
+        verify(exactly = 1) { refreshTokenRepository.revokeAllActiveByUserId(userId, now) }
+        verify(exactly = 1) {
+            securityEventLogger.refreshTokenReuseDetected(userId, family, 3)
+        }
     }
 
     @Test

@@ -4,7 +4,8 @@ sources: ["raw/agent.py", "raw/09_agent_py_method_analysis.md", "raw/investitore
 status: draft
 created: 2026-05-23
 updated: 2026-05-23
-tags: [value-investing, graham, buffett, methodology, synthesis, agent-py, rule-engine, dcf, owner-earnings, seven-criteria]
+tags: [value-investing, graham, buffett, methodology, synthesis, agent-py, rule-engine, dcf, owner-earnings, seven-criteria, vi-domain]
+domain: value-investing
 ---
 # Graham 1973 ↔ Pratiche Moderne 2026 ↔ agent.py ↔ Rule Engine Kotlin
 

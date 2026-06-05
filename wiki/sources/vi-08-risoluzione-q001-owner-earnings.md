@@ -4,7 +4,8 @@ sources: ["raw/08_Risoluzione_Q001_Owner_Earnings.md"]
 status: draft
 created: 2026-05-20
 updated: 2026-05-20
-tags: [product-spec, value-investing, dcf, owner-earnings, buffett, capex, greenwald, kotlin, q001]
+tags: [product-spec, value-investing, dcf, owner-earnings, buffett, capex, greenwald, kotlin, q001, vi-domain]
+domain: value-investing
 ---
 # Risoluzione Q_001 — Formula Owner Earnings per il DCF
 

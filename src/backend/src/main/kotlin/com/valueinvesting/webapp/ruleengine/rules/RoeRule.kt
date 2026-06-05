@@ -30,9 +30,12 @@ class RoeRule : ValuationRule {
         val sample = averageOf(dataset.keyMetrics) { it.roe }
 
         if (sample.average == null) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.Roe10yAvg(
                 signal = Signal.NOT_CALCULABLE,
+                averagePercent = null,
+                yearsAvailable = sample.effectiveYears,
+                thresholdGreenPercent = GREEN_THRESHOLD * 100.0,
+                thresholdYellowPercent = YELLOW_THRESHOLD * 100.0,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Nessun valore di ROE disponibile nei ${sample.totalYears} esercizi forniti.",
@@ -40,9 +43,12 @@ class RoeRule : ValuationRule {
         }
 
         if (sample.effectiveYears < MIN_YEARS) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.Roe10yAvg(
                 signal = Signal.INDETERMINATE,
+                averagePercent = sample.average * 100.0,
+                yearsAvailable = sample.effectiveYears,
+                thresholdGreenPercent = GREEN_THRESHOLD * 100.0,
+                thresholdYellowPercent = YELLOW_THRESHOLD * 100.0,
                 observedValue = sample.average,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Solo ${sample.effectiveYears} esercizi con ROE valido (minimo richiesto: $MIN_YEARS).",
@@ -55,9 +61,12 @@ class RoeRule : ValuationRule {
             else -> Signal.RED
         }
         val pct = "%.2f%%".format(sample.average * 100)
-        return RuleSignal(
-            ruleId = ruleId,
+        return RuleSignal.Roe10yAvg(
             signal = signal,
+            averagePercent = sample.average * 100.0,
+            yearsAvailable = sample.effectiveYears,
+            thresholdGreenPercent = GREEN_THRESHOLD * 100.0,
+            thresholdYellowPercent = YELLOW_THRESHOLD * 100.0,
             observedValue = sample.average,
             threshold = THRESHOLD_LABEL,
             rationale = "Media ROE su ${sample.effectiveYears} esercizi: $pct.",

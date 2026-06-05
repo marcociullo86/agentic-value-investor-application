@@ -8,7 +8,8 @@ updated: 2026-05-28
 sources:
   - PATTERN.md
   - factory.config.yaml
-tags: [factory, pattern, cqrl, multi-adapter, repo-sync, code-quality, adapter, orchestration]
+tags: [factory, pattern, cqrl, multi-adapter, repo-sync, code-quality, adapter, orchestration, platform-domain]
+domain: platform
 ---
 
 # Agentic Factory — llm-wiki++ v2.13

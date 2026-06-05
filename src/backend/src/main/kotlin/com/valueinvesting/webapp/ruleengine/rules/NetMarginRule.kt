@@ -44,9 +44,10 @@ class NetMarginRule : ValuationRule {
         val sample = averageOfMetric(dataset.income) { extractNetMargin(it) }
 
         if (sample.average == null) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.NetMargin10yAvg(
                 signal = Signal.NOT_CALCULABLE,
+                averagePercent = null,
+                thresholdGreenPercent = GREEN_THRESHOLD * 100.0,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Nessun valore di Net Margin calcolabile nei ${sample.totalYears} esercizi forniti.",
@@ -54,9 +55,10 @@ class NetMarginRule : ValuationRule {
         }
 
         if (sample.effectiveYears < MIN_YEARS) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.NetMargin10yAvg(
                 signal = Signal.INDETERMINATE,
+                averagePercent = sample.average * 100.0,
+                thresholdGreenPercent = GREEN_THRESHOLD * 100.0,
                 observedValue = sample.average,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Solo ${sample.effectiveYears} esercizi con Net Margin valido (minimo richiesto: $MIN_YEARS).",
@@ -66,9 +68,10 @@ class NetMarginRule : ValuationRule {
         // Binary classification per TSK-013: > 10% GREEN, otherwise RED.
         val signal = if (sample.average > GREEN_THRESHOLD) Signal.GREEN else Signal.RED
         val pct = "%.2f%%".format(sample.average * 100)
-        return RuleSignal(
-            ruleId = ruleId,
+        return RuleSignal.NetMargin10yAvg(
             signal = signal,
+            averagePercent = sample.average * 100.0,
+            thresholdGreenPercent = GREEN_THRESHOLD * 100.0,
             observedValue = sample.average,
             threshold = THRESHOLD_LABEL,
             rationale = "Media Net Margin su ${sample.effectiveYears} esercizi: $pct.",

@@ -70,9 +70,11 @@ class CapexIntensityRule : ValuationRule {
 
     override fun evaluate(dataset: FinancialDataset): RuleSignal {
         if (dataset.cashFlow.isEmpty() || dataset.income.isEmpty()) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.CapexIntensity10yAvg(
                 signal = Signal.NOT_CALCULABLE,
+                averagePercent = null,
+                thresholdGreenPercent = GREEN_THRESHOLD * 100.0,
+                thresholdYellowPercent = YELLOW_UPPER_BOUND * 100.0,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Cash Flow o Income Statement non disponibili.",
@@ -99,9 +101,11 @@ class CapexIntensityRule : ValuationRule {
             val avg = ratios.sum() / ratios.size
             val signal = classify(avg)
             val pct = "%.2f%%".format(avg * 100)
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.CapexIntensity10yAvg(
                 signal = signal,
+                averagePercent = avg * 100.0,
+                thresholdGreenPercent = GREEN_THRESHOLD * 100.0,
+                thresholdYellowPercent = YELLOW_UPPER_BOUND * 100.0,
                 observedValue = avg,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Media 10y CapEx/Utile Netto su ${ratios.size} esercizi: $pct.",
@@ -115,9 +119,11 @@ class CapexIntensityRule : ValuationRule {
     private fun evaluateLatest(dataset: FinancialDataset, ratiosCount: Int): RuleSignal {
         val latestIncome = dataset.income
             .maxByOrNull { it.date ?: it.calendarYear ?: "" }
-            ?: return RuleSignal(
-                ruleId = ruleId,
+            ?: return RuleSignal.CapexIntensity10yAvg(
                 signal = Signal.NOT_CALCULABLE,
+                averagePercent = null,
+                thresholdGreenPercent = GREEN_THRESHOLD * 100.0,
+                thresholdYellowPercent = YELLOW_UPPER_BOUND * 100.0,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Income Statement non disponibile.",
@@ -128,9 +134,11 @@ class CapexIntensityRule : ValuationRule {
 
         val ni = latestIncome.netIncome
         if (ni == null) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.CapexIntensity10yAvg(
                 signal = Signal.INDETERMINATE,
+                averagePercent = null,
+                thresholdGreenPercent = GREEN_THRESHOLD * 100.0,
+                thresholdYellowPercent = YELLOW_UPPER_BOUND * 100.0,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Utile Netto mancante per $yearLabel: rapporto CapEx/Utile non definito.",
@@ -138,9 +146,11 @@ class CapexIntensityRule : ValuationRule {
         }
         if (ni <= 0.0) {
             // US-010 AC verbatim: nullo o negativo -> Indeterminato.
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.CapexIntensity10yAvg(
                 signal = Signal.INDETERMINATE,
+                averagePercent = null,
+                thresholdGreenPercent = GREEN_THRESHOLD * 100.0,
+                thresholdYellowPercent = YELLOW_UPPER_BOUND * 100.0,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Utile Netto non positivo ($ni) per $yearLabel: rapporto CapEx/Utile indeterminato.",
@@ -154,9 +164,11 @@ class CapexIntensityRule : ValuationRule {
 
         val capex = matchingCashFlow?.capitalExpenditure
         if (capex == null) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.CapexIntensity10yAvg(
                 signal = Signal.NOT_CALCULABLE,
+                averagePercent = null,
+                thresholdGreenPercent = GREEN_THRESHOLD * 100.0,
+                thresholdYellowPercent = YELLOW_UPPER_BOUND * 100.0,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "CapEx mancante per $yearLabel: impossibile calcolare il rapporto.",
@@ -167,9 +179,11 @@ class CapexIntensityRule : ValuationRule {
         val signal = classify(ratio)
         val pct = "%.2f%%".format(ratio * 100)
         val sampleNote = if (ratiosCount > 0) " (storia parziale: $ratiosCount esercizi usabili, < $MIN_YEARS)" else ""
-        return RuleSignal(
-            ruleId = ruleId,
+        return RuleSignal.CapexIntensity10yAvg(
             signal = signal,
+            averagePercent = ratio * 100.0,
+            thresholdGreenPercent = GREEN_THRESHOLD * 100.0,
+            thresholdYellowPercent = YELLOW_UPPER_BOUND * 100.0,
             observedValue = ratio,
             threshold = THRESHOLD_LABEL,
             rationale = "CapEx/Utile Netto = $pct per $yearLabel$sampleNote.",

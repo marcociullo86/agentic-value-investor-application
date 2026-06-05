@@ -4,7 +4,8 @@ sources: ["raw/06_Documento_Funzionale_WebApp_Value_Investing.md"]
 status: draft
 created: 2026-05-20
 updated: 2026-05-20
-tags: [product-spec, value-investing, fmp, kotlin, spring-boot, rule-engine, webapp, fsd]
+tags: [product-spec, value-investing, fmp, kotlin, spring-boot, rule-engine, webapp, fsd, vi-domain]
+domain: value-investing
 ---
 # Documento di Specifica Funzionale — WebApp Value Investing
 

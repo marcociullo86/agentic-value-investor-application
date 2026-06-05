@@ -4,7 +4,8 @@ type: concept
 sources: ["raw/fmp_docs.md", "raw/fmp_docs.json"]
 status: draft
 created: 2026-05-22
-tags: [fmp, stable, quotes, realtime, historical, price]
+tags: [fmp, stable, quotes, realtime, historical, price, platform-domain]
+domain: platform
 ---
 # FMP — Quotes & Prices (stable)
 

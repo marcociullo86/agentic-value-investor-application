@@ -262,7 +262,7 @@ class MungerDecisionServiceTest {
 
     @Test
     fun `step 5 - APPROVATO fails with any INDETERMINATE rule`() {
-        val rules = allGreenRules(12) + ruleSignal("RULE_13", Signal.INDETERMINATE)
+        val rules = allGreenRules(12) + ruleSignal(ruleIdAt(13), Signal.INDETERMINATE)
         val input = baseInput().copy(
             livelloRischio = LivelloRischio.RISCHIO_BASSO,
             newsSentimentDominante = SentimentClass.NEUTRAL,
@@ -461,21 +461,33 @@ class MungerDecisionServiceTest {
         deteriorationWarning = false,
     )
 
-    private fun ruleSignal(id: String, signal: Signal) = RuleSignal(
-        ruleId = id,
-        signal = signal,
-        observedValue = null,
-        threshold = "",
-        rationale = "",
-    )
+    // Test fixtures (TSK-312 EP-021): post-refactor `RuleSignal` e' una sealed
+    // interface con sotto-tipi vincolati ai 13 ruleId canonici. Cycle attraverso
+    // CANONICAL_RULE_IDS mantiene la semantica originale (i test contano solo
+    // signal aggregati, non leggono ruleId specifici); l'helper `ruleSignal`
+    // dispatcha al sotto-tipo concreto via when(id), con campi tipati a
+    // null/default (i test verificano solo `signal` aggregato).
+    private fun ruleIdAt(index: Int): String =
+        CANONICAL_RULE_IDS[(index - 1) % CANONICAL_RULE_IDS.size]
+
+    private fun ruleSignal(id: String, signal: Signal): RuleSignal = typedRuleSignal(id, signal)
 
     private fun allGreenRules(count: Int): List<RuleSignal> =
-        (1..count).map { ruleSignal("RULE_$it", Signal.GREEN) }
+        (1..count).map { ruleSignal(ruleIdAt(it), Signal.GREEN) }
 
     private fun rulesWithRedCount(redCount: Int, total: Int): List<RuleSignal> {
         require(redCount <= total)
-        return (1..redCount).map { ruleSignal("RULE_$it", Signal.RED) } +
-            (redCount + 1..total).map { ruleSignal("RULE_$it", Signal.GREEN) }
+        return (1..redCount).map { ruleSignal(ruleIdAt(it), Signal.RED) } +
+            (redCount + 1..total).map { ruleSignal(ruleIdAt(it), Signal.GREEN) }
+    }
+
+    private companion object {
+        val CANONICAL_RULE_IDS: List<String> = listOf(
+            "ROE_10Y_AVG", "ROIC_10Y_AVG", "GROSS_MARGIN_10Y_AVG", "NET_MARGIN_10Y_AVG",
+            "CURRENT_RATIO_LATEST", "DEBT_TO_INCOME_LATEST", "CAPEX_INTENSITY_10Y_AVG",
+            "SIZE_LATEST", "EARNINGS_STABILITY_10Y", "EPS_GROWTH_10Y",
+            "PE_3Y_AVG", "PB_LATEST", "DIVIDEND_CONTINUITY_20Y",
+        )
     }
 
     private fun inputForVerdict(verdict: VerdictClass): MungerDecisionInput = when (verdict) {

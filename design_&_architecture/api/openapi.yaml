@@ -1095,57 +1095,305 @@ components:
         staleReason:    { type: string, nullable: true }
 
     RuleSignal:
-      type: object
-      required: [ruleId, signal, threshold]
       description: |
         Esito atomico di una singola regola del Rule Engine per un ticker.
-        Il dettaglio strutturato per-rule (es. yearsPositive, lossYears, pe3yAvg, revenueLatest, ecc.)
-        e' veicolato nel campo `rationale` (stringa human-readable) e in `observedValue` (numerico).
-        La strutturazione tipata per-ruleId (oneOf discriminato / additionalProperties) e' rimandata
-        a un futuro refactor del contratto: non scope di TSK-087/EP-010 per evitare breaking change
-        sui 7 ruleId Buffett gia' in produzione e sui client TS auto-generati.
+        Union type discriminato (OpenAPI 3.1 `oneOf` + `discriminator` su `ruleId`)
+        introdotto da EP-021 / US-093 / TSK-311 (ADR-028).
+        Ogni sotto-schema espone i metadati strutturati specifici della rule
+        (es. `revenueLatest`/`thresholdUsd` per `SIZE_LATEST`, `yearsPositive`/`lossYears`
+        per `EARNINGS_STABILITY_10Y`); i campi legacy `observedValue`/`rationale`/`threshold`
+        restano nel payload `deprecated: true` per la finestra di transizione R+1/R+2
+        (rimozione a R+3, ADR-028 §8).
+        L'x-extension `x-buffett-quality` raggruppa le 7 regole Buffett-leaning (EP-003).
+        L'x-extension `x-graham-defensive` raggruppa le 6 regole Graham defensive (EP-010).
+      oneOf:
+        - $ref: '#/components/schemas/RuleSignalSize'
+        - $ref: '#/components/schemas/RuleSignalEarningsStability10y'
+        - $ref: '#/components/schemas/RuleSignalEpsGrowth10y'
+        - $ref: '#/components/schemas/RuleSignalPe3yAvg'
+        - $ref: '#/components/schemas/RuleSignalPbLatest'
+        - $ref: '#/components/schemas/RuleSignalDividendContinuity20y'
+        - $ref: '#/components/schemas/RuleSignalRoe10yAvg'
+        - $ref: '#/components/schemas/RuleSignalRoic10yAvg'
+        - $ref: '#/components/schemas/RuleSignalGrossMargin10yAvg'
+        - $ref: '#/components/schemas/RuleSignalNetMargin10yAvg'
+        - $ref: '#/components/schemas/RuleSignalCurrentRatioLatest'
+        - $ref: '#/components/schemas/RuleSignalDebtToIncomeLatest'
+        - $ref: '#/components/schemas/RuleSignalCapexIntensity10yAvg'
+        - $ref: '#/components/schemas/RuleSignalNcavLatest'
+        - $ref: '#/components/schemas/RuleSignalNetNetRatio'
+      discriminator:
+        propertyName: ruleId
+        mapping:
+          SIZE_LATEST:               '#/components/schemas/RuleSignalSize'
+          EARNINGS_STABILITY_10Y:    '#/components/schemas/RuleSignalEarningsStability10y'
+          EPS_GROWTH_10Y:            '#/components/schemas/RuleSignalEpsGrowth10y'
+          PE_3Y_AVG:                 '#/components/schemas/RuleSignalPe3yAvg'
+          PB_LATEST:                 '#/components/schemas/RuleSignalPbLatest'
+          DIVIDEND_CONTINUITY_20Y:   '#/components/schemas/RuleSignalDividendContinuity20y'
+          ROE_10Y_AVG:               '#/components/schemas/RuleSignalRoe10yAvg'
+          ROIC_10Y_AVG:              '#/components/schemas/RuleSignalRoic10yAvg'
+          GROSS_MARGIN_10Y_AVG:      '#/components/schemas/RuleSignalGrossMargin10yAvg'
+          NET_MARGIN_10Y_AVG:        '#/components/schemas/RuleSignalNetMargin10yAvg'
+          CURRENT_RATIO_LATEST:      '#/components/schemas/RuleSignalCurrentRatioLatest'
+          DEBT_TO_INCOME_LATEST:     '#/components/schemas/RuleSignalDebtToIncomeLatest'
+          CAPEX_INTENSITY_10Y_AVG:   '#/components/schemas/RuleSignalCapexIntensity10yAvg'
+          NCAV_LATEST:               '#/components/schemas/RuleSignalNcavLatest'
+          NET_NET_RATIO:             '#/components/schemas/RuleSignalNetNetRatio'
+      x-buffett-quality:
+        - ROE_10Y_AVG
+        - ROIC_10Y_AVG
+        - GROSS_MARGIN_10Y_AVG
+        - NET_MARGIN_10Y_AVG
+        - CURRENT_RATIO_LATEST
+        - DEBT_TO_INCOME_LATEST
+        - CAPEX_INTENSITY_10Y_AVG
+      x-graham-defensive:
+        - SIZE_LATEST
+        - EARNINGS_STABILITY_10Y
+        - EPS_GROWTH_10Y
+        - PE_3Y_AVG
+        - PB_LATEST
+        - DIVIDEND_CONTINUITY_20Y
+      x-graham-enterprising:
+        - NCAV_LATEST
+        - NET_NET_RATIO
+
+    RuleSignalBase:
+      type: object
+      required: [ruleId, signal]
+      description: |
+        Campi comuni a tutti i sotto-tipi di RuleSignal. NON usato direttamente come
+        contract type — i 13 sotto-schemi lo compongono via `allOf`.
       properties:
-        ruleId:
+        ruleId: { type: string }
+        signal: { $ref: '#/components/schemas/Signal' }
+        observedValue:
+          type: number
+          nullable: true
+          deprecated: true
+          description: "Legacy observed value. Use typed fields per-ruleId. Removed in R+3 (ADR-028 §8)."
+        threshold:
           type: string
-          description: |
-            Identificatore stabile della regola di valutazione. Set chiuso versionato a contratto.
-            L'x-extension `x-buffett-quality` raggruppa le 7 regole Buffett-leaning (EP-003).
-            L'x-extension `x-graham-defensive` raggruppa le 6 regole Graham defensive (EP-010,
-            Cap.14 "The Defensive Investor and Common Stocks", Intelligent Investor).
-          enum:
-            - ROE_10Y_AVG
-            - ROIC_10Y_AVG
-            - GROSS_MARGIN_10Y_AVG
-            - NET_MARGIN_10Y_AVG
-            - CURRENT_RATIO_LATEST
-            - DEBT_TO_INCOME_LATEST
-            - CAPEX_INTENSITY_10Y_AVG
-            - SIZE_LATEST
-            - EARNINGS_STABILITY_10Y
-            - EPS_GROWTH_10Y
-            - PE_3Y_AVG
-            - PB_LATEST
-            - DIVIDEND_CONTINUITY_20Y
-          example: ROE_10Y_AVG
-          x-buffett-quality:
-            - ROE_10Y_AVG
-            - ROIC_10Y_AVG
-            - GROSS_MARGIN_10Y_AVG
-            - NET_MARGIN_10Y_AVG
-            - CURRENT_RATIO_LATEST
-            - DEBT_TO_INCOME_LATEST
-            - CAPEX_INTENSITY_10Y_AVG
-          x-graham-defensive:
-            - SIZE_LATEST
-            - EARNINGS_STABILITY_10Y
-            - EPS_GROWTH_10Y
-            - PE_3Y_AVG
-            - PB_LATEST
-            - DIVIDEND_CONTINUITY_20Y
-        signal:        { $ref: '#/components/schemas/Signal' }
-        observedValue: { type: number, nullable: true }
-        threshold:     { type: string }
-        rationale:     { type: string }
+          deprecated: true
+          description: "Legacy human-readable threshold label. Use typed fields per-ruleId. Removed in R+3 (ADR-028 §8)."
+        rationale:
+          type: string
+          deprecated: true
+          description: "Legacy human-readable rationale. Use typed fields per-ruleId. Removed in R+3 (ADR-028 §8)."
+
+    # -------------------------------------------------------------------------
+    # 13 sotto-schemi tipati (ADR-028 §3 — simmetrici ai sotto-tipi Kotlin)
+    # -------------------------------------------------------------------------
+
+    RuleSignalSize:
+      description: "Graham §Adequate Size of the Enterprise — soglia $100M revenue latest."
+      allOf:
+        - $ref: '#/components/schemas/RuleSignalBase'
+        - type: object
+          required: [thresholdUsd]
+          properties:
+            ruleId:        { type: string, enum: [SIZE_LATEST] }
+            revenueLatest: { type: number, nullable: true, description: "Revenue ultimo esercizio (USD)" }
+            thresholdUsd:  { type: integer, format: int64, description: "Soglia Graham defensive (USD 100M)" }
+
+    RuleSignalEarningsStability10y:
+      description: "Graham §Earnings Stability — anni con EPS > 0 sull'orizzonte 10y."
+      allOf:
+        - $ref: '#/components/schemas/RuleSignalBase'
+        - type: object
+          required: [yearsPositive, yearsAvailable, lossYears]
+          properties:
+            ruleId:         { type: string, enum: [EARNINGS_STABILITY_10Y] }
+            yearsPositive:  { type: integer, description: "Numero anni con EPS positivo" }
+            yearsAvailable: { type: integer, description: "Numero anni con dato EPS disponibile (max 10)" }
+            lossYears:
+              type: array
+              items: { type: integer }
+              description: "Lista calendar years in cui EPS <= 0"
+
+    RuleSignalEpsGrowth10y:
+      description: "Graham §EPS Growth — CAGR EPS su 10 anni."
+      allOf:
+        - $ref: '#/components/schemas/RuleSignalBase'
+        - type: object
+          required: [thresholdPercent]
+          properties:
+            ruleId:           { type: string, enum: [EPS_GROWTH_10Y] }
+            cagrPercent:      { type: number, nullable: true, description: "CAGR EPS 10y in % (es. 5.2)" }
+            thresholdPercent: { type: number, description: "Soglia minima CAGR % (Graham >= 33% cumulativo ~= 2.9% annuo)" }
+            epsStart:         { type: number, nullable: true, description: "EPS anno iniziale finestra" }
+            epsEnd:           { type: number, nullable: true, description: "EPS anno finale finestra" }
+            yearStart:        { type: integer, nullable: true, description: "Calendar year anno iniziale" }
+            yearEnd:          { type: integer, nullable: true, description: "Calendar year anno finale" }
+
+    RuleSignalPe3yAvg:
+      description: |
+        Graham §P/E Moderate — media 3y EPS.
+        Deviazione ADR-028 §3 ('small adjustment' previsto dall'ADR): adottato
+        `thresholdGreen` + `thresholdYellow` invece di un singolo `threshold`,
+        perche' (a) la rule ha due soglie semantiche (<=15 GREEN / (15,20] YELLOW
+        / >20 RED) e (b) il nome `threshold` collideva con il campo legacy.
+      allOf:
+        - $ref: '#/components/schemas/RuleSignalBase'
+        - type: object
+          required: [thresholdGreen, thresholdYellow]
+          properties:
+            ruleId:          { type: string, enum: [PE_3Y_AVG] }
+            pe3yAvg:         { type: number, nullable: true, description: "P/E calcolato come price / avg(EPS, 3y)" }
+            thresholdGreen:  { type: number, description: "Soglia massima per GREEN (default 15)" }
+            thresholdYellow: { type: number, description: "Soglia massima per YELLOW (default 20)" }
+
+    RuleSignalPbLatest:
+      description: |
+        Graham §P/B Moderate. Deviazione ADR-028 §3 analoga a Pe3yAvg:
+        `thresholdGreen` (default 1.5) + `thresholdYellow` (default 3.0).
+      allOf:
+        - $ref: '#/components/schemas/RuleSignalBase'
+        - type: object
+          required: [thresholdGreen, thresholdYellow]
+          properties:
+            ruleId:          { type: string, enum: [PB_LATEST] }
+            pbLatest:        { type: number, nullable: true, description: "P/B latest = currentPrice / bookValuePerShare" }
+            thresholdGreen:  { type: number, description: "Soglia massima per GREEN (default 1.5)" }
+            thresholdYellow: { type: number, description: "Soglia massima per YELLOW (default 3.0)" }
+
+    RuleSignalDividendContinuity20y:
+      description: "Graham §Dividend Continuity — anni consecutivi di pagamento dividendo."
+      allOf:
+        - $ref: '#/components/schemas/RuleSignalBase'
+        - type: object
+          required: [thresholdYears]
+          properties:
+            ruleId:            { type: string, enum: [DIVIDEND_CONTINUITY_20Y] }
+            consecutiveYears:  { type: integer, nullable: true, description: "Anni consecutivi di dividendo > 0" }
+            thresholdYears:    { type: integer, description: "Soglia minima Graham (20 anni)" }
+
+    RuleSignalRoe10yAvg:
+      description: "Buffett §Quality — ROE media 10y."
+      allOf:
+        - $ref: '#/components/schemas/RuleSignalBase'
+        - type: object
+          required: [yearsAvailable, thresholdGreenPercent, thresholdYellowPercent]
+          properties:
+            ruleId:                  { type: string, enum: [ROE_10Y_AVG] }
+            averagePercent:          { type: number, nullable: true, description: "ROE medio % su finestra disponibile" }
+            yearsAvailable:          { type: integer, description: "Anni con dato ROE (max 10)" }
+            thresholdGreenPercent:   { type: number, description: "Soglia % per GREEN" }
+            thresholdYellowPercent:  { type: number, description: "Soglia % per YELLOW" }
+
+    RuleSignalRoic10yAvg:
+      description: "Buffett §Quality — ROIC media 10y (schema identico a ROE_10Y_AVG)."
+      allOf:
+        - $ref: '#/components/schemas/RuleSignalBase'
+        - type: object
+          required: [yearsAvailable, thresholdGreenPercent, thresholdYellowPercent]
+          properties:
+            ruleId:                  { type: string, enum: [ROIC_10Y_AVG] }
+            averagePercent:          { type: number, nullable: true, description: "ROIC medio % su finestra disponibile" }
+            yearsAvailable:          { type: integer, description: "Anni con dato ROIC (max 10)" }
+            thresholdGreenPercent:   { type: number, description: "Soglia % per GREEN" }
+            thresholdYellowPercent:  { type: number, description: "Soglia % per YELLOW" }
+
+    RuleSignalGrossMargin10yAvg:
+      description: "Buffett §Pricing Power — gross margin media 10y."
+      allOf:
+        - $ref: '#/components/schemas/RuleSignalBase'
+        - type: object
+          required: [thresholdGreenPercent, thresholdYellowPercent]
+          properties:
+            ruleId:                  { type: string, enum: [GROSS_MARGIN_10Y_AVG] }
+            averagePercent:          { type: number, nullable: true, description: "Gross margin medio %" }
+            thresholdGreenPercent:   { type: number, description: "Soglia % per GREEN" }
+            thresholdYellowPercent:  { type: number, description: "Soglia % per YELLOW" }
+
+    RuleSignalNetMargin10yAvg:
+      description: "Buffett §Pricing Power — net margin media 10y."
+      allOf:
+        - $ref: '#/components/schemas/RuleSignalBase'
+        - type: object
+          required: [thresholdGreenPercent]
+          properties:
+            ruleId:                  { type: string, enum: [NET_MARGIN_10Y_AVG] }
+            averagePercent:          { type: number, nullable: true, description: "Net margin medio %" }
+            thresholdGreenPercent:   { type: number, description: "Soglia % per GREEN" }
+
+    RuleSignalCurrentRatioLatest:
+      description: "Buffett §Financial Strength — current ratio latest."
+      allOf:
+        - $ref: '#/components/schemas/RuleSignalBase'
+        - type: object
+          required: [thresholdGreen, thresholdYellow]
+          properties:
+            ruleId:          { type: string, enum: [CURRENT_RATIO_LATEST] }
+            ratioLatest:     { type: number, nullable: true, description: "Current ratio = currentAssets / currentLiabilities" }
+            thresholdGreen:  { type: number, description: "Soglia minima per GREEN" }
+            thresholdYellow: { type: number, description: "Soglia minima per YELLOW" }
+
+    RuleSignalDebtToIncomeLatest:
+      description: "Buffett §Financial Strength — debt/income latest. INDETERMINATE se net income <= 0."
+      allOf:
+        - $ref: '#/components/schemas/RuleSignalBase'
+        - type: object
+          required: [thresholdGreen, thresholdYellow, netIncomePositive]
+          properties:
+            ruleId:             { type: string, enum: [DEBT_TO_INCOME_LATEST] }
+            ratioLatest:        { type: number, nullable: true, description: "Long-term debt / net income (anni)" }
+            thresholdGreen:     { type: number, description: "Soglia massima per GREEN" }
+            thresholdYellow:    { type: number, description: "Soglia massima per YELLOW" }
+            netIncomePositive:  { type: boolean, description: "false -> INDETERMINATE (rapporto non significativo)" }
+
+    RuleSignalCapexIntensity10yAvg:
+      description: "Buffett §Capital-Light — capex/operatingCashFlow media 10y."
+      allOf:
+        - $ref: '#/components/schemas/RuleSignalBase'
+        - type: object
+          required: [thresholdGreenPercent, thresholdYellowPercent]
+          properties:
+            ruleId:                  { type: string, enum: [CAPEX_INTENSITY_10Y_AVG] }
+            averagePercent:          { type: number, nullable: true, description: "Capex intensity media %" }
+            thresholdGreenPercent:   { type: number, description: "Soglia massima % per GREEN" }
+            thresholdYellowPercent:  { type: number, description: "Soglia massima % per YELLOW" }
+
+    # -------------------------------------------------------------------------
+    # EP-023 — Graham Cap.15 Enterprising Investor (NCAV / Net-Net), ADR-029 §2 + §3
+    # -------------------------------------------------------------------------
+
+    RuleSignalNcavLatest:
+      description: |
+        Graham §Cap.15 Enterprising Investor — Net Current Asset Value (informativo).
+        Formula: NCAV = totalCurrentAssets − totalLiabilities (passività TOTALI, ADR-029 §1).
+        Codifica (ADR-029 §2): dati mancanti → INDETERMINATE; ncavTotal > 0 → GREEN
+        (calcolo riuscito; la decisione di acquisto spetta a NET_NET_RATIO);
+        ncavTotal ≤ 0 → RED (passivo totale > attivo corrente).
+      allOf:
+        - $ref: '#/components/schemas/RuleSignalBase'
+        - type: object
+          required: [ncavTotal, ncavPerShare]
+          properties:
+            ruleId:        { type: string, enum: [NCAV_LATEST] }
+            ncavTotal:     { type: number, nullable: true, description: "Net Current Asset Value totale in USD" }
+            ncavPerShare:  { type: number, nullable: true, description: "NCAV per azione in USD" }
+
+    RuleSignalNetNetRatio:
+      description: |
+        Graham §Cap.15 Enterprising Investor — Net-Net ratio (decisionale GREEN/RED).
+        Formula: ratio = priceLatest / ncavPerShare (ADR-029 §1).
+        Soglia: 2/3 = 0.6667 con precisione double (ADR-029 §3).
+        Codifica: ncavPerShare non calcolabile OR priceLatest null → INDETERMINATE;
+        ncavPerShare ≤ 0 → NOT_CALCULABLE (coerente con NCAV_LATEST RED);
+        ratio < 0.6667 → GREEN (opportunità net-net Graham);
+        ratio ≥ 0.6667 → RED (titolo non net-net).
+      allOf:
+        - $ref: '#/components/schemas/RuleSignalBase'
+        - type: object
+          required: [priceLatest, ncavPerShare, ratio, thresholdRatio]
+          properties:
+            ruleId:         { type: string, enum: [NET_NET_RATIO] }
+            priceLatest:    { type: number, nullable: true, description: "Prezzo corrente in USD (da FmpProfileSnapshot, ADR-014)" }
+            ncavPerShare:   { type: number, nullable: true, description: "NCAV per azione in USD" }
+            ratio:          { type: number, nullable: true, description: "priceLatest / ncavPerShare" }
+            thresholdRatio: { type: number, default: 0.6666666666666666, description: "Soglia Graham 2/3" }
 
     DcfMethod:
       type: string

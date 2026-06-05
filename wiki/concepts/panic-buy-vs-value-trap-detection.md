@@ -4,7 +4,8 @@ sources: ["raw/agent.py", "raw/09_agent_py_method_analysis.md"]
 status: draft
 created: 2026-05-23
 updated: 2026-05-23
-tags: [value-investing, behavioral-finance, panic-buy, value-trap, drawdown, news-sentiment, buffett, munger]
+tags: [value-investing, behavioral-finance, panic-buy, value-trap, drawdown, news-sentiment, buffett, munger, vi-domain]
+domain: value-investing
 ---
 # Panic Buy vs Value Trap Detection
 

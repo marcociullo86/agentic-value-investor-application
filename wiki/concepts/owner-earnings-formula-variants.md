@@ -4,7 +4,8 @@ sources: ["raw/agent.py", "raw/09_agent_py_method_analysis.md", "raw/08_Risoluzi
 status: draft
 created: 2026-05-23
 updated: 2026-05-23
-tags: [value-investing, owner-earnings, dcf, buffett, greenwald, capex, working-capital, formula]
+tags: [value-investing, owner-earnings, dcf, buffett, greenwald, capex, working-capital, formula, vi-domain]
+domain: value-investing
 ---
 # Owner Earnings — Varianti della Formula
 

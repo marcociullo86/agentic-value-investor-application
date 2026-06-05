@@ -4,7 +4,8 @@ sources: ["raw/requisiti-funzionali-fintech.md"]
 status: draft
 created: 2026-05-26
 updated: 2026-05-26
-tags: [pii, redaction, logging, gdpr, security, compliance, fintech, runbook]
+tags: [pii, redaction, logging, gdpr, security, compliance, fintech, runbook, platform-domain]
+domain: platform
 ---
 # PII Redaction Checklist
 

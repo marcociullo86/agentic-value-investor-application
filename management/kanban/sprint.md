@@ -1,10 +1,10 @@
 <!-- generated, do not edit — rigenerato da tpm ad ogni run -->
 ---
 id: sprint
-title: Sprint Plan — R1.0 MVP + R1.1 + R1.1.x + R2.0 + R2.1 + R3.0 + CQRL Bonifica + R3.2 + R3.3 + R3.4
-generated: 2026-06-03
+title: Sprint Plan — R1.0 MVP + R1.1 + R1.1.x + R2.0 + R2.1 + R3.0 + CQRL Bonifica + R3.2 + R3.3 + R3.4 + Backlog R4.0 EP-024
+generated: 2026-06-05
 tpm: tpm
-release: R3.0 EP-018 Sprint 15 (chiuso) + EP-017 chiusa (Sprint 14+17) + R3.1 EP-019 chiusa (Sprint 16) + R3.2 Sprint 18 COMPLETATO (EP-002 US-031 + EP-010) + R3.3 Sprint 19 COMPLETATO (EP-020) + R3.4 Sprint 20 IN CORSO (EP-017 US-092 + EP-021 + EP-023)
+release: R3.0 EP-018 Sprint 15 (chiuso) + EP-017 chiusa (Sprint 14+17) + R3.1 EP-019 chiusa (Sprint 16) + R3.2 Sprint 18 COMPLETATO (EP-002 US-031 + EP-010) + R3.3 Sprint 19 COMPLETATO (EP-020) + R3.4 Sprint 20 IN CORSO (EP-017 US-092 + EP-021 + EP-023) + R4.0 BACKLOG (EP-024 Riepilogo + Tab TA)
 r10_closed: 2026-05-22
 r11_closed: 2026-05-23
 r11x_closed: 2026-05-26
@@ -764,6 +764,11 @@ Sprint 12 (EP-016) ✅ ═══╝        │
                              Wave A: TSK-309 (US-092 BE) ║ TSK-311 (US-093 sealed interface)
                              Wave B: TSK-310,312,313,314,315 (US-092 QA, US-093 adeguamento+QA, US-094) ║ TSK-316,317,318 (US-096 NCAV BE)
                              Wave C: TSK-319,320,321 (US-095 FE migration) ║ TSK-322,323 (US-097 badge)
+                                   │
+                                   ▼
+                           Sprint 21+ (EP-024) ← BACKLOG R4.0 (non schedulato)
+                             Fase 1: US-098 (BE TA payload) → US-099 (BE entry-timing) + US-100 (BE stop+sizing) → US-101 (FE tab TA) + US-102 (QA E2E)
+                             Fase 2 capstone (dipende da Fase 1 done): US-103 (BE /summary aggregator + RAG cross-dominio) → US-104 (FE tab Riepilogo primo tab + warning anti-COPART)
 ```
 
 ---
@@ -800,7 +805,7 @@ Sprint 20 EP-021 US-093 → Sprint 20 EP-023 US-096: INTRA-SPRINT (Scenario B AD
 
 ## Stato backlog
 
-**Sprint 20 in corso. 15 TSK `todo` in attesa di sviluppo.**
+**Sprint 20 in corso. 15 TSK `todo` in attesa di sviluppo. EP-024 in backlog (7 US `ready`, non ancora schedulate).**
 
 308/308 TSK `done` su Sprint 1..19 (R1.0→R3.3). 15 TSK `todo` in Sprint 20 (R3.4).
 Totale complessivo: 323 TSK (308 done + 15 todo).
@@ -808,5 +813,7 @@ Totale complessivo: 323 TSK (308 done + 15 todo).
 - **EP-017** `in_progress` — US-073..078+087 `done`; US-092 `ready` → Sprint 20 Wave A.
 - **EP-021** `in_progress` — US-093/094/095 `ready` → Sprint 20 Wave A/B/C.
 - **EP-023** `in_progress` — US-096/097 `ready` → Sprint 20 Wave B/C.
+- **EP-024** `ready` (backlog, R4.0 candidate) — Tab Riepilogo (verdetto VI+TA azionabile) + Tab Technical Analysis sul dettaglio ticker. **Confidence 65%**. Fase 1 (5 US): US-098 (BE pipeline TA payload), US-099 (BE entry-timing advisor Triple-Screen-like), US-100 (BE stop-placement + position-sizing 2%/6% Rule), US-101 (FE tab Technical Analysis), US-102 (QA E2E + scenario stile-COPART). Fase 2 capstone (2 US, dipende da Fase 1): US-103 (BE aggregatore /summary con gate VI hardcoded + citazioni RAG cross-dominio), US-104 (FE tab Riepilogo come primo tab + warning anti-COPART). Dipendenze infra: EP-011 done (pgvector + arctic-embed), EP-013 done (FmpAdapter.getTechnicalIndicator), EP-020 done (trasparenza LLM), EP-007 done (analyze service), EP-021/EP-023 in flight (soft alignment). Sprint non ancora deciso dall'orchestrator; TSK da derivare dal TPM in fase di planning.
 
 **ADR accepted:** ADR-021, ADR-022, ADR-023, ADR-024, ADR-025, ADR-026, ADR-027, ADR-028, ADR-029.
+**ADR attesi su EP-024 (delegati a lead-architect):** ADR-030 candidato — pattern di persistenza per il payload TA (cache-aside 24h vs `technical_analysis_snapshot` table) e governance del corpus RAG cross-dominio (wiki concepts/syntheses indicizzate in pgvector come secondo corpus oltre ai filing 10-K/10-Q).

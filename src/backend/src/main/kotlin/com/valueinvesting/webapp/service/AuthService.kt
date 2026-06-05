@@ -36,6 +36,7 @@ class AuthService(
     private val compromisedPasswordGuard: CompromisedPasswordGuard,
     private val mfaService: MfaService,
     private val bruteForceProtectionService: BruteForceProtectionService,
+    private val securityEventLogger: SecurityEventLogger,
     private val clock: Clock,
 ) {
 
@@ -172,7 +173,23 @@ class AuthService(
             ?: throw InvalidRefreshTokenException(REASON_NOT_FOUND)
         val now = Instant.now(clock)
         if (token.revokedAt != null) {
-            throw InvalidRefreshTokenException(REASON_REVOKED)
+            // ADR-027 §1 — reuse detection: a refresh token already rotated
+            // (revoked_at != null) is being presented again → cascade-revoke
+            // every still-active token of the user (kill-switch on a strong
+            // compromise signal). Runs in the same @Transactional as refresh(),
+            // so the bulk UPDATE and the throw are atomic. Idempotent: a second
+            // replay of the same token finds zero active rows → revokedCount=0,
+            // no error, still throws REASON_REUSE_DETECTED. The client keeps
+            // seeing the opaque 401 invalid-refresh (anti-enum §3) — only the
+            // server-side security log carries the new reason code + family +
+            // revokedCount for SOC correlation (§4).
+            val revokedCount = refreshTokenRepository.revokeAllActiveByUserId(token.userId, now)
+            securityEventLogger.refreshTokenReuseDetected(
+                userId = token.userId,
+                family = token.firstIssuedAt,
+                revokedCount = revokedCount,
+            )
+            throw InvalidRefreshTokenException(REASON_REUSE_DETECTED)
         }
         if (!token.expiresAt.isAfter(now)) {
             throw InvalidRefreshTokenException(REASON_SLIDING_EXPIRED)
@@ -289,8 +306,19 @@ private const val UNKNOWN_IP: String = "0.0.0.0"
 
 // Anti-enum reason codes carried server-side only by InvalidRefreshTokenException.
 // Stable identifiers so log-sink queries / security dashboards can filter by cause.
+// Kept file-private here (same compilation unit as the only caller, AuthService)
+// to preserve the existing idiom — ADR-027 §3 introduces REASON_REUSE_DETECTED
+// alongside the pre-existing reasons; the client surface stays uniformly
+// `401 invalid-refresh` opaque.
 private const val REASON_NOT_FOUND: String = "not_found"
+
+// Kept after ADR-027: pre-existing identifier reserved in the reason vocabulary;
+// the refresh() reuse branch now emits REASON_REUSE_DETECTED instead, but the
+// constant is preserved so log-sink queries and out-of-scope callers
+// (e.g. logout, future revocation flows) keep a stable token to reference.
+@Suppress("unused")
 private const val REASON_REVOKED: String = "revoked"
 private const val REASON_SLIDING_EXPIRED: String = "sliding_expired"
 private const val REASON_ABSOLUTE_CAP: String = "absolute_cap"
 private const val REASON_USER_UNKNOWN: String = "user_unknown"
+private const val REASON_REUSE_DETECTED: String = "reuse_detected"

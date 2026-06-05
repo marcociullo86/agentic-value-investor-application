@@ -4,7 +4,8 @@ sources: ["raw/requisiti-funzionali-fintech.md"]
 status: draft
 created: 2026-05-26
 updated: 2026-05-26
-tags: [fintech, hardening, cross-domain, requirements-map, architecture]
+tags: [fintech, hardening, cross-domain, requirements-map, architecture, platform-domain]
+domain: platform
 ---
 # Mappa dei Requisiti di Hardening Fintech
 

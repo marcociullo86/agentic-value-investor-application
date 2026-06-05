@@ -4,7 +4,8 @@ sources: ["raw/agent.py", "raw/09_agent_py_method_analysis.md"]
 status: draft
 created: 2026-05-23
 updated: 2026-05-23
-tags: [value-investing, langgraph, multi-agent, architecture, llm, fmp, sec-edgar, screener]
+tags: [value-investing, langgraph, multi-agent, architecture, llm, fmp, sec-edgar, screener, vi-domain]
+domain: value-investing
 ---
 # Value Investor Bot — Architettura LangGraph Multi-Agente
 

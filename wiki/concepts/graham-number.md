@@ -4,7 +4,8 @@ sources: ["raw/03_Analisi_Fondamentale_e_Valutazione.md"]
 status: draft
 created: 2026-05-20
 updated: 2026-05-21
-tags: [value-investing, graham, graham-number, pe-ratio, pb-ratio, eps, book-value, defensive-investor]
+tags: [value-investing, graham, graham-number, pe-ratio, pb-ratio, eps, book-value, defensive-investor, vi-domain]
+domain: value-investing
 ---
 # Numero di Graham (Graham Number)
 

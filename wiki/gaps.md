@@ -22,6 +22,33 @@ di vita.
 
 ## Gap aperti
 
+### 2026-06-05 — earnings-stability-formatter-lossyears-undefined-crash
+
+**Origine:** qa-dev @ TSK-321 (test formatters.ts per EARNINGS_STABILITY_10Y con legacy fixture)
+**Gap:** Il formatter `formatEarningsStability` in `lib/rule-signals/formatters.ts` (TSK-319) accede
+a `lossYears.length` senza guard per `undefined`. Quando il formatter viene chiamato tramite
+`deriveGrahamSubtitle()` in `TrafficLightPanel.tsx` con segnali legacy (tipo hand-rolled
+`lib/api/analysis.ts` che non ha il campo `lossYears`) — oppure con qualsiasi oggetto dove
+`lossYears` è `undefined` — si genera `TypeError: Cannot read properties of undefined (reading 'length')`.
+Il cast `as unknown as TypedRuleSignal` in `deriveGrahamSubtitle` non protegge da questa
+condizione a runtime.
+**Riproducibilità:** Riprodotto nell'analisi del test TSK-321 TrafficLightPanel Test 11 con fixture
+legacy `{ ruleId: 'EARNINGS_STABILITY_10Y', signal: 'YELLOW', observedValue: 8 }` (nessun `lossYears`).
+**Sospetta fonte:** be-dev (formatters.ts TSK-319) — guard mancante su `lossYears` prima di
+accedere a `.length`.
+**Fix proposto:** Aggiungere `const safeLossYears = lossYears ?? [];` prima dell'accesso a `.length`
+nel formatter `formatEarningsStability`. Alternativa: controllare `lossYears?.length ?? 0`.
+**Impatto:** Runtime crash sulla pagina analisi se il backend emette `EARNINGS_STABILITY_10Y`
+senza il campo `lossYears` (es. durante finestra transizione R+1/R+2 ADR-028 §8, o con
+payload stale pre-EP-021 parzialmente migrati). Alta severità per regressione UI.
+**Bloccante:** No (workaround: fixture typed nei test; prod non impattata se BE emette sempre `lossYears`).
+**TSK proposto:** Aprire TSK be-dev su `formatters.ts` per aggiungere il guard.
+**RISOLTO 2026-06-05:** Fix applicato in `lib/rule-signals/formatters.ts` `formatEarningsStability`
+(`const lossYears = s.lossYears ?? [];` prima dell'accesso a `.length`). `typecheck:api` PASS.
+Coerente con la finestra transizione R+1/R+2 (ADR-028 §8).
+
+---
+
 ### 2026-06-03 — rulesignal-typed-metadata-deferred
 
 **Origine:** code-reviewer @ CQRL Sprint 18 (TSK-289 iter-1, finding F-289-1 medium)
@@ -495,3 +522,44 @@ ADR-007 §Error format dichiara RFC 9457 §3.2 (extensions al top-level). Quattr
 **Sospetta fonte:** tpm — sprint plan sprint 18 ha duplicato i TSK DB US-037 (TSK-286, presumibilmente anche per gli altri TSK BE/FE collegati) senza verificare lo stato di sprint 6. Serve allineamento `tpm`/`product-manager` su US-037: marcare TSK-286 come duplicato chiuso e ri-verificare se TSK-285/287/288 siano anch'essi duplicati di TSK-085/086 oppure incremental work valido.
 **Impatto:** Non bloccante. La tabella esiste e funziona. TSK-286 marcato `done` con nota nel handoff (DoD soddisfatta da V010 preesistente). Rischio di confusione e double-work se altri TSK sprint 18 US-037 sono pure duplicati di sprint 6.
 **TSK correlati:** TSK-286 (sprint 18, duplicato), TSK-084 (sprint 6, done), TSK-285/287/288 (da verificare duplicazione).
+
+---
+**[2026-06-05] `be-build-toolchain-missing`** (aperto da be-dev TSK-312, EP-021)
+
+**Cosa manca:** Il backend Kotlin/Spring (Kotlin 2.2 + Spring Boot 3.5 per
+`factory.config.yaml`) non ha un gradle wrapper checked-in (`gradlew`/`gradlew.bat`
+assenti, vedi `Glob **/gradlew*` = no results); `gradle`, `kotlinc` e `mvn` non
+sono sul PATH dell'environment dell'agent. Conseguenza: i dev-agent BE NON
+possono eseguire `gradle compileKotlin`/`gradle test` per smoke-verifica
+post-edit. La verifica build oggi richiede apertura IDE manuale o CI.
+
+**Perché serve:** PATTERN §7 r.14 (gate VCS umano) + DoD canonica TSK BE: una
+sostituzione strutturale come TSK-312 (13 strategie call-site swap + rimozione
+shim) dovrebbe poter essere validata almeno a `compileKotlin` prima di handoff
+e prima del commit. Senza wrapper, ogni TSK BE chiude con confidence HIGH ma
+non con compile-pass empirico.
+
+**Sospetta fonte:** repo-bootstrap / infra-dev — al setup iniziale è stato
+omesso `gradle wrapper --gradle-version <X>` per il modulo `src/backend`.
+
+**Impatto:** Non bloccante per il merge ma riduce la confidence di TSK BE.
+Workaround: rule-by-rule code review + smoke kotlinc manuale (vedi
+log TSK-311 §BUILD VERIFICATION). Soluzione strutturale: aggiungere
+`gradlew`/`gradlew.bat` + `gradle/wrapper/` + `gradlew.properties` al modulo
+`src/backend` (Kotlin 2.2 compatible) in TSK infra dedicato.
+
+**TSK correlati:** TSK-311 (medesimo gap citato in log), TSK-312 (presente),
+TSK-316 / TSK-317 (EP-023 NCAV + Net-Net rule — smoke build saltato per
+toolchain mancante), ogni TSK BE futuro.
+
+---
+
+### 2026-06-05 — murphy-technical-analysis-extraction-failure
+
+**Origine:** wiki-keeper @ ingest raw/2026-06-05-technical-analysis-financial-markets-1999.txt
+**Gap:** Il raw estratto dal PDF "Technical Analysis of the Financial Markets" (Murphy, 1999, 585 pagine) contiene solo l'header di estrazione e 0 righe di contenuto testuale. L'extractor (`figma-sync` / `sync-docs`) ha prodotto un file vuoto: body assente, nessuna pagina estratta nonostante le 585 pagine del PDF originale.
+**Sospetta fonte:** infra-dev / sync-docs — problema nell'estrazione PDF (possibile PDF scansionato senza layer testo OCR, o protezione DRM, o encoding non supportato dall'extractor).
+**Impatto:** La sorgente Murphy non puo essere documentata nel wiki. La pagina `wiki/sources/murphy-technical-analysis-financial-markets-1999.md` esiste come placeholder con nota di extraction failure. I concetti del libro (teoria Dow, pattern chart, analisi intermarket, oscillatori) restano non documentati. Non bloccante per il dominio core (value investing). Bloccante: no.
+**Azione richiesta:** Re-estrazione del PDF con tool alternativo (es. pypdf2, pdfplumber, OCR se scansionato) e nuovo `/sync-docs`; oppure sorgente testuale alternativa (testo ebook).
+
+**Risolto:** 2026-06-05 — Re-estrazione completata con successo via OCR Tesseract 5.4.0 (PyMuPDF render zoom=3.0). Il file `raw/2026-06-05-technical-analysis-financial-markets-1999.txt` contiene ora il testo completo del volume (585 pagine, corpo capitoli pulito e accurato; rumore OCR limitato alle pagine di copertina/dorso Pages 1, 2, 30 — ignorato). Ingest completato: pagina source reale `wiki/sources/murphy-technical-analysis-financial-markets-1999.md` sostituisce il placeholder; 6 concetti creati (`dow-theory`, `trend-trendlines-support-resistance`, `chart-patterns-reversal-continuation`, `moving-averages-ta`, `oscillators-momentum-rsi`, `volume-open-interest`, `intermarket-analysis-murphy`); 1 entita creata `wiki/entities/john-murphy.md`. Tag `extraction-failure` rimosso dalla source page. [^src: raw/2026-06-05-technical-analysis-financial-markets-1999.txt §Page 31]

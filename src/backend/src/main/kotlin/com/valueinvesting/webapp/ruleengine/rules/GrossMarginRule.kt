@@ -38,9 +38,11 @@ class GrossMarginRule : ValuationRule {
         val sample = averageOfMetric(dataset.income) { extractGrossMargin(it) }
 
         if (sample.average == null) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.GrossMargin10yAvg(
                 signal = Signal.NOT_CALCULABLE,
+                averagePercent = null,
+                thresholdGreenPercent = GREEN_THRESHOLD * 100.0,
+                thresholdYellowPercent = YELLOW_THRESHOLD * 100.0,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Nessun valore di Gross Margin calcolabile nei ${sample.totalYears} esercizi forniti.",
@@ -48,9 +50,11 @@ class GrossMarginRule : ValuationRule {
         }
 
         if (sample.effectiveYears < MIN_YEARS) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.GrossMargin10yAvg(
                 signal = Signal.INDETERMINATE,
+                averagePercent = sample.average * 100.0,
+                thresholdGreenPercent = GREEN_THRESHOLD * 100.0,
+                thresholdYellowPercent = YELLOW_THRESHOLD * 100.0,
                 observedValue = sample.average,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Solo ${sample.effectiveYears} esercizi con Gross Margin valido (minimo richiesto: $MIN_YEARS).",
@@ -63,9 +67,11 @@ class GrossMarginRule : ValuationRule {
             else -> Signal.RED
         }
         val pct = "%.2f%%".format(sample.average * 100)
-        return RuleSignal(
-            ruleId = ruleId,
+        return RuleSignal.GrossMargin10yAvg(
             signal = signal,
+            averagePercent = sample.average * 100.0,
+            thresholdGreenPercent = GREEN_THRESHOLD * 100.0,
+            thresholdYellowPercent = YELLOW_THRESHOLD * 100.0,
             observedValue = sample.average,
             threshold = THRESHOLD_LABEL,
             rationale = "Media Gross Margin su ${sample.effectiveYears} esercizi: $pct.",

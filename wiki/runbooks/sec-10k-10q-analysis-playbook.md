@@ -4,7 +4,8 @@ sources: ["raw/05_Analisi_10K_10Q_e_Regole_Buffett.md", "raw/fmp_docs.md"]
 status: draft
 created: 2026-05-20
 updated: 2026-05-30
-tags: [runbook, value-investing, sec, 10-k, 10-q, buffett, analysis, sec-edgar, filing-cache]
+tags: [runbook, value-investing, sec, 10-k, 10-q, buffett, analysis, sec-edgar, filing-cache, vi-domain]
+domain: value-investing
 ---
 # Playbook: Analisi 10-K/10-Q con Metodo Buffett
 

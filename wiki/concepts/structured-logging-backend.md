@@ -4,7 +4,8 @@ sources: ["raw/requisiti-funzionali-fintech.md"]
 status: draft
 created: 2026-05-26
 updated: 2026-05-26
-tags: [logging, observability, correlation-id, pii-redaction, fintech, backend, gdpr, security-events]
+tags: [logging, observability, correlation-id, pii-redaction, fintech, backend, gdpr, security-events, platform-domain]
+domain: platform
 ---
 # Logging Backend Strutturato e Human-Readable
 

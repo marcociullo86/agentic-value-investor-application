@@ -4,7 +4,8 @@ sources: ["raw/investitore intelligente.txt"]
 status: draft
 created: 2026-05-22
 updated: 2026-05-22
-tags: [value-investing, graham, defensive-investor, seven-criteria, stock-selection, pe-ratio, current-ratio, dividends, earnings]
+tags: [value-investing, graham, defensive-investor, seven-criteria, stock-selection, pe-ratio, current-ratio, dividends, earnings, vi-domain]
+domain: value-investing
 ---
 # Sette Criteri di Selezione per l'Investitore Difensivo
 

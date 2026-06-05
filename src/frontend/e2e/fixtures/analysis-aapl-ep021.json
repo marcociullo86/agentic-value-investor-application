@@ -1,0 +1,143 @@
+{
+  "ticker": "AAPL",
+  "evaluatedAt": "2026-05-22T10:00:00Z",
+  "dcfMethodSource": "DEFAULT_POLICY",
+  "signals": [
+    {
+      "ruleId": "SIZE_LATEST",
+      "signal": "GREEN",
+      "revenueLatest": 385000000000,
+      "thresholdUsd": 100000000,
+      "observedValue": 385000000000,
+      "threshold": "Revenue ≥ $100M",
+      "rationale": "Revenue molto sopra soglia"
+    },
+    {
+      "ruleId": "EARNINGS_STABILITY_10Y",
+      "signal": "GREEN",
+      "yearsPositive": 10,
+      "yearsAvailable": 10,
+      "lossYears": [],
+      "observedValue": 10,
+      "threshold": "10/10 anni positivi",
+      "rationale": "Nessun anno di perdita negli ultimi 10y"
+    },
+    {
+      "ruleId": "EPS_GROWTH_10Y",
+      "signal": "GREEN",
+      "cagrPercent": 10.5,
+      "thresholdPercent": 2.9,
+      "observedValue": 10.5,
+      "threshold": "CAGR EPS ≥ 2.9%",
+      "rationale": "CAGR EPS 10y 10.5%"
+    },
+    {
+      "ruleId": "PE_3Y_AVG",
+      "signal": "RED",
+      "pe3yAvg": 28.5,
+      "thresholdGreen": 15,
+      "thresholdYellow": 20,
+      "observedValue": 28.5,
+      "threshold": "P/E ≤ 15 (GREEN)",
+      "rationale": "P/E medio 3y superiore a 20 — ROSSO"
+    },
+    {
+      "ruleId": "PB_LATEST",
+      "signal": "RED",
+      "pbLatest": 45.0,
+      "thresholdGreen": 1.5,
+      "thresholdYellow": 3.0,
+      "observedValue": 45.0,
+      "threshold": "P/B ≤ 1.5 (GREEN)",
+      "rationale": "P/B molto elevato per buyback intensivi"
+    },
+    {
+      "ruleId": "DIVIDEND_CONTINUITY_20Y",
+      "signal": "YELLOW",
+      "consecutiveYears": 13,
+      "thresholdYears": 20,
+      "observedValue": 13,
+      "threshold": "Dividendo ≥ 20y consecutivi",
+      "rationale": "13 anni consecutivi di dividendo"
+    },
+    {
+      "ruleId": "ROE_10Y_AVG",
+      "signal": "GREEN",
+      "averagePercent": 95.0,
+      "yearsAvailable": 10,
+      "thresholdGreenPercent": 15.0,
+      "thresholdYellowPercent": 10.0,
+      "observedValue": 0.95,
+      "threshold": "ROE ≥ 15%",
+      "rationale": "ROE medio 10y 95% (buyback intensivi)"
+    },
+    {
+      "ruleId": "ROIC_10Y_AVG",
+      "signal": "GREEN",
+      "averagePercent": 28.0,
+      "yearsAvailable": 10,
+      "thresholdGreenPercent": 15.0,
+      "thresholdYellowPercent": 10.0,
+      "observedValue": 0.28,
+      "threshold": "ROIC ≥ 15%",
+      "rationale": "ROIC medio 10y 28%"
+    },
+    {
+      "ruleId": "GROSS_MARGIN_10Y_AVG",
+      "signal": "GREEN",
+      "averagePercent": 43.5,
+      "thresholdGreenPercent": 40.0,
+      "thresholdYellowPercent": 25.0,
+      "observedValue": 0.435,
+      "threshold": "Gross Margin ≥ 40%",
+      "rationale": "Gross margin medio 10y 43.5%"
+    },
+    {
+      "ruleId": "NET_MARGIN_10Y_AVG",
+      "signal": "GREEN",
+      "averagePercent": 24.5,
+      "thresholdGreenPercent": 20.0,
+      "observedValue": 0.245,
+      "threshold": "Net Margin ≥ 20%",
+      "rationale": "Net margin medio 10y 24.5%"
+    },
+    {
+      "ruleId": "CURRENT_RATIO_LATEST",
+      "signal": "RED",
+      "ratioLatest": 0.88,
+      "thresholdGreen": 2.0,
+      "thresholdYellow": 1.0,
+      "observedValue": 0.88,
+      "threshold": "Current Ratio ≥ 2.0 (GREEN)",
+      "rationale": "Current Ratio 0.88 — sotto soglia"
+    },
+    {
+      "ruleId": "DEBT_TO_INCOME_LATEST",
+      "signal": "YELLOW",
+      "ratioLatest": 4.2,
+      "thresholdGreen": 4.0,
+      "thresholdYellow": 8.0,
+      "netIncomePositive": true,
+      "observedValue": 4.2,
+      "threshold": "Debt/Income ≤ 4 (GREEN)",
+      "rationale": "Rapporto debito/reddito 4.2"
+    },
+    {
+      "ruleId": "CAPEX_INTENSITY_10Y_AVG",
+      "signal": "GREEN",
+      "averagePercent": 18.0,
+      "thresholdGreenPercent": 25.0,
+      "thresholdYellowPercent": 50.0,
+      "observedValue": 0.18,
+      "threshold": "CapEx/OCF ≤ 25%",
+      "rationale": "Media 10y CapEx/OCF 18%"
+    }
+  ],
+  "grahamNumber": 47.43,
+  "dcfIntrinsicValue": 180.5,
+  "dcfMethod": "GREENWALD",
+  "mosSignal": "YELLOW",
+  "currentPriceAtEval": 195.0,
+  "dataSnapshotAt": "2026-05-22T10:00:00Z",
+  "isStale": false
+}

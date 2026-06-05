@@ -1,1 +1,15 @@
-{}
+{
+  "alexander-elder-new-trading-living-2014": {
+    "extracted_at": "2026-06-05T19:58:48.482339",
+    "txt_path": "2026-06-05-alexander-elder-new-trading-living-2014.txt",
+    "figures": 0,
+    "pages": 303
+  },
+  "technical-analysis-financial-markets-1999": {
+    "extracted_at": "2026-06-05T20:50:24.610220",
+    "txt_path": "raw/2026-06-05-technical-analysis-financial-markets-1999.txt",
+    "figures": 0,
+    "pages": 585,
+    "method": "ocr"
+  }
+}

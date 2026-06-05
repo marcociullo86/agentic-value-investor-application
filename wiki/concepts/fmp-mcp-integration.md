@@ -6,7 +6,8 @@ status: draft
 created: 2026-05-25
 sources:
   - raw/fmp_mcp-server.txt
-tags: [fmp, mcp, model-context-protocol, llm, agent, integration]
+tags: [fmp, mcp, model-context-protocol, llm, agent, integration, platform-domain]
+domain: platform
 ---
 # FMP MCP Server Integration
 

@@ -72,9 +72,11 @@ class EarningsStabilityRule : ValuationRule {
 
     override fun evaluate(dataset: FinancialDataset): RuleSignal {
         if (dataset.income.isEmpty()) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.EarningsStability10y(
                 signal = Signal.NOT_CALCULABLE,
+                yearsPositive = 0,
+                yearsAvailable = 0,
+                lossYears = emptyList(),
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Income Statement non disponibile: stabilità degli utili non valutabile.",
@@ -88,9 +90,11 @@ class EarningsStabilityRule : ValuationRule {
             .sortedByDescending { it.date ?: it.calendarYear ?: "" }
 
         if (sorted.size < REQUIRED_YEARS) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.EarningsStability10y(
                 signal = Signal.INDETERMINATE,
+                yearsPositive = 0,
+                yearsAvailable = sorted.size,
+                lossYears = emptyList(),
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Serie storica insufficiente: ${sorted.size} esercizi disponibili (richiesti $REQUIRED_YEARS).",
@@ -112,6 +116,14 @@ class EarningsStabilityRule : ValuationRule {
             }
         }
 
+        // Typed payload: lossYears = list of Int (calendar years) where netIncome
+        // <= 0 OR null. Strip the "(n/d)" suffix from the label to get a clean
+        // year string, then parse to Int. Labels that aren't parseable (e.g.
+        // "n/d") are skipped — they couldn't be a meaningful int anyway.
+        val lossYearsTyped: List<Int> = lossOrNaLabels.mapNotNull { label ->
+            label.substringBefore(" ").toIntOrNull()
+        }
+
         val yearsPositive = REQUIRED_YEARS - lossOrNaLabels.size
         val observedValue = yearsPositive.toDouble()
 
@@ -122,9 +134,11 @@ class EarningsStabilityRule : ValuationRule {
         }
 
         val rationale = buildRationale(yearsPositive, lossOrNaLabels)
-        return RuleSignal(
-            ruleId = ruleId,
+        return RuleSignal.EarningsStability10y(
             signal = signal,
+            yearsPositive = yearsPositive,
+            yearsAvailable = REQUIRED_YEARS,
+            lossYears = lossYearsTyped,
             observedValue = observedValue,
             threshold = THRESHOLD_LABEL,
             rationale = rationale,

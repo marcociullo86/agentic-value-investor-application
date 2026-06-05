@@ -4,7 +4,8 @@ sources: ["raw/investitore intelligente.txt"]
 status: draft
 created: 2026-05-22
 updated: 2026-05-22
-tags: [value-investing, graham, source, book, intelligent-investor, margin-of-safety, mr-market, defensive-investor]
+tags: [value-investing, graham, source, book, intelligent-investor, margin-of-safety, mr-market, defensive-investor, vi-domain]
+domain: value-investing
 ---
 # L'Investitore Intelligente (B. Graham, ed. it. 2020)
 

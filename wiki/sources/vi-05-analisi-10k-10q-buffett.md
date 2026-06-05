@@ -4,7 +4,8 @@ sources: ["raw/05_Analisi_10K_10Q_e_Regole_Buffett.md"]
 status: draft
 created: 2026-05-20
 updated: 2026-05-20
-tags: [value-investing, buffett, 10-k, 10-q, sec, economic-moat, roic, roe, dcf, margin-of-safety]
+tags: [value-investing, buffett, 10-k, 10-q, sec, economic-moat, roic, roe, dcf, margin-of-safety, vi-domain]
+domain: value-investing
 ---
 # Source: Analisi 10-K/10-Q e Metodo Warren Buffett
 

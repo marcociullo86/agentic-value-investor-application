@@ -5,7 +5,8 @@ sources:
 status: review
 created: 2026-05-21
 updated: 2026-05-27 (auth contract test + Testcontainers lifecycle)
-tags: [runbook, openapi, qa, ci, contract]
+tags: [runbook, openapi, qa, ci, contract, platform-domain]
+domain: platform
 ---
 # Runbook: Contract check OpenAPI
 

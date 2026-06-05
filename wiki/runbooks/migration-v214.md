@@ -22,7 +22,8 @@ related:
   - parallel-scheduler
   - migration-v213
   - migration-v212
-tags: [runbook, migrazione, v2-14, compression, caveman, output-compression, opt-in]
+tags: [runbook, migrazione, v2-14, compression, caveman, output-compression, opt-in, platform-domain]
+domain: platform
 ---
 
 # Migrazione v2.13 → v2.14 (Output Compression Layer)

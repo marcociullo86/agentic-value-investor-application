@@ -4,7 +4,8 @@ sources: ["raw/investitore intelligente.txt"]
 status: draft
 created: 2026-05-22
 updated: 2026-05-22
-tags: [value-investing, graham, market-fluctuations, mr-market, behavioral-finance, timing, volatility]
+tags: [value-investing, graham, market-fluctuations, mr-market, behavioral-finance, timing, volatility, vi-domain]
+domain: value-investing
 ---
 # Fluttuazioni di Mercato — Il Metodo Graham (Cap.8)
 

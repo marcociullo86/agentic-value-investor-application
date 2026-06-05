@@ -4,7 +4,8 @@ sources: ["raw/investitore intelligente.txt"]
 status: draft
 created: 2026-05-22
 updated: 2026-05-22
-tags: [value-investing, graham, inflation, bonds, equities, real-return, portfolio-protection]
+tags: [value-investing, graham, inflation, bonds, equities, real-return, portfolio-protection, vi-domain]
+domain: value-investing
 ---
 # Inflazione e Investimento — Il Metodo Graham (Cap.2)
 

@@ -6,7 +6,8 @@ sources:
 status: review
 created: 2026-05-21
 updated: 2026-05-21 (post-contract-check)
-tags: [product-spec, api, rule-engine, dcf, analysis, l5]
+tags: [product-spec, api, rule-engine, dcf, analysis, l5, platform-domain]
+domain: platform
 ---
 # Pipeline API di analisi (`GET /api/analysis/{ticker}`)
 
@@ -212,3 +213,4 @@ Verifica coerenza L5 su `master`: `AnalyzeTickerService` orchestra 13 `RuleSigna
 <!-- Sezione gestita dal product-manager — non modificare se sei wiki-keeper -->
 - EP-004 (R1.0 done): US-011…013, US-020 — pipeline analisi e override DCF
 - EP-007 (R1.1): US-021 — conformità formato errori API (RFC 9457 extensions top-level)
+- [EP-024](../../management/kanban/EP-024-riepilogo-e-technical-analysis-tab/EP-024.md) — Estende la pipeline con due nuovi endpoint: `GET /api/analysis/{ticker}/technical` (US-098) e `GET /api/analysis/{ticker}/summary` (US-103, aggregatore cross-dominio VI+Deep+TA con gate VI hardcoded)

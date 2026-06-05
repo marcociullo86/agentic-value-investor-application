@@ -4,7 +4,8 @@ sources: ["raw/requisiti-funzionali-fintech.md"]
 status: draft
 created: 2026-05-26
 updated: 2026-05-26 (v2026-05-26 US-072 audit WCAG completata)
-tags: [ui, material-design-3, accessibility, wcag, design-tokens, theme, frontend, fintech]
+tags: [ui, material-design-3, accessibility, wcag, design-tokens, theme, frontend, fintech, platform-domain]
+domain: platform
 ---
 # Refinement UI: Material Design 3 e Accessibilita
 

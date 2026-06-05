@@ -59,7 +59,19 @@
       "Bash(\"c:/Program Files/Git/usr/bin/grep.exe\" -nE \"DeepAnalysisRunEntity\\\\\\(\" \"c:/Users/marco.ciullo/PycharmProjects/agentic-value-investor-app/src/backend/src/test/kotlin/com/valueinvesting/webapp/service/DeepAnalysisRunExecutorTest.kt\")",
       "PowerShell($g = Get-Command gradle -ErrorAction SilentlyContinue; if \\($g\\) { $g.Source } else { \"NO_GRADLE\" })",
       "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\('next:', p.dependencies.next || p.devDependencies.next\\)\")",
-      "Bash(node -e \"console.log\\(require\\('./package.json'\\).scripts.test, '||', require\\('./package.json'\\).scripts['test:unit'] || 'no test:unit'\\)\")"
+      "Bash(node -e \"console.log\\(require\\('./package.json'\\).scripts.test, '||', require\\('./package.json'\\).scripts['test:unit'] || 'no test:unit'\\)\")",
+      "Bash(command -v gradle)",
+      "Bash(command -v java)",
+      "Bash(Select-String -Path \"C:\\\\Users\\\\marco.ciullo\\\\PycharmProjects\\\\agentic-value-investor-app\\\\src\\\\frontend\\\\lib\\\\api\\\\generated\\\\schema.ts\" -Pattern \"NcavLatest|NetNetRatio|RuleSignalNcav|RuleSignalNet\")",
+      "Bash(Select-Object -First 30)",
+      "Bash(Test-Path \"C:\\\\Users\\\\marco.ciullo\\\\PycharmProjects\\\\agentic-value-investor-app\\\\src\\\\frontend\\\\lib\\\\rule-signals\\\\formatters.test.ts\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d.get\\('scripts', {}\\).get\\('test',''\\)\\)\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d.get\\('engines', 'no engines'\\)\\)\")",
+      "Bash(nvm list *)",
+      "PowerShell($p = Get-Command podman -ErrorAction SilentlyContinue; if \\($p\\) { Write-Output \"podman: $\\($p.Source\\)\"; podman ps --format \"{{.Names}}`t{{.Image}}`t{{.Status}}\" } else { Write-Output \"podman not on PATH\" }; $dc = Get-Command docker-compose -ErrorAction SilentlyContinue; if \\($dc\\) { Write-Output \"docker-compose: $\\($dc.Source\\)\" })",
+      "PowerShell(podman exec vi-postgres sh -lc 'echo \"DB=$POSTGRES_DB USER=$POSTGRES_USER\"')",
+      "PowerShell(podman exec vi-postgres psql -U postgres -d value_investing -At -c \"select id, ticker, kind, status, requested_at from deep_analysis_run where ticker='TTD' order by requested_at desc limit 10;\")",
+      "PowerShell(podman exec vi-postgres psql -U postgres -d value_investing -At -c \"select jsonb_pretty\\(\\(result_json::jsonb -> 'ruleEngineResults' -> 0\\)\\) from deep_analysis_run where id='c240733d-5869-49ff-ba81-7a212dcd9a8f';\")"
     ]
   }
 }

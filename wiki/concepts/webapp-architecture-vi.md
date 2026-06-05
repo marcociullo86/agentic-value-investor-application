@@ -4,7 +4,8 @@ sources: ["raw/06_Documento_Funzionale_WebApp_Value_Investing.md"]
 status: draft
 created: 2026-05-20
 updated: 2026-05-30
-tags: [product-spec, architecture, kotlin, spring-boot, spa, postgresql, fmp, caching, rest]
+tags: [product-spec, architecture, kotlin, spring-boot, spa, postgresql, fmp, caching, rest, platform-domain]
+domain: platform
 ---
 # Architettura WebApp Value Investing
 

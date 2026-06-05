@@ -42,9 +42,10 @@ class SizeRule : ValuationRule {
 
     override fun evaluate(dataset: FinancialDataset): RuleSignal {
         if (dataset.income.isEmpty()) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.Size(
                 signal = Signal.INDETERMINATE,
+                revenueLatest = null,
+                thresholdUsd = SIZE_THRESHOLD_USD,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Income Statement non disponibile: dimensione aziendale indeterminata.",
@@ -56,9 +57,10 @@ class SizeRule : ValuationRule {
         // alternativa sarebbe $50M ma il dataset attuale non veicola il settore.
 
         val latestIncome = dataset.income.maxByOrNull { it.date ?: it.calendarYear ?: "" }
-            ?: return RuleSignal(
-                ruleId = ruleId,
+            ?: return RuleSignal.Size(
                 signal = Signal.INDETERMINATE,
+                revenueLatest = null,
+                thresholdUsd = SIZE_THRESHOLD_USD,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Income Statement non ordinabile: dimensione aziendale indeterminata.",
@@ -70,9 +72,10 @@ class SizeRule : ValuationRule {
 
         val revenue = latestIncome.revenue
         if (revenue == null) {
-            return RuleSignal(
-                ruleId = ruleId,
+            return RuleSignal.Size(
                 signal = Signal.INDETERMINATE,
+                revenueLatest = null,
+                thresholdUsd = SIZE_THRESHOLD_USD,
                 observedValue = null,
                 threshold = THRESHOLD_LABEL,
                 rationale = "Revenue mancante per $yearLabel: dimensione aziendale indeterminata.",
@@ -81,9 +84,10 @@ class SizeRule : ValuationRule {
 
         val signal = if (revenue >= SIZE_THRESHOLD_USD.toDouble()) Signal.GREEN else Signal.RED
         val revenueMillions = "%.0fM".format(revenue / 1_000_000.0)
-        return RuleSignal(
-            ruleId = ruleId,
+        return RuleSignal.Size(
             signal = signal,
+            revenueLatest = revenue,
+            thresholdUsd = SIZE_THRESHOLD_USD,
             observedValue = revenue,
             threshold = THRESHOLD_LABEL,
             rationale = "Revenue $yearLabel: \$$revenueMillions.",

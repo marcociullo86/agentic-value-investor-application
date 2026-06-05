@@ -99,7 +99,18 @@ class RuleSignalEnumContractTest {
         )
     }
 
-    private lateinit var ruleIdNode: com.fasterxml.jackson.databind.JsonNode
+    /**
+     * Root node `RuleSignal` (post-EP-021): `oneOf` + `discriminator` union.
+     * Il "ruleId enum" canonico vive ora nelle chiavi di `discriminator.mapping`
+     * (la enum esplicita `properties.ruleId.enum` non esiste piu' a livello root —
+     * ogni sotto-schema dichiara il proprio `ruleId.enum: [<single value>]`).
+     *
+     * Le x-extension `x-buffett-quality` / `x-graham-defensive` restano sul root
+     * node (sono x-extension OpenAPI, applicabili a qualsiasi schema).
+     *
+     * [^src: design_&_architecture/decisions/ADR-028-rulesignal-typed-oneof-discriminator.md §2]
+     */
+    private lateinit var ruleSignalNode: com.fasterxml.jackson.databind.JsonNode
 
     @BeforeAll
     fun loadCanonicalSpec() {
@@ -109,31 +120,34 @@ class RuleSignalEnumContractTest {
                     "Run via Gradle (build.gradle.kts sets it automatically).",
             )
         val doc = OpenApiContractSupport.loadCanonicalOpenApi(Path.of(canonicalPath))
-        ruleIdNode = doc
+        ruleSignalNode = doc
             .path("components")
             .path("schemas")
             .path("RuleSignal")
-            .path("properties")
-            .path("ruleId")
+    }
+
+    /** Estrae le chiavi di `discriminator.mapping` (canonical ruleId set post-EP-021). */
+    private fun discriminatorRuleIds(): Set<String> {
+        val mappingNode = ruleSignalNode.path("discriminator").path("mapping")
+        check(mappingNode.isObject) {
+            "openapi.yaml RuleSignal.discriminator.mapping is missing or not an object " +
+                "(expected post-EP-021 / ADR-028 §2 union shape)"
+        }
+        return mappingNode.fieldNames().asSequence().toSet()
     }
 
     // -------------------------------------------------------------------------
-    // Test 1 — Enum completeness
+    // Test 1 — Discriminator mapping completeness (canonical ruleId set)
     // -------------------------------------------------------------------------
 
     @Test
-    fun `RuleSignal ruleId enum must contain exactly 13 values (US-032 AC regression guard)`() {
-        val enumNode = ruleIdNode.path("enum")
-        assertThat(enumNode.isArray)
-            .withFailMessage("openapi.yaml RuleSignal.ruleId.enum is missing or not an array")
-            .isTrue()
-
-        val actualValues = enumNode.map { it.asText() }.toSet()
+    fun `RuleSignal discriminator mapping must contain exactly 13 ruleId (US-032 AC regression guard)`() {
+        val actualValues = discriminatorRuleIds()
 
         assertThat(actualValues)
             .withFailMessage(
                 buildString {
-                    appendLine("RuleSignal.ruleId enum size mismatch.")
+                    appendLine("RuleSignal.discriminator.mapping size mismatch.")
                     appendLine("Expected (${EXPECTED_RULE_IDS.size}): ${EXPECTED_RULE_IDS.sorted()}")
                     appendLine("Actual   (${actualValues.size}): ${actualValues.sorted()}")
                     val missing = EXPECTED_RULE_IDS - actualValues
@@ -144,33 +158,30 @@ class RuleSignalEnumContractTest {
             )
             .isEqualTo(EXPECTED_RULE_IDS)
 
-        // Explicit size check so the failure message is crystal-clear
         assertThat(actualValues)
-            .withFailMessage("Expected 13 ruleId enum values, got ${actualValues.size}: $actualValues")
+            .withFailMessage("Expected 13 discriminator.mapping entries, got ${actualValues.size}: $actualValues")
             .hasSize(13)
     }
 
     @Test
-    fun `RuleSignal ruleId enum must include all 6 Graham-defensive ruleId (EP-010 regression guard)`() {
-        val enumNode = ruleIdNode.path("enum")
-        assertThat(enumNode.isArray).isTrue()
-        val actualValues = enumNode.map { it.asText() }.toSet()
+    fun `RuleSignal discriminator mapping must include all 6 Graham-defensive ruleId (EP-010 regression guard)`() {
+        val actualValues = discriminatorRuleIds()
 
         assertThat(actualValues)
             .withFailMessage(
-                "One or more Graham-defensive ruleId missing from openapi.yaml enum. " +
+                "One or more Graham-defensive ruleId missing from openapi.yaml discriminator.mapping. " +
                     "Missing: ${EXPECTED_GRAHAM_IDS - actualValues}",
             )
             .containsAll(EXPECTED_GRAHAM_IDS)
     }
 
     // -------------------------------------------------------------------------
-    // Test 2 — x-extension tags
+    // Test 2 — x-extension tags (on RuleSignal root after EP-021)
     // -------------------------------------------------------------------------
 
     @Test
     fun `x-buffett-quality extension must list exactly the 7 Buffett ruleId`() {
-        val buffettNode = ruleIdNode.path("x-buffett-quality")
+        val buffettNode = ruleSignalNode.path("x-buffett-quality")
         assertThat(buffettNode.isArray)
             .withFailMessage("openapi.yaml RuleSignal.ruleId x-buffett-quality is missing or not an array")
             .isTrue()
@@ -192,9 +203,9 @@ class RuleSignalEnumContractTest {
 
     @Test
     fun `x-graham-defensive extension must list exactly the 6 Graham ruleId`() {
-        val grahamNode = ruleIdNode.path("x-graham-defensive")
+        val grahamNode = ruleSignalNode.path("x-graham-defensive")
         assertThat(grahamNode.isArray)
-            .withFailMessage("openapi.yaml RuleSignal.ruleId x-graham-defensive is missing or not an array")
+            .withFailMessage("openapi.yaml RuleSignal x-graham-defensive is missing or not an array")
             .isTrue()
 
         val actualGraham = grahamNode.map { it.asText() }.toSet()
@@ -214,8 +225,8 @@ class RuleSignalEnumContractTest {
 
     @Test
     fun `x-buffett-quality and x-graham-defensive must be disjoint (no ruleId overlap)`() {
-        val buffettNode = ruleIdNode.path("x-buffett-quality")
-        val grahamNode = ruleIdNode.path("x-graham-defensive")
+        val buffettNode = ruleSignalNode.path("x-buffett-quality")
+        val grahamNode = ruleSignalNode.path("x-graham-defensive")
 
         assertThat(buffettNode.isArray).isTrue()
         assertThat(grahamNode.isArray).isTrue()
@@ -232,25 +243,23 @@ class RuleSignalEnumContractTest {
     }
 
     @Test
-    fun `x-buffett-quality union x-graham-defensive must equal the full 13-value enum`() {
-        val enumNode = ruleIdNode.path("enum")
-        val buffettNode = ruleIdNode.path("x-buffett-quality")
-        val grahamNode = ruleIdNode.path("x-graham-defensive")
+    fun `x-buffett-quality union x-graham-defensive must equal the full 13-value discriminator mapping`() {
+        val buffettNode = ruleSignalNode.path("x-buffett-quality")
+        val grahamNode = ruleSignalNode.path("x-graham-defensive")
 
-        assertThat(enumNode.isArray).isTrue()
         assertThat(buffettNode.isArray).isTrue()
         assertThat(grahamNode.isArray).isTrue()
 
-        val enumValues = enumNode.map { it.asText() }.toSet()
+        val canonicalIds = discriminatorRuleIds()
         val union = buffettNode.map { it.asText() }.toSet() + grahamNode.map { it.asText() }.toSet()
 
         assertThat(union)
             .withFailMessage(
-                "Union of x-buffett-quality + x-graham-defensive does not cover the full enum.\n" +
-                    "Enum:  ${enumValues.sorted()}\n" +
-                    "Union: ${union.sorted()}",
+                "Union of x-buffett-quality + x-graham-defensive does not cover the full discriminator mapping.\n" +
+                    "Discriminator: ${canonicalIds.sorted()}\n" +
+                    "Union:         ${union.sorted()}",
             )
-            .isEqualTo(enumValues)
+            .isEqualTo(canonicalIds)
     }
 
     // -------------------------------------------------------------------------

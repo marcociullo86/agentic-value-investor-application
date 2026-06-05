@@ -4,7 +4,8 @@ sources: ["raw/01_Principi_Fondamentali_Value_Investing.md", "raw/02_L_Investito
 status: draft
 created: 2026-05-20
 updated: 2026-05-22
-tags: [value-investing, graham, entity, person, investor, columbia, security-analysis]
+tags: [value-investing, graham, entity, person, investor, columbia, security-analysis, vi-domain]
+domain: value-investing
 ---
 # Benjamin Graham
 

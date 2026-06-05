@@ -21,7 +21,8 @@ related:
   - chunked-extraction-pipeline
   - figma
   - figma-extraction-agent
-tags: [runbook, migration, v2.9, sync, figma, pdf, multi-source, l1, kb-json]
+tags: [runbook, migration, v2.9, sync, figma, pdf, multi-source, l1, kb-json, platform-domain]
+domain: platform
 ---
 
 # Migrazione v2.8 → v2.9 — Sync adapters multi-sorgente

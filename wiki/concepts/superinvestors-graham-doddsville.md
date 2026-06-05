@@ -4,7 +4,8 @@ sources: ["raw/investitore intelligente.txt"]
 status: draft
 created: 2026-05-22
 updated: 2026-05-22
-tags: [value-investing, graham, buffett, superinvestors, doddsville, empirical-proof, performance, graham-newman]
+tags: [value-investing, graham, buffett, superinvestors, doddsville, empirical-proof, performance, graham-newman, vi-domain]
+domain: value-investing
 ---
 # I Superinvestitori di Graham-and-Doddsville
 

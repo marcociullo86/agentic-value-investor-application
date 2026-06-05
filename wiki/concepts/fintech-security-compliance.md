@@ -4,7 +4,8 @@ sources: ["raw/requisiti-funzionali-fintech.md"]
 status: draft
 created: 2026-05-26
 updated: 2026-05-29
-tags: [security, compliance, pii, pci-dss, threat-model, gdpr, csrf, xss, fintech]
+tags: [security, compliance, pii, pci-dss, threat-model, gdpr, csrf, xss, fintech, platform-domain]
+domain: platform
 ---
 # Sicurezza, Privacy e Compliance Fintech
 

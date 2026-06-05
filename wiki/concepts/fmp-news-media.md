@@ -4,7 +4,8 @@ type: concept
 sources: ["raw/fmp_docs.md", "raw/fmp_docs.json"]
 status: draft
 created: 2026-05-22
-tags: [fmp, stable, news, media, press-release]
+tags: [fmp, stable, news, media, press-release, platform-domain]
+domain: platform
 ---
 # FMP — News & Media (stable)
 

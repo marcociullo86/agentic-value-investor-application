@@ -4,7 +4,8 @@ type: synthesis
 sources: ["raw/fmp_docs.md", "raw/fmp_docs.json"]
 status: draft
 created: 2026-05-22
-tags: [fmp, stable, api, overview, synthesis]
+tags: [fmp, stable, api, overview, synthesis, platform-domain]
+domain: platform
 ---
 # FMP API Stable — Panoramica
 

@@ -4,7 +4,8 @@ sources: ["raw/05_Analisi_10K_10Q_e_Regole_Buffett.md", "raw/fmp_docs.md"]
 status: draft
 created: 2026-05-20
 updated: 2026-05-30
-tags: [value-investing, sec, 10-k, 10-q, financial-analysis, management-quality, off-balance-sheet, sec-edgar, filing-cache]
+tags: [value-investing, sec, 10-k, 10-q, financial-analysis, management-quality, off-balance-sheet, sec-edgar, filing-cache, vi-domain]
+domain: value-investing
 ---
 # Analisi dei Report SEC (10-K e 10-Q)
 

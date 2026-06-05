@@ -7,7 +7,8 @@ sources:
 status: review
 created: 2026-05-25
 updated: 2026-05-30
-tags: [embedding, llm, qwen3, arctic-embed, pgvector, rag, ep-011, a-b-test, gpu, cuda]
+tags: [embedding, llm, qwen3, arctic-embed, pgvector, rag, ep-011, a-b-test, gpu, cuda, platform-domain]
+domain: platform
 ---
 # Modello di Embedding — Qwen3-Embedding-0.6B (e A/B test con Arctic Embed L v2.0)
 

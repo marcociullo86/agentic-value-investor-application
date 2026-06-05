@@ -4,7 +4,8 @@ sources: ["raw/03_Analisi_Fondamentale_e_Valutazione.md"]
 status: draft
 created: 2026-05-20
 updated: 2026-05-20
-tags: [value-investing, graham, fundamental-analysis, graham-number, roe, pe-ratio, pb-ratio]
+tags: [value-investing, graham, fundamental-analysis, graham-number, roe, pe-ratio, pb-ratio, vi-domain]
+domain: value-investing
 ---
 # Source: Analisi Fondamentale e Valutazione Azionaria
 

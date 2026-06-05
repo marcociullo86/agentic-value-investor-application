@@ -4,7 +4,8 @@ sources: ["raw/07_Risoluzione_Q002_Q003.md"]
 status: draft
 created: 2026-05-20
 updated: 2026-05-20
-tags: [product-spec, frontend, spa, react, nextjs, screener, market-cap, gics, q002, q003]
+tags: [product-spec, frontend, spa, react, nextjs, screener, market-cap, gics, q002, q003, vi-domain]
+domain: value-investing
 ---
 # Risoluzione Q_002 e Q_003 — ADR Frontend e Criteri Screener
 

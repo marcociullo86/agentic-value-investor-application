@@ -4,7 +4,8 @@ sources: ["raw/04_Gestione_Rischio_Psicologia_Integrazione.md"]
 status: draft
 created: 2026-05-20
 updated: 2026-05-20
-tags: [value-investing, behavioral-finance, zweig, cognitive-bias, neurofinance, risk-management]
+tags: [value-investing, behavioral-finance, zweig, cognitive-bias, neurofinance, risk-management, vi-domain]
+domain: value-investing
 ---
 # Finanza Comportamentale (Behavioral Finance)
 
