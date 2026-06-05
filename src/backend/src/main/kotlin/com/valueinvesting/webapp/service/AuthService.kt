@@ -163,7 +163,15 @@ class AuthService(
         return issueTokenPair(user)
     }
 
-    @Transactional
+    // ADR-027 §2 — il ramo reuse-detection esegue la cascade `revokeAllActiveByUserId`
+    // e POI lancia InvalidRefreshTokenException(REASON_REUSE_DETECTED). Con il
+    // rollback di default di Spring su RuntimeException la UPDATE di revoca verrebbe
+    // ANNULLATA: il kill-switch non persisterebbe nulla (regressione CascadeRevocationIT
+    // scenari 1/2/5). `noRollbackFor` garantisce che la cascade venga committata E che
+    // il 401 opaco venga comunque propagato. Gli altri rami di throw (not_found,
+    // sliding_expired, absolute_cap, user_unknown) non scrivono prima di lanciare,
+    // quindi l'esenzione dal rollback è innocua per loro.
+    @Transactional(noRollbackFor = [InvalidRefreshTokenException::class])
     fun refresh(refreshTokenValue: String): AuthResult {
         // Anti-enum-attack (TSK-041): clients never see why a refresh was
         // rejected (revoked vs expired vs cap vs unknown); the cause lives

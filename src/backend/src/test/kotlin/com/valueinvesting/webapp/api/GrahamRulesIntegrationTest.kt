@@ -65,7 +65,8 @@ class GrahamRulesIntegrationTest {
         /** Total rules: 7 Buffett (ROE, ROIC, GROSS_MARGIN, NET_MARGIN, CURRENT_RATIO,
          *  DEBT_TO_INCOME, CAPEX_INTENSITY) + 6 Graham = 13.
          *  All @Component : ValuationRule beans are auto-collected by RuleEngineService. */
-        private const val TOTAL_RULES = 13
+        // EP-023: 7 Buffett + 6 Graham-defensive + 2 Graham-enterprising (NCAV_LATEST, NET_NET_RATIO) = 15.
+        private const val TOTAL_RULES = 15
 
         private val GRAHAM_RULE_IDS = setOf(
             "SIZE_LATEST",
@@ -203,8 +204,8 @@ class GrahamRulesIntegrationTest {
     // ─────────────────────────────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("AAPL: response contains exactly 13 signals (7 Buffett + 6 Graham)")
-    fun `AAPL response has all 13 ruleId in signals`() {
+    @DisplayName("AAPL: response contains exactly 15 signals (7 Buffett + 6 Graham defensive + 2 Graham enterprising)")
+    fun `AAPL response has all 15 ruleId in signals`() {
         stubAapl()
 
         val signals = analyzeAndGetSignals("AAPL")

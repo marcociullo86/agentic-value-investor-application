@@ -147,12 +147,14 @@ class DeepAnalysisE2eTest {
 
             val rules = body.get("ruleEngineResults")
             assertThat(rules.isArray).isTrue()
-            assertThat(rules.size()).isEqualTo(13)
+            // EP-023: rule engine emette 15 segnali (13 + NCAV_LATEST + NET_NET_RATIO).
+            assertThat(rules.size()).isEqualTo(15)
 
             val verdict = body.get("verdict")
             assertThat(verdict.isObject).isTrue()
             assertThat(verdict.get("verdettoClasse").isTextual).isTrue()
-            assertThat(verdict.get("partialBasis").asBoolean()).isTrue()
+            // Pipeline completa: 15 rule >= EXPECTED_RULE_COUNT (13) → basi NON parziali.
+            assertThat(verdict.get("partialBasis").asBoolean()).isFalse()
             assertThat(verdict.get("motivazioneAggregata").isTextual).isTrue()
 
             val filingsUsed = body.get("filingsUsed")

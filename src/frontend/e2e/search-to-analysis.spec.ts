@@ -145,11 +145,13 @@ test('clicking ROE_10Y_AVG traffic light expands observed value and threshold', 
   // Click sul bottone interno alla card (il <button type="button"> che wrappa il semaforo)
   await roeCard.getByRole('button').click();
 
-  // Dopo il click: pannello espanso — <dt> labels "Valore osservato" e "Soglia"
-  // (RuleSignalCard.tsx lines 213-223: dt "Valore osservato" + dt "Soglia")
+  // Dopo il click: pannello espanso. EP-021 (TSK-320, RuleSignalCard.tsx): la riga
+  // separata "Soglia" è stata rimossa — la soglia è ora inclusa nel valore osservato
+  // typed (subtitle, es. "Revenue: $2.30B (soglia $100M)"). Resta il <dt> "Valore
+  // osservato" con il <dd> data-testid rule-signal-observed-<ruleId>.
   await expect(roeDetails).toBeVisible();
   await expect(roeDetails.getByText(/valore osservato/i)).toBeVisible();
-  await expect(roeDetails.getByText(/soglia/i)).toBeVisible();
+  await expect(page.locator('[data-testid="rule-signal-observed-ROE_10Y_AVG"]')).toBeVisible();
 });
 
 // ---------------------------------------------------------------------------

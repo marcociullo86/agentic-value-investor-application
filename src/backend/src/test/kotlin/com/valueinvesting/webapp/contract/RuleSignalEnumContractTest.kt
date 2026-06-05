@@ -97,6 +97,15 @@ class RuleSignalEnumContractTest {
             "PB_LATEST",
             "DIVIDEND_CONTINUITY_20Y",
         )
+
+        // 2 Graham-enterprising rules (EP-023 / ADR-029 net-net): NCAV_LATEST + NET_NET_RATIO.
+        val EXPECTED_ENTERPRISING_IDS: Set<String> = setOf(
+            "NCAV_LATEST",
+            "NET_NET_RATIO",
+        )
+
+        // Canonical full set post-EP-023: 7 Buffett + 6 Graham-defensive + 2 Graham-enterprising = 15.
+        val EXPECTED_ALL_RULE_IDS: Set<String> = EXPECTED_RULE_IDS + EXPECTED_ENTERPRISING_IDS
     }
 
     /**
@@ -141,26 +150,26 @@ class RuleSignalEnumContractTest {
     // -------------------------------------------------------------------------
 
     @Test
-    fun `RuleSignal discriminator mapping must contain exactly 13 ruleId (US-032 AC regression guard)`() {
+    fun `RuleSignal discriminator mapping must contain exactly 15 ruleId (US-032 + EP-023 AC regression guard)`() {
         val actualValues = discriminatorRuleIds()
 
         assertThat(actualValues)
             .withFailMessage(
                 buildString {
                     appendLine("RuleSignal.discriminator.mapping size mismatch.")
-                    appendLine("Expected (${EXPECTED_RULE_IDS.size}): ${EXPECTED_RULE_IDS.sorted()}")
+                    appendLine("Expected (${EXPECTED_ALL_RULE_IDS.size}): ${EXPECTED_ALL_RULE_IDS.sorted()}")
                     appendLine("Actual   (${actualValues.size}): ${actualValues.sorted()}")
-                    val missing = EXPECTED_RULE_IDS - actualValues
-                    val extra = actualValues - EXPECTED_RULE_IDS
+                    val missing = EXPECTED_ALL_RULE_IDS - actualValues
+                    val extra = actualValues - EXPECTED_ALL_RULE_IDS
                     if (missing.isNotEmpty()) appendLine("Missing from spec: $missing")
                     if (extra.isNotEmpty()) appendLine("Extra in spec (undeclared): $extra")
                 },
             )
-            .isEqualTo(EXPECTED_RULE_IDS)
+            .isEqualTo(EXPECTED_ALL_RULE_IDS)
 
         assertThat(actualValues)
-            .withFailMessage("Expected 13 discriminator.mapping entries, got ${actualValues.size}: $actualValues")
-            .hasSize(13)
+            .withFailMessage("Expected 15 discriminator.mapping entries, got ${actualValues.size}: $actualValues")
+            .hasSize(15)
     }
 
     @Test
@@ -243,23 +252,42 @@ class RuleSignalEnumContractTest {
     }
 
     @Test
-    fun `x-buffett-quality union x-graham-defensive must equal the full 13-value discriminator mapping`() {
+    fun `x-buffett-quality union x-graham-defensive union x-graham-enterprising must equal the full 15-value discriminator mapping`() {
         val buffettNode = ruleSignalNode.path("x-buffett-quality")
         val grahamNode = ruleSignalNode.path("x-graham-defensive")
+        val enterprisingNode = ruleSignalNode.path("x-graham-enterprising")
 
         assertThat(buffettNode.isArray).isTrue()
         assertThat(grahamNode.isArray).isTrue()
+        assertThat(enterprisingNode.isArray)
+            .withFailMessage("openapi.yaml RuleSignal x-graham-enterprising is missing or not an array (EP-023)")
+            .isTrue()
 
         val canonicalIds = discriminatorRuleIds()
-        val union = buffettNode.map { it.asText() }.toSet() + grahamNode.map { it.asText() }.toSet()
+        val union = buffettNode.map { it.asText() }.toSet() +
+            grahamNode.map { it.asText() }.toSet() +
+            enterprisingNode.map { it.asText() }.toSet()
 
         assertThat(union)
             .withFailMessage(
-                "Union of x-buffett-quality + x-graham-defensive does not cover the full discriminator mapping.\n" +
+                "Union of x-buffett-quality + x-graham-defensive + x-graham-enterprising does not cover the full discriminator mapping.\n" +
                     "Discriminator: ${canonicalIds.sorted()}\n" +
                     "Union:         ${union.sorted()}",
             )
             .isEqualTo(canonicalIds)
+    }
+
+    @Test
+    fun `x-graham-enterprising extension must list exactly the 2 net-net ruleId (EP-023)`() {
+        val enterprisingNode = ruleSignalNode.path("x-graham-enterprising")
+        assertThat(enterprisingNode.isArray)
+            .withFailMessage("openapi.yaml RuleSignal x-graham-enterprising is missing or not an array")
+            .isTrue()
+
+        val actual = enterprisingNode.map { it.asText() }.toSet()
+        assertThat(actual)
+            .withFailMessage("x-graham-enterprising mismatch. Expected $EXPECTED_ENTERPRISING_IDS, got $actual")
+            .isEqualTo(EXPECTED_ENTERPRISING_IDS)
     }
 
     // -------------------------------------------------------------------------

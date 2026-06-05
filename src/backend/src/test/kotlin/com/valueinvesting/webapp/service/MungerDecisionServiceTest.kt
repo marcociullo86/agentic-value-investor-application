@@ -234,8 +234,10 @@ class MungerDecisionServiceTest {
 
     @Test
     fun `step 5 - mix of GREEN and YELLOW with RISCHIO_MODERATO produces APPROVATO`() {
-        val rules = (1..10).map { ruleSignal("RULE_$it", Signal.GREEN) } +
-            (11..13).map { ruleSignal("RULE_$it", Signal.YELLOW) }
+        // EP-021 (TSK-312): typedRuleSignal accetta solo i ruleId canonici → si usa
+        // ruleIdAt() invece di id sintetici ("RULE_n"). I test contano solo i signal aggregati.
+        val rules = (1..10).map { ruleSignal(ruleIdAt(it), Signal.GREEN) } +
+            (11..13).map { ruleSignal(ruleIdAt(it), Signal.YELLOW) }
         val input = baseInput().copy(
             livelloRischio = LivelloRischio.RISCHIO_MODERATO,
             newsSentimentDominante = SentimentClass.TEMPORARY_PANIC,
@@ -350,13 +352,15 @@ class MungerDecisionServiceTest {
 
     @Test
     fun `ruleCountByColor correctly tallies all signal types`() {
+        // EP-021 (TSK-312): typedRuleSignal accetta solo i ruleId canonici → si usano
+        // i primi 6 ruleId canonici via ruleIdAt(); il test conta solo i signal aggregati.
         val rules = listOf(
-            ruleSignal("R1", Signal.GREEN),
-            ruleSignal("R2", Signal.GREEN),
-            ruleSignal("R3", Signal.YELLOW),
-            ruleSignal("R4", Signal.RED),
-            ruleSignal("R5", Signal.INDETERMINATE),
-            ruleSignal("R6", Signal.NOT_CALCULABLE),
+            ruleSignal(ruleIdAt(1), Signal.GREEN),
+            ruleSignal(ruleIdAt(2), Signal.GREEN),
+            ruleSignal(ruleIdAt(3), Signal.YELLOW),
+            ruleSignal(ruleIdAt(4), Signal.RED),
+            ruleSignal(ruleIdAt(5), Signal.INDETERMINATE),
+            ruleSignal(ruleIdAt(6), Signal.NOT_CALCULABLE),
         )
         val input = baseInput().copy(ruleResults = rules)
 

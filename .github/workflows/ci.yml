@@ -154,6 +154,13 @@ jobs:
       - name: Install Playwright browsers (chromium only)
         working-directory: src/frontend
         run: npx playwright install --with-deps chromium
+      # Il client TS (`lib/api/generated/schema.ts`) è gitignored e rigenerato
+      # dall'OpenAPI canonico. `next build` esegue il type-check completo e fallisce
+      # ("Cannot find module '@/lib/api/generated/schema'") senza questo step
+      # (gli import sono type-only → erssi a runtime in dev/vitest, ma richiesti dal build).
+      - name: Generate API client from OpenAPI
+        working-directory: src/frontend
+        run: npm run generate:api
       - name: Build static export (out/)
         working-directory: src/frontend
         run: npm run build
