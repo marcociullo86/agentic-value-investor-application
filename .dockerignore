@@ -15,6 +15,10 @@ wiki/
 memory/
 management/
 design_&_architecture/
+# Eccezione: l'OpenAPI canonico serve allo stage fe-build del Dockerfile per il
+# codegen del client TS (lib/api/generated/schema.ts è gitignored → rigenerato
+# nell'immagine). Docker re-include un file anche sotto una dir esclusa via `!`.
+!design_&_architecture/api/openapi.yaml
 raw/
 PATTERN.md
 CLAUDE.md

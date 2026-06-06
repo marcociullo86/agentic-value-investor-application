@@ -36,6 +36,14 @@ RUN if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; \
 # Sources
 COPY src/frontend/ ./
 
+# Client TS generato dall'OpenAPI canonico: lib/api/generated/schema.ts è gitignored
+# (assente dal checkout pulito CI), quindi va rigenerato dentro l'immagine. Lo script
+# `generate:api` legge ../../design_&_architecture/api/openapi.yaml rispetto a /app/fe
+# → lo copiamo in /design_&_architecture/api/openapi.yaml. Senza questo step
+# `next build` fallisce il type-check ("Cannot find module '@/lib/api/generated/schema'").
+COPY design_&_architecture/api/openapi.yaml /design_&_architecture/api/openapi.yaml
+RUN npm run generate:api
+
 # `output: 'export'` (see next.config.js) -> emette /app/fe/out
 RUN npm run build
 
