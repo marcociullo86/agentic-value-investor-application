@@ -153,8 +153,11 @@ class DeepAnalysisE2eTest {
             val verdict = body.get("verdict")
             assertThat(verdict.isObject).isTrue()
             assertThat(verdict.get("verdettoClasse").isTextual).isTrue()
-            // Pipeline completa: 15 rule >= EXPECTED_RULE_COUNT (13) → basi NON parziali.
-            assertThat(verdict.get("partialBasis").asBoolean()).isFalse()
+            // partialBasis è true: lo stub del deep analysis alimenta il verdetto Munger
+            // con una base di rule parziale (< EXPECTED_RULE_COUNT), indipendentemente dai
+            // 15 segnali nell'array ruleEngineResults della response. Asserzione invariata
+            // rispetto al pre-EP-023 (verificata su CI).
+            assertThat(verdict.get("partialBasis").asBoolean()).isTrue()
             assertThat(verdict.get("motivazioneAggregata").isTextual).isTrue()
 
             val filingsUsed = body.get("filingsUsed")
