@@ -2,86 +2,73 @@
 id: roadmap
 type: roadmap
 title: Roadmap
-status: draft
+status: active
 created: 2026-05-20
-updated: 2026-05-22
+updated: 2026-06-08
 tags: [planning]
 ---
 # Roadmap — App Template Demo
 
-> Roadmap release-driven. R1.0 MVP chiuso 2026-05-22 (6 EP, 20 US, 49 TSK). R1.1 pianificata post-chiusura amministrativa.
+> Roadmap release-driven. R1.0 MVP → R3.4 tutte chiuse (Sprint 1–20, **323/323 TSK `done`**). Prossimo: R4.0 EP-024 (Tab Riepilogo VI+TA + Tab Technical Analysis), in backlog `ready`, non ancora schedulato. Dettaglio esecutivo per sprint in [`kanban/sprint.md`](kanban/sprint.md).
 
 ## Convenzione
 
-- **R1.0 MVP**: flusso end-to-end ricerca → dati → verdetto quantitativo + valutazione intrinseca + dashboard + watchlist/auth (chiuso).
-- **R1.1 Consolidamento produzione**: hardening debito tecnico, deploy/ops, documentazione e throttling FMP.
-- **R2 Espansione**: capacità avanzate non coperte da FSD MVP (SEC narrativo, SSO enterprise, alerting).
+- **R1.0 MVP**: flusso end-to-end ricerca → dati → verdetto quantitativo + valutazione intrinseca + dashboard + watchlist/auth.
+- **R1.1 / R1.1.x**: consolidamento produzione + hotfix rule engine.
+- **R2.x**: deep analysis (10-K/10-Q + LLM Munger), batch Top Value Picks, Mr. Market context flags.
+- **R3.x**: observability, UX/a11y, notifiche errori, protezione rotte/sessione, hardening sicurezza, bonifica CQRL, completeness Graham, trasparenza LLM, refactor contratto RuleSignal, NCAV Net-Net.
+- **R4.0 Espansione**: decision layer VI+TA (Technical Analysis advisory + Riepilogo azionabile).
 
-## Release 1.0 — MVP (chiusa 2026-05-22)
+## Release chiuse
 
-Obiettivo: l'utente cerca un ticker, il sistema scarica i dati di bilancio decennali, produce un verdetto quantitativo strutturato e calcola il valore intrinseco con Margin of Safety; dashboard, moat, watchlist e auth.
-
-| Epica | Titolo | Priorità | Confidence | Stato |
-|---|---|---|---|---|
-| [EP-001](kanban/EP-001-ricerca-e-screening/EP-001.md) | Ricerca e Screening titoli | high | 80% | done |
-| [EP-002](kanban/EP-002-integrazione-fmp-data-provider/EP-002.md) | Integrazione FMP Data Provider | high | 65% | done |
-| [EP-003](kanban/EP-003-rule-engine-quantitativo/EP-003.md) | Value Investing Rule Engine quantitativo | high | 85% | done |
-| [EP-004](kanban/EP-004-valore-intrinseco-margin-of-safety/EP-004.md) | Calcolo Valore Intrinseco e Margin of Safety | high | 80% | done |
-| [EP-005](kanban/EP-005-dashboard-traffic-light-moat/EP-005.md) | Dashboard, Traffic Light e Moat qualitativo | medium | 75% | done |
-| [EP-006](kanban/EP-006-watchlist-utente/EP-006.md) | Watchlist, autenticazione e profilo utente | medium | 70% | done |
-
-Commit di riferimento chiusura: `940852a` su `master`.
-
-## Release 1.1 — Consolidamento produzione
-
-Obiettivo: chiudere debito tecnico post-MVP, abilitare cutover produzione e allineare throttling/documentazione FMP prima del go-live operativo.
-
-| Epica | Titolo | Priorità | Confidence | US | Note |
+| Release | Sprint | Epiche | TSK | Chiusura | Sintesi |
 |---|---|---|---|---|---|
-| [EP-007](kanban/EP-007-hardening-produzione/EP-007.md) | Hardening produzione e conformità contratti | high | 85% | 5 | Gap `be-problemdetail-flatten`, `fe-swr-peer-r19`, `fe-static-export-tickers`, `tpm-profile-snapshot-ttl`, `arch-adr-version-sync` |
-| [EP-008](kanban/EP-008-deploy-operativita-produzione/EP-008.md) | Deploy e operatività produzione | high | 78% | 3 | Gap `arch-deployment-target`; prerequisito cutover |
-| [EP-009](kanban/EP-009-throttling-fmp-runbook/EP-009.md) | Throttling FMP e runbook operativo provider | medium | 72% | 2 | Gap `fmp-rate-limiting`, `fmp-endpoint-base-urls`, `fmp-error-codes`; US-030 dopo US-029 |
+| **R1.0 MVP** | 1–4 | EP-001…006 | 49 | 2026-05-22 | Ricerca → dati FMP decennali → verdetto quantitativo → valore intrinseco + MoS → dashboard, moat, watchlist, auth |
+| **R1.1** | 5 | EP-007, EP-008, EP-009 | 23 | 2026-05-23 | Hardening produzione, deploy/ops, throttling FMP + runbook |
+| **R1.1.x** | 5.5 | EP-007 fase 2 | 12 | 2026-05-26 | Hotfix rule engine (DCF per-share, ROE/ROIC deserializzazione, formato date) — US-052/053/054 |
+| **R2.0** | 6–9 | EP-010, EP-011, EP-012 | 84 | 2026-05-26 | 6 criteri Graham, Deep Analysis 10-K/10-Q (pgvector + LLM Munger inversion), Top Value Picks batch |
+| **R2.1** | 10 | EP-013 | 6 | 2026-05-26 | Mr. Market Context Flags (RSI + trend SMA200) |
+| **R3.0** | 11–15, 17 | EP-014…018 | 75 | 2026-05-29 | Observability, UX/a11y, notifiche errori FE, protezione rotte/sessione, hardening sicurezza (MFA/CSP/rate-limit) |
+| **R3.1** | 16 | EP-019 | 25 | 2026-05-29 | Bonifica CQRL generale — retro-review 224 TSK + ruleset canonical |
+| **R3.2** | 18 | EP-002 US-031, EP-010 | 21 | 2026-06-03 | Migrazione FMP `/stable` + completeness 6 criteri Graham (13 ruleId totali) |
+| **R3.3** | 19 | EP-020 | 10 | 2026-06-03 | Trasparenza analisi LLM (sintesi narrativa Munger, news analizzate, logging gated) |
+| **R3.4** | 20 | EP-017 US-092, EP-021, EP-023 | 15 | 2026-06-06 | Cascade revocation refresh token, RuleSignal typed payload (13 sotto-tipi), NCAV Net-Net |
 
-**Totale R1.1:** 3 epiche, 10 user story (US-021…US-030), tutte `ready`.
+**Totale chiuso:** 23 epiche, 323 TSK `done`. Commit chiusura R3.4: `7c51c47` + remediation CI `3a7cbaa` su `master`.
 
-### Candidati R1.1+ (non taskizzati — confidence < 65%)
+ADR `accepted` storici fino a R3.4: ADR-021…029.
+
+## Release 4.0 — Espansione decision layer VI+TA (prossima)
+
+Obiettivo: aggiungere al dettaglio ticker un **tab Technical Analysis** (advisory sul *quando* entrare/uscire) e un **tab Riepilogo** che aggrega verdetto Value Investing (il *cosa*) e segnale TA (il *quando*) in una raccomandazione azionabile, con **gate VI primario hardcoded** in BE (un titolo VI-negativo non può mai diventare `ENTER_NOW`). Rationale empirico: caso COPART (titolo VI-positivo chiuso da stop loss per timing sbagliato).
+
+| Epica | Titolo | Priorità | Confidence | Stato | Note |
+|---|---|---|---|---|---|
+| [EP-024](kanban/EP-024-riepilogo-e-technical-analysis-tab/EP-024.md) | Tab Riepilogo (verdetto azionabile VI+TA) + Tab Technical Analysis | high | 65% | `ready` (backlog) | 7 US definite (US-098…104), tutte `ready`; **non ancora taskizzate** → candidato Sprint 21 |
+
+**Fase 1 (5 US):** US-098 (BE pipeline TA payload), US-099 (BE entry-timing advisor Triple-Screen-like), US-100 (BE stop-placement + position-sizing 2%/6% Rule), US-101 (FE tab Technical Analysis), US-102 (QA E2E + scenario stile-COPART).
+**Fase 2 capstone (dipende da Fase 1):** US-103 (BE aggregatore `/summary` con gate VI hardcoded + citazioni RAG cross-dominio), US-104 (FE tab Riepilogo come primo tab + warning anti-COPART; `blocked_by` US-103, US-101).
+
+**Precondizioni infra (tutte `done`):** EP-011 (pgvector + arctic-embed-l-v2), EP-013 (`FmpAdapter.getTechnicalIndicator`), EP-020 (trasparenza LLM), EP-007 (analyze service), EP-021/EP-023 (RuleSignal typed). Knowledge base TA già ingerita in R3.4: 3 syntheses + 11 concept (Elder/Murphy) nel dominio `technical-analysis-trading`.
+
+**ADR atteso:** ADR-030 (delegato a lead-architect) — persistenza payload TA (cache-aside 24h vs tabella `technical_analysis_snapshot`) + governance corpus RAG cross-dominio (wiki concepts/syntheses come secondo corpus pgvector oltre ai filing).
+
+### Candidati R4.0+ (non taskizzati — confidence < 65%)
 
 | Tema | Confidence | Gap / nota |
 |---|---|---|
-| SSO enterprise / provider OIDC esterno | 55% | `arch-auth-provider-choice` — evoluzione post-MVP, non bloccante R1.1 |
-| Citation audit lint L4 deferred | 60% | memory episodica 2026-05-22; sanabile con US-025 + lint |
-| Watchlist lazy vs eager creation | 65% | `tpm-watchlist-default-creation` — UX minore, non epica dedicata |
-
-## Release 2 — Espansione
-
-| Tema | Confidence | Fonte wiki |
-|---|---|---|
-| Analisi SEC narrativa (10-K Item 1/1A/7) | 45% | `vi-sec-narrative-gap` — richiede EDGAR o provider terzi |
+| Analisi SEC narrativa (10-K Item 1/1A/7 estesa) | 45% | `vi-sec-narrative-gap` — oltre la pipeline RAG attuale |
 | Notifiche / alerting watchlist | 40% | Non in FSD MVP |
-| Integrazioni B2B SSO obbligatorio | 50% | `arch-auth-provider-choice` |
-
-Nessuna epica EP-010+ allocata a R2 in questo run.
+| SSO enterprise / provider OIDC esterno | 50% | `arch-auth-provider-choice` — evoluzione post-MVP |
 
 ## Question aperte che impattano la roadmap
 
-Nessuna question aperta al 2026-05-22. Vedi `management/questions.md` per lo storico [RISOLTE].
-
-## Gap aperti che impattano la roadmap
-
-| Gap | Epica R1.1 | Bloccante |
-|---|---|---|
-| be-problemdetail-flatten | EP-007 / US-021 | no |
-| fe-swr-peer-r19 | EP-007 / US-022 | no |
-| fe-static-export-tickers | EP-007 / US-023 | no |
-| tpm-profile-snapshot-ttl | EP-007 / US-024 | no |
-| arch-adr-version-sync | EP-007 / US-025 | no |
-| arch-deployment-target | EP-008 | pre-cutover |
-| fmp-rate-limiting, fmp-endpoint-base-urls, fmp-error-codes | EP-009 | no (US-030 attende US-029) |
-| arch-auth-provider-choice | R2 / candidato | no |
-| vi-sec-narrative-gap | R2 | no |
+Nessuna question aperta al 2026-06-08. Vedi `management/questions.md` per lo storico [RISOLTE].
 
 ## Cronologia riconciliazioni
 
 - **2026-05-20**: chiusura Q_001 / Q_002 / Q_003. EP-004 promossa R1.0; EP-005 promossa R1.1.
-- **2026-05-22 (mattina)**: reconcile post Sprint 3–4; EP-006 esteso auth; US-020 sotto EP-004.
-- **2026-05-22 (pomeriggio)**: chiusura amministrativa R1.0 MVP. Pianificazione R1.1: EP-007, EP-008, EP-009 con US-021…030.
+- **2026-05-22**: chiusura amministrativa R1.0 MVP; pianificazione R1.1 (EP-007/008/009).
+- **2026-05-23 → 2026-06-03**: R1.1 → R3.3 chiuse in sequenza (vedi tabella release).
+- **2026-06-06**: chiusura R3.4 Sprint 20 (EP-017 US-092 + EP-021 + EP-023), CI verde post-remediation.
+- **2026-06-08**: riconciliazione roadmap ↔ `sprint.md` ↔ file EP. Allineate R1.1.x→R3.4 (la roadmap era ferma al 2026-05-22); EP-017/021/023 portate a `status: done`; board rigenerato. EP-024 confermata prossima (R4.0, backlog).

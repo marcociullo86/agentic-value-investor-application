@@ -2,9 +2,9 @@
 ---
 id: sprint
 title: Sprint Plan — R1.0 MVP + R1.1 + R1.1.x + R2.0 + R2.1 + R3.0 + CQRL Bonifica + R3.2 + R3.3 + R3.4 + Backlog R4.0 EP-024
-generated: 2026-06-05
+generated: 2026-06-08
 tpm: tpm
-release: R3.0 EP-018 Sprint 15 (chiuso) + EP-017 chiusa (Sprint 14+17) + R3.1 EP-019 chiusa (Sprint 16) + R3.2 Sprint 18 COMPLETATO (EP-002 US-031 + EP-010) + R3.3 Sprint 19 COMPLETATO (EP-020) + R3.4 Sprint 20 IN CORSO (EP-017 US-092 + EP-021 + EP-023) + R4.0 BACKLOG (EP-024 Riepilogo + Tab TA)
+release: R3.0 EP-018 Sprint 15 (chiuso) + EP-017 chiusa (Sprint 14+17) + R3.1 EP-019 chiusa (Sprint 16) + R3.2 Sprint 18 COMPLETATO (EP-002 US-031 + EP-010) + R3.3 Sprint 19 COMPLETATO (EP-020) + R3.4 Sprint 20 COMPLETATO (EP-017 US-092 + EP-021 + EP-023) + R4.0 BACKLOG (EP-024 Riepilogo + Tab TA)
 r10_closed: 2026-05-22
 r11_closed: 2026-05-23
 r11x_closed: 2026-05-26
@@ -14,6 +14,7 @@ r30_closed: 2026-05-29
 r31_cqrl_closed: 2026-05-29
 r32_closed: 2026-06-03
 r33_closed: 2026-06-03
+r34_closed: 2026-06-06
 ---
 # Sprint Plan
 
@@ -27,11 +28,11 @@ r33_closed: 2026-06-03
 > **R3.1 chiuso:** Sprint 16 (EP-019 CQRL) — **25/25 TSK `done`**. US-084/085/086 `done`; EP-019 `done`.
 > **R3.2 chiuso:** Sprint 18 — EP-002 US-031 (migrazione FMP /stable) + EP-010 US-032..037 (6 criteri Graham) — **21/21 TSK `done`**, review CQRL `passed` su tutti i TSK con copertura CQRL. EP-002 US-031 `done`; EP-010 `done`.
 > **R3.3 chiuso:** Sprint 19 — EP-020 Trasparenza analisi LLM (US-088..091) — **10/10 TSK `done`**, review CQRL `passed` su tutti i TSK. EP-020 `done`.
-> **R3.4 in corso:** Sprint 20 — EP-017 US-092 (cascade revocation) + EP-021 RuleSignal typed + EP-023 NCAV Net-Net — **0/15 TSK `done`**. EP-017 `in_progress` (US-092); EP-021 `in_progress`; EP-023 `in_progress`.
+> **R3.4 chiuso:** Sprint 20 — EP-017 US-092 (cascade revocation) + EP-021 RuleSignal typed + EP-023 NCAV Net-Net — **15/15 TSK `done`**. Codice committato (`7c51c47`) + remediation CI verde (`06cc38d`, `252364c`, `3a7cbaa`). EP-017 `done`; EP-021 `done`; EP-023 `done`. ADR-027/028/029 `accepted`.
 
 ---
 
-## Sprint 20 — Cascade Revocation + RuleSignal Typed Payload + NCAV Net-Net (EP-017 US-092, EP-021, EP-023)
+## Sprint 20 — Cascade Revocation + RuleSignal Typed Payload + NCAV Net-Net (EP-017 US-092, EP-021, EP-023) — COMPLETATO
 
 **Obiettivo:**
 - **EP-017 US-092:** Cascade revocation di tutti i refresh token attivi dell'utente al riuso di un token già ruotato. Chiude il gap `auth-cascade-revocation-missing` e completa il debito di compliance US-075 AC §6. ADR-027 `accepted`.
@@ -41,7 +42,7 @@ r33_closed: 2026-06-03
 - **EP-023 US-096:** Due nuove `ValuationRule` (`NCAV_LATEST`, `NET_NET_RATIO`) nel Rule Engine — formula Graham NCAV per azione, soglia 2/3. ADR-029 `accepted`.
 - **EP-023 US-097:** Badge FE "Net-Net" + 2 righe nel Traffic Light per i nuovi segnali NCAV.
 
-**Stato:** IN CORSO — **0/15 TSK `todo`**.
+**Stato:** COMPLETATO — **15/15 TSK `done`**. US-092/093/094/095/096/097 `done`. EP-017/EP-021/EP-023 `done`. CQRL review `passed`; CI verde post-remediation (`3a7cbaa`).
 
 **Sequenza wave (DAG):**
 
@@ -73,33 +74,33 @@ Wave C (after Wave B):
 
 | TSK | Titolo | Layer | Consumer | Est. | US | `depends_on` | Status |
 |-----|--------|-------|----------|------|----|--------------|--------|
-| TSK-309 | BE Cascade revocation — AuthService + RefreshTokenRepository + SecurityEventLogger | be | agent | M | US-092 | — | todo |
-| TSK-311 | BE RuleSignal sealed interface Kotlin + schema OpenAPI oneOf/discriminator (13 sotto-tipi) | be | agent | L | US-093 | — | todo |
+| TSK-309 | BE Cascade revocation — AuthService + RefreshTokenRepository + SecurityEventLogger | be | agent | M | US-092 | — | done |
+| TSK-311 | BE RuleSignal sealed interface Kotlin + schema OpenAPI oneOf/discriminator (13 sotto-tipi) | be | agent | L | US-093 | — | done |
 
 **Wave B — post Wave A (adeguamento 13 strategie + contract + NCAV BE, parallela):**
 
 | TSK | Titolo | Layer | Consumer | Est. | US | `depends_on` | Status |
 |-----|--------|-------|----------|------|----|--------------|--------|
-| TSK-310 | QA Test cascade revocation refresh token — 5 scenari | qa | agent | M | US-092 | TSK-309 | todo |
-| TSK-312 | BE Adeguamento 13 strategie ValuationRule a emettere sotto-tipo RuleSignal tipato | be | agent | M | US-093 | TSK-311 | todo |
-| TSK-313 | QA Test unitari 13 sotto-tipi RuleSignal — campi tipati + segnale invariato | qa | agent | M | US-093 | TSK-311, TSK-312 | todo |
-| TSK-314 | FE Rigenerazione client TypeScript dal nuovo OpenAPI oneOf/discriminator | fe | agent | M | US-094 | TSK-311, TSK-312 | todo |
-| TSK-315 | QA Contract test OpenAPI drift — 13 ruleId tipati su fixture seedata | qa | agent | S | US-094 | TSK-311, TSK-312, TSK-313 | todo |
-| TSK-316 | BE NcavCalculator + NcavLatestRule — calcolo NCAV e ruleId NCAV_LATEST | be | agent | S | US-096 | TSK-311 | todo |
-| TSK-317 | BE NetNetRatioRule — ruleId NET_NET_RATIO + OpenAPI sotto-schema | be | agent | S | US-096 | TSK-316 | todo |
-| TSK-318 | QA Test BE NCAV_LATEST + NET_NET_RATIO — 5 scenari | qa | agent | S | US-096 | TSK-316, TSK-317 | todo |
+| TSK-310 | QA Test cascade revocation refresh token — 5 scenari | qa | agent | M | US-092 | TSK-309 | done |
+| TSK-312 | BE Adeguamento 13 strategie ValuationRule a emettere sotto-tipo RuleSignal tipato | be | agent | M | US-093 | TSK-311 | done |
+| TSK-313 | QA Test unitari 13 sotto-tipi RuleSignal — campi tipati + segnale invariato | qa | agent | M | US-093 | TSK-311, TSK-312 | done |
+| TSK-314 | FE Rigenerazione client TypeScript dal nuovo OpenAPI oneOf/discriminator | fe | agent | M | US-094 | TSK-311, TSK-312 | done |
+| TSK-315 | QA Contract test OpenAPI drift — 13 ruleId tipati su fixture seedata | qa | agent | S | US-094 | TSK-311, TSK-312, TSK-313 | done |
+| TSK-316 | BE NcavCalculator + NcavLatestRule — calcolo NCAV e ruleId NCAV_LATEST | be | agent | S | US-096 | TSK-311 | done |
+| TSK-317 | BE NetNetRatioRule — ruleId NET_NET_RATIO + OpenAPI sotto-schema | be | agent | S | US-096 | TSK-316 | done |
+| TSK-318 | QA Test BE NCAV_LATEST + NET_NET_RATIO — 5 scenari | qa | agent | S | US-096 | TSK-316, TSK-317 | done |
 
 **Wave C — post Wave B (FE consumer migration + FE badge, parallela):**
 
 | TSK | Titolo | Layer | Consumer | Est. | US | `depends_on` | Status |
 |-----|--------|-------|----------|------|----|--------------|--------|
-| TSK-319 | FE Crea formatters.ts typed-driven per i 13 ruleId RuleSignal | fe | agent | M | US-095 | TSK-314, TSK-315 | todo |
-| TSK-320 | FE Migrazione TrafficLightPanel / RuleSignalRow / RuleSignalBadge a formatRuleSignal() | fe | agent | S | US-095 | TSK-319 | todo |
-| TSK-321 | QA Test FE — Vitest snapshot 13 ruleId × 3 stati visivi + Playwright smoke | qa | agent | M | US-095 | TSK-319, TSK-320 | todo |
-| TSK-322 | FE NetNetBadge + 2 formatter NCAV per TrafficLightPanel | fe | agent | M | US-097 | TSK-314, TSK-315, TSK-318, TSK-319 | todo |
-| TSK-323 | QA Test FE — Vitest 3 stati NetNetBadge + Playwright smoke Net-Net segnali | qa | agent | S | US-097 | TSK-322 | todo |
+| TSK-319 | FE Crea formatters.ts typed-driven per i 13 ruleId RuleSignal | fe | agent | M | US-095 | TSK-314, TSK-315 | done |
+| TSK-320 | FE Migrazione TrafficLightPanel / RuleSignalRow / RuleSignalBadge a formatRuleSignal() | fe | agent | S | US-095 | TSK-319 | done |
+| TSK-321 | QA Test FE — Vitest snapshot 13 ruleId × 3 stati visivi + Playwright smoke | qa | agent | M | US-095 | TSK-319, TSK-320 | done |
+| TSK-322 | FE NetNetBadge + 2 formatter NCAV per TrafficLightPanel | fe | agent | M | US-097 | TSK-314, TSK-315, TSK-318, TSK-319 | done |
+| TSK-323 | QA Test FE — Vitest 3 stati NetNetBadge + Playwright smoke Net-Net segnali | qa | agent | S | US-097 | TSK-322 | done |
 
-**Totale Sprint 20:** 15 TSK (5 be, 5 fe, 5 qa) — **0/15 `todo`**
+**Totale Sprint 20:** 15 TSK (5 be, 5 fe, 5 qa) — **15/15 `done`**
 
 ---
 
@@ -729,8 +730,8 @@ dichiarazione formale PCI-DSS non applicabile. ADR-025. DB: mfa_secrets + login_
 | R3.0 | 17 | 0 | 0 | 0 | 3 | 1 | **4** | done |
 | R3.2 | 18 | 0 | 1 | 8 | 1 | 11 | **21** | done |
 | R3.3 | 19 | 0 | 1 | 3 | 3 | 3 | **10** | done |
-| R3.4 | 20 | 0 | 0 | 5 | 5 | 5 | **15** | todo |
-| | **TOTALE** | **11** | **19** | **112** | **64** | **117** | **323** | **308 done / 15 todo** |
+| R3.4 | 20 | 0 | 0 | 5 | 5 | 5 | **15** | done |
+| | **TOTALE** | **11** | **19** | **112** | **64** | **117** | **323** | **323 done** |
 
 ---
 
@@ -760,7 +761,7 @@ Sprint 12 (EP-016) ✅ ═══╝        │
                            Sprint 19 (EP-020 LLM trasparenza) ✅ COMPLETATO
                                    │
                                    ▼
-                           Sprint 20 (EP-017 US-092 + EP-021 + EP-023) ← IN CORSO
+                           Sprint 20 (EP-017 US-092 + EP-021 + EP-023) ✅ COMPLETATO
                              Wave A: TSK-309 (US-092 BE) ║ TSK-311 (US-093 sealed interface)
                              Wave B: TSK-310,312,313,314,315 (US-092 QA, US-093 adeguamento+QA, US-094) ║ TSK-316,317,318 (US-096 NCAV BE)
                              Wave C: TSK-319,320,321 (US-095 FE migration) ║ TSK-322,323 (US-097 badge)
@@ -805,14 +806,14 @@ Sprint 20 EP-021 US-093 → Sprint 20 EP-023 US-096: INTRA-SPRINT (Scenario B AD
 
 ## Stato backlog
 
-**Sprint 20 in corso. 15 TSK `todo` in attesa di sviluppo. EP-024 in backlog (7 US `ready`, non ancora schedulate).**
+**Sprint 20 chiuso (R3.4). EP-024 prossimo in backlog (7 US `ready`, non ancora schedulate) → candidato Sprint 21.**
 
-308/308 TSK `done` su Sprint 1..19 (R1.0→R3.3). 15 TSK `todo` in Sprint 20 (R3.4).
-Totale complessivo: 323 TSK (308 done + 15 todo).
+323/323 TSK `done` su Sprint 1..20 (R1.0→R3.4). Nessun TSK `todo` aperto.
+Totale complessivo: 323 TSK (323 done).
 
-- **EP-017** `in_progress` — US-073..078+087 `done`; US-092 `ready` → Sprint 20 Wave A.
-- **EP-021** `in_progress` — US-093/094/095 `ready` → Sprint 20 Wave A/B/C.
-- **EP-023** `in_progress` — US-096/097 `ready` → Sprint 20 Wave B/C.
+- **EP-017** `done` — US-073..078+087+092 `done` (cascade revocation chiude US-075 AC §6).
+- **EP-021** `done` — US-093/094/095 `done` (RuleSignal typed payload, 13 sotto-tipi).
+- **EP-023** `done` — US-096/097 `done` (NCAV Net-Net).
 - **EP-024** `ready` (backlog, R4.0 candidate) — Tab Riepilogo (verdetto VI+TA azionabile) + Tab Technical Analysis sul dettaglio ticker. **Confidence 65%**. Fase 1 (5 US): US-098 (BE pipeline TA payload), US-099 (BE entry-timing advisor Triple-Screen-like), US-100 (BE stop-placement + position-sizing 2%/6% Rule), US-101 (FE tab Technical Analysis), US-102 (QA E2E + scenario stile-COPART). Fase 2 capstone (2 US, dipende da Fase 1): US-103 (BE aggregatore /summary con gate VI hardcoded + citazioni RAG cross-dominio), US-104 (FE tab Riepilogo come primo tab + warning anti-COPART). Dipendenze infra: EP-011 done (pgvector + arctic-embed), EP-013 done (FmpAdapter.getTechnicalIndicator), EP-020 done (trasparenza LLM), EP-007 done (analyze service), EP-021/EP-023 in flight (soft alignment). Sprint non ancora deciso dall'orchestrator; TSK da derivare dal TPM in fase di planning.
 
 **ADR accepted:** ADR-021, ADR-022, ADR-023, ADR-024, ADR-025, ADR-026, ADR-027, ADR-028, ADR-029.
