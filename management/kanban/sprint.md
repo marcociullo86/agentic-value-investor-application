@@ -4,7 +4,7 @@ id: sprint
 title: Sprint Plan — R1.0 MVP + R1.1 + R1.1.x + R2.0 + R2.1 + R3.0 + CQRL Bonifica + R3.2 + R3.3 + R3.4 + R4.0 EP-024 Sprint 21 (taskizzato)
 generated: 2026-06-08
 tpm: tpm
-release: R3.0 EP-018 Sprint 15 (chiuso) + EP-017 chiusa (Sprint 14+17) + R3.1 EP-019 chiusa (Sprint 16) + R3.2 Sprint 18 COMPLETATO (EP-002 US-031 + EP-010) + R3.3 Sprint 19 COMPLETATO (EP-020) + R3.4 Sprint 20 COMPLETATO (EP-017 US-092 + EP-021 + EP-023) + R4.0 Sprint 21 PLANNED (EP-024 Riepilogo + Tab TA — 21 TSK taskizzati, ADR-030 proposed)
+release: R3.0 EP-018 Sprint 15 (chiuso) + EP-017 chiusa (Sprint 14+17) + R3.1 EP-019 chiusa (Sprint 16) + R3.2 Sprint 18 COMPLETATO (EP-002 US-031 + EP-010) + R3.3 Sprint 19 COMPLETATO (EP-020) + R3.4 Sprint 20 COMPLETATO (EP-017 US-092 + EP-021 + EP-023) + R4.0 Sprint 21 READY (EP-024 Riepilogo + Tab TA — 21 TSK taskizzati, ADR-030 accepted)
 r10_closed: 2026-05-22
 r11_closed: 2026-05-23
 r11x_closed: 2026-05-26
@@ -29,24 +29,24 @@ r34_closed: 2026-06-06
 > **R3.2 chiuso:** Sprint 18 — EP-002 US-031 (migrazione FMP /stable) + EP-010 US-032..037 (6 criteri Graham) — **21/21 TSK `done`**, review CQRL `passed` su tutti i TSK con copertura CQRL. EP-002 US-031 `done`; EP-010 `done`.
 > **R3.3 chiuso:** Sprint 19 — EP-020 Trasparenza analisi LLM (US-088..091) — **10/10 TSK `done`**, review CQRL `passed` su tutti i TSK. EP-020 `done`.
 > **R3.4 chiuso:** Sprint 20 — EP-017 US-092 (cascade revocation) + EP-021 RuleSignal typed + EP-023 NCAV Net-Net — **15/15 TSK `done`**. Codice committato (`7c51c47`) + remediation CI verde (`06cc38d`, `252364c`, `3a7cbaa`). EP-017 `done`; EP-021 `done`; EP-023 `done`. ADR-027/028/029 `accepted`.
-> **R4.0 taskizzato (PLANNED):** Sprint 21 — EP-024 Tab Riepilogo (verdetto azionabile VI+TA) + Tab Technical Analysis — **0/21 TSK `todo`** (TSK-324…344, 7 US). ADR-030 `proposed` (da `accepted` al kickoff). Sviluppo non ancora avviato.
+> **R4.0 taskizzato (READY):** Sprint 21 — EP-024 Tab Riepilogo (verdetto azionabile VI+TA) + Tab Technical Analysis — **0/21 TSK `todo`** (TSK-324…344, 7 US). ADR-030 `accepted` (lead-architect, 2026-06-08). Kickoff sbloccato; sviluppo non ancora avviato.
 
 ---
 
-## Sprint 21 — Decision Layer VI+TA: Tab Technical Analysis + Tab Riepilogo (EP-024) — PLANNED
+## Sprint 21 — Decision Layer VI+TA: Tab Technical Analysis + Tab Riepilogo (EP-024) — READY
 
 **Obiettivo:** estendere il dettaglio ticker da 2 a 4 tab. **Fase 1** — tab **Technical Analysis** (layer advisory di timing): pipeline indicatori (SMA/RSI/MACD/ATR/OBV), classificazione trend deterministica, livelli support/resistance, entry-timing Triple-Screen-like, stop-placement + position-sizing 2%/6%. **Fase 2 (capstone)** — tab **Riepilogo** come primo tab: aggregatore cross-dominio `/summary` con verdetto tipato `ENTER_NOW/WAIT_FOR_SETUP/AVOID` (gate VI hardcoded, deterministico), citazioni RAG wiki cross-dominio, warning anti-COPART.
 
 - **EP-024 Fase 1 (US-098..US-102):** payload TA su `GET /technical`, entry-timing advisor, stop/sizing advisor, tab FE Technical Analysis, QA E2E (incl. scenario stile-COPART).
 - **EP-024 Fase 2 (US-103, US-104):** aggregatore `GET /summary` (gate VI + LLM solo per rationale + RAG wiki), tab FE Riepilogo primo tab + warning anti-COPART.
 
-**Stato:** PLANNED — **0/21 TSK `todo`**. ADR-030 `proposed` (decisioni: cache-aside TA senza tabella; corpus wiki `corpus_kind=WIKI` in pgvector; soglia VI proporzionale 60%/33% sui ruleId decisionali; advisor inclusi in `TechnicalAnalysisResponse`; verdetti deterministici, LLM solo rationale). **Prerequisito kickoff:** ADR-030 → `accepted`.
+**Stato:** READY — **0/21 TSK `todo`**. ADR-030 `accepted` (lead-architect, 2026-06-08; decisioni: cache-aside TA senza tabella; corpus wiki `corpus_kind=WIKI` su tabella reale `filing_chunks` via migration `V033`; soglia VI proporzionale 60%/33% sui ruleId decisionali; advisor inclusi in `TechnicalAnalysisResponse`; verdetti deterministici, LLM solo rationale; embedding Qwen3-Embedding-0.6B). Kickoff sbloccato. **Handoff residui (non bloccanti):** PM riallinea le soglie cablate nel corpo di US-103; db-dev implementa la migration `V033` con gli invarianti di schema reali di ADR-030 §2.
 
 **Sequenza wave (DAG):**
 
 ```
 Wave A (Fase 1 BE pipeline — US-098):
-  TSK-324 (BE FmpAdapter MACD/ATR/OBV) ── after ADR-030
+  TSK-324 (BE FmpAdapter MACD/ATR/OBV) ── after ADR-030 (accepted)
   TSK-325 (BE TechnicalAnalysisService trend/levels) ── after TSK-324
   TSK-326 (BE Controller /technical + DTO + OpenAPI) ── after TSK-325
   TSK-327 (QA integration + contract US-098) ── after TSK-326
@@ -125,7 +125,7 @@ Wave E (Fase 2 FE — US-104):
 
 **Totale Sprint 21:** 21 TSK (10 be, 5 fe, 6 qa) — **0/21 `todo`**
 
-> **Nota riconciliazione US-103 ↔ ADR-030:** la tabella di mapping nel corpo di US-103 usa ancora soglie cablate ("≥8/13 GREEN", "<4"); ADR-030 §3 le sovrascrive con la regola proporzionale (≥60% / <33% sui ruleId decisionali, `NCAV_LATEST` informativo escluso). I TSK-338/341 seguono ADR-030. La US-103 va riallineata quando ADR-030 passa ad `accepted`.
+> **Nota riconciliazione US-103 ↔ ADR-030 (accepted):** la tabella di mapping nel corpo di US-103 usa ancora soglie cablate ("≥8/13 GREEN", "<4"); ADR-030 §3 le sovrascrive con la regola proporzionale (≥60% / <33% sui ruleId decisionali, `NCAV_LATEST` informativo escluso → 14 decisionali: ≥9 GREEN / <5 GREEN). I TSK-338/341 seguono ADR-030. **Azione PM:** riallineare il corpo di US-103 alle quote (gli AC strutturali del gate restano invariati). Non bloccante per il kickoff.
 
 ---
 
@@ -865,7 +865,7 @@ Sprint 12 (EP-016) ✅ ═══╝        │
                              Wave C: TSK-319,320,321 (US-095 FE migration) ║ TSK-322,323 (US-097 badge)
                                    │
                                    ▼
-                           Sprint 21 (EP-024) ← PLANNED R4.0 (21 TSK taskizzati, ADR-030 proposed)
+                           Sprint 21 (EP-024) ← READY R4.0 (21 TSK taskizzati, ADR-030 accepted)
                              Wave A: TSK-324..327 (US-098 pipeline TA BE)
                              Wave B: TSK-328,329 (US-099 entry-timing) ║ TSK-330,331 (US-100 stop+sizing) → TSK-332 (OpenAPI)
                              Wave C: TSK-333,334,335 (US-101 FE tab TA) → TSK-336 (US-102 QA E2E)
@@ -907,7 +907,7 @@ Sprint 20 EP-021 US-093 → Sprint 20 EP-023 US-096: INTRA-SPRINT (Scenario B AD
 
 ## Stato backlog
 
-**Sprint 20 chiuso (R3.4). Sprint 21 (R4.0 EP-024) taskizzato: 21 TSK `todo` pronti, sviluppo non avviato. Prerequisito kickoff: ADR-030 → `accepted`.**
+**Sprint 20 chiuso (R3.4). Sprint 21 (R4.0 EP-024) taskizzato e READY: 21 TSK `todo` pronti, ADR-030 `accepted`, kickoff sbloccato. Sviluppo non ancora avviato.**
 
 323/344 TSK `done` su Sprint 1..20 (R1.0→R3.4). 21 TSK `todo` taskizzati in Sprint 21 (R4.0).
 Totale complessivo: 344 TSK (323 done + 21 todo).
@@ -915,7 +915,6 @@ Totale complessivo: 344 TSK (323 done + 21 todo).
 - **EP-017** `done` — US-073..078+087+092 `done` (cascade revocation chiude US-075 AC §6).
 - **EP-021** `done` — US-093/094/095 `done` (RuleSignal typed payload, 13 sotto-tipi).
 - **EP-023** `done` — US-096/097 `done` (NCAV Net-Net).
-- **EP-024** `ready` → **taskizzato Sprint 21** (R4.0) — Tab Riepilogo (verdetto VI+TA azionabile) + Tab Technical Analysis sul dettaglio ticker. **Confidence 65%**. 7 US (US-098…104) → **21 TSK** (TSK-324…344) in 5 wave: Wave A pipeline TA BE, Wave B advisors entry-timing + stop/sizing, Wave C FE tab TA + QA, Wave D aggregatore `/summary` BE (gate VI + RAG), Wave E FE tab Riepilogo. Dipendenze infra tutte `done`: EP-011 (pgvector + arctic-embed), EP-013 (`FmpAdapter.getTechnicalIndicator`), EP-020 (trasparenza LLM), EP-007 (analyze service), EP-021 (RuleSignal typed), EP-023 (NCAV). ADR-030 `proposed`.
+- **EP-024** `ready` → **taskizzato Sprint 21** (R4.0) — Tab Riepilogo (verdetto VI+TA azionabile) + Tab Technical Analysis sul dettaglio ticker. **Confidence 65%**. 7 US (US-098…104) → **21 TSK** (TSK-324…344) in 5 wave: Wave A pipeline TA BE, Wave B advisors entry-timing + stop/sizing, Wave C FE tab TA + QA, Wave D aggregatore `/summary` BE (gate VI + RAG), Wave E FE tab Riepilogo. Dipendenze infra tutte `done`: EP-011 (pgvector + arctic-embed), EP-013 (`FmpAdapter.getTechnicalIndicator`), EP-020 (trasparenza LLM), EP-007 (analyze service), EP-021 (RuleSignal typed), EP-023 (NCAV). ADR-030 `accepted`.
 
-**ADR accepted:** ADR-021, ADR-022, ADR-023, ADR-024, ADR-025, ADR-026, ADR-027, ADR-028, ADR-029.
-**ADR proposed:** ADR-030 (decision layer VI+TA) — persistenza TA cache-aside (no tabella), corpus RAG wiki `corpus_kind=WIKI` in pgvector, soglia VI proporzionale 60%/33% sui ruleId decisionali, advisor in `TechnicalAnalysisResponse`, verdetti deterministici + LLM solo rationale. Da `accepted` al kickoff Sprint 21.
+**ADR accepted:** ADR-021, ADR-022, ADR-023, ADR-024, ADR-025, ADR-026, ADR-027, ADR-028, ADR-029, **ADR-030** (decision layer VI+TA — persistenza TA cache-aside no tabella, corpus RAG wiki `corpus_kind=WIKI` su `filing_chunks` via `V033`, soglia VI proporzionale 60%/33% sui ruleId decisionali, advisor in `TechnicalAnalysisResponse`, verdetti deterministici + LLM solo rationale, embedding Qwen3-0.6B; lead-architect 2026-06-08).

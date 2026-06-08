@@ -22,6 +22,34 @@ di vita.
 
 ## Gap aperti
 
+### 2026-06-08 — ep011-pgvector-metadata-stale (doc drift TSK-098 / arctic-embed concept)
+
+**Origine:** lead-architect @ verifica fattuale pre-accept ADR-030 (EP-024).
+**Gap:** Due disallineamenti tra documentazione di EP-011 e codebase reale, emersi
+verificando i riferimenti riusati da ADR-030:
+1. **Migration version**: TSK-098 ha titolo "Migration **V012**__pgvector_enable + filing_chunks
+   schema + indice HNSW" e l'ADR-018 §382 cita "V010 migration", ma la migration reale è
+   **`V014__pgvector_enable_filing_chunks.sql`** (`src/backend/.../db/migration/`). `V012` è in
+   realtà `fmp_cache_add_sec_filings_endpoint`. Chi legge TSK-098/ADR-018 per il numero di
+   versione viene fuorviato. Il concept `pgvector-vector-store.md` invece è già corretto (cita V013+V014).
+2. **Modello embedding**: il concept wiki è intitolato `arctic-embed-l-v2` e diverse spec EP-011
+   (US-040, TSK-098) parlano di "Snowflake Arctic Embed L v2.0" come modello primario, ma la
+   decisione di prodotto confermata (ADR-018 §34, `application.yml` `embeddings.model.name`) è
+   **`Qwen/Qwen3-Embedding-0.6B`** (1024-dim); Arctic è solo fallback documentato. La dimensione
+   pgvector (1024) e l'indice HNSW cosine sono comunque corretti e invarianti.
+**Sospetta fonte:** doc drift accumulato fra spec iniziali EP-011 e implementazione effettiva (lo
+switch Arctic→Qwen3 è avvenuto in ADR-018; il numero di migration è scalato per le migration FMP
+intercorse).
+**Impatto:** Nessun blocco funzionale (schema e dimensione sono corretti nel codice). Rischio solo
+documentale: future epiche che riusano il vector store (come EP-024 stessa) possono citare nomi/numeri
+errati. ADR-030 è stato accettato con i nomi reali e una nota di verifica esplicita.
+**Fix proposto (wiki-keeper):** allineare il titolo/contenuto di TSK-098 e ADR-018 al numero reale
+`V014`; chiarire nel concept `arctic-embed-l-v2.md` che il modello attivo è Qwen3-Embedding-0.6B con
+Arctic come fallback (o rinominare il concept a un titolo modello-agnostico tipo `embeddings-model-spec`).
+**Bloccante:** no.
+
+---
+
 ### 2026-06-05 — earnings-stability-formatter-lossyears-undefined-crash
 
 **Origine:** qa-dev @ TSK-321 (test formatters.ts per EARNINGS_STABILITY_10Y con legacy fixture)
