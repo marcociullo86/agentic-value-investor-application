@@ -40,7 +40,7 @@ r34_closed: 2026-06-06
 - **EP-024 Fase 1 (US-098..US-102):** payload TA su `GET /technical`, entry-timing advisor, stop/sizing advisor, tab FE Technical Analysis, QA E2E (incl. scenario stile-COPART).
 - **EP-024 Fase 2 (US-103, US-104):** aggregatore `GET /summary` (gate VI + LLM solo per rationale + RAG wiki), tab FE Riepilogo primo tab + warning anti-COPART.
 
-**Stato:** READY — **0/21 TSK `todo`**. ADR-030 `accepted` (lead-architect, 2026-06-08; decisioni: cache-aside TA senza tabella; corpus wiki `corpus_kind=WIKI` su tabella reale `filing_chunks` via migration `V033`; soglia VI proporzionale 60%/33% sui ruleId decisionali; advisor inclusi in `TechnicalAnalysisResponse`; verdetti deterministici, LLM solo rationale; embedding Qwen3-Embedding-0.6B). Kickoff sbloccato. **Handoff residui (non bloccanti):** PM riallinea le soglie cablate nel corpo di US-103; db-dev implementa la migration `V033` con gli invarianti di schema reali di ADR-030 §2.
+**Stato:** READY — **0/21 TSK `todo`**. ADR-030 `accepted` (lead-architect, 2026-06-08; decisioni: cache-aside TA senza tabella; corpus wiki `corpus_kind=WIKI` su tabella reale `filing_chunks` via migration `V033`; soglia VI proporzionale 60%/33% sui ruleId decisionali; advisor inclusi in `TechnicalAnalysisResponse`; verdetti deterministici, LLM solo rationale; embedding Qwen3-Embedding-0.6B). Kickoff sbloccato. **Handoff:** PM ha riallineato le soglie del corpo di US-103 alle quote proporzionali (✓ 2026-06-08). Resta (non bloccante, è il TSK-337) la migration `V033` a carico del db-dev con gli invarianti di schema reali di ADR-030 §2.
 
 **Sequenza wave (DAG):**
 
@@ -125,7 +125,7 @@ Wave E (Fase 2 FE — US-104):
 
 **Totale Sprint 21:** 21 TSK (10 be, 5 fe, 6 qa) — **0/21 `todo`**
 
-> **Nota riconciliazione US-103 ↔ ADR-030 (accepted):** la tabella di mapping nel corpo di US-103 usa ancora soglie cablate ("≥8/13 GREEN", "<4"); ADR-030 §3 le sovrascrive con la regola proporzionale (≥60% / <33% sui ruleId decisionali, `NCAV_LATEST` informativo escluso → 14 decisionali: ≥9 GREEN / <5 GREEN). I TSK-338/341 seguono ADR-030. **Azione PM:** riallineare il corpo di US-103 alle quote (gli AC strutturali del gate restano invariati). Non bloccante per il kickoff.
+> **Nota riconciliazione US-103 ↔ ADR-030 (accepted):** la tabella di mapping nel corpo di US-103 usa ancora soglie cablate ("≥8/13 GREEN", "<4"); ADR-030 §3 le sovrascrive con la regola proporzionale (≥60% / <33% sui ruleId decisionali, `NCAV_LATEST` informativo escluso → 14 decisionali: ≥9 GREEN / <5 GREEN). I TSK-338/341 seguono ADR-030. **✓ Riallineato dal PM (2026-06-08):** il corpo di US-103 esprime ora le classi `*_DOMINANT` come quote proporzionali; gli AC strutturali del gate sono rimasti invariati.
 
 ---
 
