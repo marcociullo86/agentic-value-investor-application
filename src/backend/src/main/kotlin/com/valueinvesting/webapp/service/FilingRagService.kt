@@ -84,10 +84,6 @@ class FilingRagService(
             )
         }
     }
-
-    private fun vectorToString(vector: FloatArray): String {
-        return vector.joinToString(",", prefix = "[", postfix = "]")
-    }
 }
 
 data class FilingChunkResult(

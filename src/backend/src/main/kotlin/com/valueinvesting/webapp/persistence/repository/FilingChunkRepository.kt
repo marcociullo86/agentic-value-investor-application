@@ -42,6 +42,13 @@ interface FilingChunkRepository : JpaRepository<FilingChunkEntity, Long> {
         @Param("metadata") metadata: String?,
     )
 
+    /**
+     * Similarity search ristretta al corpus **FILING** (`corpus_kind = 'FILING'`):
+     * NON include i chunk WIKI, che vivono nella stessa tabella ma sono interrogati
+     * da [findSimilarWiki]. Lo scope FILING è parte del contratto del metodo, non un
+     * dettaglio interno (TSK-337 F4): un chiamante cross-corpus otterrebbe altrimenti
+     * risultati silenziosamente troncati.
+     */
     @Query(
         value = """
             SELECT fc.id, fc.filing_blob_id, fc.ticker, fc.filing_type, fc.filing_date,

@@ -3,7 +3,9 @@ package com.valueinvesting.webapp.service
 import com.valueinvesting.webapp.config.WikiCorpusProperties
 import com.valueinvesting.webapp.persistence.repository.FilingChunkRepository
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.nio.file.Files
 import java.nio.file.Path
@@ -42,7 +44,7 @@ class WikiCorpusIndexer(
     private val props: WikiCorpusProperties,
     private val chunkingService: FilingChunkingService,
     private val embeddingService: EmbeddingService,
-    private val filingChunkRepository: FilingChunkRepository,
+    private val wikiChunkWriter: WikiChunkWriter,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -56,8 +58,13 @@ class WikiCorpusIndexer(
      * Re-indicizza l'intero corpus wiki. Idempotente: re-eseguirlo riparte dai
      * file su disco e riallinea i chunk WIKI in DB. Non al boot — invocato solo
      * dall'endpoint admin triggered.
+     *
+     * Intenzionalmente NON-@Transactional (TSK-337 F1, allineato a TSK-306 F1): le
+     * chiamate HTTP al sidecar embedding restano FUORI da ogni tx (un reindex full
+     * terrebbe pinned uno slot del connection pool per minuti). Le sole DB op per-pagina
+     * sono isolate in [WikiChunkWriter.replacePageChunks] (REQUIRES_NEW, bean separato →
+     * niente self-invocation): una pagina fallita non rollbacka le altre.
      */
-    @Transactional
     fun reindexAll(): WikiReindexResult {
         val root = Path.of(props.corpusPath)
         if (!root.exists()) {
@@ -110,7 +117,11 @@ class WikiCorpusIndexer(
 
     /**
      * Indicizza una singola pagina. Ritorna il numero di chunk persistiti, oppure
-     * -1 se la pagina è stata saltata (dominio non ammesso / frontmatter assente).
+     * -1 se la pagina è stata saltata (dominio non ammesso / frontmatter assente /
+     * sidecar embedding indisponibile o in timeout su questa pagina).
+     *
+     * L'embedding (HTTP al sidecar) avviene FUORI da ogni transazione (F1); le sole
+     * DB op sono delegate a [WikiChunkWriter] in una tx REQUIRES_NEW dedicata.
      */
     private fun indexPage(file: Path): Int {
         val raw = file.readText()
@@ -128,20 +139,19 @@ class WikiCorpusIndexer(
         }
 
         val chunks = chunkingService.chunk(body)
-        val embeddings = embeddingService.embed(chunks.map { it.content })
-
-        // Idempotenza: rimuovi i chunk pregressi della pagina, poi reinserisci.
-        filingChunkRepository.deleteWikiChunks(wikiSourceId)
-        chunks.forEachIndexed { idx, chunk ->
-            filingChunkRepository.upsertWikiChunk(
-                wikiSourceId = wikiSourceId,
-                wikiDomain = domain,
-                chunkIndex = chunk.index,
-                content = chunk.content,
-                embedding = vectorToString(embeddings[idx]),
-                metadata = null,
-            )
+        // F3: il fallimento del sidecar su una pagina non deve abortire l'intero
+        // reindex — logga WARN, salta la pagina e prosegui (reindex idempotente).
+        val embeddings = try {
+            embeddingService.embed(chunks.map { it.content })
+        } catch (e: EmbeddingServiceUnavailableException) {
+            log.warn("Pagina wiki '{}' saltata: sidecar embedding indisponibile — {}", wikiSourceId, e.message)
+            return -1
+        } catch (e: EmbeddingTimeoutException) {
+            log.warn("Pagina wiki '{}' saltata: timeout sidecar embedding — {}", wikiSourceId, e.message)
+            return -1
         }
+
+        wikiChunkWriter.replacePageChunks(wikiSourceId, domain, chunks, embeddings)
 
         log.info("Pagina wiki '{}' (domain={}) indicizzata: {} chunk", wikiSourceId, domain, chunks.size)
         return chunks.size
@@ -153,9 +163,41 @@ class WikiCorpusIndexer(
     }
 
     private fun stripFrontmatter(raw: String): String = FRONTMATTER.replaceFirst(raw, "")
+}
 
-    private fun vectorToString(vector: FloatArray): String =
-        vector.joinToString(",", prefix = "[", postfix = "]")
+/**
+ * Boundary @Transactional delle sole DB op per-pagina del reindex WIKI (TSK-337 F1).
+ *
+ * Estratto come @Component separato (non metodo private di [WikiCorpusIndexer]) per
+ * garantire l'intercettazione del proxy Spring: un @Transactional invocato via
+ * self-invocation NON è intercettato (stesso pattern di [NewsClassificationCacheStore],
+ * TSK-306 F1). REQUIRES_NEW: ogni pagina committa nella propria tx short-lived, così una
+ * pagina fallita non rollbacka le altre. L'embedding resta fuori da questo boundary.
+ */
+@Component
+class WikiChunkWriter(
+    private val filingChunkRepository: FilingChunkRepository,
+) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    fun replacePageChunks(
+        wikiSourceId: String,
+        wikiDomain: String,
+        chunks: List<TextChunk>,
+        embeddings: List<FloatArray>,
+    ) {
+        // Idempotenza: rimuovi i chunk pregressi della pagina, poi reinserisci.
+        filingChunkRepository.deleteWikiChunks(wikiSourceId)
+        chunks.forEachIndexed { idx, chunk ->
+            filingChunkRepository.upsertWikiChunk(
+                wikiSourceId = wikiSourceId,
+                wikiDomain = wikiDomain,
+                chunkIndex = chunk.index,
+                content = chunk.content,
+                embedding = vectorToString(embeddings[idx]),
+                metadata = null,
+            )
+        }
+    }
 }
 
 /**
