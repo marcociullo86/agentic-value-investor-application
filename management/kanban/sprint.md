@@ -29,7 +29,7 @@ r34_closed: 2026-06-06
 > **R3.2 chiuso:** Sprint 18 — EP-002 US-031 (migrazione FMP /stable) + EP-010 US-032..037 (6 criteri Graham) — **21/21 TSK `done`**, review CQRL `passed` su tutti i TSK con copertura CQRL. EP-002 US-031 `done`; EP-010 `done`.
 > **R3.3 chiuso:** Sprint 19 — EP-020 Trasparenza analisi LLM (US-088..091) — **10/10 TSK `done`**, review CQRL `passed` su tutti i TSK. EP-020 `done`.
 > **R3.4 chiuso:** Sprint 20 — EP-017 US-092 (cascade revocation) + EP-021 RuleSignal typed + EP-023 NCAV Net-Net — **15/15 TSK `done`**. Codice committato (`7c51c47`) + remediation CI verde (`06cc38d`, `252364c`, `3a7cbaa`). EP-017 `done`; EP-021 `done`; EP-023 `done`. ADR-027/028/029 `accepted`.
-> **R4.0 in avvio:** Sprint 21 — EP-024 Tab Riepilogo (verdetto azionabile VI+TA) + Tab Technical Analysis — **0/21 done, 1 in_progress (TSK-337 migration `V033` ✓), 20 todo** (TSK-324…344, 7 US). ADR-030 `accepted` (lead-architect, 2026-06-08). Kickoff sbloccato; migration V033 anticipata fuori-wave.
+> **R4.0 in avvio:** Sprint 21 — EP-024 Tab Riepilogo (verdetto azionabile VI+TA) + Tab Technical Analysis — **1/21 done (TSK-337 chiuso: V033 + WikiCorpusIndexer + endpoint reindex), 20 todo** (TSK-324…344, 7 US). ADR-030 `accepted` (lead-architect, 2026-06-08). Kickoff sbloccato; TSK-337 chiuso fuori-wave.
 
 ---
 
@@ -40,7 +40,7 @@ r34_closed: 2026-06-06
 - **EP-024 Fase 1 (US-098..US-102):** payload TA su `GET /technical`, entry-timing advisor, stop/sizing advisor, tab FE Technical Analysis, QA E2E (incl. scenario stile-COPART).
 - **EP-024 Fase 2 (US-103, US-104):** aggregatore `GET /summary` (gate VI + LLM solo per rationale + RAG wiki), tab FE Riepilogo primo tab + warning anti-COPART.
 
-**Stato:** IN AVVIO — **0/21 done, 1 in_progress, 20 todo**. ADR-030 `accepted` (lead-architect, 2026-06-08; decisioni: cache-aside TA senza tabella; corpus wiki `corpus_kind=WIKI` su tabella reale `filing_chunks` via migration `V033`; soglia VI proporzionale 60%/33% sui ruleId decisionali; advisor inclusi in `TechnicalAnalysisResponse`; verdetti deterministici, LLM solo rationale; embedding Qwen3-Embedding-0.6B). **Avanzamenti:** PM ha riallineato le soglie del corpo di US-103 (✓ 2026-06-08); migration **`V033`** consegnata e validata su Postgres pgvector (parte DB di TSK-337, anticipata fuori-wave). Restano del TSK-337: `WikiCorpusIndexer` + endpoint reindex (BE, in-wave).
+**Stato:** IN AVVIO — **1/21 done, 20 todo**. ADR-030 `accepted` (lead-architect, 2026-06-08; decisioni: cache-aside TA senza tabella; corpus wiki `corpus_kind=WIKI` su tabella reale `filing_chunks` via migration `V033`; soglia VI proporzionale 60%/33% sui ruleId decisionali; advisor inclusi in `TechnicalAnalysisResponse`; verdetti deterministici, LLM solo rationale; embedding Qwen3-Embedding-0.6B). **Avanzamenti:** PM ha riallineato le soglie del corpo di US-103 (✓); **TSK-337 chiuso** (✓ 2026-06-08, fuori-wave): migration `V033` validata su Postgres pgvector + `FilingChunkEntity`/repo multi-corpus + `WikiCorpusIndexer` + endpoint admin `POST /admin/rag/wiki/reindex`; `gradle compileKotlin` SUCCESSFUL. **Gap infra aperto:** `be-wiki-runtime-corpus-mount` — `wiki/` non è nell'immagine runtime, serve mount/COPY (property `rag.wiki.corpus-path`). Regression/idempotency test del corpus → TSK-341 (QA).
 
 **Sequenza wave (DAG):**
 
@@ -109,7 +109,7 @@ Wave E (Fase 2 FE — US-104):
 
 | TSK | Titolo | Layer | Consumer | Est. | US | `depends_on` | Status |
 |-----|--------|-------|----------|------|----|--------------|--------|
-| TSK-337 | BE Migration corpus_kind + WikiCorpusIndexer (wiki VI+TA in pgvector) + endpoint reindex | be | agent | M | US-103 | TSK-328, TSK-330 | in_progress |
+| TSK-337 | BE Migration corpus_kind + WikiCorpusIndexer (wiki VI+TA in pgvector) + endpoint reindex | be | agent | M | US-103 | TSK-328, TSK-330 | done |
 | TSK-338 | BE SummaryService — gate VI hardcoded deterministico + soglia proporzionale + orchestrazione | be | agent | L | US-103 | TSK-328, TSK-330 | todo |
 | TSK-339 | BE Summary rationale LLM (1 call gated + budget) + wikiCitations RAG + warningAntiCopart | be | agent | M | US-103 | TSK-337, TSK-338 | todo |
 | TSK-340 | BE SummaryController GET /summary + DTO + OpenAPI enum + caching per-snapshot | be | agent | M | US-103 | TSK-339 | todo |
@@ -123,7 +123,7 @@ Wave E (Fase 2 FE — US-104):
 | TSK-343 | FE 3 card fattori chiave + decision path + citazioni per dominio + footer + deep-link compat | fe | agent | M | US-104 | TSK-342 | todo |
 | TSK-344 | QA Tab Riepilogo — Vitest 4 stati + E2E (CPRT/AAPL/VI-neg) + a11y + non-regressione 3 tab | qa | agent | M | US-104 | TSK-343 | todo |
 
-**Totale Sprint 21:** 21 TSK (10 be, 5 fe, 6 qa) — **0 done, 1 in_progress (TSK-337: migration V033 ✓; indexer+endpoint todo), 20 todo**
+**Totale Sprint 21:** 21 TSK (10 be, 5 fe, 6 qa) — **1 done (TSK-337), 20 todo**
 
 > **Nota riconciliazione US-103 ↔ ADR-030 (accepted):** la tabella di mapping nel corpo di US-103 usa ancora soglie cablate ("≥8/13 GREEN", "<4"); ADR-030 §3 le sovrascrive con la regola proporzionale (≥60% / <33% sui ruleId decisionali, `NCAV_LATEST` informativo escluso → 14 decisionali: ≥9 GREEN / <5 GREEN). I TSK-338/341 seguono ADR-030. **✓ Riallineato dal PM (2026-06-08):** il corpo di US-103 esprime ora le classi `*_DOMINANT` come quote proporzionali; gli AC strutturali del gate sono rimasti invariati.
 
@@ -828,8 +828,8 @@ dichiarazione formale PCI-DSS non applicabile. ADR-025. DB: mfa_secrets + login_
 | R3.2 | 18 | 0 | 1 | 8 | 1 | 11 | **21** | done |
 | R3.3 | 19 | 0 | 1 | 3 | 3 | 3 | **10** | done |
 | R3.4 | 20 | 0 | 0 | 5 | 5 | 5 | **15** | done |
-| R4.0 | 21 | 0 | 0 | 10 | 5 | 6 | **21** | 1 in_progress / 20 todo |
-| | **TOTALE** | **11** | **19** | **122** | **69** | **123** | **344** | **323 done / 1 in_progress / 20 todo** |
+| R4.0 | 21 | 0 | 0 | 10 | 5 | 6 | **21** | 1 done / 20 todo |
+| | **TOTALE** | **11** | **19** | **122** | **69** | **123** | **344** | **324 done / 20 todo** |
 
 ---
 
@@ -909,7 +909,7 @@ Sprint 20 EP-021 US-093 → Sprint 20 EP-023 US-096: INTRA-SPRINT (Scenario B AD
 
 **Sprint 20 chiuso (R3.4). Sprint 21 (R4.0 EP-024) taskizzato e READY: 21 TSK `todo` pronti, ADR-030 `accepted`, kickoff sbloccato. Sviluppo non ancora avviato.**
 
-323/344 TSK `done` su Sprint 1..20 (R1.0→R3.4). Sprint 21 (R4.0) in avvio: 1 `in_progress` (TSK-337 migration V033 ✓), 20 `todo`.
+324/344 TSK `done`. Sprint 21 (R4.0) in avvio: 1 `done` (TSK-337: V033 + WikiCorpusIndexer + endpoint reindex), 20 `todo`.
 Totale complessivo: 344 TSK (323 done + 21 todo).
 
 - **EP-017** `done` — US-073..078+087+092 `done` (cascade revocation chiude US-075 AC §6).

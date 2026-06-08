@@ -189,6 +189,20 @@ chunking:
   chunk-size: 6000
   chunk-overlap: 400
 
+# Corpus RAG WIKI per le citazioni cross-dominio del Riepilogo (TSK-337 / US-103,
+# ADR-030 §2). Indicizzazione triggered via POST /admin/rag/wiki/reindex.
+# GAP be-wiki-runtime-corpus-mount: l'immagine non monta wiki/ → corpus-path va
+# garantito da infra (mount/COPY). Override dev: RAG_WIKI_CORPUS_PATH.
+rag:
+  wiki:
+    corpus-path: ${RAG_WIKI_CORPUS_PATH:/app/wiki}
+    subdirs:
+      - concepts
+      - syntheses
+    domains:
+      - value-investing
+      - technical-analysis-trading
+
 # News sentiment classifier (US-042)
 news-sentiment:
   max-llm-calls-per-ticker: 50

@@ -591,3 +591,31 @@ toolchain mancante), ogni TSK BE futuro.
 **Azione richiesta:** Re-estrazione del PDF con tool alternativo (es. pypdf2, pdfplumber, OCR se scansionato) e nuovo `/sync-docs`; oppure sorgente testuale alternativa (testo ebook).
 
 **Risolto:** 2026-06-05 — Re-estrazione completata con successo via OCR Tesseract 5.4.0 (PyMuPDF render zoom=3.0). Il file `raw/2026-06-05-technical-analysis-financial-markets-1999.txt` contiene ora il testo completo del volume (585 pagine, corpo capitoli pulito e accurato; rumore OCR limitato alle pagine di copertina/dorso Pages 1, 2, 30 — ignorato). Ingest completato: pagina source reale `wiki/sources/murphy-technical-analysis-financial-markets-1999.md` sostituisce il placeholder; 6 concetti creati (`dow-theory`, `trend-trendlines-support-resistance`, `chart-patterns-reversal-continuation`, `moving-averages-ta`, `oscillators-momentum-rsi`, `volume-open-interest`, `intermarket-analysis-murphy`); 1 entita creata `wiki/entities/john-murphy.md`. Tag `extraction-failure` rimosso dalla source page. [^src: raw/2026-06-05-technical-analysis-financial-markets-1999.txt §Page 31]
+
+---
+
+### 2026-06-08 — be-wiki-runtime-corpus-mount (accesso runtime ai file wiki/ non garantito)
+
+**Origine:** be-dev @ TSK-337 (WikiCorpusIndexer, EP-024 / US-103).
+**Gap:** Per indicizzare le pagine wiki come secondo corpus RAG (corpus_kind=WIKI),
+il `WikiCorpusIndexer` deve leggere i markdown di `wiki/concepts/` e `wiki/syntheses/`
+**a runtime**, ma l'app è containerizzata e tali file NON sono accessibili nel
+container come distribuito oggi:
+1. `src/docker/Dockerfile` (stage finale) copia solo `app.jar`, gli asset FE statici
+   e `openapi.yaml` — **NON** copia `wiki/` nell'immagine.
+2. `src/docker/docker-compose.yml` non monta alcun volume `wiki/`.
+3. Non esiste un pattern pre-esistente nel BE che legga `wiki/` da classpath o filesystem
+   a runtime (verificato: `raw/` è citato solo in commenti `[^src: ...]`, non letto a runtime).
+**Decisione adottata (non in silenzio):** introdotta property configurabile
+`rag.wiki.corpus-path` (`WikiCorpusProperties`, default `/app/wiki`, override dev
+`RAG_WIKI_CORPUS_PATH`) + `subdirs`/`domains`. Il `WikiCorpusIndexer.reindexAll()`
+degrada graziosamente se il path non esiste (log WARN + risultato a 0 pagine), così
+l'endpoint admin non fallisce in assenza del mount. La scelta del default presuppone
+che il corpus wiki sia reso disponibile sotto `/app/wiki` nel container.
+**Sospetta fonte / azione richiesta (infra-dev):** confermare e implementare il
+packaging/mount di `wiki/` nel runtime — opzioni: (a) `COPY wiki/ /app/wiki/` nello stage
+finale del Dockerfile (immagine self-contained, semplice ma rebuild su ogni edit wiki);
+oppure (b) bind-mount `./wiki:/app/wiki:ro` nei compose file (corpus aggiornabile senza
+rebuild). Finché non risolto, `POST /admin/rag/wiki/reindex` indicizza 0 pagine in prod.
+Non bloccante per la compilazione/avvio; bloccante per le citazioni RAG cross-dominio
+di US-103 finché il mount non è in place. Bloccante: no (degrada).
