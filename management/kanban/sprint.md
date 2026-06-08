@@ -4,7 +4,7 @@ id: sprint
 title: Sprint Plan — R1.0 MVP + R1.1 + R1.1.x + R2.0 + R2.1 + R3.0 + CQRL Bonifica + R3.2 + R3.3 + R3.4 + R4.0 EP-024 Sprint 21 (taskizzato)
 generated: 2026-06-08
 tpm: tpm
-release: R3.0 EP-018 Sprint 15 (chiuso) + EP-017 chiusa (Sprint 14+17) + R3.1 EP-019 chiusa (Sprint 16) + R3.2 Sprint 18 COMPLETATO (EP-002 US-031 + EP-010) + R3.3 Sprint 19 COMPLETATO (EP-020) + R3.4 Sprint 20 COMPLETATO (EP-017 US-092 + EP-021 + EP-023) + R4.0 Sprint 21 READY (EP-024 Riepilogo + Tab TA — 21 TSK taskizzati, ADR-030 accepted)
+release: R3.0 EP-018 Sprint 15 (chiuso) + EP-017 chiusa (Sprint 14+17) + R3.1 EP-019 chiusa (Sprint 16) + R3.2 Sprint 18 COMPLETATO (EP-002 US-031 + EP-010) + R3.3 Sprint 19 COMPLETATO (EP-020) + R3.4 Sprint 20 COMPLETATO (EP-017 US-092 + EP-021 + EP-023) + R4.0 Sprint 21 READY (EP-024 Riepilogo + Tab TA + Backtest — 29 TSK taskizzati, ADR-030 accepted)
 r10_closed: 2026-05-22
 r11_closed: 2026-05-23
 r11x_closed: 2026-05-26
@@ -29,18 +29,19 @@ r34_closed: 2026-06-06
 > **R3.2 chiuso:** Sprint 18 — EP-002 US-031 (migrazione FMP /stable) + EP-010 US-032..037 (6 criteri Graham) — **21/21 TSK `done`**, review CQRL `passed` su tutti i TSK con copertura CQRL. EP-002 US-031 `done`; EP-010 `done`.
 > **R3.3 chiuso:** Sprint 19 — EP-020 Trasparenza analisi LLM (US-088..091) — **10/10 TSK `done`**, review CQRL `passed` su tutti i TSK. EP-020 `done`.
 > **R3.4 chiuso:** Sprint 20 — EP-017 US-092 (cascade revocation) + EP-021 RuleSignal typed + EP-023 NCAV Net-Net — **15/15 TSK `done`**. Codice committato (`7c51c47`) + remediation CI verde (`06cc38d`, `252364c`, `3a7cbaa`). EP-017 `done`; EP-021 `done`; EP-023 `done`. ADR-027/028/029 `accepted`.
-> **R4.0 in avvio:** Sprint 21 — EP-024 Tab Riepilogo (verdetto azionabile VI+TA) + Tab Technical Analysis — **1/22 done (TSK-337 chiuso: V033 + WikiCorpusIndexer + endpoint reindex; review iter-2 `passed`), 21 todo** (TSK-324…345, 7 US). ADR-030 `accepted` (lead-architect, 2026-06-08). TSK-345 (infra mount `wiki/`) emersa in esecuzione da gap.
+> **R4.0 in avvio:** Sprint 21 — EP-024 Tab Riepilogo (verdetto azionabile VI+TA) + Tab Technical Analysis + Backtest Verifica storica — **1/29 done (TSK-337 chiuso: V033 + WikiCorpusIndexer + endpoint reindex; review iter-2 `passed`), 28 todo** (TSK-324…352, 9 US). ADR-030 `accepted` (lead-architect, 2026-06-08). TSK-345 (infra mount `wiki/`) emersa in esecuzione da gap. Wave F (Fase 3, TSK-346…352): motore backtest point-in-time + pannello FE verifica storica aggiunti 2026-06-08.
 
 ---
 
 ## Sprint 21 — Decision Layer VI+TA: Tab Technical Analysis + Tab Riepilogo (EP-024) — READY
 
-**Obiettivo:** estendere il dettaglio ticker da 2 a 4 tab. **Fase 1** — tab **Technical Analysis** (layer advisory di timing): pipeline indicatori (SMA/RSI/MACD/ATR/OBV), classificazione trend deterministica, livelli support/resistance, entry-timing Triple-Screen-like, stop-placement + position-sizing 2%/6%. **Fase 2 (capstone)** — tab **Riepilogo** come primo tab: aggregatore cross-dominio `/summary` con verdetto tipato `ENTER_NOW/WAIT_FOR_SETUP/AVOID` (gate VI hardcoded, deterministico), citazioni RAG wiki cross-dominio, warning anti-COPART.
+**Obiettivo:** estendere il dettaglio ticker da 2 a 4 tab + aggiungere il backtest on-demand "Verifica storica". **Fase 1** — tab **Technical Analysis** (layer advisory di timing): pipeline indicatori (SMA/RSI/MACD/ATR/OBV), classificazione trend deterministica, livelli support/resistance, entry-timing Triple-Screen-like, stop-placement + position-sizing 2%/6%. **Fase 2 (capstone)** — tab **Riepilogo** come primo tab: aggregatore cross-dominio `/summary` con verdetto tipato `ENTER_NOW/WAIT_FOR_SETUP/AVOID` (gate VI hardcoded, deterministico), citazioni RAG wiki cross-dominio, warning anti-COPART. **Fase 3 (backtest)** — bottone on-demand "BACKTEST": motore di verifica storica point-in-time, round-trip entry→exit, confronto 3 strategie, `timingEdge`.
 
 - **EP-024 Fase 1 (US-098..US-102):** payload TA su `GET /technical`, entry-timing advisor, stop/sizing advisor, tab FE Technical Analysis, QA E2E (incl. scenario stile-COPART).
 - **EP-024 Fase 2 (US-103, US-104):** aggregatore `GET /summary` (gate VI + LLM solo per rationale + RAG wiki), tab FE Riepilogo primo tab + warning anti-COPART.
+- **EP-024 Fase 3 (US-105, US-106):** motore backtest per-ticker `GET /backtest` (point-in-time, no LLM, caching), pannello FE Verifica storica (verdetto `timingEdge`, tabella 3 strategie, timeline Recharts, banner caveat).
 
-**Stato:** IN AVVIO — **1/22 done, 21 todo** (TSK-345 infra aggiunta in esecuzione). ADR-030 `accepted` (lead-architect, 2026-06-08; decisioni: cache-aside TA senza tabella; corpus wiki `corpus_kind=WIKI` su tabella reale `filing_chunks` via migration `V033`; soglia VI proporzionale 60%/33% sui ruleId decisionali; advisor inclusi in `TechnicalAnalysisResponse`; verdetti deterministici, LLM solo rationale; embedding Qwen3-Embedding-0.6B). **Avanzamenti:** PM ha riallineato le soglie del corpo di US-103 (✓); **TSK-337 chiuso** (✓ 2026-06-08, fuori-wave): migration `V033` validata su Postgres pgvector + `FilingChunkEntity`/repo multi-corpus + `WikiCorpusIndexer` + endpoint admin `POST /admin/rag/wiki/reindex`; `gradle compileKotlin` SUCCESSFUL. **Gap infra aperto:** `be-wiki-runtime-corpus-mount` — `wiki/` non è nell'immagine runtime, serve mount/COPY (property `rag.wiki.corpus-path`). Regression/idempotency test del corpus → TSK-341 (QA).
+**Stato:** IN AVVIO — **1/29 done, 28 todo** (TSK-345 infra aggiunta in esecuzione; Wave F Fase 3 TSK-346…352 aggiunti 2026-06-08). ADR-030 `accepted` (lead-architect, 2026-06-08; decisioni: cache-aside TA senza tabella; corpus wiki `corpus_kind=WIKI` su tabella reale `filing_chunks` via migration `V033`; soglia VI proporzionale 60%/33% sui ruleId decisionali; advisor inclusi in `TechnicalAnalysisResponse`; verdetti deterministici, LLM solo rationale; embedding Qwen3-Embedding-0.6B). **Avanzamenti:** PM ha riallineato le soglie del corpo di US-103 (✓); **TSK-337 chiuso** (✓ 2026-06-08, fuori-wave): migration `V033` validata su Postgres pgvector + `FilingChunkEntity`/repo multi-corpus + `WikiCorpusIndexer` + endpoint admin `POST /admin/rag/wiki/reindex`; `gradle compileKotlin` SUCCESSFUL. **Gap infra aperto:** `be-wiki-runtime-corpus-mount` — `wiki/` non è nell'immagine runtime, serve mount/COPY (property `rag.wiki.corpus-path`). Regression/idempotency test del corpus → TSK-341 (QA). **Fase 3 taskizzata (2026-06-08):** US-105/US-106 (`ready`) → Wave F 7 TSK (TSK-346…352); depends_on: US-099, US-100, US-103 (BE), US-104 (FE).
 
 **Sequenza wave (DAG):**
 
@@ -76,6 +77,15 @@ Wave E (Fase 2 FE — US-104):
   TSK-342 (FE tab Riepilogo primo tab + hero + banner) ── after TSK-340, TSK-334
   TSK-343 (FE card fattori + decision path + citazioni) ── after TSK-342
   TSK-344 (QA tab Riepilogo, incl. CPRT/AAPL/VI-neg) ── after TSK-343
+
+Wave F (Fase 3 Backtest — US-105, US-106; after Wave D+E done):
+  TSK-346 (BE BacktestEngine filtro filingDate + TA as-of-date) ── after TSK-328, TSK-330, TSK-340
+  TSK-347 (BE BacktestEngine round-trip + metriche 3 strategie + timingEdge) ── after TSK-346
+  TSK-348 (BE BacktestController GET /backtest + DTO + OpenAPI + caching) ── after TSK-347
+  TSK-349 (QA BacktestEngine point-in-time + idempotenza + INSUFFICIENT_HISTORY + CPRT-style) ── after TSK-348
+  TSK-350 (FE client TS regen + useBacktest hook on-demand + selettori) ── after TSK-348
+  TSK-351 (FE Pannello Verifica storica: timingEdge + tabella + timeline + banner) ── after TSK-350, TSK-342
+  TSK-352 (QA Backtest FE: Vitest 3 casi + E2E + a11y + non-regressione 4 tab) ── after TSK-351
 ```
 
 **Wave A — Fase 1 pipeline TA (US-098):**
@@ -125,9 +135,23 @@ Wave E (Fase 2 FE — US-104):
 | TSK-343 | FE 3 card fattori chiave + decision path + citazioni per dominio + footer + deep-link compat | fe | agent | M | US-104 | TSK-342 | todo |
 | TSK-344 | QA Tab Riepilogo — Vitest 4 stati + E2E (CPRT/AAPL/VI-neg) + a11y + non-regressione 3 tab | qa | agent | M | US-104 | TSK-343 | todo |
 
-**Totale Sprint 21:** 22 TSK (10 be, 5 fe, 6 qa, 1 infra) — **1 done (TSK-337), 21 todo** (TSK-345 infra emersa in esecuzione da gap `be-wiki-runtime-corpus-mount`)
+**Wave F — Fase 3 Backtest (US-105, US-106):**
+
+| TSK | Titolo | Layer | Consumer | Est. | US | `depends_on` | Status |
+|-----|--------|-------|----------|------|----|--------------|--------|
+| TSK-346 | BE BacktestEngine — filtro filingDate point-in-time + indicatori TA as-of-date + campionamento mensile | be | agent | L | US-105 | TSK-328, TSK-330, TSK-340 | todo |
+| TSK-347 | BE BacktestEngine — round-trip entry→exit (VI_TARGET/STOP_HIT/HORIZON) + metriche 3 strategie + timingEdge | be | agent | L | US-105 | TSK-346 | todo |
+| TSK-348 | BE BacktestController GET /backtest + DTO completo + OpenAPI enum + caching (ticker, years, horizonMonths) | be | agent | M | US-105 | TSK-347 | todo |
+| TSK-349 | QA BacktestEngine — no look-ahead, idempotenza, INSUFFICIENT_HISTORY, causali uscita, timingEdge, CPRT-style | qa | agent | M | US-105 | TSK-348 | todo |
+| TSK-350 | FE Client TS regen backtest + useBacktest SWR hook on-demand (idle/loading/result/empty/error) + selettori years/horizonMonths | fe | agent | M | US-106 | TSK-348 | todo |
+| TSK-351 | FE Pannello Verifica storica — verdetto timingEdge + tabella 3 strategie + timeline marker Recharts + banner caveat + stati non-happy | fe | agent | L | US-106 | TSK-350, TSK-342 | todo |
+| TSK-352 | QA Backtest FE — Vitest 3 casi timingEdge + stati + E2E (storico ricco/IPO recente) + a11y + non-regressione 4 tab | qa | agent | M | US-106 | TSK-351 | todo |
+
+**Totale Sprint 21:** 29 TSK (13 be, 7 fe, 8 qa, 1 infra) — **1 done (TSK-337), 28 todo** (TSK-345 infra emersa in esecuzione da gap `be-wiki-runtime-corpus-mount`; TSK-346…352 Wave F Fase 3 aggiunti 2026-06-08)
 
 > **Nota riconciliazione US-103 ↔ ADR-030 (accepted):** la tabella di mapping nel corpo di US-103 usa ancora soglie cablate ("≥8/13 GREEN", "<4"); ADR-030 §3 le sovrascrive con la regola proporzionale (≥60% / <33% sui ruleId decisionali, `NCAV_LATEST` informativo escluso → 14 decisionali: ≥9 GREEN / <5 GREEN). I TSK-338/341 seguono ADR-030. **✓ Riallineato dal PM (2026-06-08):** il corpo di US-103 esprime ora le classi `*_DOMINANT` come quote proporzionali; gli AC strutturali del gate sono rimasti invariati.
+
+> **Nota Wave F (Fase 3 Backtest, 2026-06-08):** EP-024 estesa da 7 a 9 US (`US-105` BE backtest engine + `US-106` FE pannello verifica storica, entrambe `ready`). Wave F (TSK-346…352) è bloccata dal completamento delle Wave D+E (US-099, US-100, US-103, US-104). Il backtest è calcolo deterministico puro-Kotlin senza LLM; `equity` mai persistita; caching per-chiave `(ticker, years, horizonMonths)` allineata ad ADR-030. Backtest solo single-ticker (survivorship bias esclude multi-ticker — vedi EP-024 §NON in scope).
 
 ---
 
