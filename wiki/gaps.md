@@ -619,3 +619,5 @@ oppure (b) bind-mount `./wiki:/app/wiki:ro` nei compose file (corpus aggiornabil
 rebuild). Finché non risolto, `POST /admin/rag/wiki/reindex` indicizza 0 pagine in prod.
 Non bloccante per la compilazione/avvio; bloccante per le citazioni RAG cross-dominio
 di US-103 finché il mount non è in place. Bloccante: no (degrada).
+**Tracking:** TSK-345 (infra, Sprint 21, EP-024/US-103) apre l'azione — `COPY wiki/ /app/wiki/`
+nello stage runtime + bind-mount dev nei compose. Da marcare risolto post-merge TSK-345.
