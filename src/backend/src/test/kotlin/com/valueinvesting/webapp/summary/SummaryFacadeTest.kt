@@ -31,7 +31,6 @@ import com.valueinvesting.webapp.service.LivelloRischio
 import com.valueinvesting.webapp.service.VerdictClass
 import com.valueinvesting.webapp.technicalanalysis.TechnicalAnalysisService
 import com.valueinvesting.webapp.technicalanalysis.TrendClassification
-import io.mockk.eq
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -152,7 +151,7 @@ class SummaryFacadeTest {
             grahamNumber = 50.0,
             dcfIntrinsicValue = 200.0,
             dcfMethod = null,
-            dcfMethodSource = DcfMethodSource.DEFAULT,
+            dcfMethodSource = DcfMethodSource.DEFAULT_POLICY,
             mosSignal = Signal.GREEN,
             currentPriceAtEval = 180.0,
             dataSnapshotAt = snapshotAt,
@@ -229,7 +228,7 @@ class SummaryFacadeTest {
                 motivazioneAggregata = "Azienda solida.",
                 ruleCountGreen = 10, ruleCountYellow = 2, ruleCountRed = 2,
                 livelloRischio = LivelloRischio.RISCHIO_BASSO,
-                newsSentimentDominante = com.valueinvesting.webapp.service.SentimentClass.POSITIVE,
+                newsSentimentDominante = com.valueinvesting.webapp.service.SentimentClass.NEUTRAL,
             ),
             positionSize = null,
             filingsUsed = emptyList(),

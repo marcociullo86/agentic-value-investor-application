@@ -698,7 +698,7 @@ class BacktestTimingEdgeScenarioTest {
             macdDaily = null,
             macdWeekly = null,
             atr14 = null,
-            trend = com.valueinvesting.webapp.technicalanalysis.TrendClassification.INSUFFICIENT_DATA,
+            trend = com.valueinvesting.webapp.technicalanalysis.TrendClassification.INDETERMINATE,
             nearestSupport = null,
             entryTimingVerdict = if (summaryVerdict == SummaryVerdict.ENTER_NOW)
                 com.valueinvesting.webapp.api.model.EntryTimingVerdict.ENTRY_FAVORABLE
