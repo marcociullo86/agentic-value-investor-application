@@ -38,7 +38,8 @@ vi.mock('@/lib/hooks/useBacktest', () => ({
   useBacktest: vi.fn(),
 }));
 
-vi.mock('@/lib/hooks/useEquityLocalStorage', () => ({
+vi.mock('@/lib/hooks/useEquityLocalStorage', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/hooks/useEquityLocalStorage')>()),
   useEquityLocalStorage: vi.fn(() => ({
     equity: 50000,
     hydrated: true,

@@ -212,12 +212,12 @@ class BacktestEngineDeterminismTest {
                 assertThat(snap.tradingPrice)
                     .withFailMessage("Snapshot ${snap.asOf} ha visto EOD futuro (sentinella 88888)")
                     .isLessThan(1000.0)
-                assertThat(snap.taSnapshot.sma50)
-                    .withFailMessage("Snapshot ${snap.asOf} ha visto SMA50 futuro (sentinella 88888)")
-                    .satisfiesAnyOf(
-                        { v -> assertThat(v).isNull() },
-                        { v -> assertThat(v).isLessThan(1000.0) },
-                    )
+                val sma50 = snap.taSnapshot.sma50
+                if (sma50 != null) {
+                    assertThat(sma50)
+                        .withFailMessage("Snapshot ${snap.asOf} ha visto SMA50 futuro (sentinella 88888)")
+                        .isLessThan(1000.0)
+                }
             }
     }
 

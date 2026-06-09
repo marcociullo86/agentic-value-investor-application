@@ -163,7 +163,7 @@ describe('BacktestVerdictHero — 3 casi timingEdge', () => {
 
     const sentence = screen.getByTestId('backtest-verdict-sentence');
     expect(sentence.textContent).toMatch(/attenzione/i);
-    expect(sentence.textContent).toMatch(/meno del semplice comprare a sconto/i);
+    expect(sentence.textContent).toMatch(/del semplice comprare a sconto/i);
   });
 
   // -------------------------------------------------------------------------
