@@ -131,7 +131,7 @@ test('SC2: CPRT — verdetto WAIT + banner re-entry RSI_BELOW_50 + disclaimer ad
   await expect(reentryDesc).toContainText(/RSI 14d rientra sotto 50/i);
 
   // Disclaimer advisory presente
-  const disclaimer = page.getByTestId('ta-disclaimer');
+  const disclaimer = page.getByTestId('ta-disclaimer-banner');
   await expect(disclaimer).toBeVisible();
   await expect(disclaimer).toContainText(/advisory/i);
 });

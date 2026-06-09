@@ -170,10 +170,11 @@ class TrendClassifierTest {
     }
 
     @Test
-    fun `linearRegressionSlope returns null for constant series (zero variance)`() {
-        // Tutti uguali → den = 0 → null
+    fun `linearRegressionSlope returns zero slope for constant series (flat, no y-variance)`() {
+        // Serie costante: den dipende solo dagli indici x (sempre > 0 per n>=2),
+        // num = 0 → slope 0.0 (retta piatta), non null.
         val slope = TrendClassifier.linearRegressionSlope(listOf(50.0, 50.0, 50.0, 50.0))
-        assertThat(slope).isNull()
+        assertThat(slope).isEqualTo(0.0)
     }
 
     @Test

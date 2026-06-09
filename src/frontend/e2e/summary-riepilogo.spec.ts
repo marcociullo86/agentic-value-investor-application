@@ -95,7 +95,7 @@ test('SC1: CPRT — Riepilogo attivo, hero ASPETTA, banner anti-COPART, decision
   await expect(page.getByTestId('summary-anti-copart-deeplink')).toBeVisible();
 
   // Decision path
-  const decisionPath = page.getByTestId('decision-path-chip');
+  const decisionPath = page.getByTestId('summary-decision-path');
   await expect(decisionPath).toBeVisible();
   await expect(decisionPath).toContainText(/WAIT_FOR_SETUP/i);
 
@@ -162,7 +162,7 @@ test('SC3: VI-negativo — hero EVITA, decision path mostra VI gate failed', asy
   await expect(sub).toContainText(/gate Value Investing è fallito/i);
 
   // Decision path mostra il fallimento
-  const decisionPath = page.getByTestId('decision-path-chip');
+  const decisionPath = page.getByTestId('summary-decision-path');
   await expect(decisionPath).toBeVisible();
   await expect(decisionPath).toContainText(/VI gate failed/i);
 });

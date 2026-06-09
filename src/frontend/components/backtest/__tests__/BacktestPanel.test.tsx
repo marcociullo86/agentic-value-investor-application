@@ -24,7 +24,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { BacktestPanel } from '../BacktestPanel';
-import type { UseBacktestResult } from '@/lib/hooks/useBacktest';
+import { useBacktest, type UseBacktestResult } from '@/lib/hooks/useBacktest';
 import type { BacktestResponse } from '@/lib/api/backtest';
 
 // ---------------------------------------------------------------------------
@@ -128,11 +128,7 @@ function makeResult(override: Partial<BacktestResponse> = {}): BacktestResponse 
 }
 
 function stubBacktest(partial: Partial<UseBacktestResult>) {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { useBacktest } = require('@/lib/hooks/useBacktest') as {
-    useBacktest: ReturnType<typeof vi.fn>;
-  };
-  useBacktest.mockReturnValue({
+  vi.mocked(useBacktest).mockReturnValue({
     status: 'idle',
     data: undefined,
     error: undefined,

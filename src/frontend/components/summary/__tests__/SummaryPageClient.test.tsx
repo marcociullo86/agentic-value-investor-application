@@ -27,7 +27,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { SummaryPageClient } from '../SummaryPageClient';
-import type { UseSummaryResult } from '@/lib/hooks/useSummary';
+import { useSummary, type UseSummaryResult } from '@/lib/hooks/useSummary';
 import type { SummaryVerdictResponse } from '@/lib/api/summary';
 
 // ---------------------------------------------------------------------------
@@ -101,11 +101,7 @@ function makeSummaryData(
 }
 
 function stubUseSummary(partial: Partial<UseSummaryResult>) {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { useSummary } = require('@/lib/hooks/useSummary') as {
-    useSummary: ReturnType<typeof vi.fn>;
-  };
-  useSummary.mockReturnValue({
+  vi.mocked(useSummary).mockReturnValue({
     data: undefined,
     isLoading: false,
     error: undefined,

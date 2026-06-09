@@ -21,6 +21,10 @@ import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
+import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver
+import org.springframework.web.method.support.HandlerMethodArgumentResolver
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 import java.time.Instant
 
 // WebMvcTest slice per SummaryController (TSK-341 / US-103).
@@ -40,6 +44,18 @@ import java.time.Instant
 //
 // [^src: management/kanban/EP-024-.../US-103-.../TSK-341.md]
 // [^src: management/kanban/EP-024-.../US-103-.../US-103.md §"Endpoint"]
+// Registra il resolver di @AuthenticationPrincipal nello slice WebMvc: senza
+// Spring Security attivo (SecurityAutoConfiguration esclusa), il parametro
+// `principal: UserPrincipal?` verrebbe altrimenti trattato come model attribute
+// → MethodArgumentNotValidException (400). Con auth assente il resolver
+// restituisce null, coerente col tipo nullable.
+@TestConfiguration(proxyBeanMethods = false)
+class SummaryAuthPrincipalResolverConfig : WebMvcConfigurer {
+    override fun addArgumentResolvers(resolvers: MutableList<HandlerMethodArgumentResolver>) {
+        resolvers.add(AuthenticationPrincipalArgumentResolver())
+    }
+}
+
 @WebMvcTest(
     controllers = [SummaryController::class],
     excludeAutoConfiguration = [
@@ -47,7 +63,12 @@ import java.time.Instant
     ],
 )
 @AutoConfigureMockMvc(addFilters = false)
-@Import(GlobalExceptionHandler::class, ProblemDetailsMapper::class, ProblemDetailMvcConfig::class)
+@Import(
+    GlobalExceptionHandler::class,
+    ProblemDetailsMapper::class,
+    ProblemDetailMvcConfig::class,
+    SummaryAuthPrincipalResolverConfig::class,
+)
 @ActiveProfiles("test")
 class SummaryControllerWebMvcTest {
 
