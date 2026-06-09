@@ -5,7 +5,6 @@ import { useSearchParams } from 'next/navigation';
 import { useDeepAnalysis } from '@/lib/hooks/useDeepAnalysis';
 import { useFilingIngest } from '@/lib/hooks/useFilingIngest';
 import { Button } from '@/components/ui/Button';
-import { analysisUrl } from '@/lib/utils/analysis-url';
 import type { IngestStatus, IngestSummary } from '@/lib/api/deep-analysis';
 import {
   DeepVerdictBadge,
@@ -15,6 +14,7 @@ import {
   EdgarFilingLinks,
   ResetTickerButton,
 } from '@/components/deep-analysis';
+import { AnalysisTabNav } from '@/components/summary';
 
 /**
  * Client-side Deep Analysis page — async flow.
@@ -180,23 +180,14 @@ function DeepAnalysisHeader({
 }): React.ReactElement {
   return (
     <header className="flex flex-col gap-3">
-      <nav
-        aria-label="Navigazione analisi"
-        className="flex gap-1 border-b border-slate-200 dark:border-slate-800"
-      >
-        <Link
-          href={analysisUrl(ticker)}
-          className="border-b-2 border-transparent px-4 py-2 text-sm font-medium text-slate-600 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-        >
-          Analisi Base
-        </Link>
-        <span
-          aria-current="page"
-          className="border-b-2 border-blue-600 px-4 py-2 text-sm font-medium text-blue-600 dark:border-blue-400 dark:text-blue-400"
-        >
-          Deep Analysis
-        </span>
-      </nav>
+      {/*
+        EP-024 Fase 2 / TSK-342 — la nav tab è centralizzata in
+        `AnalysisTabNav` (Riepilogo | Analisi Base | Deep* | Technical).
+        Lazy load garantito: il Link verso Riepilogo non innesca alcun
+        fetch a `/api/analysis/{ticker}/summary` finché l'utente non
+        ci naviga.
+      */}
+      <AnalysisTabNav ticker={ticker} current="deep" />
       <h1
         data-testid="deep-analysis-title"
         className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100"

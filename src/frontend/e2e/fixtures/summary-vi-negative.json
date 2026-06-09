@@ -1,0 +1,24 @@
+{
+  "ticker": "XVIT",
+  "evaluatedAt": "2026-06-09T08:00:00Z",
+  "summaryVerdict": "AVOID",
+  "viVerdict": "RED_DOMINANT",
+  "deepAnalysisStatus": "NOT_INDEXED",
+  "deepVerdict": null,
+  "taVerdict": "ENTRY_UNFAVORABLE",
+  "rationale": {
+    "viSummary": "XVIT: profilo VI negativo. ROE negativo, debito/reddito > 8, margini in contrazione strutturale. Gate VI fallito.",
+    "deepSummary": null,
+    "taSummary": "Trend DOWNTREND confermato. MACD weekly ribassista. RSI 14d a 35. Setup sfavorevole.",
+    "decisionPath": "VI gate failed (RED_DOMINANT) → AVOID"
+  },
+  "reentryCondition": null,
+  "wikiCitations": [
+    {
+      "id": "value-investing-rule-engine",
+      "anchor": null,
+      "domain": "value-investing"
+    }
+  ],
+  "warningAntiCopart": null
+}

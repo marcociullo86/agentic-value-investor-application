@@ -50,8 +50,11 @@ test.beforeEach(async ({ page }) => {
 // ---------------------------------------------------------------------------
 // Smoke 1 — 13 card visibili con fixture EP-021
 // ---------------------------------------------------------------------------
+// REGRESSION-FIX (EP-024 Fase 2): /analysis?ticker=X è ora il tab Riepilogo
+// (US-104 AC). Il tab Analisi Base (TrafficLightPanel) vive su
+// /analysis/base?ticker=X. Tutti gli smoke test EP-021 aggiornati.
 test('US-095 AC — TrafficLightPanel mostra 13 signal cards con fixture EP-021', async ({ page }) => {
-  await page.goto('/analysis/?ticker=AAPL');
+  await page.goto('/analysis/base?ticker=AAPL');
 
   // Aspetta che almeno una card sia visibile (caricamento completato)
   const firstCard = page.locator('[data-testid^="rule-signal-card-"]').first();
@@ -66,7 +69,8 @@ test('US-095 AC — TrafficLightPanel mostra 13 signal cards con fixture EP-021'
 // Smoke 2 — sezioni Buffett e Graham entrambe visibili
 // ---------------------------------------------------------------------------
 test('US-095 AC — TrafficLightPanel mostra sezione Buffett e sezione Graham', async ({ page }) => {
-  await page.goto('/analysis/?ticker=AAPL');
+  // REGRESSION-FIX (EP-024 Fase 2): naviga a /analysis/base (Analisi Base).
+  await page.goto('/analysis/base?ticker=AAPL');
 
   // Aspetta panel
   await expect(page.locator('[data-testid="traffic-light-panel"]')).toBeVisible({ timeout: 15_000 });
@@ -86,7 +90,8 @@ test('US-095 AC — TrafficLightPanel mostra sezione Buffett e sezione Graham', 
 // Smoke 3 — Graham cards mostrano subtitle typed-driven (non vuoto, non "N/A")
 // ---------------------------------------------------------------------------
 test('US-095 AC — Graham cards mostrano subtitle typed-driven non vuoto', async ({ page }) => {
-  await page.goto('/analysis/?ticker=AAPL');
+  // REGRESSION-FIX (EP-024 Fase 2): naviga a /analysis/base (Analisi Base).
+  await page.goto('/analysis/base?ticker=AAPL');
 
   // Aspetta le card Graham (SIZE_LATEST è sempre Graham)
   const sizeCard = page.locator('[data-testid="rule-signal-card-SIZE_LATEST"]');
@@ -120,7 +125,8 @@ test('US-095 AC — Graham cards mostrano subtitle typed-driven non vuoto', asyn
 // Smoke 4 — click su una card Buffett → pannello espanso con subtitle non vuoto
 // ---------------------------------------------------------------------------
 test('US-095 AC — click su ROE_10Y_AVG espande il pannello con subtitle typed-driven', async ({ page }) => {
-  await page.goto('/analysis/?ticker=AAPL');
+  // REGRESSION-FIX (EP-024 Fase 2): naviga a /analysis/base (Analisi Base).
+  await page.goto('/analysis/base?ticker=AAPL');
 
   const roeCard = page.locator('[data-testid="rule-signal-card-ROE_10Y_AVG"]');
   await expect(roeCard).toBeVisible({ timeout: 15_000 });

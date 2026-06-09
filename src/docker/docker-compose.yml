@@ -86,6 +86,12 @@ services:
       EMBEDDINGS_SIDECAR_URL: http://embeddings-sidecar:8001
     ports:
       - "8080:8080"
+    # Corpus RAG WIKI (TSK-345): bind-mount read-only in dev così il corpus è
+    # aggiornabile e ri-indicizzabile via POST /admin/rag/wiki/reindex senza
+    # rebuild dell'immagine. In prod (docker-compose.prod.yml) l'immagine è
+    # self-contained (COPY nel Dockerfile) — nessun bind-mount.
+    volumes:
+      - ../../wiki:/app/wiki:ro
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health"]
       interval: 10s

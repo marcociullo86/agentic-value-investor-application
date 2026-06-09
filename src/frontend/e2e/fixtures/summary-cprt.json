@@ -1,0 +1,37 @@
+{
+  "ticker": "CPRT",
+  "evaluatedAt": "2026-06-09T08:00:00Z",
+  "summaryVerdict": "WAIT_FOR_SETUP",
+  "viVerdict": "GREEN_DOMINANT",
+  "deepAnalysisStatus": "AVAILABLE",
+  "deepVerdict": "OK",
+  "taVerdict": "WAIT",
+  "rationale": {
+    "viSummary": "CPRT presenta un profilo VI solido: ROIC medio 10y 22%, margini elevati e crescita EPS consistente. Gate VI passato.",
+    "deepSummary": "Munger inversion: nessun rischio estremo rilevato. La tesi fondamentale regge l'analisi contrarian.",
+    "taSummary": "RSI 14d a 72 (overbought) con MACD weekly flat. Storico MACD daily mostra divergenza ribassista nascente. Setup tecnico non pronto.",
+    "decisionPath": "VI gate passed → TA gate: WAIT (RSI overbought) → WAIT_FOR_SETUP"
+  },
+  "reentryCondition": {
+    "code": "RSI_BELOW_50",
+    "description": "RSI 14d rientra sotto 50 confermando il ritiro del momentum overbought"
+  },
+  "wikiCitations": [
+    {
+      "id": "ta-vs-vi-decision-layer",
+      "anchor": "la-domanda-che-ha-motivato-questa-sintesi",
+      "domain": "technical-analysis-trading"
+    },
+    {
+      "id": "ta-stop-placement-position-sizing",
+      "anchor": "il-caso-motivante-copart",
+      "domain": "technical-analysis-trading"
+    },
+    {
+      "id": "value-investing-rule-engine",
+      "anchor": null,
+      "domain": "value-investing"
+    }
+  ],
+  "warningAntiCopart": "Verdetto fondamentale positivo ma timing tecnico sfavorevole. Acquistare ora rischia uno stop loss prematuro su una tesi VI corretta — situazione COPART. Attendere il setup tecnico migliore."
+}

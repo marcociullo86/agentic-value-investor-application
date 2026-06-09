@@ -11,7 +11,13 @@
 
 # Factory / docs / planning (out of code_path)
 .claude/
+# wiki/ è esclusa per default per non gonfiareil context, MA le sottocartelle
+# concepts/ e syntheses/ devono entrare nell'immagine runtime per il corpus RAG WIKI
+# (TSK-345 / WikiCorpusIndexer). Docker applica le eccezioni `!` dopo l'esclusione
+# della directory genitore, quindi l'ordine (prima escludi, poi re-includi) è corretto.
 wiki/
+!wiki/concepts/
+!wiki/syntheses/
 memory/
 management/
 design_&_architecture/

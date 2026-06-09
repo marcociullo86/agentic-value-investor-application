@@ -203,4 +203,77 @@ interface FmpAdapter {
         periodLength: Int,
         timeframe: String = "1day",
     ): List<TechnicalIndicatorRecord>
+
+    // ---------------------------------------------------------------------------
+    // EP-024 (US-098 / TSK-324) — convenience wrappers per la pipeline Technical
+    // Analysis. Compongono `getTechnicalIndicator` con i parametri canonici
+    // (MACD 12,26,9 — ATR 14 — OBV) e separano la concretezza del nome
+    // indicator dal call-site (TechnicalAnalysisService).
+    //
+    // Note di contratto FMP `/stable/technical-indicators/{indicator}`:
+    //   - MACD: FMP non espone parametri (fast, slow, signal) sull'endpoint
+    //     stable; ritorna i valori canonici (12,26,9). Il `periodLength`
+    //     passato e' ignorato lato server ma resta nel query param per
+    //     conformita' con il pattern generico (USIAMO 9 = signal length).
+    //   - ATR: `periodLength` = window (canonico 14).
+    //   - OBV: indicatore cumulativo basato sul volume; `periodLength` non e'
+    //     usato ma e' richiesto dal generic builder.
+    //
+    // Pattern Resilience4j: queste chiamate riusano `getTechnicalIndicator`
+    // quindi vengono automaticamente wrappate da `ResilientFmpAdapter.execute(...)`
+    // con il label endpoint `technical-indicators-{indicator}` (vedi
+    // ResilientFmpAdapter.getTechnicalIndicator). NON aggiungere wrap manuale.
+    //
+    // [^src: management/kanban/EP-024-riepilogo-e-technical-analysis-tab/US-098-pipeline-ta-payload-be/TSK-324.md]
+    // [^src: wiki/concepts/elder-triple-screen-impulse-system.md]
+    // [^src: wiki/concepts/volume-open-interest.md]
+
+    /**
+     * MACD(12,26,9). `timeframe` decide la candela (daily/weekly per Triple Screen).
+     * `value` di ogni `TechnicalIndicatorRecord` contiene il valore MACD scelto
+     * da FMP (linea MACD o istogramma — il consumer documenta l'assunzione).
+     */
+    fun getMacd(
+        ticker: String,
+        timeframe: String = "1day",
+    ): List<TechnicalIndicatorRecord> =
+        getTechnicalIndicator(
+            ticker = ticker,
+            indicator = "macd",
+            // Convenzionale signal-length (9). FMP ignora il parametro per MACD
+            // ma serve a soddisfare la firma generica.
+            periodLength = 9,
+            timeframe = timeframe,
+        )
+
+    /**
+     * ATR (Average True Range). Default `periodLength = 14` (Wilder), daily.
+     * Usato come ancoraggio dello stop in StopPlacementAdvisor (US-100).
+     */
+    fun getAtr(
+        ticker: String,
+        periodLength: Int = 14,
+        timeframe: String = "1day",
+    ): List<TechnicalIndicatorRecord> =
+        getTechnicalIndicator(
+            ticker = ticker,
+            indicator = "atr",
+            periodLength = periodLength,
+            timeframe = timeframe,
+        )
+
+    /**
+     * OBV (On-Balance Volume). Indicatore cumulativo; `periodLength` non
+     * impattante ma necessario al builder generico.
+     */
+    fun getObv(
+        ticker: String,
+        timeframe: String = "1day",
+    ): List<TechnicalIndicatorRecord> =
+        getTechnicalIndicator(
+            ticker = ticker,
+            indicator = "obv",
+            periodLength = 1,
+            timeframe = timeframe,
+        )
 }

@@ -129,21 +129,24 @@ class FmpAdapterTechnicalIndicatorTest {
     }
 
     // -------------------------------------------------------------------------
-    // Test 3: Whitelist enforcement — "macd" not allowed → IllegalArgumentException
+    // Test 3: Whitelist enforcement — "ema" not allowed → IllegalArgumentException
+    // (NB: storicamente questo test usava "macd" come out-of-whitelist; EP-024
+    // /TSK-324 estende la whitelist con macd/atr/obv per la pipeline TA. Cambiato
+    // a "ema" che resta out-of-scope — vedi FmpAdapterRestClient.ALLOWED_INDICATORS.)
     // -------------------------------------------------------------------------
 
     @Test
-    fun `getTechnicalIndicator rejects indicator not in whitelist (macd)`() {
+    fun `getTechnicalIndicator rejects indicator not in whitelist (ema)`() {
         // No HTTP call expected — IAE thrown before network access
         assertThatThrownBy {
             adapter.getTechnicalIndicator(
                 ticker = "AAPL",
-                indicator = "macd",
+                indicator = "ema",
                 periodLength = 14,
                 timeframe = "1day",
             )
         }.isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessageContaining("macd")
+            .hasMessageContaining("ema")
         server.verify() // no calls expected
     }
 

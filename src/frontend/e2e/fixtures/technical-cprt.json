@@ -1,0 +1,87 @@
+{
+  "ticker": "CPRT",
+  "evaluatedAt": "2026-06-09T08:00:00Z",
+  "trend": {
+    "sma50": 52.1,
+    "sma200": 48.3,
+    "classification": "UPTREND",
+    "sma200SlopePerDay": 0.0008,
+    "confidenceReduced": false
+  },
+  "momentum": {
+    "rsi14": 72.4,
+    "macdDaily": 0.12,
+    "macdWeekly": 0.08,
+    "confidenceReduced": false
+  },
+  "volatility": {
+    "atr14": 1.34,
+    "confidenceReduced": false
+  },
+  "volume": {
+    "obv": 4567890123,
+    "avgVolume20d": 6200000,
+    "confidenceReduced": false
+  },
+  "levels": {
+    "support": [
+      { "price": 47.5, "type": "SWING_LOW", "confidence": "HIGH" },
+      { "price": 49.2, "type": "RETRACEMENT_50", "confidence": "MEDIUM" }
+    ],
+    "resistance": [
+      { "price": 54.8, "type": "SWING_HIGH", "confidence": "MEDIUM" }
+    ],
+    "confidenceReduced": false
+  },
+  "priceContext": {
+    "currentPrice": 53.2,
+    "high52w": 55.1,
+    "low52w": 38.7,
+    "drawdownFrom52wHigh": 0.034,
+    "confidenceReduced": false
+  },
+  "entryTimingAdvisor": {
+    "verdict": "WAIT",
+    "reentryCondition": {
+      "code": "RSI_BELOW_50",
+      "description": "RSI 14d rientra sotto 50 confermando il ritiro del momentum overbought"
+    },
+    "rationale": {
+      "screen1": "UPTREND confermato: prezzo sopra SMA200 con slope positivo. Trend di lungo favorevole.",
+      "screen2": "RSI 14d a 72.4 (overbought): oscillatore in zona di eccesso rialzista. MACD daily flat con divergenza nascente.",
+      "screen3": "Prezzo lontano dai supporti chiave. Rischio di pullback elevato.",
+      "wikiCitations": ["ta-vs-vi-decision-layer", "ta-stop-placement-position-sizing"]
+    },
+    "viGate": "Layer advisory di timing. Non sostituisce il verdetto VI del Rule Engine."
+  },
+  "stopSuggestion": {
+    "type": "SUPPORT_BASED",
+    "stopPrice": 46.91,
+    "stopDistance": 6.29,
+    "stopDistancePct": 0.118,
+    "anchorReference": "support@$47.5 (SWING_LOW) meno 1.25% buffer",
+    "rationale": "Stop basato sul supporto SWING_LOW più recente. Distanza del 11.8% — ampia per via dell'overbought."
+  },
+  "positionSizing": {
+    "twoPercentRule": {
+      "equity": 50000,
+      "maxRiskAllowed": 1000,
+      "stopDistance": 6.29,
+      "sharesRecommended": 159,
+      "positionValueRecommended": 8458.8,
+      "positionPctEquity": 0.1692,
+      "warning": null
+    },
+    "sixPercentRule": {
+      "maxAggregateRiskPerMonth": 3000,
+      "disclaimer": "Somma di tutti i rischi aperti nel mese non deve superare il 6% dell'equity."
+    }
+  },
+  "rewardRiskRatio": {
+    "upside": 1.6,
+    "downside": 6.29,
+    "value": 0.95,
+    "label": "MARGINAL",
+    "rationale": "Upside limitato verso resistenza $54.8. Ratio 0.95:1 — sfavorevole nella finestra overbought."
+  }
+}

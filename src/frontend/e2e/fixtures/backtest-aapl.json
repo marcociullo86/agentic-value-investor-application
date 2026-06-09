@@ -1,0 +1,87 @@
+{
+  "ticker": "AAPL",
+  "evaluatedAt": "2026-06-09T08:00:00Z",
+  "status": "OK",
+  "insufficientHistoryReason": null,
+  "window": {
+    "fromDate": "2021-06-09",
+    "toDate": "2026-06-09",
+    "years": 5,
+    "horizonMonths": 6
+  },
+  "strategies": [
+    {
+      "strategy": "EP024_ENTER_NOW",
+      "trades": 7,
+      "winRate": 0.71,
+      "avgReturnPct": 12.4,
+      "medianReturnPct": 11.8,
+      "avgHoldingDays": 142,
+      "avgRealizedRewardRisk": 2.3,
+      "totalReturnPct": 41.2,
+      "maxTradeDrawdownPct": 8.5,
+      "exitBreakdown": { "viTarget": 4, "stopHit": 1, "horizon": 2 },
+      "noSignalsInPeriod": false
+    },
+    {
+      "strategy": "VI_ONLY",
+      "trades": 14,
+      "winRate": 0.57,
+      "avgReturnPct": 7.1,
+      "medianReturnPct": 6.5,
+      "avgHoldingDays": 198,
+      "avgRealizedRewardRisk": 1.4,
+      "totalReturnPct": 38.0,
+      "maxTradeDrawdownPct": 14.2,
+      "exitBreakdown": { "viTarget": 6, "stopHit": 3, "horizon": 5 },
+      "noSignalsInPeriod": false
+    },
+    {
+      "strategy": "BUY_AND_HOLD",
+      "trades": 1,
+      "winRate": null,
+      "avgReturnPct": null,
+      "medianReturnPct": null,
+      "avgHoldingDays": 1826,
+      "avgRealizedRewardRisk": null,
+      "totalReturnPct": 33.5,
+      "maxTradeDrawdownPct": null,
+      "exitBreakdown": null,
+      "noSignalsInPeriod": false
+    }
+  ],
+  "timingEdge": {
+    "timingEdgePct": 5.3,
+    "label": "POSITIVE_EDGE",
+    "noSignalsInPeriod": false
+  },
+  "trades": [
+    {
+      "strategy": "EP024_ENTER_NOW",
+      "entryDate": "2021-09-15",
+      "entryPrice": 142.5,
+      "exitDate": "2022-01-04",
+      "exitPrice": 182.0,
+      "exitReason": "VI_TARGET",
+      "returnPct": 27.7,
+      "holdingDays": 111,
+      "maxIntraTradeDrawdownPct": 5.2
+    },
+    {
+      "strategy": "VI_ONLY",
+      "entryDate": "2021-07-20",
+      "entryPrice": 148.0,
+      "exitDate": "2021-12-10",
+      "exitPrice": 176.3,
+      "exitReason": "VI_TARGET",
+      "returnPct": 19.1,
+      "holdingDays": 143,
+      "maxIntraTradeDrawdownPct": 9.1
+    }
+  ],
+  "caveats": {
+    "lookAheadResidual": true,
+    "singleTicker": true,
+    "notPortfolioPerformance": true
+  }
+}

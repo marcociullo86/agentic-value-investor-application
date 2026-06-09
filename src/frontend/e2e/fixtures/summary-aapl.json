@@ -1,0 +1,29 @@
+{
+  "ticker": "AAPL",
+  "evaluatedAt": "2026-06-09T08:00:00Z",
+  "summaryVerdict": "ENTER_NOW",
+  "viVerdict": "GREEN_DOMINANT",
+  "deepAnalysisStatus": "AVAILABLE",
+  "deepVerdict": "OK",
+  "taVerdict": "ENTRY_FAVORABLE",
+  "rationale": {
+    "viSummary": "AAPL: profilo VI eccellente. ROIC 10y 28%, FCF yield 4.5%, pricing power strutturale. Gate VI passato con ampio margine.",
+    "deepSummary": "Munger inversion: nessun rischio estremo. Moat ampio (ecosistema closed), rischi regolatori monitorati ma non strutturali.",
+    "taSummary": "Trend UPTREND confermato. RSI 14d a 52 (neutro). MACD weekly rialzista. Setup favorevole per l'entry.",
+    "decisionPath": "VI gate passed → Deep gate: OK → TA gate: ENTRY_FAVORABLE → ENTER_NOW"
+  },
+  "reentryCondition": null,
+  "wikiCitations": [
+    {
+      "id": "ta-entry-timing-stock-detail",
+      "anchor": "sintesi-operativa",
+      "domain": "technical-analysis-trading"
+    },
+    {
+      "id": "value-investing-rule-engine",
+      "anchor": null,
+      "domain": "value-investing"
+    }
+  ],
+  "warningAntiCopart": null
+}

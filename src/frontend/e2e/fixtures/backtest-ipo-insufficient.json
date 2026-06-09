@@ -1,0 +1,15 @@
+{
+  "ticker": "NEWIPOQ",
+  "evaluatedAt": "2026-06-09T08:00:00Z",
+  "status": "INSUFFICIENT_HISTORY",
+  "insufficientHistoryReason": "Storico FMP copre solo 18 mesi — insufficiente per la finestra di 5 anni richiesta. Ridurre il lookback o scegliere un ticker con storico più lungo.",
+  "window": null,
+  "strategies": null,
+  "timingEdge": null,
+  "trades": null,
+  "caveats": {
+    "lookAheadResidual": false,
+    "singleTicker": true,
+    "notPortfolioPerformance": true
+  }
+}

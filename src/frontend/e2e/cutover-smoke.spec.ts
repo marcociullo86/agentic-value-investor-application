@@ -117,13 +117,23 @@ test.describe('Cutover R1.1 smoke — STAGING ONLY', () => {
   });
 
   // -------------------------------------------------------------------------
-  // Scenario 4 — Analysis flow (AAPL traffic-light + DCF + MoS)
+  // Scenario 4 — Analysis flow (Riepilogo default + Analisi Base via /base)
   // -------------------------------------------------------------------------
-  test('4. /analysis/AAPL — 13 ruleSignals visible + DCF intrinsic value + MoS badge', async ({ page }) => {
+  // REGRESSION-FIX (EP-024 Fase 2): /analysis?ticker=AAPL ora mostra il
+  // tab Riepilogo (US-104). Il TrafficLightPanel (13 rule signals) vive su
+  // /analysis/base?ticker=AAPL. Il test verifica entrambe le pagine.
+  test('4. /analysis?ticker=AAPL — Riepilogo (summary-hero) + /analysis/base — 13 ruleSignals + DCF + MoS', async ({ page }) => {
     await loginStagingUser(page);
 
     await withNoPageErrors(page, async () => {
+      // 4a: landing Riepilogo
       await page.goto(`${STAGING}/analysis?ticker=AAPL`, { timeout: PAGE_LOAD_TIMEOUT });
+      await expect(
+        page.getByTestId('summary-hero').or(page.getByTestId('summary-page')),
+      ).toBeVisible({ timeout: PAGE_LOAD_TIMEOUT });
+
+      // 4b: Analisi Base con TrafficLightPanel
+      await page.goto(`${STAGING}/analysis/base?ticker=AAPL`, { timeout: PAGE_LOAD_TIMEOUT });
 
       // Traffic-light table: 13 rule signals
       const signalRows = page.getByTestId('traffic-light-row');

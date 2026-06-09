@@ -79,7 +79,15 @@ COPY --from=be-build /app/be/build/libs/*.jar /app/app.jar
 # (configured in application.yml profile `prod` via spring.web.resources.static-locations)
 COPY --from=fe-build /app/fe/out/ /app/public/
 
+# Wiki corpus RAG WIKI (TSK-345 / US-103, ADR-030 §2).
+# Copia wiki/concepts/ e wiki/syntheses/ sotto /app/wiki/ in modo che
+# WikiCorpusIndexer trovi il corpus all'endpoint POST /admin/rag/wiki/reindex.
+# Il path corrisponde al default di rag.wiki.corpus-path = /app/wiki.
+# .dockerignore re-include !wiki/concepts/ e !wiki/syntheses/ per questo COPY.
+COPY wiki/ /app/wiki/
+
 # Filesystem ownership: drop privileges
+# chown -R copre anche /app/wiki (lettura sufficiente per l'indexer)
 RUN chown -R appuser:app /app
 USER appuser
 

@@ -742,10 +742,13 @@ class FmpAdapterRestClient(
     private class EmptyTechnicalIndicatorSentinelException : RuntimeException()
 
     private companion object {
-        // EP-013 scope: rsi (US-056) + sma (US-057). Estendere quando entrano
-        // in scope nuovi indicator (ema, wma, dema, tema, standarddeviation,
-        // williams, adx — vedi raw/fmp_docs.md:10385+).
-        val ALLOWED_INDICATORS = setOf("rsi", "sma")
+        // Whitelist degli indicator FMP `/stable/technical-indicators/{indicator}`.
+        // - rsi/sma: EP-013 (US-056/US-057) — Mr. Market Context Flags.
+        // - macd/atr/obv: EP-024 (US-098, TSK-324) — pipeline Technical Analysis
+        //   (Triple Screen Elder + struttura Murphy). Estendere ulteriormente solo
+        //   con una US con rationale di valore (Elder §39 anti voting-rigging).
+        // [^src: management/kanban/EP-024-riepilogo-e-technical-analysis-tab/US-098-pipeline-ta-payload-be/TSK-324.md]
+        val ALLOWED_INDICATORS = setOf("rsi", "sma", "macd", "atr", "obv")
 
         // Page size per /sec-filings-search/symbol: ampio perché l'endpoint NON
         // filtra per formType lato server e restituisce TUTTI i filing del ticker

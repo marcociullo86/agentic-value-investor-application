@@ -68,20 +68,34 @@ async function mockAnalysisRoutes(page: Page): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
-// Scenario 1 — Happy path: AAPL → TrafficLightPanel con 7 semafori
+// Scenario 1 — Happy path: AAPL → Riepilogo (default di landing EP-024 Fase 2)
 // ---------------------------------------------------------------------------
 // /analysis è protetta (route-config TSK-267): semina sessione auth per ogni
 // test (cookie proxy dev + mock POST /api/auth/refresh). Innocuo sulle pagine
 // pubbliche (/, /screener) toccate dai test "search" — nessun test qui usa /login.
+//
+// REGRESSION-FIX (EP-024 Fase 2): /analysis?ticker=X è ora il tab Riepilogo
+// (US-104 AC: primo tab default). Il TrafficLightPanel (Analisi Base) vive su
+// /analysis/base?ticker=X. SearchBar naviga a /analysis?ticker=AAPL → Riepilogo.
 test.beforeEach(async ({ page }) => {
   await mockAuthSession(page);
 });
 
-test('user searches AAPL and sees Traffic Light panel with 7 rule signals', async ({ page }) => {
+test('user searches AAPL and sees Riepilogo page (default landing EP-024)', async ({ page }) => {
   // Mock: search → exact match → navigate to analysis
   await page.route('**/api/search?query=AAPL', (route) =>
     route.fulfill({ json: searchAaplFixture }),
   );
+  // Mock Riepilogo (nuovo landing)
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const summaryAaplFixture = require('./fixtures/summary-aapl.json') as Record<string, unknown>;
+  await page.route('**/api/analysis/AAPL/summary', (route) =>
+    route.fulfill({ json: summaryAaplFixture }),
+  );
+  await page.route('**/api/analysis/AAPL/backtest**', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({}) }),
+  );
+  // Stub altri endpoint per compatibilità
   await mockAnalysisRoutes(page);
 
   await page.goto('/');
@@ -91,15 +105,12 @@ test('user searches AAPL and sees Traffic Light panel with 7 rule signals', asyn
   await searchInput.fill('AAPL');
   await searchInput.press('Enter');
 
-  // SearchBar.tsx: exact match (1 item, ticker==="AAPL") → router.push("/analysis/AAPL").
-  // Next.js (output: 'export') normalises dynamic-segment URLs with a trailing
-  // slash (/analysis/AAPL/), so the glob has to tolerate both forms.
+  // SearchBar.tsx: exact match → router.push("/analysis?ticker=AAPL").
+  // EP-024 Fase 2: il default landing è ora il Riepilogo.
   await page.waitForURL(/\/analysis\/?\?ticker=AAPL/);
 
-  // TrafficLightPanel renderizza una RuleSignalCard per ciascun signal.
-  // data-testid="rule-signal-card-{ruleId}" già presente in RuleSignalCard (TSK-021).
-  const cards = page.locator('[data-testid^="rule-signal-card-"]');
-  await expect(cards).toHaveCount(7);
+  // La pagina mostra il Riepilogo (summary-page) — NON più le rule-signal-card.
+  await expect(page.getByTestId('summary-page')).toBeVisible({ timeout: 15_000 });
 });
 
 // ---------------------------------------------------------------------------
@@ -128,11 +139,12 @@ test('non-existent ticker shows "Ticker non trovato" inline message', async ({ p
 // ---------------------------------------------------------------------------
 // Scenario 3 — Click semaforo ROE → espande dettagli (valore + soglia)
 // ---------------------------------------------------------------------------
+// REGRESSION-FIX (EP-024 Fase 2): il TrafficLightPanel vive su /analysis/base.
 test('clicking ROE_10Y_AVG traffic light expands observed value and threshold', async ({ page }) => {
   await mockAnalysisRoutes(page);
 
-  // Navigazione diretta alla pagina analisi (bypassa SearchBar)
-  await page.goto('/analysis/?ticker=AAPL');
+  // Navigazione diretta all'Analisi Base (bypassa SearchBar, bypassa Riepilogo).
+  await page.goto('/analysis/base?ticker=AAPL');
 
   // Attende che la pagina carichi le card (useAnalysisStore.fetchAnalysis completato)
   const roeCard = page.locator('[data-testid="rule-signal-card-ROE_10Y_AVG"]');
@@ -157,6 +169,8 @@ test('clicking ROE_10Y_AVG traffic light expands observed value and threshold', 
 // ---------------------------------------------------------------------------
 // Scenario 4 — StaleDataBadge visibile quando isStale=true
 // ---------------------------------------------------------------------------
+// REGRESSION-FIX (EP-024 Fase 2): naviga a /analysis/base (Analisi Base)
+// dove il StaleDataBadge è reso nel TrafficLightPanel.
 test('stale data badge is visible when isStale=true with correct message', async ({ page }) => {
   // Override solo /api/analysis/AAPL con il fixture stale
   await page.route('**/api/analysis/AAPL', (route) =>
@@ -166,7 +180,7 @@ test('stale data badge is visible when isStale=true with correct message', async
     route.fulfill({ json: historicalAaplFixture }),
   );
 
-  await page.goto('/analysis/?ticker=AAPL');
+  await page.goto('/analysis/base?ticker=AAPL');
 
   // StaleDataBadge.tsx: role="alert" + testo "Dati al {snapshotLabel} — aggiornamento FMP non disponibile"
   // La fixture ha dataSnapshotAt: "2026-05-20T08:00:00Z" → formatDate() → locale it-IT
@@ -178,6 +192,7 @@ test('stale data badge is visible when isStale=true with correct message', async
 // ---------------------------------------------------------------------------
 // Scenario 5 — TSK-057: ticker fuori ex-whitelist demo (JNJ) via query URL
 // ---------------------------------------------------------------------------
+// REGRESSION-FIX (EP-024 Fase 2): naviga a /analysis/base per il TrafficLightPanel.
 test('ticker outside legacy static whitelist loads analysis via query param', async ({ page }) => {
   await page.route('**/api/analysis/JNJ', (route) =>
     route.fulfill({
@@ -196,7 +211,7 @@ test('ticker outside legacy static whitelist loads analysis via query param', as
     }),
   );
 
-  await page.goto('/analysis/?ticker=JNJ');
+  await page.goto('/analysis/base?ticker=JNJ');
 
   const cards = page.locator('[data-testid^="rule-signal-card-"]');
   await expect(cards.first()).toBeVisible({ timeout: 15_000 });

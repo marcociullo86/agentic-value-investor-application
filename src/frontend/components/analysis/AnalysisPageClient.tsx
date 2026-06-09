@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect } from 'react';
-import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useAnalysisStore } from '@/lib/stores/useAnalysisStore';
 import { useHistorical } from '@/lib/hooks/useHistorical';
@@ -13,6 +12,7 @@ import { MrMarketSentimentBadge } from '@/components/analysis/MrMarketSentimentB
 import { LongTermTrendBadge } from '@/components/analysis/LongTermTrendBadge';
 import { NetNetBadge } from '@/components/analysis/NetNetBadge';
 import { HistoricalChart } from '@/components/charts/HistoricalChart';
+import { AnalysisTabNav } from '@/components/summary';
 
 /**
  * AnalysisPageClient — TSK-021 (US-014).
@@ -79,24 +79,16 @@ export function AnalysisPageClient(
       className="mx-auto flex min-h-screen max-w-6xl flex-col gap-6 px-6 py-10"
     >
       <header className="flex flex-col gap-3">
-        <nav
-          aria-label="Navigazione analisi"
-          className="flex gap-1 border-b border-slate-200 dark:border-slate-800"
-        >
-          <span
-            aria-current="page"
-            className="border-b-2 border-blue-600 px-4 py-2 text-sm font-medium text-blue-600 dark:border-blue-400 dark:text-blue-400"
-          >
-            Analisi Base
-          </span>
-          <Link
-            href={`/analysis/deep?ticker=${encodeURIComponent(normalized)}`}
-            className="border-b-2 border-transparent px-4 py-2 text-sm font-medium text-slate-600 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-            data-testid="tab-deep-analysis"
-          >
-            Deep Analysis
-          </Link>
-        </nav>
+        {/*
+          EP-024 Fase 2 / TSK-342 — la nav tab è ora centralizzata in
+          `AnalysisTabNav` con l'ordine canonico:
+            Riepilogo | Analisi Base* | Deep Analysis | Technical Analysis
+          (`current="base"` perché questo componente vive sulla rotta
+          `/analysis/base?ticker=…` post-EP-024 Fase 2). Lazy load garantito:
+          il Link verso il tab Riepilogo non innesca alcun fetch a
+          `/api/analysis/{ticker}/summary` finché l'utente non ci naviga.
+        */}
+        <AnalysisTabNav ticker={normalized} current="base" />
         <div className="flex flex-wrap items-center gap-3">
           <h1
             data-testid="analysis-page-title"

@@ -287,6 +287,225 @@ paths:
         '204': { description: Rimosso }
         '401': { $ref: '#/components/responses/Unauthorized' }
 
+  # ---------------- EP-024 technical analysis tab ----------------
+  /api/analysis/{ticker}/technical:
+    get:
+      tags: [analysis]
+      summary: Payload Technical Analysis tab (EP-024, US-098..US-100)
+      description: |
+        Restituisce il payload Technical Analysis per il ticker: 6 blocchi
+        indicatori deterministici (trend SMA50/200, momentum RSI14 + MACD daily/
+        weekly, volatilita' ATR14, volume OBV, livelli structural support/
+        resistance, priceContext 52w) + 3 advisor (entry-timing Triple-Screen
+        Elder, stopSuggestion Murphy/Elder, positionSizing 2%/6% Rule Elder,
+        rewardRiskRatio vs DCF intrinsic value).
+
+        LAYER ADVISORY di timing: NON sostituisce il verdetto VI. Il gate VI
+        primario e' applicato dal Riepilogo (US-103) — non da questo endpoint.
+
+        Equity per il position sizing: parametro `equity` query (default 50000).
+        Mai persistito server-side (US-100 §"Separazione di responsabilita'").
+      parameters:
+        - $ref: '#/components/parameters/Ticker'
+        - name: equity
+          in: query
+          required: false
+          description: |
+            Capitale di riferimento per il calcolo 2%/6% Rule (US-100). Default
+            50000 USD. NON viene mai persistito server-side.
+          schema:
+            type: number
+            default: 50000.0
+            minimum: 0.01
+      responses:
+        '200':
+          description: Payload Technical Analysis
+          headers:
+            X-Data-Snapshot-At:
+              schema: { type: string, format: date-time }
+            Vary:
+              description: Response varies by Origin (CORS) and Authorization (ADR-011)
+              schema:
+                type: string
+                example: "Origin, Authorization"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TechnicalAnalysisResponse'
+        '404':
+          description: Ticker non trovato
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '503':
+          description: FMP indisponibile
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+
+  # ---------------- EP-024 Fase 2 — Riepilogo cross-dominio ----------------
+  /api/analysis/{ticker}/summary:
+    get:
+      tags: [analysis]
+      summary: Riepilogo cross-dominio VI+TA (EP-024, US-103)
+      description: |
+        Aggrega verdetto VI (rule engine + MoS + intrinsic value) + Deep
+        Analysis (Munger inversion) + Technical Analysis (entry-timing + stop +
+        sizing) in una raccomandazione tipata
+        `ENTER_NOW / WAIT_FOR_SETUP / AVOID / INSUFFICIENT_DATA`.
+
+        Gate VI primario HARDCODED (ADR-030 §3+§5):
+        - `viVerdict = RED_DOMINANT` → MAI ENTER_NOW (sempre AVOID).
+        - `deepVerdict = RISCHIO_ESTREMO` → MAI ENTER_NOW (override Munger).
+        - `viVerdict = INDETERMINATE_DOMINANT` → INSUFFICIENT_DATA.
+
+        L'LLM (Claude Opus, 1 sola call) genera solo il `rationale.viSummary/
+        deepSummary/taSummary`. Il `summaryVerdict` NON e' MAI prodotto dall'LLM.
+        Logging gated (EP-020) + LlmBudgetGuard (EP-011 TSK-156).
+
+        Caching per-user su `(userId, ticker, viSnapshot, taSnapshot,
+        deepSnapshot)` TTL 24h o invalidazione su nuovo snapshot.
+
+        `warningAntiCopart` presente SOLO quando `viVerdict = GREEN_DOMINANT`
+        AND `taVerdict ∈ {WAIT, ENTRY_UNFAVORABLE}` AND
+        `summaryVerdict = WAIT_FOR_SETUP` (situazione COPART).
+      parameters:
+        - $ref: '#/components/parameters/Ticker'
+      responses:
+        '200':
+          description: Payload Summary cross-dominio
+          headers:
+            X-Data-Snapshot-At:
+              schema: { type: string, format: date-time }
+            Vary:
+              description: Response varies by Origin (CORS) and Authorization (ADR-011 — auth-aware cache)
+              schema:
+                type: string
+                example: "Origin, Authorization"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SummaryVerdictResponse'
+        '404':
+          description: Ticker non trovato
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '503':
+          description: FMP indisponibile
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+
+  # ---------------- EP-024 Fase 3 — Backtest per-ticker (US-105) ----------------
+  /api/analysis/{ticker}/backtest:
+    get:
+      tags: [analysis]
+      summary: Backtest per-ticker (EP-024, US-105)
+      description: |
+        Ricostruisce il verdetto EP-024 (`ENTER_NOW / WAIT_FOR_SETUP / AVOID`)
+        su punti storici con disciplina point-in-time (filingDate per i
+        fondamentali, EOD ≤ t per gli indicatori TA) e simula il round-trip
+        completo (entry → exit alla prima tra `VI_TARGET` / `STOP_HIT` /
+        `HORIZON`). Confronta contro 2 baseline:
+
+        - `VI_ONLY` — entra ad ogni `t` con gate VI positivo, ignorando il
+          timing TA (risponde a "comprare appena era a sconto bastava?").
+        - `BUY_AND_HOLD` — trade unico sulla finestra.
+
+        `timingEdgePct` = avgReturnPct(EP024) − avgReturnPct(VI_ONLY) e' la
+        metrica chiave che giustifica (o smentisce) il layer di timing TA.
+        Label: `POSITIVE_EDGE` (> +2pp), `NEUTRAL` (entro ±2pp),
+        `NEGATIVE_EDGE` (< -2pp).
+
+        Storico insufficiente → `status = INSUFFICIENT_HISTORY` con
+        `insufficientHistoryReason` esplicito; NESSUN backtest parziale
+        silenzioso.
+
+        `caveats` SEMPRE presente: `lookAheadResidual` (FMP serve
+        fondamentali ristrutturati), `singleTicker`, `notPortfolioPerformance`.
+
+        `equity` opzionale (default 50000): NON e' MAI persistita server-side
+        e NON e' parte della chiave di cache (US-105 §"Vincoli di scope"). E'
+        un metadato del DTO per il FE che voglia derivare il dollar amount
+        lato client. Il backtest opera in % di rendimento, non in valore
+        assoluto.
+
+        Caching: per-chiave `(ticker, years, horizonMonths)`, TTL 24h
+        (ADR-030 §1).
+      parameters:
+        - $ref: '#/components/parameters/Ticker'
+        - name: years
+          in: query
+          required: false
+          description: |
+            Finestra di lookback in anni (US-105 §Endpoint). Default 5; range
+            ammesso [1..20]. Lo storico effettivamente disponibile da FMP puo'
+            essere inferiore alla richiesta (IPO recente): in quel caso
+            `status = INSUFFICIENT_HISTORY`.
+          schema:
+            type: integer
+            default: 5
+            minimum: 1
+            maximum: 20
+        - name: horizonMonths
+          in: query
+          required: false
+          description: |
+            Orizzonte massimo di holding del round-trip in mesi (US-105 §Endpoint).
+            Default 6. Valori ammessi: 1 / 3 / 6 / 12 — un valore diverso causa
+            HTTP 400 (validazione dichiarativa, niente clamping silenzioso).
+          schema:
+            type: integer
+            default: 6
+            enum: [1, 3, 6, 12]
+        - name: equity
+          in: query
+          required: false
+          description: |
+            Capitale di riferimento per il calcolo single-trade (riuso semantica
+            US-100). Default 50000. NON viene mai persistita server-side e NON
+            entra nella chiave di cache. Per il backtest opera solo come
+            metadato (non e' usata in nessun calcolo BE).
+          schema:
+            type: number
+            default: 50000.0
+            minimum: 0.01
+      responses:
+        '200':
+          description: |
+            Payload backtest (status = OK o INSUFFICIENT_HISTORY). `caveats`
+            SEMPRE presente.
+          headers:
+            X-Data-Snapshot-At:
+              schema: { type: string, format: date-time }
+            Vary:
+              description: Response varies by Origin (CORS) and Authorization (ADR-011)
+              schema:
+                type: string
+                example: "Origin, Authorization"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BacktestResponse'
+        '400':
+          description: |
+            Parametri non validi (es. `horizonMonths` fuori da {1,3,6,12},
+            `years` fuori da [1..20]).
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '404':
+          description: Ticker non trovato
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '503':
+          description: FMP indisponibile
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+
   # ---------------- EP-011 deep analysis ----------------
   /api/analysis/{ticker}/deep:
     get:
@@ -2001,6 +2220,626 @@ components:
             - $ref: '#/components/schemas/RunError'
           nullable: true
           description: Dettaglio errore, presente solo quando status=FAILED
+
+    # ---------------- EP-024 technical analysis tab (US-098..US-100) ----------------
+
+    TrendClassification:
+      type: string
+      enum: [UPTREND, SIDEWAYS, DOWNTREND, INDETERMINATE]
+      description: |
+        Classificazione deterministica del trend primario daily (US-098).
+        UPTREND: prezzo > SMA50 > SMA200 con slope SMA200 positivo.
+        DOWNTREND: prezzo < SMA50 < SMA200 con slope SMA200 negativo.
+        SIDEWAYS: ogni altra combinazione.
+        INDETERMINATE: storico < 200 sedute.
+
+    SupportType:
+      type: string
+      enum: [SWING_LOW, SWING_HIGH, RETRACEMENT_33, RETRACEMENT_50, RETRACEMENT_66]
+      description: Tipo del livello structural (Murphy §Page 85, Dow Theory).
+
+    LevelConfidence:
+      type: string
+      enum: [LOW, MEDIUM, HIGH]
+      description: Affidabilita' del livello (HIGH = swing prominente; LOW = retracement derivato).
+
+    EntryTimingVerdict:
+      type: string
+      enum: [ENTRY_FAVORABLE, ENTRY_NEUTRAL, ENTRY_UNFAVORABLE, WAIT, INDETERMINATE]
+      description: |
+        Verdetto Triple-Screen Elder (US-099): ENTRY_FAVORABLE / ENTRY_NEUTRAL /
+        ENTRY_UNFAVORABLE / WAIT (con reentryCondition) / INDETERMINATE.
+
+    ReentryConditionCode:
+      type: string
+      enum: [RSI_BELOW_50, PRICE_ABOVE_SMA200_WITH_VOLUME, PULLBACK_TO_SUPPORT_50PCT]
+      description: |
+        Codice machine-readable della condizione che sblocca la rivalutazione
+        del WAIT (US-099).
+
+    StopType:
+      type: string
+      enum: [SUPPORT_BASED, SMA200_BASED, ATR_BASED, NOT_CALCULABLE]
+      description: |
+        Tipo di ancoraggio dello stop (US-100, priorita' decrescente):
+        SUPPORT_BASED (Murphy §Page 82) > SMA200_BASED > ATR_BASED (Elder) >
+        NOT_CALCULABLE (nessun candidato applicabile).
+
+    PositionSizingWarning:
+      type: string
+      enum: [POSITION_EXCEEDS_EQUITY]
+      description: |
+        Warning del 2% Rule sizing (US-100). POSITION_EXCEEDS_EQUITY: stop molto
+        stretto → la size teorica supera l'equity; le shares sono cappate a
+        floor(equity / currentPrice).
+
+    RewardRiskLabel:
+      type: string
+      enum: [EXCELLENT, ACCEPTABLE, MARGINAL, UNFAVORABLE, NOT_APPLICABLE]
+      description: |
+        Etichetta qualitativa del rapporto reward/risk vs DCF intrinsic value
+        (US-100). EXCELLENT ≥3:1; ACCEPTABLE ≥2:1; MARGINAL ≥1:1; UNFAVORABLE
+        <1; NOT_APPLICABLE (DCF assente o ≤ currentPrice).
+
+    TaPriceLevel:
+      type: object
+      required: [price, type, confidence]
+      description: Singolo livello structural support/resistance (US-098).
+      properties:
+        price:      { type: number }
+        type:       { $ref: '#/components/schemas/SupportType' }
+        confidence: { $ref: '#/components/schemas/LevelConfidence' }
+
+    TaTrendBlock:
+      type: object
+      required: [classification]
+      description: Trend primario daily — SMA50/SMA200 + classificazione deterministica.
+      properties:
+        sma50:              { type: number, nullable: true }
+        sma200:             { type: number, nullable: true }
+        classification:     { $ref: '#/components/schemas/TrendClassification' }
+        sma200SlopePerDay:  { type: number, nullable: true, description: "Slope regressione lineare 20 sedute (frazione SMA / giorno)" }
+        confidenceReduced:  { type: boolean, default: false, description: "True quando lo storico EOD e' < 200 sedute" }
+
+    TaMomentumBlock:
+      type: object
+      description: Momentum — RSI 14d + MACD daily/weekly (Triple Screen Elder).
+      properties:
+        rsi14:              { type: number, nullable: true, description: "RSI 14 giorni, 0..100" }
+        macdDaily:          { type: number, nullable: true, description: "MACD daily (12,26,9) — valore latest da FMP" }
+        macdWeekly:         { type: number, nullable: true, description: "MACD weekly — Screen 1 Elder" }
+        confidenceReduced:  { type: boolean, default: false }
+
+    TaVolatilityBlock:
+      type: object
+      description: Volatilita' — ATR(14) per stop-placement (Murphy §Page 82, Elder).
+      properties:
+        atr14:              { type: number, nullable: true }
+        confidenceReduced:  { type: boolean, default: false }
+
+    TaVolumeBlock:
+      type: object
+      description: Volume e OBV (On-Balance Volume) per conferma breakout/breakdown.
+      properties:
+        obv:                { type: number, nullable: true, description: "On-Balance Volume cumulativo latest" }
+        avgVolume20d:       { type: number, nullable: true, description: "Volume medio ultime 20 sedute" }
+        confidenceReduced:  { type: boolean, default: false }
+
+    TaLevelsBlock:
+      type: object
+      required: [support, resistance]
+      description: Livelli structural — max 3 ciascuno, ordinati per distanza dal prezzo corrente.
+      properties:
+        support:
+          type: array
+          maxItems: 3
+          items: { $ref: '#/components/schemas/TaPriceLevel' }
+        resistance:
+          type: array
+          maxItems: 3
+          items: { $ref: '#/components/schemas/TaPriceLevel' }
+        confidenceReduced:  { type: boolean, default: false }
+
+    TaPriceContextBlock:
+      type: object
+      description: Contesto di prezzo — 52w range + drawdown dal picco (magnitudo positiva 0..1).
+      properties:
+        currentPrice:        { type: number, nullable: true }
+        high52w:             { type: number, nullable: true }
+        low52w:              { type: number, nullable: true }
+        drawdownFrom52wHigh: { type: number, nullable: true, description: "Magnitudo 0..1 (0.32 = -32% dal picco)" }
+        confidenceReduced:   { type: boolean, default: false }
+
+    ReentryCondition:
+      type: object
+      required: [code, description]
+      description: Condizione di re-entry per WAIT (machine + human readable, US-099).
+      properties:
+        code:        { $ref: '#/components/schemas/ReentryConditionCode' }
+        description: { type: string }
+
+    EntryTimingRationale:
+      type: object
+      required: [screen1, screen2, screen3, wikiCitations]
+      description: Rationale strutturato Triple-Screen + citazioni wiki (US-099).
+      properties:
+        screen1:        { type: string, description: "Nota Screen 1 (trend di lungo)" }
+        screen2:        { type: string, description: "Nota Screen 2 (oscillatore: RSI + MACD daily)" }
+        screen3:        { type: string, description: "Nota Screen 3 (livello d'entry: support/resistance)" }
+        wikiCitations:
+          type: array
+          items: { type: string }
+          description: Pagine wiki che giustificano il verdetto
+
+    EntryTimingAdvisor:
+      type: object
+      required: [verdict, rationale, viGate]
+      description: |
+        Verdetto Triple-Screen Elder (US-099). Layer ADVISORY: NON sostituisce
+        il verdetto VI. Il campo `viGate` espone il disclaimer machine-readable
+        — il Riepilogo (US-103) e' l'unico autorizzato a comporre VI + TA.
+      properties:
+        verdict:           { $ref: '#/components/schemas/EntryTimingVerdict' }
+        reentryCondition:
+          allOf:
+            - $ref: '#/components/schemas/ReentryCondition'
+          nullable: true
+          description: Presente solo quando verdict = WAIT
+        rationale:         { $ref: '#/components/schemas/EntryTimingRationale' }
+        viGate:
+          type: string
+          default: this_advisor_assumes_vi_verdict_positive
+          description: Disclaimer machine-readable. Costante.
+
+    StopSuggestion:
+      type: object
+      required: [type, rationale]
+      description: |
+        Stop ancorato a struttura (US-100, TSK-330). Priorita': SUPPORT_BASED >
+        SMA200_BASED > ATR_BASED > NOT_CALCULABLE. Buffer 0.5% applicato a
+        SUPPORT_BASED e SMA200_BASED (Murphy §Page 82).
+      properties:
+        type:             { $ref: '#/components/schemas/StopType' }
+        stopPrice:        { type: number, nullable: true, description: "USD. Null se NOT_CALCULABLE" }
+        stopDistance:     { type: number, nullable: true, description: "currentPrice - stopPrice" }
+        stopDistancePct:  { type: number, nullable: true, description: "Distanza stop come % del prezzo" }
+        anchorReference:  { type: string, nullable: true, description: "Riferimento human-readable (es. 'support@$47.5 (SWING_LOW)')" }
+        rationale:        { type: string }
+
+    TwoPercentRule:
+      type: object
+      required: [equity, maxRiskAllowed, sharesRecommended, positionValueRecommended, positionPctEquity]
+      description: |
+        Position sizing 2% Rule Elder §50 (US-100). `equity` e' un input client-side,
+        NON viene mai persistito server-side.
+      properties:
+        equity:                    { type: number }
+        maxRiskAllowed:            { type: number, description: "equity × 0.02" }
+        stopDistance:              { type: number, nullable: true }
+        sharesRecommended:         { type: integer, format: int64, description: "floor(maxRiskAllowed / stopDistance); 0 se stopDistance non disponibile" }
+        positionValueRecommended:  { type: number }
+        positionPctEquity:         { type: number }
+        warning:
+          allOf:
+            - $ref: '#/components/schemas/PositionSizingWarning'
+          nullable: true
+
+    SixPercentRule:
+      type: object
+      required: [maxAggregateRiskPerMonth, disclaimer]
+      description: |
+        Heat di portafoglio Elder §51 (Iron Triangle, US-100). Il BE NON traccia
+        le altre posizioni dell'utente — espone solo il budget aggregato.
+      properties:
+        maxAggregateRiskPerMonth: { type: number, description: "equity × 0.06" }
+        disclaimer:               { type: string }
+
+    PositionSizing:
+      type: object
+      required: [twoPercentRule, sixPercentRule]
+      description: Sizing 2%/6% Rule (US-100).
+      properties:
+        twoPercentRule: { $ref: '#/components/schemas/TwoPercentRule' }
+        sixPercentRule: { $ref: '#/components/schemas/SixPercentRule' }
+
+    RewardRiskRatio:
+      type: object
+      required: [label, rationale]
+      description: |
+        Rapporto reward/risk vs DCF intrinsic value (US-100). upside =
+        dcfIntrinsicValue − currentPrice; downside = stopDistance. NOT_APPLICABLE
+        se DCF assente, DCF ≤ currentPrice, o stop non calcolabile.
+      properties:
+        upside:    { type: number, nullable: true }
+        downside:  { type: number, nullable: true }
+        value:     { type: number, nullable: true, description: "upside / downside" }
+        label:     { $ref: '#/components/schemas/RewardRiskLabel' }
+        rationale: { type: string }
+
+    TechnicalAnalysisResponse:
+      type: object
+      required: [ticker, evaluatedAt, trend, momentum, volatility, volume, levels, priceContext]
+      description: |
+        Payload del nuovo endpoint GET /api/analysis/{ticker}/technical
+        (EP-024 Fase 1: US-098 6 blocchi indicatori + US-099 entryTimingAdvisor
+        + US-100 stopSuggestion/positionSizing/rewardRiskRatio).
+
+        Layer ADVISORY di timing — NON sostituisce il verdetto VI del Rule Engine
+        (`/api/analysis/{ticker}` resta invariato). I 3 advisor sono opzionali a
+        livello schema (additive non-breaking) ma sempre popolati in produzione.
+      properties:
+        ticker:               { type: string }
+        evaluatedAt:          { type: string, format: date-time }
+        trend:                { $ref: '#/components/schemas/TaTrendBlock' }
+        momentum:             { $ref: '#/components/schemas/TaMomentumBlock' }
+        volatility:           { $ref: '#/components/schemas/TaVolatilityBlock' }
+        volume:               { $ref: '#/components/schemas/TaVolumeBlock' }
+        levels:               { $ref: '#/components/schemas/TaLevelsBlock' }
+        priceContext:         { $ref: '#/components/schemas/TaPriceContextBlock' }
+        entryTimingAdvisor:
+          allOf:
+            - $ref: '#/components/schemas/EntryTimingAdvisor'
+          nullable: true
+        stopSuggestion:
+          allOf:
+            - $ref: '#/components/schemas/StopSuggestion'
+          nullable: true
+        positionSizing:
+          allOf:
+            - $ref: '#/components/schemas/PositionSizing'
+          nullable: true
+        rewardRiskRatio:
+          allOf:
+            - $ref: '#/components/schemas/RewardRiskRatio'
+          nullable: true
+
+    # ---------------- EP-024 Fase 2 — Riepilogo cross-dominio (US-103) ----------------
+
+    SummaryVerdict:
+      type: string
+      enum: [ENTER_NOW, WAIT_FOR_SETUP, AVOID, INSUFFICIENT_DATA]
+      description: |
+        Verdetto azionabile del Riepilogo cross-dominio (US-103):
+        - ENTER_NOW: VI gate passato + Deep OK/NOT_AVAILABLE + TA favorable/neutral.
+        - WAIT_FOR_SETUP: VI gate passato ma TA o Deep sfavorevole (situazione COPART) — reentryCondition esposta.
+        - AVOID: VI gate fallito (titolo VI-negativo non puo' MAI diventare ENTER_NOW) OPPURE Munger RISCHIO_ESTREMO override.
+        - INSUFFICIENT_DATA: dati VI troppo lacunosi (≥ 1/3 ruleId INDETERMINATE/NOT_CALCULABLE).
+
+    ViVerdict:
+      type: string
+      enum: [GREEN_DOMINANT, YELLOW_DOMINANT, RED_DOMINANT, INDETERMINATE_DOMINANT]
+      description: |
+        Classificazione aggregata del verdetto VI, proporzionale sui ruleId DECISIONALI
+        disponibili (ADR-030 §3 — NCAV_LATEST informativo escluso, INDETERMINATE/NOT_CALCULABLE esclusi):
+        - GREEN_DOMINANT: quota GREEN ≥ 60% dei decisionali disponibili.
+        - RED_DOMINANT: quota GREEN < 33% dei decisionali disponibili.
+        - YELLOW_DOMINANT: intervallo intermedio (33% ≤ quota < 60%).
+        - INDETERMINATE_DOMINANT: ≥ 1/3 dei ruleId sono INDETERMINATE/NOT_CALCULABLE.
+
+    DeepAnalysisStatus:
+      type: string
+      enum: [AVAILABLE, NOT_INDEXED, NOT_AVAILABLE]
+      description: |
+        Stato della Deep Analysis (Munger inversion):
+        - AVAILABLE: deep analysis indicizzata + analizzata, deepVerdict popolato.
+        - NOT_INDEXED: nessuna run eseguita per il ticker, deepVerdict = null. Non blocca il Summary.
+        - NOT_AVAILABLE: deep analysis tecnicamente indisponibile (es. FAILED, schema drift).
+
+    DeepVerdict:
+      type: string
+      enum: [OK, WATCHLIST, RISCHIO_ESTREMO]
+      description: |
+        Verdetto sintetico Deep Analysis rispetto al gate del Summary:
+        - OK: Munger APPROVATO / APPROVATO_PANIC_BUY → compatibile con ENTER_NOW.
+        - WATCHLIST: Munger WATCHLIST → degrada a WAIT_FOR_SETUP.
+        - RISCHIO_ESTREMO: Munger RISCHIO_ESTREMO → override gate VI → AVOID (regola assoluta).
+
+    WikiCitation:
+      type: object
+      required: [id, domain]
+      description: |
+        Citazione di una pagina wiki cross-dominio (US-103 §"Citazioni RAG cross-dominio").
+        `id` = slug della pagina (= `wiki_source_id` in `filing_chunks`).
+      properties:
+        id:
+          type: string
+          example: ta-vs-vi-decision-layer
+        anchor:
+          type: string
+          nullable: true
+          description: Ancora opzionale al paragrafo specifico della pagina wiki.
+        domain:
+          type: string
+          description: "Dominio della pagina wiki: value-investing | technical-analysis-trading."
+          example: technical-analysis-trading
+
+    SummaryRationale:
+      type: object
+      required: [viSummary, decisionPath]
+      description: |
+        Rationale narrativo del Riepilogo. I 3 *Summary sono generati dall'LLM
+        (1 sola call); il `decisionPath` e' deterministico (mai LLM).
+      properties:
+        viSummary:
+          type: string
+          description: Sintesi narrativa del verdetto VI (LLM o fallback deterministico).
+        deepSummary:
+          type: string
+          nullable: true
+          description: Sintesi narrativa della Deep Analysis. Null se deepAnalysisStatus != AVAILABLE.
+        taSummary:
+          type: string
+          nullable: true
+          description: Sintesi narrativa del verdetto TA. Null se taVerdict = null.
+        decisionPath:
+          type: string
+          description: Riassunto testuale deterministico del gate applicato. Sempre presente.
+
+    SummaryVerdictResponse:
+      type: object
+      required:
+        - ticker
+        - evaluatedAt
+        - summaryVerdict
+        - viVerdict
+        - deepAnalysisStatus
+        - rationale
+        - wikiCitations
+      description: |
+        Payload del Riepilogo cross-dominio VI + Deep + TA (EP-024 Fase 2, US-103).
+
+        Verdetti tipati (`summaryVerdict`, `viVerdict`, `deepVerdict`, `taVerdict`):
+        prodotti da pure-function Kotlin con tabella di mapping hardcoded
+        (ADR-030 §3+§5). L'LLM (1 sola call) genera solo i 3 campi narrativi del
+        `rationale`.
+
+        Gate VI primario hardcoded: un titolo con `viVerdict = RED_DOMINANT` non
+        puo' MAI diventare `ENTER_NOW`, indipendentemente da TA. Munger
+        `RISCHIO_ESTREMO` overrides il gate VI → AVOID.
+
+        `warningAntiCopart` presente SOLO quando `viVerdict = GREEN_DOMINANT` AND
+        `taVerdict ∈ {WAIT, ENTRY_UNFAVORABLE}` AND `summaryVerdict = WAIT_FOR_SETUP`.
+      properties:
+        ticker:              { type: string }
+        evaluatedAt:         { type: string, format: date-time }
+        summaryVerdict:      { $ref: '#/components/schemas/SummaryVerdict' }
+        viVerdict:           { $ref: '#/components/schemas/ViVerdict' }
+        deepAnalysisStatus:  { $ref: '#/components/schemas/DeepAnalysisStatus' }
+        deepVerdict:
+          allOf:
+            - $ref: '#/components/schemas/DeepVerdict'
+          nullable: true
+          description: Null quando deepAnalysisStatus != AVAILABLE (US-103 AC).
+        taVerdict:
+          allOf:
+            - $ref: '#/components/schemas/EntryTimingVerdict'
+          nullable: true
+          description: Null quando la TA non e' calcolabile (FMP indisponibile).
+        rationale:           { $ref: '#/components/schemas/SummaryRationale' }
+        reentryCondition:
+          allOf:
+            - $ref: '#/components/schemas/ReentryCondition'
+          nullable: true
+          description: |
+            Condizione tecnica di re-entry quando summaryVerdict = WAIT_FOR_SETUP
+            AND taVerdict = WAIT. Propagata dall'EntryTimingAdvisor (US-099).
+        wikiCitations:
+          type: array
+          items: { $ref: '#/components/schemas/WikiCitation' }
+          description: Citazioni RAG cross-dominio (US-103 §"Citazioni RAG cross-dominio").
+        warningAntiCopart:
+          type: string
+          nullable: true
+          description: |
+            Warning anti-COPART. Presente SOLO quando viVerdict = GREEN_DOMINANT
+            AND taVerdict ∈ {WAIT, ENTRY_UNFAVORABLE} AND summaryVerdict = WAIT_FOR_SETUP.
+
+    # ---------------- EP-024 Fase 3 — Backtest per-ticker (US-105) ----------------
+
+    BacktestStatus:
+      type: string
+      enum: [OK, INSUFFICIENT_HISTORY]
+      description: |
+        Stato del backtest (US-105):
+        - OK: backtest completato, metriche presenti.
+        - INSUFFICIENT_HISTORY: lo storico FMP non copre la finestra richiesta
+          (IPO recente o `years` troppo lunghi rispetto al disponibile);
+          `insufficientHistoryReason` esplicito, NESSUN risultato parziale.
+
+    BacktestStrategy:
+      type: string
+      enum: [EP024_ENTER_NOW, VI_ONLY, BUY_AND_HOLD]
+      description: |
+        Strategia simulata sulla stessa finestra di lookback (US-105):
+        - EP024_ENTER_NOW: apre un trade ad ogni `t` con verdetto EP-024
+          ENTER_NOW (gate VI + TA favorevole), chiude alla prima tra
+          VI_TARGET / STOP_HIT / HORIZON.
+        - VI_ONLY: ignora il timing TA — entra ad ogni `t` con gate VI
+          positivo, stesse regole di uscita. Baseline per isolare il valore
+          del layer di timing.
+        - BUY_AND_HOLD: trade unico — compra al primo EOD della finestra,
+          vende all'ultimo.
+
+    BacktestExitReason:
+      type: string
+      enum: [VI_TARGET, STOP_HIT, HORIZON]
+      description: |
+        Causale di uscita dal round-trip (US-105, priorita' decrescente):
+        - VI_TARGET: prezzo >= dcfIntrinsicValue a t — la margin of safety
+          si e' chiusa (disciplina di vendita value).
+        - STOP_HIT: prezzo <= stopSuggestion.stopPrice a t — la tesi/struttura
+          si e' rotta (Murphy §Page 82, Elder §50).
+        - HORIZON: raggiunto `horizonMonths` senza target ne stop — chiusura
+          forzata al prezzo corrente.
+
+    BacktestTimingEdgeLabel:
+      type: string
+      enum: [POSITIVE_EDGE, NEUTRAL, NEGATIVE_EDGE]
+      description: |
+        Etichetta del `timingEdgePct` (EP024 − VI_ONLY, US-105):
+        - POSITIVE_EDGE: timing TA ha aggiunto soldi (>+2pp di edge).
+        - NEGATIVE_EDGE: timing TA ha distrutto soldi (<-2pp di edge).
+        - NEUTRAL: edge irrilevante (entro ±2pp). Una feature di timing
+          ricorrentemente NEUTRAL/NEGATIVE_EDGE non sta dando valore al
+          verdetto (lente di valore [[value-investing-design-lens]]).
+
+    BacktestWindow:
+      type: object
+      required: [fromDate, toDate, years, horizonMonths]
+      description: Finestra di lookback effettivamente coperta dal backtest.
+      properties:
+        fromDate:        { type: string, format: date }
+        toDate:          { type: string, format: date }
+        years:           { type: integer, description: "Years parameter ricevuto" }
+        horizonMonths:   { type: integer, description: "HorizonMonths parameter ricevuto" }
+
+    BacktestExitBreakdown:
+      type: object
+      description: Conteggio dei trade per causale di uscita.
+      properties:
+        viTarget:        { type: integer, default: 0 }
+        stopHit:         { type: integer, default: 0 }
+        horizon:         { type: integer, default: 0 }
+
+    BacktestStrategyMetrics:
+      type: object
+      required: [strategy, trades]
+      description: |
+        Metriche aggregate per strategia (US-105 §"Metriche aggregate").
+        `winRate` / `avgRealizedRewardRisk` / `exitBreakdown` sono null per
+        BUY_AND_HOLD (trade unico).
+      properties:
+        strategy:                 { $ref: '#/components/schemas/BacktestStrategy' }
+        trades:                   { type: integer, description: "Numero di round-trip aperti nella finestra" }
+        winRate:                  { type: number, nullable: true, description: "Quota di trade con returnPct > 0. Null se trades=0" }
+        avgReturnPct:             { type: number, nullable: true, description: "Media aritmetica dei returnPct per round-trip" }
+        medianReturnPct:          { type: number, nullable: true, description: "Mediana dei returnPct per round-trip" }
+        avgHoldingDays:           { type: number, nullable: true, description: "Media degli holding days per round-trip" }
+        avgRealizedRewardRisk:    { type: number, nullable: true, description: "Media del rapporto (returnPct / drawdown intra-trade). Null se trades=0 o nessun trade con drawdown > 0" }
+        totalReturnPct:           { type: number, nullable: true, description: "Total return composto (prodotto dei (1+returnPct) − 1)" }
+        maxTradeDrawdownPct:      { type: number, nullable: true, description: "Drawdown massimo intra-trade osservato sull'intera serie (magnitudo positiva)" }
+        exitBreakdown:
+          allOf:
+            - $ref: '#/components/schemas/BacktestExitBreakdown'
+          nullable: true
+          description: Null per BUY_AND_HOLD.
+        noSignalsInPeriod:
+          type: boolean
+          default: false
+          description: True quando la strategia non ha generato alcun trade nella finestra (es. EP024 senza segnali ENTER_NOW).
+
+    BacktestTimingEdge:
+      type: object
+      required: [label, noSignalsInPeriod]
+      description: |
+        Edge del layer di timing TA (US-105 §"Baseline di confronto"):
+        differenza in punti percentuali tra `avgReturnPct` di
+        `EP024_ENTER_NOW` e di `VI_ONLY`. Risponde a "il timing TA ha
+        fatto guadagnare di piu' rispetto a comprare appena il titolo era
+        a sconto?".
+      properties:
+        timingEdgePct:
+          type: number
+          nullable: true
+          description: "avgReturnPct(EP024) − avgReturnPct(VI_ONLY). Null se una delle due strategie non ha trade."
+        label:               { $ref: '#/components/schemas/BacktestTimingEdgeLabel' }
+        noSignalsInPeriod:
+          type: boolean
+          description: True se EP024_ENTER_NOW non ha generato segnali nella finestra (degrada il confronto, label=NEUTRAL).
+
+    BacktestTrade:
+      type: object
+      required: [strategy, entryDate, entryPrice, exitDate, exitPrice, exitReason, returnPct, holdingDays, maxIntraTradeDrawdownPct]
+      description: Singolo round-trip simulato (entry → exit) per le strategie EP024_ENTER_NOW e VI_ONLY (US-105).
+      properties:
+        strategy:                  { $ref: '#/components/schemas/BacktestStrategy' }
+        entryDate:                 { type: string, format: date }
+        entryPrice:                { type: number }
+        exitDate:                  { type: string, format: date }
+        exitPrice:                 { type: number }
+        exitReason:                { $ref: '#/components/schemas/BacktestExitReason' }
+        returnPct:                 { type: number, description: "(exitPrice − entryPrice) / entryPrice × 100" }
+        holdingDays:               { type: integer, description: "Giorni di calendario tra entryDate e exitDate" }
+        maxIntraTradeDrawdownPct:  { type: number, description: "Drawdown intra-trade massimo (magnitudo positiva, %)" }
+
+    BacktestCaveats:
+      type: object
+      description: |
+        Onesta dei limiti del backtest (US-105 §"Onesta dei limiti").
+        SEMPRE presente nel payload, anche per status=OK. Un backtest che
+        nasconde i bias residui e' marketing, non evidenza.
+      properties:
+        lookAheadResidual:
+          type: boolean
+          default: true
+          description: "Fondamentali FMP serviti ristrutturati: filingDate elimina il look-ahead grossolano ma non le revisioni successive."
+        singleTicker:
+          type: boolean
+          default: true
+          description: "Single ticker — niente survivorship bias, ma risultato NON generalizzabile."
+        notPortfolioPerformance:
+          type: boolean
+          default: true
+          description: "Verifica storica del timing su QUESTO ticker, NON una equity curve di portafoglio."
+
+    BacktestResponse:
+      type: object
+      required:
+        - ticker
+        - evaluatedAt
+        - status
+        - caveats
+      description: |
+        Payload del nuovo endpoint GET /api/analysis/{ticker}/backtest
+        (EP-024 Fase 3, US-105).
+
+        Misura il round-trip completo della strategia EP-024 (entry sui
+        segnali `ENTER_NOW`, exit alla prima tra VI_TARGET / STOP_HIT /
+        HORIZON) e lo confronta con due baseline (`VI_ONLY` e `BUY_AND_HOLD`).
+
+        `timingEdgePct` = EP024.avgReturnPct − VI_ONLY.avgReturnPct e' la
+        metrica chiave: se NEGATIVE_EDGE ricorrente, il layer di timing
+        non sta dando valore (lente di valore).
+
+        Calcolo deterministico pure-function Kotlin, niente LLM. `equity`
+        MAI persistita server-side. `caveats` SEMPRE presente.
+
+        `INSUFFICIENT_HISTORY` esplicito quando lo storico FMP non copre
+        la finestra: nessuna finestra parziale silenziosa.
+      properties:
+        ticker:                   { type: string }
+        evaluatedAt:              { type: string, format: date-time }
+        status:                   { $ref: '#/components/schemas/BacktestStatus' }
+        insufficientHistoryReason:
+          type: string
+          nullable: true
+          description: Presente SOLO quando status = INSUFFICIENT_HISTORY.
+        window:
+          allOf:
+            - $ref: '#/components/schemas/BacktestWindow'
+          nullable: true
+          description: Null quando status = INSUFFICIENT_HISTORY.
+        strategies:
+          type: array
+          nullable: true
+          items: { $ref: '#/components/schemas/BacktestStrategyMetrics' }
+          description: |
+            Lista di 3 metriche aggregate (EP024_ENTER_NOW, VI_ONLY,
+            BUY_AND_HOLD). Null quando status = INSUFFICIENT_HISTORY.
+        timingEdge:
+          allOf:
+            - $ref: '#/components/schemas/BacktestTimingEdge'
+          nullable: true
+          description: Edge del layer di timing TA vs VI puro. Null quando status = INSUFFICIENT_HISTORY.
+        trades:
+          type: array
+          nullable: true
+          items: { $ref: '#/components/schemas/BacktestTrade' }
+          description: |
+            Trade individuali per EP024_ENTER_NOW e VI_ONLY (BUY_AND_HOLD ha
+            un solo trade implicito esposto via strategies.totalReturnPct).
+            Null quando status = INSUFFICIENT_HISTORY.
+        caveats:                  { $ref: '#/components/schemas/BacktestCaveats' }
 
     # ---------------- EP-012 top value picks (US-050) ----------------
     TopPickItem:

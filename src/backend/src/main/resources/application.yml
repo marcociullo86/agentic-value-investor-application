@@ -203,6 +203,16 @@ rag:
       - value-investing
       - technical-analysis-trading
 
+# Summary cross-dominio (EP-024 / US-103 / TSK-339+340). 1 sola call LLM gated
+# da LlmBudgetGuard + LlmCostCounterService (EP-020); fallback deterministico su
+# qualsiasi errore. RAG: top-K per dominio sulla similarity search WIKI (default
+# 2 per dominio → max 4 citazioni totali, ADR-030 §2 / US-103 §"Citazioni RAG").
+summary:
+  rationale:
+    max-tokens: ${SUMMARY_RATIONALE_MAX_TOKENS:1500}
+  wiki-citations:
+    top-k-per-domain: ${SUMMARY_WIKI_TOP_K_PER_DOMAIN:2}
+
 # News sentiment classifier (US-042)
 news-sentiment:
   max-llm-calls-per-ticker: 50

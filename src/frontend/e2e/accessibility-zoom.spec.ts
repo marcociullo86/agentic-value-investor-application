@@ -103,13 +103,23 @@ test.describe('Zoom 200% — WCAG 1.4.10 Reflow', () => {
     });
   });
 
-  test('Analysis page: no horizontal overflow at 200% zoom', async ({ page }) => {
+  // REGRESSION-FIX (EP-024 Fase 2): /analysis?ticker=AAPL → Riepilogo.
+  // Per il test di overflow su Analisi Base (TrafficLightPanel) navigare a
+  // /analysis/base?ticker=AAPL. Riepilogo non richiede rule-signal-cards.
+  test('Analysis page (Riepilogo): no horizontal overflow at 200% zoom', async ({ page }) => {
     await mockAuthSession(page); // /analysis protetta (TSK-267)
     await mockAllRoutes(page);
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const summaryAaplFixture = require('./fixtures/summary-aapl.json') as Record<string, unknown>;
+    await page.route('**/api/analysis/AAPL/summary', (route) =>
+      route.fulfill({ json: summaryAaplFixture }),
+    );
+    await page.route('**/api/analysis/AAPL/backtest**', (route) =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({}) }),
+    );
     await page.goto('/analysis/?ticker=AAPL');
 
-    const cards = page.locator('[data-testid^="rule-signal-card-"]');
-    await expect(cards.first()).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('summary-page')).toBeVisible({ timeout: 15_000 });
     await assertNoHorizontalOverflow(page);
 
     await page.screenshot({

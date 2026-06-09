@@ -3,23 +3,28 @@ import { ClientAuthGuard } from '@/components/auth/ClientAuthGuard';
 import { AnalysisRouteClient } from './AnalysisRouteClient';
 
 /**
- * Pagina `/analysis?ticker=AAPL` — TSK-055 (US-023, ADR-013) +
- * TSK-267 (US-087, ADR-026): rotta ora protetta dal `ClientAuthGuard`
- * client-side (static-export-compatible). Senza sessione l'utente
- * viene rediretto a `/login?returnUrl=/analysis?ticker=...`.
+ * Pagina `/analysis?ticker=AAPL` — landing del dettaglio ticker.
  *
- * Iter-2 boundary fix: il file `page.tsx` resta Server Component (Next 16
- * RSC); il consumo di `useSearchParams` è isolato in `AnalysisRouteClient`,
- * stesso pattern usato in `app/top-picks/page.tsx` e `app/admin/page.tsx`.
+ * Storia delle versioni:
+ *  - TSK-055 (US-023, ADR-013): introduzione static-export con query param.
+ *  - TSK-267 (US-087, ADR-026): protezione `ClientAuthGuard` client-side.
+ *  - TSK-267 iter-2: boundary RSC — `'use client'` solo in
+ *    `AnalysisRouteClient`, stesso pattern di `app/top-picks/page.tsx`
+ *    e `app/admin/page.tsx`.
+ *  - TSK-342 (US-104, EP-024 Fase 2): **il landing è ora il tab "Riepilogo"**
+ *    (primo tab + default attivo). L'Analisi Base "vintage" è spostata su
+ *    `/analysis/base?ticker=…`. I deep-link `/analysis/deep` e
+ *    `/analysis/technical` restano invariati.
  *
  * Static export (`output: 'export'`) non supporta segmenti dinamici senza
  * whitelist `generateStaticParams`. Il ticker arriva via query string,
- * allineato a `/moat?ticker=`.
+ * allineato a `/moat?ticker=` e alle altre rotte tab del dettaglio.
  *
  * Riferimento design:
  *   design_&_architecture/decisions/ADR-013-fe-analysis-routing-static-export.md
  *   design_&_architecture/decisions/ADR-026-frontend-authguard-static-export-runtime.md
- * REST invariato: GET /api/analysis/{ticker}.
+ *   design_&_architecture/decisions/ADR-030 (EP-024 Fase 2)
+ * REST: GET /api/analysis/{ticker}/summary (US-103).
  */
 export default function AnalysisPage(): React.ReactElement {
   return (

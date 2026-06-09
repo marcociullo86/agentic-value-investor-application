@@ -1,0 +1,84 @@
+{
+  "ticker": "AAPL",
+  "evaluatedAt": "2026-06-09T08:00:00Z",
+  "trend": {
+    "sma50": 186.4,
+    "sma200": 178.2,
+    "classification": "UPTREND",
+    "sma200SlopePerDay": 0.0012,
+    "confidenceReduced": false
+  },
+  "momentum": {
+    "rsi14": 52.3,
+    "macdDaily": 1.82,
+    "macdWeekly": 4.51,
+    "confidenceReduced": false
+  },
+  "volatility": {
+    "atr14": 3.21,
+    "confidenceReduced": false
+  },
+  "volume": {
+    "obv": 12345678900,
+    "avgVolume20d": 58000000,
+    "confidenceReduced": false
+  },
+  "levels": {
+    "support": [
+      { "price": 178.0, "type": "SWING_LOW", "confidence": "HIGH" },
+      { "price": 172.5, "type": "RETRACEMENT_50", "confidence": "MEDIUM" }
+    ],
+    "resistance": [
+      { "price": 199.5, "type": "SWING_HIGH", "confidence": "HIGH" }
+    ],
+    "confidenceReduced": false
+  },
+  "priceContext": {
+    "currentPrice": 192.5,
+    "high52w": 199.5,
+    "low52w": 164.1,
+    "drawdownFrom52wHigh": 0.035,
+    "confidenceReduced": false
+  },
+  "entryTimingAdvisor": {
+    "verdict": "ENTRY_FAVORABLE",
+    "reentryCondition": null,
+    "rationale": {
+      "screen1": "UPTREND confermato: prezzo sopra SMA200 con slope positivo.",
+      "screen2": "RSI 14d a 52 (neutro-favorevole). MACD daily in territorio positivo.",
+      "screen3": "Prezzo vicino al supporto SWING_LOW a $178. Entry ragionevole.",
+      "wikiCitations": ["ta-entry-timing-stock-detail", "elder-triple-screen-impulse-system"]
+    },
+    "viGate": "Layer advisory di timing. Non sostituisce il verdetto VI del Rule Engine."
+  },
+  "stopSuggestion": {
+    "type": "SUPPORT_BASED",
+    "stopPrice": 175.8,
+    "stopDistance": 16.7,
+    "stopDistancePct": 0.087,
+    "anchorReference": "support@$178.0 (SWING_LOW) meno 1.25% buffer",
+    "rationale": "Stop basato sul supporto SWING_LOW più recente con buffer 1.25%."
+  },
+  "positionSizing": {
+    "twoPercentRule": {
+      "equity": 50000,
+      "maxRiskAllowed": 1000,
+      "stopDistance": 16.7,
+      "sharesRecommended": 59,
+      "positionValueRecommended": 11357.5,
+      "positionPctEquity": 0.2271,
+      "warning": null
+    },
+    "sixPercentRule": {
+      "maxAggregateRiskPerMonth": 3000,
+      "disclaimer": "Somma di tutti i rischi aperti nel mese non deve superare il 6% dell'equity."
+    }
+  },
+  "rewardRiskRatio": {
+    "upside": 7.0,
+    "downside": 16.7,
+    "value": 2.49,
+    "label": "ACCEPTABLE",
+    "rationale": "Upside verso resistenza $199.5. Ratio 2.49:1 — accettabile ma non eccellente."
+  }
+}

@@ -621,3 +621,78 @@ Non bloccante per la compilazione/avvio; bloccante per le citazioni RAG cross-do
 di US-103 finché il mount non è in place. Bloccante: no (degrada).
 **Tracking:** TSK-345 (infra, Sprint 21, EP-024/US-103) apre l'azione — `COPY wiki/ /app/wiki/`
 nello stage runtime + bind-mount dev nei compose. Da marcare risolto post-merge TSK-345.
+**Risolto:** 2026-06-08 — TSK-345 done. `COPY wiki/ /app/wiki/` aggiunto nello stage runtime del Dockerfile; `.dockerignore` re-include `!wiki/concepts/` + `!wiki/syntheses/`; bind-mount `./wiki:/app/wiki:ro` aggiunto in `docker-compose.yml` (dev); `docker-compose.prod.yml` usa immagine self-contained. `rag.wiki.corpus-path=/app/wiki` operativo in prod senza degrado 0-pagine.
+
+---
+
+### 2026-06-09 — fe-ta-daily-eod-endpoint (assenza serie daily EOD nel payload /technical)
+
+**Origine:** fe-dev @ TSK-334 (PriceChartWithOverlays, US-101 EP-024 Fase 1).
+**Gap:** `TechnicalAnalysisResponse` (TSK-326/-332) espone `priceContext.currentPrice`
++ `trend.sma50` / `trend.sma200` come **valori LATEST singoli**, NON come serie
+giornaliera EOD. Il chart richiesto da US-101 §Layout 4 ("linea prezzo daily ultimi
+12 mesi") non è quindi pienamente disegnabile dal solo payload `/technical`.
+**Decisione adottata (non in silenzio):** il `PriceChartWithOverlays` degrada a
+"linea orizzontale 12m-fa → oggi" con overlay SMA50/200 latest + `ReferenceLine`
+support/resistance/stop. La spec US-101 ammette esplicitamente "altrimenti dataset
+esistente". Una nota inline nel chart dichiara la degradazione all'utente.
+**Sospetta fonte / azione richiesta (be-dev / lead-architect):** valutare nuovo
+endpoint `GET /api/analysis/{ticker}/eod?periods=252` (riusa `FmpAdapter.getHistoricalEodPrices`
+già disponibile, EP-002) che restituisca OHLCV daily 12 mesi + serie SMA50/SMA200
+allineate per data. Il componente `PriceChartWithOverlays` è già strutturato per
+accettare la serie come prop `dailySeries` opzionale: drop-in plug-in.
+Non bloccante per Fase 1 (chart funzionale come riferimento); diventa rilevante quando
+US-106 (backtest) richiederà marker temporali (entry/exit/stop) — la serie temporale
+è prerequisito naturale.
+**Tracking:** epica futura `EP-FUTURE-ta-eod-series` o estensione US-098 in EP-024
+Fase 2. Bloccante: no.
+
+---
+
+### 2026-06-09 — fe-wiki-html-rendering (pagine wiki non navigabili dal FE)
+
+**Origine:** fe-dev @ TSK-335 (WikiCitationsFooter, US-101 EP-024 Fase 1).
+**Gap:** Le pagine wiki (`wiki/concepts/*.md`, `wiki/syntheses/*.md`) NON sono ancora
+esposte come pagine HTML dall'App Router del FE — nessuna rotta `/wiki/[slug]` o
+`/wiki/[domain]/[slug]`. Le citazioni `entryTimingAdvisor.rationale.wikiCitations`
+(TSK-328) e i 4 link canonici TA del footer US-101 §Layout 8 sono quindi mostrati
+come `<span title>` non cliccabili, non come `<Link>` navigabili.
+**Decisione adottata (non in silenzio):** `WikiCitationsFooter` renderizza i titoli
+canonici TA con tooltip "Disponibile come pagina Markdown in `wiki/...`", più una
+riga riassuntiva delle citazioni custom emesse dal BE. Trasparenza sulle fonti
+(richiesta da [[ta-vs-vi-decision-layer]]) preservata; navigazione sì differita.
+**Sospetta fonte / azione richiesta (fe-dev + lead-architect):** epica futura per
+una rotta App Router `/wiki/[domain]/[slug]` con renderer Markdown server-side
+(es. `react-markdown` o MDX), risoluzione cross-link `[[slug]]`, frontmatter parser,
+breadcrumbs dominio. Pgvector (EP-011) può fornire anche "pagine correlate".
+Non bloccante: il principio di trasparenza è soddisfatto dal disclosure testuale.
+**Tracking:** epica futura `EP-FUTURE-wiki-html-render`. Bloccante: no.
+
+---
+
+### 2026-06-09 — backtest-deep-analysis-pointintime (Deep Analysis NULL nel backtest US-105)
+
+**Origine:** be-dev @ TSK-346 (US-105 EP-024 Fase 3).
+**Gap:** Il backtest per-ticker (US-105) ricostruisce VI + TA in modalita'
+as-of-date, ma la Deep Analysis (Munger inversion, EP-011) e' impostata a
+`null` per ogni `t`. Motivo: la Deep richiede l'ingest dei 10-K + 10-Q + una
+run sincrona Munger sulla cascade RAG; **non e' ricostruibile point-in-time**
+perche' (a) i 10-K storici non sono ri-ingestabili al volo per ogni `t` (costo
++ ordine di magnitudo, 5 anni x 12 punti = 60 run); (b) il modello LLM stesso
+e' cambiato nel tempo (Claude Opus versions, prompt template Munger sono
+evoluti) — un Munger replicato a `t = 2022` con i prompt 2026 sarebbe
+anacronistico. **Effetto sul verdetto:** il gate "RISCHIO_ESTREMO Munger →
+AVOID" (ADR-030 §3) NON si applica nel backtest; il gate VI primario hardcoded
++ TA continuano a funzionare 1:1 con la produzione.
+**Decisione adottata (non in silenzio):** il payload `BacktestResponse.caveats`
+sara' esteso (se richiesto dal FE in US-106) con un campo
+`deepAnalysisExcluded: true`. Nel codice (BacktestEngine.buildSnapshot) e' gia'
+commentato esplicitamente "Deep e' NULL nel backtest: limite architetturale".
+**Sospetta fonte / azione richiesta (lead-architect + qa-dev):** confermare in
+ADR-030 (o ADR successiva, es. ADR-031) che la Deep e' fuori scope per
+qualsiasi backtest storico, anche futuri (EP-FUTURE-backtest-universe). Se
+qualcuno propone "snapshot storici del Munger verdict" → richiede tabella di
+persistenza dedicata (`deep_analysis_history`) con verdetti tipati per `t`,
+non un re-run del Munger. Out-of-scope per US-105.
+**Tracking:** doc-only (commenti in codice + caveats nel payload).
+Bloccante: no.

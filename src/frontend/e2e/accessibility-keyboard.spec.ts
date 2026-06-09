@@ -256,8 +256,21 @@ test.describe('Keyboard accessibility', () => {
   // ---------------------------------------------------------------------------
   // Flow 2 — Search ticker via keyboard
   // ---------------------------------------------------------------------------
+  // REGRESSION-FIX (EP-024 Fase 2): /analysis?ticker=AAPL ora mostra il
+  // Riepilogo (US-104 — primo tab default). Il contenuto atteso è summary-page,
+  // non più rule-signal-card. I test che vogliono l'Analisi Base devono usare
+  // /analysis/base?ticker=AAPL.
   test('Flow 2: Search ticker completable via keyboard only', async ({ page }) => {
     await mockAuthSession(page); // /analysis protetta (TSK-267)
+    // Mock Riepilogo (nuovo landing EP-024)
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const summaryAaplFixture = require('./fixtures/summary-aapl.json') as Record<string, unknown>;
+    await page.route('**/api/analysis/AAPL/summary', (route) =>
+      route.fulfill({ json: summaryAaplFixture }),
+    );
+    await page.route('**/api/analysis/AAPL/backtest**', (route) =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({}) }),
+    );
     await mockAnalysisRoutes(page);
 
     await page.goto('/');
@@ -275,9 +288,9 @@ test.describe('Keyboard accessibility', () => {
     // Should navigate to analysis page
     await page.waitForURL(/\/analysis\/?\?ticker=AAPL/, { timeout: 15_000 });
 
-    // Verify results are rendered (focus should flow to content)
-    const cards = page.locator('[data-testid^="rule-signal-card-"]');
-    await expect(cards.first()).toBeVisible({ timeout: 15_000 });
+    // EP-024 Fase 2: il landing è ora il Riepilogo (summary-page), non più
+    // il TrafficLightPanel con rule-signal-card.
+    await expect(page.getByTestId('summary-page')).toBeVisible({ timeout: 15_000 });
   });
 
   // ---------------------------------------------------------------------------

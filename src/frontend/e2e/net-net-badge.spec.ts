@@ -64,7 +64,9 @@ test('NET_NET_RATIO GREEN: badge "Net-Net" visibile nell\'header della pagina an
     route.fulfill({ json: historicalNntestFixture }),
   );
 
-  await page.goto('/analysis/?ticker=NNTEST');
+  // REGRESSION-FIX (EP-024 Fase 2): /analysis?ticker=X → Riepilogo.
+  // Il tab Analisi Base (TrafficLightPanel + NetNetBadge) vive su /analysis/base.
+  await page.goto('/analysis/base?ticker=NNTEST');
 
   // Attende che il traffico light sia caricato (almeno una card visibile)
   await expect(page.locator('[data-testid^="rule-signal-card-"]').first()).toBeVisible({
@@ -92,7 +94,9 @@ test('NET_NET_RATIO RED: badge "Net-Net" assente nella pagina analisi', async ({
     route.fulfill({ json: historicalNntestFixture }),
   );
 
-  await page.goto('/analysis/?ticker=NNTEST');
+  // REGRESSION-FIX (EP-024 Fase 2): /analysis?ticker=X → Riepilogo.
+  // Il tab Analisi Base (TrafficLightPanel + NetNetBadge) vive su /analysis/base.
+  await page.goto('/analysis/base?ticker=NNTEST');
 
   // Attende caricamento pagina (il pannello Traffic Light deve essere montato)
   await expect(page.locator('[data-testid^="rule-signal-card-"]').first()).toBeVisible({
@@ -114,7 +118,9 @@ test('badge NET_NET_RATIO GREEN ha aria-label "Criterio Graham Net-Net soddisfat
     route.fulfill({ json: historicalNntestFixture }),
   );
 
-  await page.goto('/analysis/?ticker=NNTEST');
+  // REGRESSION-FIX (EP-024 Fase 2): /analysis?ticker=X → Riepilogo.
+  // Il tab Analisi Base (TrafficLightPanel + NetNetBadge) vive su /analysis/base.
+  await page.goto('/analysis/base?ticker=NNTEST');
 
   await expect(page.locator('[data-testid="net-net-badge"]')).toBeVisible({
     timeout: 15_000,
@@ -136,7 +142,9 @@ test('Traffic Light mostra 15 card con payload 15 signal (13 + NCAV_LATEST + NET
     route.fulfill({ json: historicalNntestFixture }),
   );
 
-  await page.goto('/analysis/?ticker=NNTEST');
+  // REGRESSION-FIX (EP-024 Fase 2): /analysis?ticker=X → Riepilogo.
+  // Il tab Analisi Base (TrafficLightPanel + NetNetBadge) vive su /analysis/base.
+  await page.goto('/analysis/base?ticker=NNTEST');
 
   // Attende che tutte le card siano montate
   const cards = page.locator('[data-testid^="rule-signal-card-"]');
@@ -155,7 +163,9 @@ test('Traffic Light mostra card NCAV_LATEST e NET_NET_RATIO nel pannello', async
     route.fulfill({ json: historicalNntestFixture }),
   );
 
-  await page.goto('/analysis/?ticker=NNTEST');
+  // REGRESSION-FIX (EP-024 Fase 2): /analysis?ticker=X → Riepilogo.
+  // Il tab Analisi Base (TrafficLightPanel + NetNetBadge) vive su /analysis/base.
+  await page.goto('/analysis/base?ticker=NNTEST');
 
   // Card NCAV_LATEST
   const ncavCard = page.locator('[data-testid="rule-signal-card-NCAV_LATEST"]');
@@ -183,7 +193,8 @@ test('payload pre-EP-023 senza NCAV signals: badge assente, 13 card nel Traffic 
     route.fulfill({ json: historicalAaplFixture }),
   );
 
-  await page.goto('/analysis/?ticker=AAPL');
+  // REGRESSION-FIX (EP-024 Fase 2): naviga a /analysis/base (Analisi Base).
+  await page.goto('/analysis/base?ticker=AAPL');
 
   // Attende caricamento
   await expect(page.locator('[data-testid^="rule-signal-card-"]').first()).toBeVisible({
