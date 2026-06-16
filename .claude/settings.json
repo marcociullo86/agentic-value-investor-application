@@ -73,5 +73,31 @@
       "PowerShell(podman exec vi-postgres psql -U postgres -d value_investing -At -c \"select id, ticker, kind, status, requested_at from deep_analysis_run where ticker='TTD' order by requested_at desc limit 10;\")",
       "PowerShell(podman exec vi-postgres psql -U postgres -d value_investing -At -c \"select jsonb_pretty\\(\\(result_json::jsonb -> 'ruleEngineResults' -> 0\\)\\) from deep_analysis_run where id='c240733d-5869-49ff-ba81-7a212dcd9a8f';\")"
     ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/tools/analytics/show-session-tokens.py\" --from-hook 2>/dev/null || true",
+            "timeout": 5,
+            "statusMessage": "◉ Token ledger"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/tools/analytics/harvest-session-tokens.py\" --from-hook --project agentic-value-investor-application 2>/dev/null || true",
+            "timeout": 30,
+            "statusMessage": "Analytics: harvest token usage (EP-013 dogfooding)"
+          }
+        ]
+      }
+    ]
   }
 }
