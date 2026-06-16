@@ -148,6 +148,600 @@ TSK <id> ha `estimate: <X>h` (> {max_estimate_hours}) e copre <N> stati FE (> {m
 **Numerazione**: «4n» segue «4m» (Premortem v2.16) nella serie alfabetica; non collide con
 alcun check esistente in questo file.
 
+### 4o — TSK FE done senza scan a11y verificata (Accessibility Testing Capability, EP-007 US-027, ADR-016 §A/§I)
+
+**Pattern allineato a Check 4m (EP-002 US-007) + Check 4n (EP-006 US-022)** (R.P3 opt-in
+totale): WARNING-only, opt-in via flag config, nessun ERROR meccanico. Check 4o eredita la
+stessa shape per coerenza framework.
+
+**Severità: WARNING-only — mai ERROR** (R.P3 opt-in totale + decisione ADR-016 §A). Il
+completamento di uno scan a11y prima del done è scope del derivatore di factory, non
+automatizzabile come gate hard: il lint informa, non blocca mai `/lint` né il Develop. Mai
+`heal-eligible` (giudizio semantico).
+
+**Trigger (AND — tutte le condizioni devono essere vere)**:
+
+```
+TSK.layer == 'fe'
+AND factory.config.yaml.a11y.required_on_fe_done == true
+AND TSK.status == 'done'
+AND NOT (TSK.frontmatter.a11y_status IN ['pass', 'skip'])
+AND NOT (TSK.frontmatter.a11y_status == 'skip' AND TSK.frontmatter.a11y_skip_reason valorizzato)
+```
+
+(In pratica: WARNING se `a11y_status` è assente, `pending`, `major` o `critical`, **oppure**
+è `skip` ma `a11y_skip_reason` è vuoto/assente. La condizione `a11y_report` assente è
+implicata: un report a11y produce `a11y_status: pass|major|critical`, non lascia il campo
+assente/`pending`.)
+
+**Gate**: `factory.config.yaml.a11y.required_on_fe_done: false` (default off, opt-in totale,
+backward compat). Se assente o `false` → no-op totale (Check 4o non si applica,
+indipendentemente dallo stato dei TSK FE). [^src: ADR-016 §A + §I + §J]
+
+**Esenzione**: TSK FE che dichiara `a11y_status: skip` **con** `a11y_skip_reason:` valorizzato
+→ no WARNING (il derivatore ha dichiarato esplicitamente che il TSK non è soggetto a scan,
+es. "componente coperto da scan parent route"). L'esenzione richiede motivazione esplicita.
+
+**Esenzione parziale (incoerenza)**: TSK FE con `a11y_status: skip` **senza**
+`a11y_skip_reason:` → WARNING diverso (l'esenzione è dichiarata ma non motivata):
+
+```
+TSK <id> ha a11y_status: skip ma manca a11y_skip_reason. Aggiungere motivazione.
+```
+
+**Messaggio (template verbatim, placeholder `<id>`, `<value>`)**:
+
+```
+TSK <id> FE done senza scan a11y verificata (a11y_status: <value>). Eseguire `/a11y <id>` o aggiungere `a11y_status: skip` con `a11y_skip_reason: <motivazione>`. Vedi ADR-016, US-027.
+```
+
+**Output format** (sezione `## WARNING (igiene)` del report):
+
+```
+- [WARNING][a11y][4o] TSK-051: FE done senza scan a11y verificata (a11y_status: pending). Eseguire /a11y TSK-051 o aggiungere a11y_status: skip con a11y_skip_reason. Vedi ADR-016, US-027.
+- [WARNING][a11y][4o] TSK-052: ha a11y_status: skip ma manca a11y_skip_reason. Aggiungere motivazione.
+```
+
+**Scenari di verifica**:
+
+| # | layer | status | a11y_status | a11y_skip_reason | flag `required_on_fe_done` | esito atteso |
+|---|---|---|---|---|---|---|
+| 1 | fe | done | assente | — | `false` (default) | no warning (gate off, backward compat) |
+| 2 | fe | done | assente | — | `true` | **WARNING 4o** (scan a11y mancante) |
+| 3 | fe | done | `pass` | — | `true` | no warning (scan verificata pass) |
+| 4 | fe | done | `skip` | valorizzato | `true` | no warning (esenzione motivata) |
+| 5 | fe | done | `skip` | assente | `true` | **WARNING 4o** (skip senza motivazione) |
+| 6 | be | done | assente | — | `true` | no warning (layer != fe) |
+
+**Numerazione**: «4o» segue «4n» (State Matrix v2.18, EP-006 US-022) nella serie alfabetica;
+non collide con alcun check esistente in questo file (precede «4p»/«4q»/«4r»).
+
+### 4p — TSK FE done senza review UX/UI verificata (UX/UI Review & Design Capability, EP-008 US-032, ADR-020 §G)
+
+**Pattern allineato a Check 4m (EP-002 US-007) + Check 4n (EP-006 US-022) + Check 4o (EP-007
+US-027)** (R.P3 opt-in totale): WARNING-only, opt-in via flag config, nessun ERROR meccanico.
+Check 4p eredita la stessa shape per coerenza framework.
+
+**Severità: WARNING-only — mai ERROR** (R.P3 opt-in totale + decisione ADR-020 §G). Il
+completamento di una review UX/UI prima del done è scope del derivatore di factory, non
+automatizzabile come gate hard (la review UX è additive value, non semantic precondition —
+ADR-019 §Rationale 2): il lint informa, non blocca mai `/lint` né il Develop. Mai
+`heal-eligible` (giudizio semantico).
+
+**Trigger (AND — tutte le condizioni devono essere vere)**:
+
+```
+TSK.layer == 'fe'
+AND factory.config.yaml.ux_ui.required_on_fe_done == true
+AND TSK.status == 'done'
+AND NOT (TSK.frontmatter.ux_ui_status == 'pass')
+AND NOT (TSK.frontmatter.ux_ui_status == 'skip' AND TSK.frontmatter.ux_ui_skip_reason valorizzato)
+```
+
+(In pratica: WARNING se `ux_ui_status` è assente, `pending`, `conditional` o `reject`,
+**oppure** è `skip` ma `ux_ui_skip_reason` è vuoto/assente.)
+
+**Gate**: `factory.config.yaml.ux_ui.required_on_fe_done: false` (default off, opt-in totale,
+backward compat). Se assente o `false` → no-op totale (Check 4p non si applica,
+indipendentemente dallo stato dei TSK FE). [^src: ADR-020 §G + §J]
+
+**Esenzione**: TSK FE che dichiara `ux_ui_status: skip` **con** `ux_ui_skip_reason:` valorizzato
+→ no WARNING (il derivatore ha dichiarato esplicitamente che il TSK non è soggetto a review UX/UI).
+L'esenzione richiede motivazione esplicita.
+
+**Esenzione parziale (incoerenza)**: TSK FE con `ux_ui_status: skip` **senza**
+`ux_ui_skip_reason:` → WARNING diverso (l'esenzione è dichiarata ma non motivata):
+
+```
+TSK <id> ha ux_ui_status: skip ma manca ux_ui_skip_reason. Aggiungere motivazione.
+```
+
+**Messaggio (template verbatim, placeholder `<id>`, `<value>`)**:
+
+```
+TSK <id> FE done senza review UX/UI verificata (ux_ui_status: <value>). Eseguire `/ux-ui-review <id>` o aggiungere `ux_ui_status: skip` con `ux_ui_skip_reason: <motivazione>`. Vedi ADR-020, US-032.
+```
+
+**Output format** (sezione `## WARNING (igiene)` del report):
+
+```
+- [WARNING][ux-ui][4p] TSK-051: FE done senza review UX/UI verificata (ux_ui_status: pending). Eseguire /ux-ui-review TSK-051 o aggiungere ux_ui_status: skip con ux_ui_skip_reason. Vedi ADR-020, US-032.
+- [WARNING][ux-ui][4p] TSK-052: ha ux_ui_status: skip ma manca ux_ui_skip_reason. Aggiungere motivazione.
+```
+
+**Scenari di verifica**:
+
+| # | layer | status | ux_ui_status | ux_ui_skip_reason | flag `required_on_fe_done` | esito atteso |
+|---|---|---|---|---|---|---|
+| 1 | fe | done | assente | — | `false` (default) | no warning (gate off, backward compat) |
+| 2 | fe | done | assente | — | `true` | **WARNING 4p** (review UX/UI mancante) |
+| 3 | fe | done | `pass` | — | `true` | no warning (review verificata pass) |
+| 4 | fe | done | `skip` | valorizzato | `true` | no warning (esenzione motivata) |
+| 5 | fe | done | `skip` | assente | `true` | **WARNING 4p** (skip senza motivazione) |
+| 6 | be | done | assente | — | `true` | no warning (layer != fe) |
+
+**Numerazione**: «4p» segue «4o» (a11y v2.18, EP-007 US-027) nella serie alfabetica; non
+collide con alcun check esistente in questo file (precede «4q»/«4r» di EP-009/EP-010).
+Distinto da Check 4o: 4o enforce lo scan a11y (`a11y.required_on_fe_done`, campo `a11y_status`),
+4p enforce la review UX/UI (`ux_ui.required_on_fe_done`, campo `ux_ui_status`) — gate, trigger
+e campi frontmatter indipendenti, possono coesistere (a11y e ux-ui sono capability distinte).
+
+### 4q — TSK done senza event log/effort (Task Analytics Measurement, EP-009 US-039, ADR-023 §G)
+
+**Pattern allineato a Check 4m/4n/4o (R.P3 opt-in totale)**: WARNING-only, opt-in via flag
+config, nessun ERROR meccanico. Check 4q eredita la stessa shape per coerenza framework.
+
+**Severità: WARNING-only — mai ERROR** (R.P3 opt-in totale + decisione ADR-023 §G). La
+strumentazione analytics (`record_task_event`, US-033) o la dichiarazione manuale di
+`effort_hours` è scelta del derivatore di factory, non automatizzabile: il lint informa,
+non blocca mai `/lint` né il Develop. Mai `heal-eligible` (giudizio semantico).
+
+**Trigger (AND — tutte le condizioni devono essere vere)**:
+
+```
+factory.config.yaml.analytics.measurement.required_on_done == true
+AND TSK.status == 'done'
+AND TSK.frontmatter.cost_event_log absent (o vuoto)
+AND TSK.frontmatter.effort_hours absent (se TSK.frontmatter.actor_type == 'human')
+AND NOT (TSK.frontmatter.analytics_skip == true)
+```
+
+**Gate**: `factory.config.yaml.analytics.measurement.required_on_done: false` (default off,
+opt-in totale, backward compat). Se assente o `false` → no-op totale (Check 4q non si applica).
+
+**Esenzione**: TSK con frontmatter `analytics_skip: true` + `reason:` valorizzato → no
+WARNING (il derivatore ha dichiarato esplicitamente che il TSK non è soggetto a misurazione,
+es. task di pura documentazione o spike). L'assenza di `reason:` con `analytics_skip: true`
+non sopprime il warning (l'esenzione richiede motivazione esplicita).
+
+**Messaggio (template verbatim, placeholder `<id>`)**:
+
+```
+TSK <id> done senza event log/effort. Verificare che `record_task_event` (US-033) sia attivo o aggiungere `effort_hours` manuale. Disabilita Check 4q impostando analytics.measurement.required_on_done: false; esenta il singolo TSK con analytics_skip: true + reason.
+```
+
+**Output format** (sezione `## WARNING (igiene)` del report):
+
+```
+- [WARNING][analytics][4q] TSK-042: done senza event log/effort. Verificare che `record_task_event` (US-033) sia attivo o aggiungere `effort_hours` manuale.
+```
+
+**Numerazione**: «4q» segue «4p» (EP-008 US-032) nella serie alfabetica; non collide con
+alcun check esistente in questo file. Distinta da «4r» (EP-010 US estimation, ADR-027 §H,
+gate `analytics.estimation.required_on_kickoff`): 4q misura il done (EP-009), 4r enforce la
+stima preliminare al kickoff (EP-010).
+
+### 4r — TSK in nuovo progetto senza stima di riferimento (Task Analytics Estimation, EP-010 US-042, ADR-027 §H)
+
+**Pattern allineato a Check 4m/4n/4o/4q (R.P3 opt-in totale)**: WARNING-only, opt-in via flag
+config, nessun ERROR meccanico. Check 4r eredita la stessa shape per coerenza framework.
+
+**Severità: WARNING-only — mai ERROR** (R.P3 opt-in totale + decisione ADR-027 §H). La
+produzione di una stima preliminare (`/estimate`, skill `project-estimation` US-040) è scelta
+del derivatore di factory enterprise, non automatizzabile: il lint informa, non blocca mai
+`/lint` né il Develop. Mai `heal-eligible` (giudizio semantico).
+
+**Distinta da Check 4q** (EP-009 US-039): 4q **misura il done** (gate `required_on_done`,
+trigger su `status: done` senza `cost_event_log`/`effort_hours`); 4r **enforce la stima al
+kickoff** (gate `required_on_kickoff`, trigger su TSK `todo|in-progress` di un nuovo
+progetto/EP senza `estimate_id`). Asse temporale opposto: 4q guarda indietro (consuntivo),
+4r guarda avanti (preventivo). Gate, trigger e messaggio sono indipendenti.
+
+**Trigger (AND — tutte le condizioni devono essere vere)**:
+
+```
+factory.config.yaml.analytics.estimation.required_on_kickoff == true
+AND TSK.layer in ['fe', 'be', 'db', 'qa']
+AND TSK.status in ['todo', 'in-progress']
+AND TSK in nuovo progetto/EP (project_id non visto in storia precedente)
+AND TSK.frontmatter.estimate_id absent (o vuoto)
+AND NOT (TSK.frontmatter.estimate_skip == true)
+```
+
+**Gate**: `factory.config.yaml.analytics.estimation.required_on_kickoff: false` (default off,
+opt-in totale, backward compat). Se assente o `false` → no-op totale (Check 4r non si applica).
+Il flag vive nel sub-blocco `analytics.estimation:` introdotto da US-044 (config + scheduler +
+PATTERN per EP-010); l'intero sub-blocco è gated da `analytics.estimation.enabled: false` di
+default, quindi su una factory v2.17 senza opt-in il flag è assente e il check è no-op.
+
+**Esenzione**: TSK con frontmatter `estimate_skip: true` + `reason:` valorizzato → no
+WARNING (il derivatore ha dichiarato esplicitamente che il TSK non richiede stima preliminare,
+es. task di pura documentazione, spike, hotfix). L'assenza di `reason:` con `estimate_skip:
+true` non sopprime il warning (l'esenzione richiede motivazione esplicita).
+
+**Messaggio (template verbatim, placeholder `<id>`, `<project_id>`)**:
+
+```
+TSK <id> appartiene a un nuovo progetto/EP (<project_id>) e non referenzia un estimate_id. Eseguire `/estimate --from-kanban=<EP-id>` per produrre stima preliminare o aggiungere estimate_id: manuale. Vedi ADR-027 §H. Disabilita Check 4r impostando analytics.estimation.required_on_kickoff: false; esenta il singolo TSK con estimate_skip: true + reason.
+```
+
+**Output format** (sezione `## WARNING (igiene)` del report):
+
+```
+- [WARNING][estimation][4r] TSK-080: nuovo progetto/EP (EP-012) senza estimate_id. Eseguire `/estimate --from-kanban=EP-012` o aggiungere estimate_id: manuale. Vedi ADR-027 §H.
+```
+
+**Numerazione**: «4r» segue «4q» (EP-009 US-039) nella serie alfabetica; non collide con
+alcun check esistente in questo file.
+
+### 4s — Chain profonda senza consistency-check + R.C7 verification lint (Decision-Preserving Compression, EP-015 US-060, ADR-049 §B + ADR-050 §I)
+
+**Pattern allineato a Check 4m/4n/4o/4p/4q/4r (R.P3 opt-in totale)**: WARNING-only, opt-in via
+flag config, nessun ERROR meccanico. Check 4s eredita la stessa shape per coerenza framework.
+
+**Severità: WARNING-only — mai ERROR** (R.P3 opt-in totale + decisione ADR-049/ADR-050). Il
+ban hard di `aggressive` su chain profonda è gestito a runtime dalla pipeline caveman (soft
+downgrade default ADR-050 §A, oppure hard fail se `migration.strict: true`): il lint **informa
+preventivamente**, non blocca mai `/lint` né il Develop. Mai `heal-eligible` (giudizio
+semantico). Coerente con la severity ladder ADR-050 (pre-warning INFO → soft downgrade WARNING
+→ hard fail ERROR a runtime, NON nel lint).
+
+Il Check 4s ha **due sotto-check indipendenti** con gate distinti:
+
+#### 4s.1 — Chain inter-agent senza consistency_decision event (gate `consistency_check.required_on_chain`)
+
+**Trigger (AND — tutte le condizioni devono essere vere)**:
+
+```
+factory.config.yaml.compression.output.consistency_check.required_on_chain == true
+AND chain inter-agent con chain_depth > 3 nel log EP-013 per la chain corrente
+AND nessun evento `state: consistency_decision` nel log EP-013 per quella chain
+AND NOT (consistency_check_skip_reason valorizzato nel frontmatter TSK o nei metadata handoff)
+```
+
+**Gate**: `factory.config.yaml.compression.output.consistency_check.required_on_chain: false`
+(default off, opt-in totale, backward compat — R.P3). Se assente o `false` → 4s.1 no-op totale
+(non si applica, indipendentemente da `chain_depth`).
+
+**Esenzione**: TSK che dichiara `consistency_check_skip_reason: "<motivo>"` nel frontmatter
+(o nei metadata handoff) → no WARNING (il derivatore ha dichiarato esplicitamente che la chain
+non è soggetta a inter-hop consistency check, es. "chain mono-dominio a basso rischio drift").
+L'esenzione richiede motivazione esplicita.
+
+**Messaggio (template verbatim, placeholder `<chain_id>`, `<N>`)**:
+
+```
+Chain <chain_id> ha chain_depth: <N> (> 3) senza alcun evento state: consistency_decision nel log EP-013. Eseguire il consistency-checker (skill `consistency-check-protocol.md`, agente consistency-checker) o aggiungere consistency_check_skip_reason. Vedi ADR-048, US-059. Disabilita 4s.1 impostando compression.output.consistency_check.required_on_chain: false.
+```
+
+#### 4s.2 — R.C7 verification lint: `aggressive` su chain profonda (gate `compression.output.enabled`)
+
+**Indipendente da `required_on_chain`** (gate proprio): sempre attivo quando la compression
+output è abilitata. Replica documentalmente il trigger R.C7 (PATTERN §20.4, ADR-049 §B/§C).
+
+**Trigger (AND — tutte le condizioni devono essere vere)**:
+
+```
+factory.config.yaml.compression.output.enabled == true
+AND factory.config.yaml.compression.output.policy_profile == 'aggressive'
+AND chain_depth_estimated > 3
+AND active_capabilities_count > 5
+```
+
+(Replica della formula R.C7 ADR-049 §A: `(chain_depth > 3 AND active_capabilities > 5) OR
+chain_depth > 5`. Il sotto-check 4s.2 cattura il ramo combinato `depth > 3 AND caps > 5`; il
+ramo shortcut `depth > 5` è gestito a runtime dal soft downgrade ADR-050 e qui resta
+implicato dalla condizione `chain_depth_estimated > 3`. Confronto **strict `>`**: boundary
+`caps == 5` o `depth == 3` → no warning — coerente con ADR-049 §C "vincolo strict `>`".)
+
+**Gate**: se `compression.output.enabled: false` (default) → 4s.2 no-op totale. Se
+`enabled: true` ma `policy_profile != aggressive` → no-op (R.C7 documentale per
+`conservative`/`custom`, ADR-049 §D). Se `enabled: true` + `aggressive` → 4s.2 attivo.
+
+**Messaggio (template verbatim, placeholder `<depth>`, `<caps>`)**:
+
+```
+R.C7 violation risk: aggressive profile on deep chain (chain_depth_estimated: <depth> > 3, active_capabilities_count: <caps> > 5). A runtime la pipeline caveman applicherà soft downgrade aggressive → conservative (o hard fail se compression.output.migration.strict: true). Considerare policy_profile: conservative. Vedi PATTERN §20.4 R.C7, ADR-049, ADR-050.
+```
+
+**Output format** (sezione `## WARNING (igiene)` del report):
+
+```
+- [WARNING][consistency-check][4s.1] chain wave-2026-06-08-003: chain_depth 4 (> 3) senza evento state: consistency_decision. Eseguire consistency-check-protocol o aggiungere consistency_check_skip_reason. Vedi ADR-048, US-059.
+- [WARNING][compression][4s.2] R.C7 violation risk: aggressive profile on deep chain (chain_depth_estimated: 4 > 3, active_capabilities_count: 6 > 5). Runtime: soft downgrade aggressive → conservative. Considerare policy_profile: conservative. Vedi PATTERN §20.4 R.C7, ADR-049, ADR-050.
+```
+
+**Scenari di verifica**:
+
+| # | sotto-check | `enabled` | `policy_profile` | `required_on_chain` | chain_depth | caps | consistency_decision | skip_reason | esito atteso |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | 4s.1 | — | — | `false` (default) | 4 | — | assente | — | no warning (gate off, R.P3) |
+| 2 | 4s.1 | — | — | `true` | 4 | — | assente | assente | **WARNING 4s.1** (chain profonda senza consistency event) |
+| 3 | 4s.1 | — | — | `true` | 4 | — | presente | — | no warning (consistency event presente) |
+| 4 | 4s.1 | — | — | `true` | 4 | — | assente | valorizzato | no warning (esenzione motivata) |
+| 5 | 4s.1 | — | — | `true` | 3 | — | assente | assente | no warning (boundary: `3 > 3` falso, strict `>`) |
+| 6 | 4s.2 | `false` (default) | — | — | 4 | 6 | — | — | no warning (compression off) |
+| 7 | 4s.2 | `true` | `conservative` | — | 4 | 6 | — | — | no warning (R.C7 documentale per conservative) |
+| 8 | 4s.2 | `true` | `aggressive` | — | 4 | 6 | — | — | **WARNING 4s.2** (R.C7 violation risk) |
+| 9 | 4s.2 | `true` | `aggressive` | — | 4 | 5 | — | — | no warning (boundary: `5 > 5` falso, strict `>`) |
+| 10 | 4s.2 | `true` | `aggressive` | — | 3 | 6 | — | — | no warning (boundary: `3 > 3` falso, strict `>`) |
+
+**Numerazione**: «4s» segue «4r» (EP-010 US-042) nella serie alfabetica; non collide con alcun
+check esistente in questo file (precede «4t-migration» di ADR-050 §I, pre-warning INFO opzionale
+post-upgrade — distinto e additivo). Distinto da 4s.1/4s.2: 4s.1 enforce l'inter-hop consistency
+check (gate `consistency_check.required_on_chain`, EP-015 US-059), 4s.2 replica documentalmente
+il trigger R.C7 (gate `compression.output.enabled`, ADR-049 §B) — gate, trigger e messaggi
+indipendenti, possono coesistere.
+
+**Cross-link**: 4s.1 → skill `consistency-check-protocol.md` + agente `consistency-checker` +
+ADR-048; 4s.2 → PATTERN §20.4 R.C7 + ADR-049 (definizione chain profonda) + ADR-050 (migration
+soft/strict).
+
+### 4ab — Handoff inter-wave senza Temporal Handoff Block (Temporal Awareness, EP-011 US-046, ADR-031 §F)
+
+> **Nota di numerazione**: slot `4t` è **riservato** alla migration ADR-050 §I (pre-warning INFO
+> opzionale post-upgrade, `compression.migration.audit_after_upgrade`, non ancora implementata —
+> vedi note di numerazione in 4u/4v/4w/4x). Nomenclatura originale in TSK-092: `4r-temporal-handoff`.
+> Adottato slot libero **4ab** (prossimo dopo 4aa=EP-015 US-084).
+
+**Pattern allineato a Check 4o/4p/4q/4r/4s (R.P3 opt-in totale)**: WARNING-only, mai ERROR.
+
+**Gate** (doppio, entrambi richiesti):
+1. `temporal.enabled: true` (master switch EP-011).
+2. `temporal.handoff_protocol.handoff_required_on_wave_close: true` (default `false`).
+
+A flag spento su uno dei due → 4ab no-op totale (backward compat R.P3).
+
+**Trigger**: handoff inter-wave con `temporal.handoff_protocol.enabled: true` in cui il payload di
+ritorno del sub-agent verso l'Orchestrator manca del blocco `temporal_handoff:` oppure il blocco
+presente ha ≥ 1 dei 5 campi obbligatori assenti (`handoff_id`, `elapsed_ms`,
+`estimated_remaining_ms`, `completed_steps`, `context_summary`).
+
+**Esenzione**: frontmatter TSK con `temporal_handoff_skip: true` + `reason:` non vuoto → no WARNING.
+
+**Output** (messaggio):
+```
+[WARNING][temporal-handoff-missing][4ab] handoff wave <wave_id> TSK-<id>: Temporal Handoff Block
+mancante o incompleto. Verificare che skill dev-handoff/vcs-handoff sia v2.18+ con
+temporal.handoff_protocol.enabled: true, oppure aggiungere temporal_handoff_skip: true con reason.
+Vedi ADR-031 §F.
+```
+
+**Severity**: WARNING. Mai ERROR. R.P3.
+
+**Cross-link**: 4ab → skill `dev-handoff.md` §Temporal Handoff Block + skill `vcs-handoff.md`
+§Temporal Handoff Block + ADR-031 §F (check warrant) + ADR-030 (time semantics elapsed_ms) +
+PATTERN §18 nota inter-wave + §3 «Temporal Handoff».
+
+### 4ab-bis — TSK XL senza State Machine attiva (Temporal Awareness, EP-011 US-047, ADR-029 §E)
+
+> Slot 4ab-bis (companion di 4ab, stesso EP-011). Nomenclatura originale in TSK-092: `4r-temporal-state`.
+
+**Gate** (doppio, entrambi richiesti):
+1. `temporal.enabled: true` (master switch EP-011).
+2. `temporal.state_machine.required_on_xl: true` (default `false`).
+
+A flag spento su uno dei due → 4ab-bis no-op totale (backward compat R.P3).
+
+**Trigger**: TSK con `estimate: xl` AND `status: in-progress|done` AND assenza del file
+`management/state/<TSK-id>.json` AND assenza di `temporal_state: false` esplicito nel frontmatter.
+
+**Esenzione**: frontmatter TSK con `temporal_state: false` + `notes:` non vuoto → no WARNING
+(opt-out documentato, pattern analogo a `a11y_skip_reason` / `ux_ui_skip_reason`).
+
+**Caso edge `estimate` assente con policy `estimate-xl`**: TSK senza `estimate:` e
+`temporal.state_machine.activation_policy: estimate-xl` → INFO-only (non WARNING): «TSK senza
+estimate; State Machine non attivata automaticamente. Considerare `temporal_state: true` se
+multi-step.» Solo se `temporal.state_machine.enabled: true`.
+
+**Output** (messaggio):
+```
+[WARNING][temporal-state-missing][4ab-bis] TSK-<id> (estimate: xl) in-progress senza state file
+management/state/<id>.json. Attivare temporal.state_machine.enabled: true o aggiungere
+temporal_state: false con notes. Vedi ADR-029 §E.
+```
+
+**Severity**: WARNING. Mai ERROR. R.P3.
+
+**Cross-link**: 4ab-bis → ADR-029 §E (check warrant) + ADR-028 §A (state file spec) +
+PATTERN §3 «Temporal State Tracking» + factory.config.yaml `temporal.state_machine` + skill
+`dev-handoff.md` §Proiezione da State Machine.
+
+### 4u — Wave chiusa senza governor_decision (Temporal Budget Governance, EP-014 US-057, ADR-046 §E)
+
+**Pattern allineato a Check 4m/4n/4o/4p/4q/4r/4s (R.P3 opt-in totale)**: WARNING-only, opt-in via
+flag config, nessun ERROR meccanico. Check 4u eredita la stessa shape per coerenza framework.
+
+> **Nota di numerazione**: ADR-046 §E prescrive questo check come «Check 4r»; nel repo corrente
+> gli slot 4r (EP-010 US-042), 4s (EP-015 US-060) e «4t» / «4t-migration» (riservato ADR-050 §I
+> migration pre-warning + EP-011 US-046/047 → slot 4ab/4ab-bis) sono già occupati,
+> quindi il check adotta il prossimo slot libero **4u** preservando l'intento dell'ADR (correzione
+> meccanica di numerazione, non cambio di intento).
+
+**Severità: WARNING-only — mai ERROR** (R.P3 opt-in totale). Mai `heal-eligible` (giudizio
+semantico). Replica documentalmente il gate empirico `required_on_wave_close` di EP-014.
+
+**Trigger (AND — tutte le condizioni devono essere vere)**:
+
+```
+factory.config.yaml.temporal.budget.required_on_wave_close == true
+AND wave chiusa (evento `state: wave_completed` nel log EP-013) senza evento `state: governor_decision`
+    accompagnatore nel ts range della wave
+AND NOT (temporal_budget_skip_reason valorizzato nel frontmatter TSK o nei metadata wave plan)
+```
+
+**Gate**: `factory.config.yaml.temporal.budget.required_on_wave_close: false` (default off, opt-in
+totale, backward compat — R.P3). Se assente o `false` → 4u no-op totale (non si applica).
+
+**Esenzione**: TSK che dichiara `temporal_budget_skip_reason: "<motivo>"` nel frontmatter (o nei
+metadata wave plan) → no WARNING. L'esenzione richiede motivazione esplicita.
+
+**Messaggio (template verbatim, placeholder `<wave_id>`)**:
+
+```
+Wave <wave_id> chiusa (state: wave_completed) senza alcun evento state: governor_decision quando temporal.budget.required_on_wave_close: true. Invocare il temporal-budget-governor (skill temporal-budget-governor.md, dominio scheduler budget) o aggiungere temporal_budget_skip_reason. Vedi PATTERN §18.8, ADR-043..ADR-046. Disabilita Check 4u impostando temporal.budget.required_on_wave_close: false.
+```
+
+**Output format** (sezione `## WARNING (igiene)` del report):
+
+```
+- [WARNING][temporal-budget][4u] wave wave-2026-06-08-003: chiusa senza evento state: governor_decision (required_on_wave_close: true). Invocare temporal-budget-governor o aggiungere temporal_budget_skip_reason. Vedi PATTERN §18.8, ADR-046.
+```
+
+**Scenari di verifica**:
+
+| # | `required_on_wave_close` | governor_decision nella wave | skip_reason | esito atteso |
+|---|---|---|---|---|
+| 1 | `false` (default) | assente | — | no warning (gate off, R.P3) |
+| 2 | `true` | assente | assente | **WARNING 4u** (wave chiusa senza governor_decision) |
+| 3 | `true` | presente | — | no warning (governor_decision presente) |
+| 4 | `true` | assente | valorizzato | no warning (esenzione motivata) |
+
+**Distinta da Check 4q** (EP-009): 4q misura il done del TSK (event log/effort); 4u verifica la
+chiusura della wave (governor_decision). Gate, trigger e messaggi indipendenti.
+
+**Cross-link**: 4u → PATTERN §18.8 (Temporal Budget Hook) + §3 «Temporal Budget Governance» +
+skill `temporal-budget-governor.md` + ADR-043 (semantica) / ADR-044 (granularità) / ADR-045
+(bootstrap) / ADR-046 §E (questo check).
+
+### 4v — Complexity Budget regola N:1 violata pre-release (Complexity Budget & Deprecations, EP-016 US-061, ADR-056 §D)
+
+**Pattern allineato a Check 4q/4r/4s/4u (R.P3 opt-in totale)**: WARNING-only, opt-in via flag
+config, nessun ERROR meccanico. Check 4v eredita la stessa shape per coerenza framework.
+
+> **Nota di numerazione**: ADR-056 §D + PATTERN §23 prescrivono questo check come «Check 4t»; nel
+> repo corrente lo slot «4t-migration» è **riservato** alla migration ADR-050 §I (pre-warning INFO
+> opzionale post-upgrade, non ancora implementata) e gli slot 4u (EP-014 US-057) sono già occupati,
+> quindi il check adotta il prossimo slot libero **4v** preservando l'intento dell'ADR (correzione
+> meccanica di numerazione, non cambio di intento — lezione TSK-112). Il riferimento «Check 4t» in
+> PATTERN §23 / ADR-056 va inteso come questo Check 4v.
+
+**Severità: WARNING-only — mai ERROR** (R.P3 opt-in totale + decisione ADR-056 §A). Governance
+documentale sottrattiva, non enforcement duro: il lint **informa preventivamente** a pre-release,
+non blocca mai `/lint` né il Develop né il release. Mai `heal-eligible` (giudizio semantico).
+Replica documentalmente il gate empirico `complexity_budget.required_on_release` di EP-016.
+
+**Trigger (AND — tutte le condizioni devono essere vere)**:
+
+```
+factory.config.yaml.complexity_budget.required_on_release == true
+AND release pre-tag minor/major (heading CHANGELOG.md `## vX.Y` con Y change/Z=0, o `## vX` major;
+    skip su patch `## vX.Y.Z` con Z>0 — cadenza ADR-056 §F)
+AND skill `complexity-budget-check` (5 step) verdict in {warn, fail}
+    (ratio delta_added > N * delta_removed, default N=3, ADR-056 §B)
+AND NOT (marker `[skip-complexity-budget --reason="<motivo>"]` presente nel CHANGELOG della versione)
+```
+
+**Gate**: `factory.config.yaml.complexity_budget.required_on_release: false` (default off, opt-in
+totale, backward compat — R.P3). Se assente o `false` → 4v no-op totale (non si applica,
+indipendentemente dal verdict della skill). Su release **patch** → 4v non si applica (cadenza
+pre-release minor/major, ADR-056 §F).
+
+**Esenzione**: marker `[skip-complexity-budget --reason="<motivo>"]` nell'entry CHANGELOG della
+versione (ADR-056 §E) → la skill ritorna `verdict: pass` con `skipped: true` → no WARNING.
+L'esenzione richiede motivazione esplicita.
+
+**Severità del messaggio per verdict** (entrambi WARNING-only):
+
+- `warn` (ratio 1 above N) → WARNING `"ratio 1 above N=<N>, plan removal next release"`.
+- `fail` (ratio above N+1) → WARNING `"ratio significantly above N=<N>, removal required"`.
+
+**Messaggio (template verbatim, placeholder `<version>`, `<ratio>`, `<N>`, `<verdict>`)**:
+
+```
+Complexity Budget regola N:1 violata per <version> (verdict: <verdict>, ratio <ratio> > N=<N>) quando complexity_budget.required_on_release: true. Considerare deprecazioni in PATTERN §23.2 (`/complexity-budget deprecate §X --reason="<r>"`) o aggiungere il marker [skip-complexity-budget --reason="<motivo>"] nel CHANGELOG. Vedi PATTERN §23, ADR-052, ADR-056. Disabilita Check 4v impostando complexity_budget.required_on_release: false.
+```
+
+**Output format** (sezione `## WARNING (igiene)` del report):
+
+```
+- [WARNING][complexity-budget][4v] v2.20: regola N:1 violata (verdict: warn, ratio 4 > N=3). Considerare deprecazioni in PATTERN §23.2 o aggiungere [skip-complexity-budget --reason] nel CHANGELOG. Vedi PATTERN §23, ADR-056.
+```
+
+**Scenari di verifica**:
+
+| # | `required_on_release` | release_kind | skill verdict | skip marker | esito atteso |
+|---|---|---|---|---|---|
+| 1 | `false` (default) | minor | warn | — | no warning (gate off, R.P3) |
+| 2 | `true` | minor | pass | — | no warning (regola rispettata) |
+| 3 | `true` | minor | warn | assente | **WARNING 4v** (ratio 1 above N) |
+| 4 | `true` | minor | fail | assente | **WARNING 4v** (ratio above N+1) |
+| 5 | `true` | minor | warn | presente | no warning (esenzione motivata, `skipped: true`) |
+| 6 | `true` | patch | warn | — | no warning (cadenza: patch skip, ADR-056 §F) |
+
+**Cross-link**: 4v → skill `complexity-budget-check.md` (5 step, ADR-056 §B) + comando
+`/complexity-budget` + PATTERN §23 (§23.1 regola N:1, §23.2 Sezione Deprecate) + §3 entry
+«Complexity Budget & Deprecations» + ADR-052 (regola N:1) / ADR-053 (`/pattern-view`) /
+ADR-056 §D (questo check) + runbook `wiki/runbooks/complexity-budget-runbook.md`.
+
+### 4aa — Chain profonda senza decision_anchor loggato (Decision-Preserving Compression, EP-015 US-084, ADR-049 §B)
+
+> Slot 4aa (prossimo libero dopo 4v=EP-016, 4w=EP-012 RUN-REPORT, 4x=EP-012 CHANGELOG,
+> 4y=EP-008 ux_ui evidence, 4z=EP-018 Functional Oracle).
+
+**Gate**: `compression.output.consistency_check.required_on_chain: true` in `factory.config.yaml`
+(default `false` → 4aa no-op totale, backward compat R.P3). Se assente o `false` → check non si
+applica indipendentemente da qualsiasi altra condizione.
+
+**Trigger** (tutti e tre devono essere soddisfatti):
+1. Chain con `chain_depth > warn_threshold_chain_depth` (default `3`, configurabile in
+   `compression.output.consistency_check.warn_threshold_chain_depth`).
+2. Nessun evento `state: anchor_propagated` trovato in `analytics/events/<YYYY-MM>.jsonl`
+   per il `task_id` corrente negli ultimi 10 eventi (lookback `10`).
+3. TSK privo di `consistency_check_skip_reason:` nel frontmatter.
+
+**Event store assente**: se `analytics/events/` non esiste o è vuota → silent INFO skip (non
+WARNING, non ERROR). La capability analytics EP-009 è opzionale; la sua assenza non blocca il
+workflow (backward compat R.P3).
+
+**Esenzione**: aggiungere `consistency_check_skip_reason: "<motivo>"` nel frontmatter TSK
+(single-writer: TPM in fase di taskizzazione). Il motivo è obbligatorio (stringa non vuota).
+
+**Severity**: WARNING-only. Mai `heal-eligible` (giudizio semantico — nessun auto-fix meccanico).
+
+**Messaggio**:
+```
+[WARNING][chain-no-anchor][4aa] chain '<chain_id>' depth > <N> senza decision_anchor loggato —
+rischio T3 (context rot). Attivare compression.output.decision_anchor.enabled: true o aggiungere
+consistency_check_skip_reason al TSK. Vedi wiki/concepts/consistency-checker.md e ADR-049.
+```
+
+**Algoritmo** (pseudocodice):
+```
+if not factory.config.compression.output.consistency_check.required_on_chain:
+    return  # no-op
+
+for each TSK in active_chain where chain_depth > warn_threshold:
+    if TSK.frontmatter.consistency_check_skip_reason:
+        continue  # esenzione esplicita
+
+    events_dir = "analytics/events/"
+    if not exists(events_dir):
+        log INFO "4aa: event store assente, skip"
+        continue
+
+    last_10 = last_n_events(events_dir, task_id=TSK.id, n=10)
+    if any(e.state == "anchor_propagated" for e in last_10):
+        continue  # anchor propagato correttamente
+
+    emit WARNING "[chain-no-anchor][4aa] ..."
+```
+
+**Cross-link**: 4aa → `wiki/concepts/consistency-checker.md §Lint Check 4aa` +
+`wiki/concepts/decision-anchor.md §Configurazione` + ADR-049 §B (ban `aggressive` su chain
+profonde) + ADR-047 (decision anchor schema) + `wiki/runbooks/consistency-checker-runbook.md`
+(TSK-164). Skill parallela: skill `consistency-checker` (agente terzo read-only EP-015 US-058).
+
 ### 4g — Coerenza scheduler/depends_on (v2.11, PATTERN §18)
 
 Solo se almeno un EP/US/TSK in `management/kanban/**` ha frontmatter `depends_on:` valorizzato:
@@ -338,3 +932,392 @@ heal_eligible_categories: [broken-wikilink, missing-frontmatter-field, citation-
 ## Log entry
 
 Append a `wiki/log.md` secondo `wiki-log-entry` (template `lint`).
+
+## Validation Schema Checks (opt-in v2.19+)
+
+**Gate**: `factory.config.yaml.release_governance.battle_test_gate.enabled: true` (R.P3 opt-in).
+A gate `false` (default factory derivate), questa intera sezione è skip — **0 check aggiuntivi
+vs v2.18**, nessun ERROR/WARNING introdotto, comportamento identico (backward compat ADR-032
+§Backward compat). Eseguito **solo** se il gate master è abilitato.
+
+### Check 4w — RUN-REPORT schema validation (ERROR su schema malformato, EP-012 US-049, ADR-032 §C §J)
+
+> **Nota di numerazione**: TSK-096, ADR-032 §J e US-049 prescrivono questo check come «Check 4s»;
+> nel repo corrente lo slot **4s** è già occupato (EP-015 US-060 — Consistency / compression
+> output, due sotto-check 4s.1/4s.2), lo slot **«4t-migration»** è **riservato** alla migration
+> ADR-050 §I (pre-warning INFO opzionale post-upgrade, non ancora implementata), e gli slot **4u**
+> (EP-014 US-057) e **4v** (EP-016 US-061) sono già occupati. Il check adotta quindi il prossimo
+> slot libero **4w** preservando l'intento dell'ADR (correzione meccanica di numerazione, non
+> cambio di intento — lezione TSK-112/118/122). I riferimenti «Check 4s» in TSK-096 / ADR-032 §J /
+> US-049 vanno intesi come questo **Check 4w**.
+
+**Severità: ERROR — non WARNING** (deroga motivata a R.P3). Lo schema del RUN-REPORT è un
+**contratto binario** (o è rispettato integralmente o no): uno schema malformato è un bug
+strutturale, non un soft warning di igiene. Pattern parallelo a Check 4i (frontmatter EP/US/TSK)
+e distinto da Check 4o/4p/4q/4r/4s/4u/4v (WARNING-only per status/marker mancanti). La deroga è
+**legittima** perché l'ERROR esiste solo dietro un gate **interamente opt-in**: l'utente sceglie
+se accendere `battle_test_gate.enabled`; se lo accende, lo schema **deve** essere rispettato
+(decisione ADR-032 §J + Alternative «Lint Check WARNING-only scartato»). Non `heal-eligible`
+(la compilazione di una sezione mancante richiede giudizio semantico sul contenuto del run).
+
+**Trigger (AND — tutte le condizioni devono essere vere)**:
+
+```
+factory.config.yaml.release_governance.battle_test_gate.enabled == true
+AND esiste un file matching `validation/runs/<slug>/RUN-REPORT.md`
+AND il file ha frontmatter valido (campo `pre_check_status:` presente, valore ∈ {pending, pass, fail})
+AND il file NON è esente (vedi §Esenzione / File esclusi)
+AND almeno una delle 9 sezioni obbligatorie (§1..§9, schema ADR-032 §C) è MANCANTE
+    oppure il frontmatter è incoerente (vedi §Sotto-check)
+```
+
+**Le 9 sezioni obbligatorie** (heading verbatim, schema ADR-032 §C, ordine atteso ma non stretto —
+tutte devono essere presenti):
+
+1. `## §1 Pre-check meccanico`
+2. `## §2 Capability attivate`
+3. `## §3 Backlog esercitato`
+4. `## §4 Cosa ha funzionato`
+5. `## §5 Cosa si è rotto`
+6. `## §6 Capability NON esercitate`
+7. `## §7 Lezioni`
+8. `## §8 Indipendenza del campione`
+9. `## §9 Firma`
+
+**Sotto-check (tutti ERROR, gate-coperti)**:
+
+- **4w.a — frontmatter mancante/invalido**: nessun frontmatter YAML, oppure campo
+  `pre_check_status:` assente, oppure valore ∉ {pending, pass, fail}. → ERROR `run-report-frontmatter-invalid`.
+- **4w.b — sezioni §1..§9 incomplete**: ≥1 dei 9 heading obbligatori sopra è assente. → ERROR
+  `run-report-section-missing` (un ERROR per ogni sezione mancante, messaggio canonico sotto).
+- **4w.c — pre_check/review incoerenti**: `review_status: pass` con `pre_check_status` ∈
+  {pending, fail} (la review umana non può passare se il pre-check non è `pass` — CRITERIA.md
+  §Principio: review parte SOLO se pre-check `pass`). → ERROR `run-report-verdict-incoherent`.
+
+**Gate**: `factory.config.yaml.release_governance.battle_test_gate.enabled: false` (default off,
+opt-in totale R.P3). Se assente o `false` → 4w no-op totale (la sezione `validation/runs/**` non
+viene nemmeno letta, comportamento identico a v2.18).
+
+**Esenzione / File esclusi** (nessun ERROR su questi):
+
+- `validation/runs/<TEMPLATE>/RUN-REPORT.md` — il template scaffoldato stesso (marker `<<...>>`,
+  non un run reale).
+- Qualsiasi file con nota `[REFERENCE-ONLY]` nel frontmatter o nel corpo (es.
+  `validation/runs/fsc-trasf-demo-2026-05-19/RUN-REPORT.md`, run di reference ex-post non
+  gate-eligible — ADR-032 §G).
+
+Salvo questi due casi, **nessun'altra esenzione**: lo schema canonico deve essere rispettato
+integralmente quando il gate è on (ADR-032 §J «Esenzione: nessuna»).
+
+**Pattern di rilevamento (regex)**:
+
+```
+1. Glob `validation/runs/*/RUN-REPORT.md`.
+2. Scarta i file esclusi: path contiene `<TEMPLATE>`, oppure il contenuto matcha `\[REFERENCE-ONLY`.
+3. Per ogni file rimanente:
+   a. Estrai il frontmatter YAML (blocco fra i primi due `---`). Se assente o senza
+      `pre_check_status:` ∈ {pending|pass|fail} → ERROR 4w.a; salta gli altri sotto-check del file.
+   b. Per ciascuno dei 9 heading obbligatori (`^## §<N> <nome>$`, regex case-sensitive sull'icona §N):
+      se assente → ERROR 4w.b (uno per sezione mancante).
+   c. Se `review_status: pass` AND `pre_check_status:` ∈ {pending, fail} → ERROR 4w.c.
+```
+
+**Messaggio (template verbatim, placeholder `<slug>`, `<N>`, `<nome>`)**:
+
+- 4w.a — `"RUN-REPORT <slug>: frontmatter mancante o pre_check_status invalido (atteso pending|pass|fail). Schema obbligatorio quando battle_test_gate.enabled: true. (ADR-032 §C)"`
+- 4w.b — `"RUN-REPORT <slug>: sezione §<N> (<nome>) mancante. Vedi validation/CRITERIA.md §5 per il template fields e validation/runs/<TEMPLATE>/RUN-REPORT.md per lo schema. (ADR-032 §C)"`
+- 4w.c — `"RUN-REPORT <slug>: review_status: pass incoerente con pre_check_status: <valore> (la review umana parte solo se pre-check pass). Vedi validation/CRITERIA.md §Principio. (ADR-032 §A)"`
+
+**Output format** (sezione `## ERROR non meccanici (manuali)` del report — non `heal-eligible`):
+
+```
+- [ERROR][run-report-section-missing][4w] validation/runs/v2.19-tag-run-1/RUN-REPORT.md: sezione §5 (Cosa si è rotto) mancante. Vedi validation/CRITERIA.md §5 + template. (ADR-032 §C)
+- [ERROR][run-report-frontmatter-invalid][4w] validation/runs/foo/RUN-REPORT.md: pre_check_status assente. (ADR-032 §C)
+- [ERROR][run-report-verdict-incoherent][4w] validation/runs/bar/RUN-REPORT.md: review_status: pass con pre_check_status: pending. (ADR-032 §A)
+```
+
+**Scenari di verifica**:
+
+| # | `battle_test_gate.enabled` | file | sezioni | frontmatter | esito atteso |
+|---|---|---|---|---|---|
+| 1 | `false` (default) | run reale | §3 mancante | ok | no ERROR (gate off, R.P3 — 0 check vs v2.18) |
+| 2 | `true` | run reale | tutte §1..§9 | ok + coerente | no ERROR (schema valido) |
+| 3 | `true` | run reale | §3 mancante | ok | **ERROR 4w.b** (`run-report-section-missing`) |
+| 4 | `true` | run reale | tutte | `pre_check_status` assente | **ERROR 4w.a** (`run-report-frontmatter-invalid`) |
+| 5 | `true` | run reale | tutte | `review_status: pass` + `pre_check_status: pending` | **ERROR 4w.c** (`run-report-verdict-incoherent`) |
+| 6 | `true` | `<TEMPLATE>` | con marker `<<...>>` | template | no ERROR (file escluso) |
+| 7 | `true` | reference `[REFERENCE-ONLY]` | qualsiasi | ex-post | no ERROR (file escluso, ADR-032 §G) |
+
+**Non duplica** la validazione dello Step 2 della skill `release-validation-gate` (ADR-033 §D):
+il `/release` gate è l'**enforcement point primario** (fail-loud a tag-time), il Check 4w è il
+**safety net** nel workflow di sviluppo ordinario (segnala lo schema malformato prima che il
+maintainer invochi `/release`). La severity è ERROR — non WARNING come il companion Check 4t di
+ADR-033 §I sul CHANGELOG — perché schema RUN-REPORT malformato è un bug strutturale, mentre
+l'assenza della sezione CHANGELOG è un reminder pre-tag.
+
+**Cross-link**: 4w → schema canonico RUN-REPORT (`validation/runs/<TEMPLATE>/RUN-REPORT.md`) +
+criteri (`validation/CRITERIA.md` §1 §2 §5) + ADR-032 §C (schema 9 sezioni) / §J (questo check) +
+ADR-033 (skill `release-validation-gate`, enforcement primario) + ADR-034 (schema sezione
+CHANGELOG, Check 4x companion) + US-049 (origine) / US-050 (gate).
+
+### Check 4x — CHANGELOG Validation evidence mancante (WARNING, EP-012 US-050, ADR-033 §I + ADR-034 §A)
+
+> **Nota di numerazione**: TSK-099, ADR-033 §I e US-050 prescrivono questo check come «Check 4t»;
+> nel repo corrente lo slot **«4t»** è **riservato** alla migration ADR-050 §I (pre-warning INFO
+> opzionale post-upgrade, `compression.migration.audit_after_upgrade`, non ancora implementata),
+> mentre gli slot **4q/4r/4s/4u/4v/4w** sono già occupati. Il check adotta quindi il prossimo
+> slot libero **4x** preservando l'intento dell'ADR (correzione meccanica di numerazione, non
+> cambio di intento — lezione TSK-112/118/122/096). I riferimenti «Check 4t» in TSK-099 / ADR-033 §I /
+> US-050, e il riferimento «Check 4t companion» nel Check 4w sopra, vanno intesi come questo **Check 4x**.
+
+**Severità: WARNING — non ERROR** (coerente con R.P3, opt-in totale). Il `/release` gate fa già
+fail-loud al momento dell'invocazione (skill `release-validation-gate` Step 5, ADR-033 §D); il lint
+è solo un **reminder pre-tag** per il maintainer (companion del Check 4w, che è invece ERROR sullo
+schema RUN-REPORT). Mai `heal-eligible` (la compilazione della sezione richiede giudizio semantico
+sull'evidenza del run). Distinto da Check 4w: 4w enforce lo schema RUN-REPORT (`validation/runs/**`),
+4x enforce la presenza dell'evidenza nel CHANGELOG. [^src: design_&_architecture/decisions/ADR-033.md §I]
+
+**Pattern allineato a Check 4m/4n/4o/4p/4q/4r/4s/4u/4v (R.P3 opt-in totale)**: WARNING-only, opt-in
+via flag config, nessun ERROR meccanico. Check 4x eredita la stessa shape per coerenza framework.
+
+**Trigger (AND — tutte le condizioni devono essere vere)**:
+
+```
+factory.config.yaml.release_governance.battle_test_gate.enabled == true
+AND CHANGELOG.md contiene un heading versione `## v<version>` (es. `## v2.19` o `## v2.19.0`)
+AND NON esiste la sub-sezione `## Validation evidence (v<version>)` nel CHANGELOG.md
+AND NON esiste il file `validation/release-gates/v<version>/GATE-REPORT.md`
+    (ricerca side-by-side: assenza di ENTRAMBI gli artefatti)
+AND il blocco release di quella versione NON è esente (vedi §Esenzione)
+```
+
+**Gate**: `factory.config.yaml.release_governance.battle_test_gate.enabled: true` (R.P3 opt-in).
+A gate `false` (default factory derivate) o assente → 4x no-op totale: nessun WARNING aggiuntivo
+vs v2.18 (backward compat ADR-033 §J, R.P3).
+
+**Esenzione**: frontmatter `validation_evidence_skip: true` nel blocco release di `CHANGELOG.md`
+(raramente usato, richiede audit reason esplicita). La presenza del marker `[gate-bypassed]` nella
+sezione `## Validation evidence (v<version>)` (bypass tracciato, ADR-033 §E) **soddisfa** il check
+(la sezione esiste, il bypass è auditato): nessun WARNING.
+
+**Messaggio (template verbatim, placeholder `<version>`)**:
+
+```
+CHANGELOG.md v<version>: sezione '## Validation evidence (v<version>)' assente e GATE-REPORT.md non trovato (validation/release-gates/v<version>/). Invocare `/release v<version> --dry-run` prima del tag per produrre l'evidenza. Disabilita Check 4x impostando release_governance.battle_test_gate.enabled: false; esenta la singola release con validation_evidence_skip: true + reason nel blocco CHANGELOG. (ADR-034 §A, ADR-033 §I)
+```
+
+**Output format** (sezione `## WARNING (igiene, mai heal-eligible)` del report):
+
+```
+- [WARNING][changelog-validation-evidence-missing][4x] CHANGELOG.md v2.20: sezione '## Validation evidence (v2.20)' assente e GATE-REPORT.md non trovato. Invocare `/release v2.20 --dry-run` prima del tag. (ADR-034 §A, ADR-033 §I)
+```
+
+**Scenari di verifica**:
+
+| # | `battle_test_gate.enabled` | versione CHANGELOG | sezione `## Validation evidence` | GATE-REPORT.md | esito atteso |
+|---|---|---|---|---|---|
+| 1 | `false` (default) | `## v2.20` | assente | assente | no WARNING (gate off, R.P3 — 0 check vs v2.18) |
+| 2 | `true` | `## v2.20` | presente | (qualsiasi) | no WARNING (evidenza nel CHANGELOG) |
+| 3 | `true` | `## v2.20` | assente | presente | no WARNING (evidenza side-by-side in validation/release-gates/) |
+| 4 | `true` | `## v2.20` | assente | assente | **WARNING 4x** (`changelog-validation-evidence-missing`) |
+| 5 | `true` | `## v2.20` | con marker `[gate-bypassed]` | (qualsiasi) | no WARNING (bypass tracciato, ADR-033 §E) |
+| 6 | `true` | `## v2.20` | assente + `validation_evidence_skip: true` | assente | no WARNING (esente, audit reason) |
+
+**Non blocca** il workflow (WARNING-only). L'enforcement è nel comando `/release` (ADR-033, fail-loud
+a tag-time). Il Check 4x è il safety net pre-tag nel workflow ordinario, companion del Check 4w
+(ERROR sullo schema RUN-REPORT).
+
+**Cross-link**: 4x → ADR-033 §I (questo check candidato) / §D Step 5 (enforcement primario nella skill
+`release-validation-gate`) / §E (bypass tracciato) + ADR-034 §A (schema sezione CHANGELOG `## Validation
+evidence`) + ADR-036 §B (PATTERN §22 Release Governance) + Check 4w (companion ERROR, RUN-REPORT schema) +
+US-050 (origine).
+
+### Check 4y — ux_ui evidence-provenance (SOSTANZA) nei report di review [ADR-063 §B]
+
+**Pattern allineato a Check 4p (ux_ui forma) + Check 4o (a11y) (R.P3 opt-in totale)**: WARNING-only, opt-in
+via flag `ux_ui.enabled`, nessun ERROR meccanico. Check 4y eredita la stessa shape per coerenza framework.
+
+**Severità: WARNING-only — mai ERROR** (R.P3 opt-in totale + decisione ADR-063 §B, allineato a Check 4p che
+è anch'esso WARNING-only). Il guard di sostanza complementa il guard di forma (Check 4p: `rubric_ref`),
+informando sul campo `evidence` non verificabile; il lint non blocca mai `/lint` né il Develop. Mai
+`heal-eligible` (giudizio semantico sul contenuto dell'evidenza). Non si applica a report prodotti prima di
+ADR-063 (backward compat — §Non applicabilità retroattiva).
+
+**Gate**: `factory.config.yaml.ux_ui.enabled: false` (default off, opt-in totale, no-op a flag spento — R.P3
+e ADR-063 §B). Se assente o `false` → 4y no-op totale (la sezione `code_quality/reports/` non viene nemmeno
+letta per questo check). [^src: design_&_architecture/decisions/ADR-063.md §B §Conseguenze]
+
+**Trigger (AND — tutte le condizioni devono essere vere)**:
+
+```
+factory.config.yaml.ux_ui.enabled == true
+AND TSK.frontmatter.ux_ui_status IN ['pass', 'conditional']
+AND TSK.frontmatter.ux_ui_report valorizzato (path a report esistente)
+AND il report ADR-063-eligible (vedi §Non applicabilità retroattiva)
+AND almeno un finding nel report ha evidence non verificabile (vedi §Logica di verifica)
+```
+
+**Logica di verifica evidence tracciabile** (per ogni finding nel report `<ux_ui_report>`):
+
+1. Campo `evidence` MANCANTE o NULL o VUOTO → flag WARNING.
+2. `evidence` è un path: verificare che il file esista su disco. File inesistente → flag WARNING.
+3. `evidence` è uno snippet/ref testuale: verificare che il campo NON contenga token generici
+   (`"non disponibile"`, `"non verificabile"`, `"N/A"`, `"stimato"`, stringa vuota `""`).
+   Token generico presente → flag WARNING.
+
+**Non applicabilità retroattiva**: i report prodotti **prima** dell'introduzione di ADR-063 (marker assente
+o path del report senza timestamp ≥ data di adozione ADR-063) NON vengono flaggati → 0 WARNING (backward
+compat dichiarata). In pratica: il check si applica solo ai report che hanno già il campo `evidence` nel
+proprio schema finding (introdotto dalla skill `ux-ui-review-protocol` Step 5 via TSK-134).
+
+**Complementarità con Check 4p (forma)**:
+- Check 4p verifica `rubric_ref` presente (forma).
+- Check 4y verifica `evidence` tracciabile (sostanza).
+- Entrambi WARNING-only, entrambi gated da `ux_ui.enabled`.
+- Check 4p si applica allo stato TSK (`ux_ui_status` mancante/pending); Check 4y si applica al contenuto
+  del report (`evidence` nei finding). I due check sono indipendenti e possono coesistere. [^src: design_&_architecture/decisions/ADR-063.md §B]
+
+**Messaggio (template verbatim, placeholder `<finding_id>`, `<ux_ui_report>`)**:
+
+```
+Finding <finding_id> in <ux_ui_report> senza evidenza verificabile (evidence-provenance ADR-063 §B). Verificare che la review sia stata eseguita con tool visivi callable o in modalità no-visual con Read/Grep. Vedi ADR-063 §B, US-067.
+```
+
+**Output format** (sezione `## WARNING (igiene)` del report):
+
+```
+- [WARNING][ux-ui-evidence-provenance][4y] TSK-080: finding UX-01 in code_quality/reports/TSK-080-iter-1-uxui-review.md senza evidenza verificabile (evidence: null). Verificare review con tool visivi o Read/Grep. Vedi ADR-063 §B.
+- [WARNING][ux-ui-evidence-provenance][4y] TSK-080: finding UX-03 in code_quality/reports/TSK-080-iter-1-uxui-review.md senza evidenza verificabile (evidence: "non disponibile"). Verificare review con tool visivi o Read/Grep. Vedi ADR-063 §B.
+```
+
+**Scenari di verifica**:
+
+| # | `ux_ui.enabled` | `ux_ui_status` | report | finding `evidence` | backward-compat | esito atteso |
+|---|---|---|---|---|---|---|
+| 1 | `false` (default) | `pass` | presente | `null` | — | no warning (gate off, R.P3) |
+| 2 | `true` | `pass` | presente | `"screenshots/desktop-1280.png"` (file esistente) | — | no warning (evidenza verificabile) |
+| 3 | `true` | `pass` | presente | `null` | — | **WARNING 4y** (evidence null) |
+| 4 | `true` | `pass` | presente | `""` | — | **WARNING 4y** (evidence vuoto) |
+| 5 | `true` | `pass` | presente | `"non disponibile"` | — | **WARNING 4y** (token generico) |
+| 6 | `true` | `pass` | presente | `"screenshots/missing.png"` (file inesistente) | — | **WARNING 4y** (path non resolvibile) |
+| 7 | `true` | `todo` | assente | — | — | no warning (trigger non soddisfatto: ux_ui_status non in pass/conditional) |
+| 8 | `true` | `pass` | presente | tutti i finding con evidence verificabile | — | no warning (tutti i finding OK) |
+| 9 | `true` | `pass` | report pre-ADR-063 | `null` | presente | no warning (backward compat, report legacy) |
+
+**Numerazione**: «4y» segue «4x» (EP-012 US-050, ADR-033/034, CHANGELOG validation) nella serie alfabetica;
+non collide con alcun check esistente in questo file (precede «4z» e successivi riservati). Distinto da Check
+4p: 4p enforce lo stato review sul TSK (`ux_ui_status` mancante/pending/conditional → WARNING sul TSK), 4y
+enforce la sostanza dei finding nel report prodotto (`evidence` tracciabile → WARNING per finding). Gate,
+trigger e target (TSK vs report) indipendenti; possono coesistere.
+
+**Cross-link**: 4y → ADR-063 §B (guard evidence-provenance, questo check) / §A (fail-loud Step 1, skill) /
+§C (tool Read/Grep agente) + skill `ux-ui-review-protocol.md` Step 5 (guard runtime, TSK-134) + Check 4p
+(companion forma) + US-067 (origine EP-008).
+
+### 4z — acceptance-spec schema validation (Functional Oracle, EP-018 US-069, ADR-065 §E)
+
+**Pattern allineato a Check 4m/4n/4o/4p/4q/4r/4s/4u/4v/4x/4y (R.P3 opt-in totale)**: misto ERROR/WARNING,
+opt-in via flag `fe_correctness.functional_oracle.enabled`, no-op a flag spento. Check 4z eredita la stessa
+shape per coerenza framework.
+
+> **Nota di numerazione**: TSK-145 e il TSK Technical Specs prescrivono questo check come «Check 4y»;
+> nel repo corrente lo slot **4y** è già occupato (EP-008/ADR-063 §B — ux_ui evidence-provenance,
+> TSK-137/138/139/140). Il check adotta quindi il prossimo slot libero **4z** preservando l'intento
+> (correzione meccanica di numerazione, non cambio di intento — lezione TSK-112/118/122/096/137).
+> I riferimenti «Check 4y» in TSK-145 / US-069 vanno intesi come questo **Check 4z**.
+
+**Severità: mista** — ERROR su spec assente + `enabled: true` (config incoerente, fail-loud ADR-065 §E);
+WARNING su `kind` non in whitelist (schema drift); no-op a `enabled: false` (R.P3 backward compat totale).
+La deroga ERROR è **legittima** per lo stesso motivo di Check 4w (contratto binario opt-in): l'utente ha
+scelto di abilitare il functional oracle senza fornire la spec → bug strutturale, non soft warning di igiene
+(ADR-065 §E «MAI un pass silenzioso», anti-fabbricazione ADR-063/064). Non `heal-eligible` (la compilazione
+di una spec mancante richiede contenuto del progetto). WARNING su `kind` non in whitelist → mai
+`heal-eligible` (giudizio semantico: potrebbe essere schema drift legittimo del framework vs obsolescenza
+nella spec).
+
+**Gate**: `factory.config.yaml.fe_correctness.functional_oracle.enabled: false` (default off, opt-in
+totale, backward compat — R.P3). Se assente o `false` → 4z no-op totale: `code_quality/acceptance/**`
+non viene letto per questo check, 0 ERROR/WARNING aggiuntivi vs v2.18. [^src: design_&_architecture/decisions/ADR-065.md §E]
+
+**Trigger (AND — tutte le condizioni devono essere vere per ogni sotto-check)**:
+
+#### 4z.1 — Spec assente/illeggibile con `functional_oracle.enabled: true` (ERROR)
+
+```
+factory.config.yaml.fe_correctness.functional_oracle.enabled == true
+AND almeno un TSK ha frontmatter.functional_acceptance_spec: valorizzato
+AND il file referenziato da functional_acceptance_spec: NON esiste (o non è leggibile)
+```
+
+**Severità**: ERROR `acceptance-spec-missing`. Allineato ad ADR-065 §E: «`enabled: true` + spec
+assente/illeggibile → fail-loud (config incoerente)». Non genera mai un pass silenzioso
+(anti-fabbricazione).
+
+**Messaggio (template verbatim, placeholder `<TSK-id>`, `<path>`)**:
+
+```
+TSK <TSK-id>: functional_acceptance_spec: '<path>' referenziata ma file assente (o illeggibile). Con fe_correctness.functional_oracle.enabled: true la spec è obbligatoria. Creare il file o correggere il path. Vedi ADR-065 §E, .claude/schemas/acceptance-spec.schema.yaml.
+```
+
+#### 4z.2 — `kind` non in whitelist (WARNING)
+
+```
+factory.config.yaml.fe_correctness.functional_oracle.enabled == true
+AND almeno un TSK ha frontmatter.functional_acceptance_spec: valorizzato
+AND il file referenziato esiste ed è leggibile
+AND almeno un'asserzione nel blocco `assertions:` ha `kind` non appartenente alla whitelist:
+    { selector_visible, selector_absent, attr_equals, text_matches,
+      canvas_pixel_variance, storage_key_present, console_no_error, network_no_5xx }
+```
+
+**Severità**: WARNING `acceptance-spec-kind-unknown`. Segnala schema drift: il `kind` usato non è nel
+set chiuso definito dal framework (ADR-065 §C). Può indicare: (a) primitiva custom non supportata
+dall'engine → l'esecuzione fallirà a runtime; (b) refactoring del framework che ha rinominato/rimosso
+una primitiva. Il lint informa ma non blocca (il progetto potrebbe aver introdotto la primitiva su una
+versione del framework più recente del lint in uso).
+
+**Messaggio (template verbatim, placeholder `<TSK-id>`, `<path>`, `<kind>`)**:
+
+```
+TSK <TSK-id>: acceptance-spec '<path>' usa kind '<kind>' non riconosciuto (whitelist ADR-065 §C). Verificare che il kind sia supportato dall'engine o aggiornare la spec. Vedi ADR-065 §C, .claude/schemas/acceptance-spec.schema.yaml.
+```
+
+**Gate** (stesso per 4z.1 e 4z.2): `fe_correctness.functional_oracle.enabled: false` (default) →
+entrambi i sotto-check no-op totale. Coerente con R.P3: a flag spento `/lint` sulla factory
+v2.19 senza opt-in = 0 nuovi ERROR/WARNING da 4z.
+
+**Output format** (sezioni del report):
+
+```
+## ERROR non meccanici (manuali)
+- [ERROR][acceptance-spec-missing][4z.1] TSK-101: functional_acceptance_spec: 'code_quality/acceptance/app.acceptance.yaml' referenziata ma file assente. Con functional_oracle.enabled: true la spec è obbligatoria. Vedi ADR-065 §E.
+
+## WARNING (igiene)
+- [WARNING][acceptance-spec-kind-unknown][4z.2] TSK-102: acceptance-spec 'code_quality/acceptance/app.acceptance.yaml' usa kind 'screenshot_match' non riconosciuto (whitelist ADR-065 §C). Verificare kind supportato o aggiornare spec. Vedi ADR-065 §C.
+```
+
+**Scenari di verifica**:
+
+| # | `functional_oracle.enabled` | `functional_acceptance_spec` valorizzato | file esiste | `kind` in whitelist | esito atteso |
+|---|---|---|---|---|---|
+| 1 | `false` (default) | sì | no | — | no ERROR/WARNING (gate off, R.P3 — 0 check vs v2.18) |
+| 2 | `true` | no | — | — | no ERROR/WARNING (TSK non referenzia spec, no trigger) |
+| 3 | `true` | sì | no | — | **ERROR 4z.1** (`acceptance-spec-missing`) |
+| 4 | `true` | sì | sì | tutti in whitelist | no ERROR/WARNING (schema valido) |
+| 5 | `true` | sì | sì | almeno 1 fuori whitelist | **WARNING 4z.2** (`acceptance-spec-kind-unknown`) |
+| 6 | `true` | sì | sì | misti in+fuori whitelist | **WARNING 4z.2** (per ogni kind non in whitelist) |
+| 7 | `true` | sì | sì (vuoto / `scenario: []`) | — | no ERROR/WARNING (spec presente e leggibile → verdict `skip` dichiarato a runtime, non lint issue) |
+
+**Numerazione**: «4z» segue «4y» (EP-008/ADR-063 §B — ux_ui evidence-provenance) nella serie
+alfabetica; non collide con alcun check esistente in questo file. «4y» era il target originale (TSK-145 /
+US-069), ma lo slot era già occupato; 4z è il prossimo slot libero (correzione meccanica di numerazione,
+lezione TSK-112/118/122/096/137 — pattern consolidato).
+
+**Distinto da Check 4p** (ux_ui forma, gate `ux_ui.required_on_fe_done`) e **da Check 4y** (ux_ui
+evidence-provenance, gate `ux_ui.enabled`): 4z è gated da `fe_correctness.functional_oracle.enabled`,
+opera su spec YAML di dominio funzionale (non su report di review UX/UI). Gate, trigger e target
+indipendenti; possono coesistere in una factory con entrambe le capability attive.
+
+**Cross-link**: 4z → ADR-065 §E (fail-loud spec assente) / §C (whitelist kind primitivi) / §B (schema
+struttura spec) + schema `.claude/schemas/acceptance-spec.schema.yaml` + US-069 (origine) + EP-018
+(Functional Oracle capability) + ADR-066 (vocabolario scenario) + ADR-064 (app-lifecycle serve, engine).

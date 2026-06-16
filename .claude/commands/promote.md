@@ -5,13 +5,15 @@ description: Promuove una pagina wiki (draft → review → approved). Invoca or
 Argomenti: `<path-pagina> [<new-status>]`.
 
 Esempi:
-
 - `/promote wiki/concepts/event-sourcing.md` → next state dal corrente
 - `/promote wiki/concepts/event-sourcing.md approved` → target esplicito
 
-Invoca l'agente `orchestrator` via `Agent` (è l'unico autorizzato a editare `status:`
-frontmatter di pagine wiki — vedi PATTERN.md §10 + skill `promote-status`).
+Invoca l'agente `orchestrator` via `Agent` (è l'unico autorizzato a editare `status:` frontmatter di pagine wiki — vedi PATTERN.md §10 + orchestrator agent prompt).
 
-Procedura: vedi skill `promote-status`.
+L'orchestrator:
+1. Legge la pagina target.
+2. Calcola transizione legale: `draft → review → approved`, mai salti.
+3. Edita **solo** `status:` e `updated:` nel frontmatter YAML. Mai il corpo.
+4. Append a `wiki/log.md` la riga di promotion.
 
-Se la transizione è illegale → orchestrator rifiuta. Niente auto-fix.
+Se la transizione è illegale → orchestrator rifiuta e suggerisce il passo intermedio. Niente auto-fix.

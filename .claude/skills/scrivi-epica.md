@@ -30,6 +30,8 @@ depends_on: []   # v2.11: lista EP prerequisite (es. [EP-001, EP-003])
 
 Note: `stories` non va nel frontmatter — si deduce dalle sotto-cartelle `US-*/`.
 
+Se aggiungi `risk_classification:`, vedi PATTERN §5 per lo schema completo (opt-in v2.16). Non duplicare qui.
+
 ### `depends_on` (v2.11)
 
 - **`depends_on: [EP-XXX, ...]`** — Epiche prerequisite: input per il parallel

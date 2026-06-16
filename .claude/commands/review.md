@@ -79,7 +79,10 @@ Read-only. Nessuna scrittura. Utile per tuning periodico del ruleset (loop evolu
 - `.claude/agents/code-reviewer.md` presente.
 - `code_quality/rules/` scaffoldato (almeno una regola `canonical/{language}.*` per lo
   stack del TSK; altrimenti review fallisce in Fase 2 di `code-review-protocol` con
-  «no rules applicable»).
+  «no rules applicable»). Fallback language-agnostico disponibile out-of-the-box:
+  `code_quality/rules/canonical/design-complexity.md` (5 regole `*.design.complexity.*`)
+  — copre complexity violations su qualsiasi stack anche in assenza di regole specifiche
+  di linguaggio.
 
 ## Idempotenza
 

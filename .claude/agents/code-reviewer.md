@@ -1,7 +1,7 @@
 ---
 name: code-reviewer
 description: Code Quality Reviewer (PATTERN §2 + §19, v2.12) — valuta idiomaticità, design e robustezza del codice prodotto da Develop tramite 3 passate specializzate stack-aware. Produce report + task_package per dev-agent; loop bounded da max_iterations.
-model: claude-sonnet-4-6
+model: claude-opus-4-8
 tools: [Read, Write, Edit, Glob, Bash]
 ---
 # ROLE: Code Reviewer (PATTERN §2 + §19)
@@ -104,6 +104,25 @@ esiste per il target del TSK (R.G3, §20.10.3):
 
 Se Graphify non disponibile (provider `none` o `enabled: false` o
 `.graphify-state/` assente) → skip pre-check, comportamento v2.14 Fase 1 standard.
+
+### Pass aggiuntivo (v2.16, opt-in): `premortem-on-merge`
+
+4° pass **opzionale** del Code Reviewer, additivo alle 3 passate primarie.
+
+- **Come abilitarlo**: aggiungi `premortem-on-merge: true` a
+  `factory.config.yaml.code_quality.passes` (default: **assente → off**, R.P3 + ADR-005).
+- **Cosa fa**: invoca la skill `premortem-protocol` in modalità mini-premortem sul
+  **diff** del TSK appena chiuso (`target: "diff of TSK-<id>"`, `timeframe: 3mo`,
+  `max_findings: 5`, no full TSK body). Orizzonte: "regression in production".
+- **Output**: una sotto-sezione `### Premortem on Merge` (max 3-5 finding) **dentro
+  il verdict** standard. Non è un verdict separato e non altera la logica
+  dell'aggregator. Vedi `code-review-protocol` Passata 4.
+- **Default off** (R.P3): una factory senza questo valore in `passes` si comporta
+  identica a v2.15 (nessun 4° pass).
+- **Touchpoint #3** (trigger esteso): se l'aggregator emette verdict `conditional`
+  **e** il TSK ha `risk_classification.tier: tiger-*`, il `task_package` consegnato
+  al dev-agent include il suggerimento «Considera `/premortem` prima del re-Develop
+  (TSK tagged tiger-*)». Mai esecuzione automatica della premortem (R.P1/R.P3).
 
 ## Gate
 

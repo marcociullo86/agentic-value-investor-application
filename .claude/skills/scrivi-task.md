@@ -24,6 +24,9 @@ status: todo | in-progress | done
 depends_on: []           # v2.11: lista TSK prerequisiti (es. [TSK-007, TSK-012]) — hard block
 blocked_by: []           # v2.11: lista Q_NNN hard aperte che bloccano il TSK
 code_path: []            # v2.11: lista path/glob L5 toccati (es. ["src/auth/**", "src/api/v1/login.py"])
+# Campi EP-018 (Functional Oracle) — opzionali/additivi; assenza = 0 ERROR di lint (no-op se fe_correctness.functional_oracle.enabled: false)
+functional_status: pass | conditional | reject | skip | pending  # EP-018 opt-in; single-writer: skill functional-oracle-protocol (qa-dev)
+functional_acceptance_spec: <path>  # EP-018 opt-in; path acceptance-spec YAML; scritto dal TPM/progetto al momento della tasking
 ---
 ```
 
@@ -200,6 +203,101 @@ review): segnala solo se ENTRAMBE le dimensioni sono alte, per non generare rumo
 a singola dimensione (es. integrazione API pesante con 1 stato, o wizard piccolo con molti step). La
 divergenza è intenzionale — «scrittura strict (OR), lint forgiving (AND)» riduce i falsi positivi a
 runtime preservando l'educazione preventiva. Riferimento: ADR-011 §Rationale punto 3.
+
+## Layer FE — UX/UI Design Spec (EP-008, ADR-020)
+
+> Sezione opt-in (US-032, capability EP-008). Procedura per il **TPM** per allegare al frontmatter di
+> un TSK FE il campo `ui_design_spec: <path>` quando esiste un deliverable di Design per il componente.
+> Analoga alla `## Layer FE — Interaction Test Spec` di EP-005 (ADR-012): il deliverable è una specifica
+> esterna che il TPM allega al TSK, non un output di runtime.
+
+**Quando suggerirlo.** Se per il componente target del TSK FE esiste un deliverable di Design prodotto
+da `/ux-ui-design` (agente `ui-designer`, US-029/030) — tipicamente in
+`code_quality/reports/<TSK-id>-uxui-design.json` (+ `.md`), oppure in `code_quality/reports/_adhoc/uxui-design-<...>`
+per invocazioni standalone — la skill suggerisce di valorizzare il frontmatter:
+
+```yaml
+ui_design_spec: code_quality/reports/<TSK-id>-uxui-design.json
+```
+
+**Single-writer: il TPM (ADR-020 §A/§F).** Il `ui-designer` **suggerisce** il path nel proprio output
+(logging), ma NON modifica il frontmatter né il corpo del TSK: il TPM **committa** il campo in fase di
+scrittura/aggiornamento del TSK. Pattern simmetrico a come il `code-reviewer` suggerisce ma il TPM
+committa i campi strutturali. Evita race condition e mantiene il TPM come owner del TSK schema.
+
+**Procedura.**
+1. Verifica se esiste un deliverable Design per il componente (path `<TSK-id>-uxui-design.json` o adhoc).
+2. Se sì, aggiungi `ui_design_spec: <path>` al frontmatter del TSK FE.
+3. Se il deliverable è adhoc e copre più componenti/TSK, scelta del TPM: può citarlo in più TSK.
+4. Opzionalmente aggiungi una sezione `## Design Reference` nel corpo del TSK con bullet al wireframe/spec.
+
+**Cosa ne fa il fe-dev.** In Fase 4 (Develop) il fe-dev legge `ui_design_spec:` come specifica visiva di
+prima classe (wireframe + `component_spec` + rationale del designer); le `assumptions[]`/`open_questions[]`
+non risolte del deliverable possono diventare `open_questions` del TSK. Vedi
+[`fe-dev`](../agents/fe-dev.md) §UX/UI Design spec input.
+
+**Schema deliverable single-shot.** Il deliverable Design è **single-shot** per TSK (no iter-N, distinto
+dal report Review iterativo `uxui-review-iter-<N>`): eventuali ridisegni sovrascrivono il file, il
+versioning vive in git. Il path resta quindi stabile nel frontmatter.
+
+**Backward compat.** Un TSK FE **senza** `ui_design_spec:` resta pienamente valido: **0 ERROR di lint**.
+Il campo è additivo e opt-in; la sua assenza non è mai un errore (il fe-dev sviluppa dalle specifiche
+esistenti — corpo TSK, State Matrix, eventuale `visual_reference:`).
+
+## Layer FE — Functional Oracle (EP-018, ADR-065/ADR-067)
+
+> Sezione opt-in (US-071, EP-018). Procedura per il **TPM** per allegare al frontmatter di un TSK
+> il campo `functional_acceptance_spec: <path>` quando esiste un'`acceptance-spec` YAML per il
+> componente/app target. Analoga a `## Layer FE — UX/UI Design Spec` (EP-008): il deliverable è una
+> specifica esterna che il TPM allega al TSK al momento della tasking, non un output di runtime.
+
+**Quando suggerirlo.** Se per il TSK esiste (o si intende creare) un'`acceptance-spec` YAML che
+descrive fixture + scenario Playwright + asserzioni per verificare che l'app funzioni come atteso
+(ADR-065 §B), la skill suggerisce di valorizzare il frontmatter:
+
+```yaml
+functional_acceptance_spec: code_quality/acceptance/<TSK-id>.acceptance.yaml
+```
+
+Il path può puntare a una spec per-TSK (`<TSK-id>.acceptance.yaml`) o per-app
+(`<app-slug>.acceptance.yaml`) all'interno del glob configurato in
+`fe_correctness.functional_oracle.acceptance_spec_glob` (default `code_quality/acceptance/*.acceptance.yaml`).
+
+**Single-writer per campo.**
+
+- `functional_acceptance_spec:` — **single-writer: TPM/progetto** (ADR-065 §Storage, ADR-067 §Config).
+  Il TPM scrive questo campo al momento della creazione/aggiornamento del TSK, prima dell'esecuzione
+  del functional oracle. Nessun agente lo sovrascrive automaticamente.
+- `functional_status:` — **single-writer: `functional-oracle-protocol`** (sub-skill di `qa-dev`,
+  ADR-067 §A). Solo la skill di esecuzione scrive questo campo (`pass | conditional | reject | skip |
+  pending`). Il TPM non lo valorizza al momento della tasking (lasciare assente o `pending`). Mai
+  sovrascritto da altri agenti (dev-agent, reviewer, TPM post-esecuzione).
+
+**Procedura (TPM).**
+1. Verifica se esiste (o si intende produrre) un'`acceptance-spec` YAML per il componente/app.
+2. Se sì, aggiungi `functional_acceptance_spec: <path>` al frontmatter del TSK.
+3. Lascia `functional_status:` assente o a `pending` — lo aggiornerà la skill dopo l'esecuzione.
+4. Opzionalmente aggiungi una sezione `## Acceptance Spec` nel corpo del TSK con il path e una
+   descrizione breve dello scenario (es. «verifica che il gioco parta e il canvas avanzi»).
+
+**Cosa ne fa `qa-dev` (functional oracle).** In modalità functional-oracle, `qa-dev` legge
+`functional_acceptance_spec:` come contratto di verifica: carica le fixture, esegue lo scenario
+Playwright, valuta le asserzioni binarie (ADR-065 §C/§D) e aggiorna `functional_status:` con il
+verdict. Il critic LLM (se `functional_oracle.critic: advisory`) ispeziona il trace solo come
+osservazione aggiuntiva — mai nel path pass/fail (ADR-067 §B). Vedi
+[`functional-oracle-protocol`](./functional-oracle-protocol.md).
+
+**Opzionalità e no-op a flag spento.**
+
+- Se `fe_correctness.functional_oracle.enabled: false` (default) → i due campi sono **completamente
+  no-op**: nessun agente li legge, nessun lint genera ERROR o WARNING per la loro assenza.
+- La loro **assenza** non genera mai ERROR di lint, indipendentemente dal flag (ADR-065 §E).
+- Se `enabled: true` **e** `functional_acceptance_spec:` valorizzato ma il file non esiste →
+  ERROR (spec referenziata assente; ADR-065 §E + Lint Check 4z.1).
+
+**Backward compat.** Un TSK **senza** `functional_status:` e senza `functional_acceptance_spec:`
+resta pienamente valido: **0 ERROR di lint**. Entrambi i campi sono additivi e opt-in; la loro assenza
+non è mai un errore (R.P3 opt-in totale, backward compat totale con factory v2.19).
 
 ## Regole
 

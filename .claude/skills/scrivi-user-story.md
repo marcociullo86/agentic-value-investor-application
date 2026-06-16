@@ -29,6 +29,8 @@ depends_on: []            # v2.11: lista US prerequisite (es. [US-003, US-005]) 
 
 Note: `epic` non va — deducibile dalla folder padre.
 
+Se aggiungi `risk_classification:`, vedi PATTERN §5 per lo schema completo (opt-in v2.16). Non duplicare qui.
+
 ### `depends_on` (v2.11)
 
 - **`depends_on: [US-YYY, ...]`** — User Story prerequisite: l'arch e il TPM

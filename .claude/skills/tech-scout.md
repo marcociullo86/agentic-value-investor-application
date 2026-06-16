@@ -1,106 +1,123 @@
 ---
 name: tech-scout
-description: Skill di proposta automatica dello stack tecnologico via ricerca web (stack_mode=auto, v2.7). Genera raw/tech_stack.md.proposal con citazioni datate. Mai auto-applicato: gate umano per promuovere a raw/tech_stack.md.
+description: Proposta automatica di stack tecnologico (stack_mode=auto). Output raw/tech_stack.md.proposal con gate umano (PATTERN §14).
 ---
-# Tech Scout (v2.7, stack_mode=auto)
+# Procedura — Tech-scout (stack proposal)
 
-Riferimenti: `citation-rules` (forma `[^web:]`), `wiki-log-entry` (template `tech-scout`), `PATTERN.md §14`, `wiki-gap-protocol`.
+Skill invocata quando `factory.config.yaml` ha `stack_mode: auto`, o on-demand
+dall'utente quando vuole ri-valutare lo stack a metà progetto.
 
-## Quando si attiva
+**Output**: `raw/tech_stack.md.proposal` (effimero, gate umano per promote).
+**MAI** scrive direttamente `raw/tech_stack.md` (PATTERN §7 r.1 + §7 r.10).
 
-- `factory.config.yaml` ha `stack_mode: auto`.
-- Comando esplicito (es. invocata dal `wiki-keeper` o da uno script di setup).
-- `raw/tech_stack.md` mancante o sezione layer assente.
+## Fase 0 — Pre-condizioni
 
-**Mai** sostituisce un `raw/tech_stack.md` esistente: scrive sempre `.proposal`.
+1. `factory.config.yaml.stack_mode` ∈ `{auto}`, oppure richiamo esplicito utente.
+2. `wiki/` deve contenere almeno: un'epica con requisiti business chiari, o
+   uno o più concept/synthesis che descrivono dominio + vincoli.
+3. Standards normativi già presenti in `wiki/` o `raw/`: **trattati verbatim**
+   (PATTERN §11). La proposta li adotta; non li sostituisce.
 
-## Vincolo §11 (assoluto)
+## Fase 1 — Estrazione vincoli
 
-Standards normativi citati nei raw (SPID, OIDC, OAuth2, SAML, eIDAS, FHIR, GDPR, HL7, ISO/IEC, RFC numerati) **non si propongono come "equivalenti"**. La proposta DEVE adottarli verbatim. Sostituire silenziosamente uno standard è una violazione del contratto.
+1. Leggi `wiki/syntheses/`, `wiki/concepts/`, `wiki/entities/` per:
+   - Dominio del progetto (es. fintech, healthcare, e-commerce)
+   - Scala attesa (utenti, throughput, latency budget)
+   - Compliance / standards (GDPR, FHIR, OIDC, SPID, eIDAS, ISO 27001, …)
+   - Geografia (data residency, multi-region)
+   - Vincoli organizzativi (team size, expertise)
+2. Leggi `management/kanban/EP-*/` per requisiti non-funzionali estratti.
+3. Compila una **shortlist di vincoli** internamente (non scrivere).
 
-## Procedura (4 fasi)
+## Fase 2 — Ricerca
 
-### Fase 1 — Estrazione vincoli da wiki
+1. Per ciascun layer (`backend`, `frontend`, `database`, `qa`, `infra`),
+   formula 1-2 query web focalizzate (es. *"Python backend framework 2026 LTS
+   production-ready healthcare FHIR"*).
+2. Usa `WebSearch` / `WebFetch` per recuperare fonti datate **2026** (preferibilmente
+   ultimo trimestre). Scarta fonti senza data o pre-2025.
+3. Per ogni candidato (es. FastAPI, Django, Express), raccogli:
+   - Versione corrente (LTS o stable)
+   - Maturità / community / corporate adoption 2026
+   - Compatibilità con vincoli normativi del progetto
+   - Trade-off principali (un punto pro, un punto contro)
 
-```
-Glob wiki/concepts/**, wiki/syntheses/**
-```
+## Fase 3 — Scrittura proposta
 
-Per ogni layer (be/fe/db/qa/infra): identifica vincoli citati (es. "deve supportare OIDC", "tabelle PostgreSQL", "test framework Jest", "deployment Docker").
+**File**: `raw/tech_stack.md.proposal`
 
-Se zero vincoli → apri gap "tech_stack mancante per layer X" e ferma per quel layer.
-
-### Fase 2 — Ricerca web (fonti 2026)
-
-Per ogni layer con vincoli identificati:
-
-- Cerca opzioni mainstream stato dell'arte (es. backend OIDC-capable: FastAPI + Authlib, Express + openid-client, Spring Boot + Spring Security OAuth2).
-- Filtra per fonti datate ≥ 2025 (preferire 2026).
-- Cita ogni opzione con `[^web: <url>] (accessed YYYY-MM-DD)`.
-
-### Fase 3 — Scrittura proposta
-
-Write `raw/tech_stack.md.proposal` (mai overwrite di `raw/tech_stack.md`):
+**Struttura**:
 
 ```markdown
 ---
-type: tech_stack_proposal
-generated: YYYY-MM-DD
-generated_by: tech-scout
-status: pending_human_approval
+type: tech-stack-proposal
+created: YYYY-MM-DD
+stack_mode: auto
+generator: tech-scout skill (PATTERN §14)
+status: proposal  # umano deve promuovere a tech_stack.md
 ---
-# Tech Stack — App Template Demo (PROPOSTA)
+# Tech stack proposal — YYYY-MM-DD
 
-> Proposta automatica. Mai applicata senza gate umano.
-> Per promuovere: rivedere e copiare su `raw/tech_stack.md`.
+> Generata automaticamente da `tech-scout` su base `wiki/` + fonti web 2026.
+> **NON sovrascrive `raw/tech_stack.md`.** Gate umano per applicare.
 
-## Backend
-**Vincoli identificati (da wiki/)**: <lista>
-**Proposta**: <framework> — <rationale 1 riga>
-**Alternative considerate**:
-- <opzione A> [^web: <url>] (accessed YYYY-MM-DD)
-- <opzione B> [^web: <url>] (accessed YYYY-MM-DD)
+## Vincoli rilevati (da wiki/ + raw/)
 
-## Frontend
+- <vincolo 1> [^src: wiki/concepts/<page>.md §X]
+- <vincolo 2> [^src: raw/<file>.md §Y]
+- Standards verbatim: <lista — SAML, OIDC, FHIR, ...>
+
+## Stack proposto
+
+### Backend
+**Scelta:** <es. FastAPI 0.115 + Python 3.13>
+**Razionale:** <1-2 righe>
+**Fonti:**
+- [^web: <url> §<sezione>] (accessed YYYY-MM-DD)
+- [^web: <url> §<sezione>] (accessed YYYY-MM-DD)
+**Alternative considerate:** <X, Y> (pro/contro brevi)
+
+### Frontend
+... (stessa struttura)
+
+### Database
 ...
 
-## Database
+### QA
 ...
 
-## QA / Testing
+### Infra
 ...
 
-## Infra / Deployment
-...
+## Trade-off complessivi
 
-## Standards verbatim (PATTERN §11)
-<lista degli standards citati nei raw, adottati come-sono>
+<3-5 righe: dove la proposta è forte, dove è debole, quali assunzioni stiamo facendo>
+
+## Non scelto verbatim da raw/
+
+Se la proposta diverge da qualcosa già presente in `raw/`, dichiaralo qui
+esplicitamente. Standards normativi (PATTERN §11) NON devono mai divergere.
 ```
 
-### Fase 4 — Handoff
+## Fase 4 — Handoff
 
-Append a `wiki/log.md` (template `tech-scout`):
+1. Append a `wiki/log.md`:
+   ```markdown
+   ## YYYY-MM-DD HH:MM — tech-scout proposal
+   **Generata:** raw/tech_stack.md.proposal
+   **Fonti web:** <count>
+   **Standards verbatim adottati:** <lista o "nessuno">
+   **Next:** gate umano per promuovere a tech_stack.md
+   ```
+2. Segnala in chat all'utente: "Proposta scritta in `raw/tech_stack.md.proposal`.
+   Reviewala e, se ok, rinominala in `raw/tech_stack.md` (oppure copia i blocchi
+   che servono). MAI applicare automaticamente."
 
-```
-[YYYY-MM-DD HH:MM] tech-scout — raw/tech_stack.md.proposal generated (N alternative) — files touched: 1
-```
+## Vincoli inviolabili
 
-Surface in chat: "Proposta scritta in `raw/tech_stack.md.proposal`. Revisiona e copia
-su `raw/tech_stack.md` per applicare. Standards `<lista>` adottati verbatim da PATTERN §11."
-
-## Regole
-
-- **Mai overwrite di `raw/tech_stack.md`**. Solo `.proposal`.
-- **Sempre citazioni datate** in forma `[^web: <url>] (accessed YYYY-MM-DD)`.
-- **Standards verbatim**: §11 non negoziabile.
-- **Gap su layer scoperti**: se la wiki non documenta vincoli, apri gap, non procedere a caso.
-- **Almeno 2 alternative per layer** (proposta + 1 alternativa, ideale 2-3).
-
-## Anti-pattern
-
-| Anti-pattern | Correzione |
-|---|---|
-| Overwrite di `raw/tech_stack.md` | Solo `.proposal` |
-| Citazione web senza data accessed | Forma `[^web:] (accessed YYYY-MM-DD)` obbligatoria |
-| Sostituire OIDC con "JWT custom" | PATTERN §11 violation |
-| Procedere senza vincoli | Apri gap per layer scoperto |
+- **MAI scrivere `raw/tech_stack.md`** direttamente. Solo `.proposal`.
+- **MAI sostituire standards normativi** già citati in raw/wiki.
+- **Citazione obbligatoria** su ogni scelta: almeno una fonte web datata 2026.
+- **Trasparenza sulle alternative**: l'utente deve vedere cosa è stato scartato e perché.
+- **Non promuovere `.proposal` autonomamente** — il file resta sul filesystem
+  finché l'umano decide.

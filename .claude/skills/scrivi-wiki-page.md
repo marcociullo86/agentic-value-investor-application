@@ -4,23 +4,24 @@ description: Template e regole per scrivere una pagina della wiki llm-style (kar
 ---
 # Procedura per scrivere una pagina `wiki/`
 
-Riferimenti: `citation-rules`, `wiki-gap-protocol`.
+Riferimenti: `citation-rules` (citazioni e wikilink), `wiki-gap-protocol`
+(informazione assente).
 
 ## Path (karpathy-style)
 
-- Source: `wiki/sources/<kebab-slug>.md`
-- Concept: `wiki/concepts/<kebab-slug>.md`
-- Entity: `wiki/entities/<kebab-slug>.md`
-- Synthesis: `wiki/syntheses/<kebab-question>.md`
-- Runbook: `wiki/runbooks/<kebab-slug>.md`
-- Incident: `wiki/incidents/YYYY-MM-DD-<kebab-slug>.md`
+- Source: `wiki/sources/<kebab-slug>.md` (uno per documento raw ingerito)
+- Concept: `wiki/concepts/<kebab-slug>.md` (concetto di dominio)
+- Entity: `wiki/entities/<kebab-slug>.md` (persona / organizzazione / prodotto)
+- Synthesis: `wiki/syntheses/<kebab-question>.md` (risposta cross-source consolidata)
+- Runbook: `wiki/runbooks/<kebab-slug>.md` (playbook operativo)
+- Incident: `wiki/incidents/YYYY-MM-DD-<kebab-slug>.md` (post-mortem)
 
 ## Frontmatter minimo
 
 ```yaml
 ---
 type: source | concept | entity | synthesis | runbook | incident | gap
-sources: ["raw/YYYY-MM-DD-<slug>.pdf", ...]
+sources: ["raw/YYYY-MM-DD-<slug>.pdf", ...]   # vuoto per syntheses puramente derivate
 status: draft | review | approved
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
@@ -55,8 +56,10 @@ tags: [...]
 
 ## Regole stilistiche
 
-- Citazioni e wikilink: vedi `citation-rules`.
-- Informazione assente → `wiki-gap-protocol`, non inventare.
-- Update di pagina `review`: aggiungi `## Aggiornamenti (vYYYY-MM-DD)`.
+- Citazioni e wikilink: vedi `citation-rules` (forma, soglia 20 parole, cascade).
+- Informazione assente nei `raw/` → apri un gap (vedi `wiki-gap-protocol`),
+  non inventare.
+- Update di pagina già `review`: aggiungi `## Aggiornamenti (vYYYY-MM-DD)`,
+  non sovrascrivere.
 - No emoji nel contenuto wiki.
-- No timestamp in prosa.
+- No timestamp in prosa (vivono nel frontmatter).

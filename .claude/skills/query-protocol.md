@@ -4,28 +4,32 @@ description: Protocollo del wiki-query (index → candidate pages → synthesize
 ---
 # Protocollo di Query
 
-Riferimenti: `citation-rules`, `wiki-log-entry`.
+Riferimenti: `citation-rules` (ogni risposta è citata), `wiki-log-entry`
+(template `query`).
 
 ## Fase 0 — Bootstrap
 
 - Read `wiki/index.md` per la mappa delle sezioni.
-- Identifica entità chiave + tipo risposta + 3-6 keyword.
+- Identifica entità chiave della domanda + tipo risposta atteso + 3-6 keyword.
 - Read ultimo `wiki/log.md` (sezione `query`) per evitare duplicati.
 
 ## Fase 1 — Candidate pages
 
-Ordine di priorità:
+Ordine di priorità (dal più sintetico al più granulare):
 
-1. `wiki/syntheses/` — risposte già consolidate
+1. `wiki/syntheses/` — risposte già consolidate cross-source
 2. `wiki/concepts/` — concetti di dominio
 3. `wiki/entities/` — persone, organizzazioni, prodotti
 4. `wiki/sources/` — documenti raw ingeriti
 5. `wiki/runbooks/` — playbook operativi
-6. `wiki/incidents/` — post-mortem
+6. `wiki/incidents/` — post-mortem (solo se la domanda è operativa/storica)
 
-Per ogni keyword: `Glob wiki/**/*<keyword>*.md`. Read max 6-8 pagine plausibili.
+Per ogni keyword, fai `Glob wiki/**/*<keyword>*.md` e raccogli i path
+candidati. Read solo le pagine plausibili (max 6-8).
 
 ## Fase 2 — Sintesi
+
+Componi la risposta seguendo questa struttura:
 
 ```markdown
 # Risposta: <domanda riformulata>
@@ -38,41 +42,56 @@ Per ogni keyword: `Glob wiki/**/*<keyword>*.md`. Read max 6-8 pagine plausibili.
 [^src: wiki/<file>.md §<sez>]
 ```
 
-Citazioni secondo `citation-rules`. Se l'informazione non è in `wiki/`, dillo esplicitamente. Mai inventare.
+Regole:
+- Ogni asserzione cita secondo `citation-rules` (`[^src: wiki/<file>.md §<sez>]`
+  o `[[<pagina>]]`).
+- **Se l'informazione non è in `wiki/`**: dillo esplicitamente. Mai inventare,
+  mai cercare in `raw/` o altrove (il wiki-query ha scope di lettura ristretto
+  a `wiki/**`).
 
 ## Fase 3 — Persistenza
 
-Default: salva in `wiki/query/YYYY-MM-DD-<slug>.md`.
-Con `--ephemeral`: solo chat, nessuna scrittura.
+Default: salva la risposta in `wiki/query/YYYY-MM-DD-<slug>.md`.
+
+Con flag `--ephemeral`: rispondi solo in chat, **non** scrivere alcun file
+(neanche `log.md`).
 
 ## Fase 4 — Log entry
 
-Append a `wiki/log.md` secondo `wiki-log-entry` (template `query`). Skippa se `--ephemeral`.
+Append a `wiki/log.md` secondo `wiki-log-entry` (template `query`). Skippa se
+`--ephemeral`.
 
 ## Fase 5 — Proposta synthesis (opzionale)
 
-Se la risposta è candidata a ri-ask → proponi promozione:
+Se la risposta è candidata a essere **ri-asked** (domanda ricorrente, risposta
+stabile cross-source) → proponi all'umano di promuoverla:
 
 ```
 Questa risposta sembra una synthesis candidata. Vuoi promuoverla a
 wiki/syntheses/<question-slug>.md? (Richiede invocazione di wiki-keeper.)
 ```
 
-**Mai promuovere autonomamente.**
+**Non promuovere mai autonomamente.** La promozione query → synthesis è
+operazione semantica e va eseguita dal `wiki-keeper`.
 
 ## Scope di lettura (inviolabile)
 
-`wiki-query` legge **solo** `wiki/**/*.md`. Mai `raw/`, `management/`, `design_&_architecture/`, `memory/`, `src/`.
+`wiki-query` legge **solo** `wiki/**/*.md`. Mai:
 
-Se la domanda richiede info fuori scope:
+- `raw/**` (rompe il grounding sulla wiki)
+- `management/**` (rompe la cascade)
+- `design_&_architecture/**` (rompe la cascade)
+- `memory/**` (memoria è per orchestrator/altri)
 
-> "L'informazione richiesta vive fuori da `wiki/`. Posso dirti solo quello che la wiki documenta su <topic>: ..."
+Se la domanda richiede informazione fuori scope → rispondi:
+"L'informazione richiesta vive fuori da `wiki/`. Posso solo dirti quello che
+la wiki documenta su <topic>: ..."
 
 ## Anti-pattern (vietati)
 
 | Anti-pattern | Correzione |
 |---|---|
-| Leggere `raw/` per "verificare" la wiki | Se la wiki ha un gap, segnalalo via `wiki-gap-protocol`. |
-| Rispondere senza citazione | Vedi `citation-rules`. |
-| Promuovere query → synthesis autonomamente | Proponi all'umano, lascia agire `wiki-keeper`. |
+| Leggere `raw/` per "verificare" la wiki | Vietato. Se la wiki ha un gap, segnalalo via `wiki-gap-protocol`. |
+| Rispondere senza citazione | Vietato. Vedi `citation-rules`. |
+| Promuovere query → synthesis autonomamente | Vietato. Proponi all'umano, lascia agire `wiki-keeper`. |
 | Inventare la risposta se la wiki tace | Vietato. Dillo esplicitamente. |

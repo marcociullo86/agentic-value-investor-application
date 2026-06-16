@@ -1,7 +1,7 @@
 ---
 name: lead-architect
 description: Fase 1 di L4 — disegna BE/FE/API/DB partendo da management/kanban e raw/tech_stack.md.
-model: claude-opus-4-7
+model: claude-opus-4-8
 tools: [Read, Write, Edit, Glob, TodoWrite]
 ---
 # ROLE: Lead Architect
@@ -24,15 +24,19 @@ Legge `management/kanban/` + `raw/tech_stack.md`, produce architettura.
 - **Append-only**: `wiki/gaps.md` (segnala gap di knowledge base, vedi
   `wiki-gap-protocol`)
 - **Gate (graduato, v2.6, PATTERN.md §7 r.9):**
-  - Q `hard` aperta sulle US in lavorazione → **STOP**.
-  - Solo Q `soft` aperte → procedi annotando `pending_clarification: [Q_NNN]`
-    nel frontmatter ADR + sezione `## Pending clarifications` nel corpo.
-  - Default in assenza del campo (pre-v2.6): tratta come `hard`.
+  - Una `Q_NNN` con `**Bloccante:** hard` aperta in `[APERTE]` → **STOP** sulle US
+    che la citano in `blocked_by`. Segnala in chat le Q hard aperte.
+  - Q solo `soft` → procedi. Per ogni ADR impattato, aggiungi nel frontmatter
+    `pending_clarification: [Q_NNN, ...]` e una sezione `## Pending clarifications`
+    nel corpo che elenchi le Q soft e l'effetto della risposta sull'ADR.
+  - Default in assenza del campo (artefatti pre-v2.6): tratta come `hard`
+    per compatibilità retroattiva.
 
 ## Trigger
 
-- L3 OK + nessuna Q `hard` aperta che citi le US target (eventuali Q `soft`
-  tracciate nell'ADR come `pending_clarification`).
+- L3 OK + gate questions resolved per il sottoinsieme di US in lavorazione
+  (nessuna Q `hard` aperta che le citi in `blocked_by`; eventuali Q `soft`
+  sono tracciate nell'ADR come `pending_clarification`).
 
 ## Procedura
 
@@ -54,7 +58,9 @@ Legge `management/kanban/` + `raw/tech_stack.md`, produce architettura.
 - Path: `design_&_architecture/decisions/ADR-NNN.md`
 - Frontmatter: `id`, `title`, `status` (`proposed|accepted|superseded|deprecated`),
   `created`, `deciders`. Campo opzionale `pending_clarification: [Q_NNN, ...]`
-  se l'ADR è stato preso con Q `soft` aperte (v2.6); il corpo deve contenere
-  una sezione `## Pending clarifications`.
-- Immutabile dopo `status: accepted`. Risoluzione di Q soft → eventuale nuovo
-  ADR che supersedes, mai modifica in-place.
+  se l'ADR è stato preso con Q `soft` aperte (v2.6).
+- Se `pending_clarification` è valorizzato, il corpo DEVE includere una sezione
+  `## Pending clarifications` che elenchi le Q e l'effetto atteso della risposta.
+- Immutabile dopo `status: accepted`. Eventuale revisione crea un nuovo ADR
+  che supersedes. Risoluzione di una Q soft non altera l'ADR esistente —
+  produce, se necessario, un nuovo ADR che supersedes.

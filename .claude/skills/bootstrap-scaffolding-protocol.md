@@ -124,6 +124,30 @@ Condizionali:
 - `/kanban-publish` — se `kanban_publish.provider != none`.
 - `/review` — se `code-reviewer` agent presente.
 
+### 3.h — Token Ledger scaffold (opt-in)
+
+**Gate**: `analytics.token_ledger.enabled: true` nel blocco `factory.config.yaml.analytics.token_ledger:`.
+SE `enabled: false` (default): EARLY RETURN — nessun artefatto Token Ledger creato.
+Factory v2.20 derivate restano identiche (R.P3 backward compat totale).
+
+**Cross-validation**: se `token_ledger.enabled: true` E `analytics.measurement.enabled: false`
+→ emit WARNING (non bloccare lo scaffolding):
+```
+WARNING: analytics.token_ledger.enabled: true richiede analytics.measurement.enabled: true
+come prerequisito. Token Ledger scaffoldato ma le sessioni non saranno tracciate nell'event store.
+```
+
+**Artefatti da scaffoldare** (in ordine, solo se `enabled: true`):
+
+1. `.claude/tools/analytics/show-session-tokens.py` — copia da meta-framework.
+2. `.claude/settings.json` — merge non distruttivo:
+   - Leggi file esistente (o `{}` se assente).
+   - Aggiungi chiave `hooks.Stop` SOLO se assente; se esiste → skip silente con nota.
+   - Riscrivi il file. Mai sovrascrivere chiavi esistenti non Token Ledger.
+3. `analytics/pricing.yaml` — copia da meta-framework se non esiste; skip silente se esiste.
+4. `.claude/skills/token-ledger.md` — copia da meta-framework.
+5. `.claude/commands/token-ledger.md` — copia da meta-framework.
+
 ## Fase 4 — Niente file vietati (PATTERN §8)
 
 NEVER creare:

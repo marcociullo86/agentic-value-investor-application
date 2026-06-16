@@ -1,4 +1,7 @@
-pattern_version: "2.17"
+pattern_version: "2.21"
+# Upgrade 2026-06-16: v2.17 → v2.21 (delta additivo non distruttivo, factory-upgrade-protocol).
+# v2.18 (a11y + ux_ui), v2.19 (temporal, release_governance, complexity_budget, dogfooding),
+# v2.20 (functional_oracle), v2.21 (design_intelligence, token_ledger) — tutte opt-in, default false.
 topology: full-stack-agents
 
 # v2.12 multi-repo: legacy code_path auto-promosso se code_paths assente
@@ -64,6 +67,10 @@ scheduler:
     review: true
     premortem: true       # v2.16 — /premortem su target distinti in parallelo (default parallel, ADR-004); composizione N×M con cap interno Fase 4 (max_parallel: 8 hardcoded, ADR-001)
     visual-oracle: true   # v2.17 — sub-step di L2 (develop) per TSK FE; attivo perché fe_correctness.enabled: true (ADR-012 §F)
+    a11y: false           # v2.18 — accessibility testing WCAG 2.2 AA (opt-in, default off)
+    ux-ui-review: false   # v2.18 — UX/UI Review & Design (opt-in, default off)
+    analytics: false      # v2.18 — Task Analytics cost/time measurement (opt-in, default off)
+    functional-oracle: false  # v2.20 — FE Functional Oracle EP-018 (opt-in, default off)
 
 # FE Visual Oracle (v2.17, PATTERN §3 variante di Develop FE) — opt-in, qui ATTIVO.
 # Chiude il loop visivo del frontend: render headless (Playwright) + screenshot
@@ -87,6 +94,13 @@ fe_correctness:
     max_estimate_hours: 8
     max_states: 3
   dispatch_gate: false       # Orchestrator Oracle Pre-Check FE
+  # Functional Oracle (v2.20, EP-018) — opt-in, default OFF (R.P3)
+  functional_oracle:
+    enabled: false
+    timeout_seconds: 120
+    headless: true
+    fixture_dir: code_quality/fixtures
+    acceptance_spec_dir: code_quality/acceptance
 
 code_quality:
   enabled: true
@@ -143,6 +157,16 @@ compression:
     audit_trail_for:
       - propagate-resolution
       - feedback-router
+    # Decision Anchor (v2.19, EP-015) — opt-in, default OFF
+    decision_anchor:
+      enabled: false
+      required_on_chain: false
+    # Consistency Check (v2.19, EP-015) — opt-in, default OFF
+    consistency_check:
+      enabled: false
+    # Migration tracking (v2.19)
+    migration:
+      v2_15_to_v2_19_complete: false
   context:
     provider: none
     enabled: false
@@ -181,3 +205,123 @@ compression:
       enabled: false
       topology: per-agent
       crg_tools_max: 8
+
+# ============================================================================
+# Capability opt-in introdotte con l'upgrade v2.18→v2.21 — TUTTE default false.
+# A flag spento sono no-op: comportamento identico a v2.17.
+# ============================================================================
+
+# A11y (v2.18, EP-007) — Accessibility Testing WCAG 2.2 AA. Opt-in totale (R.P3).
+a11y:
+  enabled: false             # master switch
+  wcag_level: AA
+  standard: WCAG2.2
+  tool: axe-core
+  scan_on_develop: false
+  fail_on_critical: true
+  fail_on_serious: false
+  skip_reason_required: true
+
+# UX/UI Review & Design (v2.18, EP-008) — opt-in totale (R.P3).
+ux_ui:
+  enabled: false             # master switch
+  review:
+    enabled: false
+    max_iterations: 3
+    auto_reject_on_fabrication: true
+  design:
+    enabled: false
+    reasoning_first: true    # v2.21 EP-019 Design Intelligence gate
+  anti_fabrication:
+    enabled: true
+    require_evidence: true
+
+# Task Analytics (v2.18, EP-009 measurement + EP-010 estimation + v2.19 dogfooding + v2.21 token_ledger)
+analytics:
+  measurement:
+    enabled: false           # master switch EP-009 (R.P3)
+    agent: false
+    store: jsonl
+    rotation: monthly
+    compress_older_than_months: 0
+    jsonl_scan_warn_lines: 500000
+    event_store_path: analytics/events
+    pricing_table_path: analytics/pricing.yaml
+    rate_card_path: analytics/rates.yaml
+    rate_basis: fully-loaded
+    report_compression_savings: false
+    min_aggregation_n: 5
+    operational_show_actor_id: false
+    actors_map: {}
+    tools_dir: .claude/tools/analytics
+    drift_warn_days: 90
+    granularity: tsk
+    required_on_done: false
+  estimation:
+    enabled: false           # master switch EP-010 (R.P3)
+    agent: false
+    rcf_min_samples: 10
+    rcf_low_confidence_threshold: 1
+    rcf_medium_confidence_threshold: 10
+    rcf_high_confidence_threshold: 30
+    similarity_factor:
+      high: 1.0
+      medium: 0.7
+      low: 0.4
+    default_contingency_pct: 15
+    default_M_per_layer:
+      fe: 4
+      be: 3
+      db: 2
+      qa: 2
+      docs: 1
+    default_model: "current"
+    monte_carlo:
+      runtime: python
+      iterations: 10000
+      seed: null
+    required_on_kickoff: false
+  dogfooding:
+    enabled: false           # v2.19 EP-013 — auto-misurazione (R.P3)
+    privacy_policy_path: analytics/PRIVACY.md
+    lock_strategy: flock-advisory
+    lock_timeout_seconds: 5
+    idempotency_strategy: hash-compound
+  token_ledger:
+    enabled: false           # v2.21 EP-022 — visibilità token inline (R.P3)
+    display_mode: compact
+    show_cache_savings: true
+    auto_call_on_wave_close: false
+    pricing_fallback: prefix-based
+
+# Temporal Budget Governor (v2.19, EP-014) — opt-in totale (R.P3).
+temporal:
+  enabled: false
+  budget_strategy: strict    # strict (default) | adaptive (rinviato v2.20+)
+  p85_default_hours: 8
+  override_allowed: true
+  warn_on_skip: true
+
+# Release Governance (v2.19, EP-012, PATTERN §22) — opt-in totale (R.P3).
+release_governance:
+  battle_test_gate:
+    enabled: false           # gate /release: blocca tag senza ≥N RUN-REPORT validi
+    min_run_reports: 3
+    run_report_path: "wiki/run-reports/"
+
+# Adoption Profile (v2.19, EP-016, PATTERN §23)
+adoption_profile: standard   # standard | minimal | advanced | custom
+
+# Complexity Budget (v2.19, EP-016, PATTERN §23)
+complexity_budget:
+  required_on_release: false # lint gate WARNING-only: N:1 check pre-release
+
+# Design Intelligence Layer (v2.21, EP-019) — opt-in totale (R.P3).
+design_intelligence:
+  enabled: false             # master switch — dipende da ux_ui.enabled: true
+  critic:
+    max_iterations: 3
+  generator:
+    model: null
+  dsl:
+    required_fields: [INTENT, PROBLEM, RATIONALE, CONSTRAINTS]
