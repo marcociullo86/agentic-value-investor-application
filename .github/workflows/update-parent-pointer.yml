@@ -1,0 +1,29 @@
+name: Update soli-projects pointer
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  update-parent:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout soli-projects
+        uses: actions/checkout@v4
+        with:
+          repository: soli92/soli-projects
+          token: ${{ secrets.PARENT_REPO_PAT }}
+          submodules: recursive
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump submodule pointer
+        run: |
+          git submodule update --remote projects-repos/agentic-value-investor-application
+          git add projects-repos/agentic-value-investor-application
+          git diff --staged --quiet && echo "Already up to date." && exit 0
+          git commit -m "chore: bump agentic-value-investor-application to ${{ github.sha }}"
+          git push
