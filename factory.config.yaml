@@ -1,4 +1,4 @@
-pattern_version: "2.21"
+pattern_version: "2.32"
 # Upgrade 2026-06-16: v2.17 → v2.21 (delta additivo non distruttivo, factory-upgrade-protocol).
 # v2.18 (a11y + ux_ui), v2.19 (temporal, release_governance, complexity_budget, dogfooding),
 # v2.20 (functional_oracle), v2.21 (design_intelligence, token_ledger) — tutte opt-in, default false.
@@ -325,3 +325,23 @@ design_intelligence:
     model: null
   dsl:
     required_fields: [INTENT, PROBLEM, RATIONALE, CONSTRAINTS]
+
+# --- opt-in capabilities added by factory-upgrade -> v2.32 (20260713-1123); all disabled, no behavior change ---
+models:
+  routing:
+    tier_fast: claude-haiku-4-5-20251001
+    tier_default: claude-sonnet-4-6
+    tier_deep: claude-opus-4-8
+  overrides: {}
+
+prototyping:
+  enabled: false
+
+tavola_rotonda:
+  enabled: false
+
+wiki_search:
+  enabled: false
+
+capability_formativa:
+  enabled: false
