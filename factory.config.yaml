@@ -1,4 +1,4 @@
-pattern_version: "2.32"
+pattern_version: "2.33"
 # Upgrade 2026-06-16: v2.17 → v2.21 (delta additivo non distruttivo, factory-upgrade-protocol).
 # v2.18 (a11y + ux_ui), v2.19 (temporal, release_governance, complexity_budget, dogfooding),
 # v2.20 (functional_oracle), v2.21 (design_intelligence, token_ledger) — tutte opt-in, default false.
@@ -51,7 +51,7 @@ kanban_publish:
 
 scheduler:
   enabled: true
-  max_parallel: 4
+  max_parallel: 20
   parallel_gate_threshold: 3
   code_path_conflict: strict
   empty_code_path_policy: serial
@@ -345,3 +345,18 @@ wiki_search:
 
 capability_formativa:
   enabled: false
+
+content_share:
+  enabled: false                              # R.CS2 opt-in
+  target_repo: "soli92/soli-frames"
+  source_repo_slug: ""                        # obbligatorio se enabled: true
+  source_repo: ""                             # formato org/repo
+  pat_env: SOLI_FRAMES_PAT
+  secret_env: SOLI_FRAMES_DISPATCH_SECRET
+  publish_default: draft
+  size_limit_kb: 100
+  size_warn_kb: 80
+  artifact_categories:
+    prototype: true
+    analytics_report: true
+    custom: true
