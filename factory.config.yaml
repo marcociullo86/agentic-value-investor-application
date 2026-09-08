@@ -1,4 +1,6 @@
-pattern_version: "2.33"
+pattern_version: "2.42"
+# Upgrade 2026-09-08: v2.33 → v2.42 (9 delta cumulativi, factory-upgrade-protocol, additivo).
+# Delta: v2.34-v2.36 (governance/onboarding/bus-factor/tech-debt) + v2.37 (code_intelligence + wiki_purpose + wiki_sweep) + v2.38 (llm_wiki integration) + v2.39 (ponytail + mcp_server) + v2.40 (release-manager + tpm-reconcile + deep-functional-probe) + v2.41 (refactor_agent_skills / fleet-doctor) + v2.42 (session_analysis + EP-062 harvest fan-in).
 # Upgrade 2026-06-16: v2.17 → v2.21 (delta additivo non distruttivo, factory-upgrade-protocol).
 # v2.18 (a11y + ux_ui), v2.19 (temporal, release_governance, complexity_budget, dogfooding),
 # v2.20 (functional_oracle), v2.21 (design_intelligence, token_ledger) — tutte opt-in, default false.
@@ -293,6 +295,10 @@ analytics:
     show_cache_savings: true
     auto_call_on_wave_close: false
     pricing_fallback: prefix-based
+  # Sprint Progress Signal (v2.30, EP-043 US-153) — opt-in sprint burndown signal.
+  sprint_progress:
+    enabled: false                        # opt-in EP-043 US-153 (R.P3 default off)
+    velocity_rolling_days: 7              # rolling window for TSK/day velocity
 
 # Temporal Budget Governor (v2.19, EP-014) — opt-in totale (R.P3).
 temporal:
@@ -301,6 +307,18 @@ temporal:
   p85_default_hours: 8
   override_allowed: true
   warn_on_skip: true
+  # Temporal Estimate Protocol (v2.30, EP-043) — opt-in, invocato post budget-governor pre-retry-wave.
+  estimate_protocol:
+    enabled: false
+    budget_ms:
+      S: 30000
+      M: 120000
+      L: 600000
+      XL: 1800000
+    thresholds:
+      warn_time_ratio: 0.6
+      escalate_time_ratio: 0.9
+      escalate_confidence_min: 0.7
 
 # Release Governance (v2.19, EP-012, PATTERN §22) — opt-in totale (R.P3).
 release_governance:
@@ -360,3 +378,96 @@ content_share:
     prototype: true
     analytics_report: true
     custom: true
+
+# --- opt-in capabilities added by factory-upgrade -> v2.42 (20260908); all disabled, no behavior change ---
+
+# Voice Channel Layer (v2.28, EP-041, PATTERN §30) — opt-in totale (R.P3).
+voice_channel:
+  enabled: false                 # opt-in EP-041; false = no dependency imported
+
+# Wiki Purpose — Semantic Purpose Layer (v2.37/v2.38, EP-055, PATTERN §34) — opt-in totale (R.P3).
+wiki_purpose:
+  enabled: false                 # opt-in EP-055; requires wiki/purpose.md
+
+# Wiki Sweep — Wiki Keeper 2.0 semantic sweep (v2.37/v2.38, EP-056, PATTERN §35) — opt-in totale (R.P3).
+wiki_sweep:
+  enabled: false                 # opt-in EP-056; false = pipeline identical to pre-EP-056
+  max_iterations: 3
+  confidence_min: 0.7
+  categories: [unsupported-claim, dangling-concept, terminology-drift]
+  use_purpose_md: true
+
+# Ponytail Decision Ladder (v2.39, EP-057, PATTERN §29.x) — opt-in totale (R.P3).
+# HARD DEP: passes.yagni_ladder requires code_quality.enabled: true.
+ponytail:
+  enabled: false                        # master switch EP-057
+  passes:
+    yagni_ladder: false                 # abilita Check 4ao + Pass 4 advisory
+  lint:
+    severity: warning                   # warning | info (forzato a info su code_path: ".")
+  audit:
+    exclude_patterns: []                # glob esclusi da /ponytail-audit
+
+# Factory-as-MCP-Server (v2.39, EP-058, PATTERN §29.x) — opt-in R.P3.
+# Read-only stdio server. R.MCP1 (non-bypassabile): nessun tool scrive su factory state.
+mcp_server:
+  enabled: false                        # R.P3 opt-in — false = factory identica a v2.38
+  server_script: "adapters/mcp/server.py"
+  transport: stdio
+  resources: [wiki, kanban, config]
+  tools: [query_wiki, get_task, lint_status]
+  mcp_spec_version: "2025-03-26"        # lock spec (ADR-MCP-004)
+
+# Code Intelligence Stack (v2.37, EP-054, PATTERN §33) — opt-in totale (R.P3).
+# L1 ctags + L2 tree-sitter/nomic-embed/LanceDB + L3 graphify. Zero SaaS.
+code_intelligence:
+  enabled: false                           # R.CI1 opt-in
+  l1_ctags:
+    enabled: false
+    languages: [python, typescript, javascript, java, go, rust, c, cpp]
+    side_channel: .ctags-state
+    extra_flags: []
+  l2_semantic:
+    enabled: false
+    embedding_model: nomic-embed-code
+    chunk_max_lines: 150
+    lancedb_path: .code-search/index.lance
+    exclude_patterns:
+      - "**/node_modules/**"
+      - "**/__pycache__/**"
+      - "**/vendor/**"
+      - "**/*.min.js"
+      - "**/*.generated.*"
+  l3_impact:
+    enabled: false
+    auto_run_on_dev: false
+    min_symbol_confidence: 0.7
+
+# Refactor Skill Layer / Fleet Health (v2.41, EP-060, PATTERN §36) — opt-in totale (R.P3).
+# R.FH1 opt-in | R.FH2 WARNING-only | R.FH3 fail-open
+refactor_agent_skills:
+  enabled: false                    # R.FH1 opt-in
+  default_target: "."
+  snapshot_dir: ".fleet-health/workspace"
+  reports_dir: ".fleet-health/reports"
+  thresholds:
+    error: 500
+    warning: 300
+    body_target: 250
+    leaf_min: 50
+    leaf_max: 250
+  sampling:
+    fan_in_floor: 5
+  injection_globs: []
+
+# Session Agentic Analyser (v2.42, EP-061, PATTERN §37) — opt-in totale (R.P3).
+# Determinism-first, LLM advisory. Solo out-of-band.
+session_analysis:
+  enabled: false          # opt-in, default off (R-SAA-5)
+  depth_default: quick    # quick|full
+  auto_on_session_end: false
+  read_transcript: false  # L2 opt-in
+  subagents_path: ""
+  schema_version_guard: true  # R-SAA-9 obbligatorio, non disabilitabile
+  anonymize_rules: [email, path, credentials]
+  max_token_budget: 1000
